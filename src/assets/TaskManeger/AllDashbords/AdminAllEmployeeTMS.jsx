@@ -1,0 +1,503 @@
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+
+function AdminAllEmployeeTMS() {
+  const [employees, setEmployees] = useState([]);
+  const [filteredTasks, setFilteredTasks] = useState([]);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(5);
+
+  // Safe guard for pagination dat
+  const tasks = Array.isArray(filteredTasks) ? filteredTasks : [];
+
+  const totalPages = Math.ceil(tasks.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentTasks = tasks.slice(indexOfFirstItem, indexOfLastItem);
+
+  const handlePageChange = (pageNumber) => {
+    if (pageNumber < 1 || pageNumber > totalPages) return;
+    setCurrentPage(pageNumber);
+  };
+
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      try {
+        const token = localStorage.getItem("accessToken");
+        const headers = { Authorization: `Bearer ${token}` };
+
+        // Fetch logged in user
+        const userRes = await axios.get("https://server-backend-nu.vercel.app/me", {
+          headers,
+        });
+        const user = userRes.data;
+
+        console.log("USER RESPONSE:", user);
+
+        const role = user.role;
+        const managerId = user._id; // for MongoDB
+
+        let url;
+
+        if (role === "manager") {
+          url = `https://server-backend-nu.vercel.app/managers/${managerId}/assigned-employees`;
+        } else {
+          url = "https://server-backend-nu.vercel.app/getAllEmployees";
+        }
+
+        const employeesRes = await axios.get(url, { headers });
+
+        console.log("Employees API response:", employeesRes.data);
+
+        // Safe assign response
+        const resData = Array.isArray(employeesRes.data)
+          ? employeesRes.data
+          : employeesRes.data.employees || employeesRes.data.data || [];
+
+        setEmployees(resData);
+        setFilteredTasks(resData);
+      } catch (error) {
+        console.error("Failed to fetch employees:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEmployees();
+  }, []);
+
+  if (loading) return <div style={{ padding: 20 }}>Loading employees...</div>;
+
+  const handleRowClick = (emp) => {
+    setSelectedEmployee(emp);
+  };
+
+  return (
+    <div className="container mt-4">
+      <h4 className="mb-3" style={{ fontWeight: "600", color: "#212529" }}>
+        All Employees Details
+      </h4>
+
+      <div className="card shadow-sm border-0">
+        <div className="table-responsive bg-white">
+          <table className="table table-hover mb-0">
+            <thead style={{ backgroundColor: "#ffffffff" }}>
+              <tr>
+                {/* <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Profile</th> */}
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Name
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Employee ID
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Email
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Mobile
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Designation
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Date of Joining
+                </th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {employees.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan="7"
+                    className="text-center py-4"
+                    style={{ color: "#212529" }}
+                  >
+                    No employees found.
+                  </td>
+                </tr>
+              ) : (
+                currentTasks.map((emp) => (
+                  <tr
+                    key={emp._id}
+                    style={{ cursor: "default" }}
+                    onClick={() => handleRowClick(emp)}
+                  >
+                    {/* <td style={{ padding: '12px', verticalAlign: 'middle', borderBottom: '1px solid #dee2e6' }}>
+                                            <img
+                                                src={emp.profileImage || "/myprofile.jpg"}
+                                                alt={emp.name}
+                                                style={{ width: "40px", height: "40px", borderRadius: "50%" }}
+                                            />
+                                        </td> */}
+                    <td
+                      style={{
+                        padding: "12px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        color: "#212529",
+                      }}
+                    >
+                      {emp.name || "-"}
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        color: "#212529",
+                      }}
+                    >
+                      {emp.employeeId || "-"}
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        color: "#212529",
+                      }}
+                    >
+                      {emp.email || "-"}
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        color: "#212529",
+                      }}
+                    >
+                      {emp.contact || "-"}
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        color: "#212529",
+                      }}
+                    >
+                      {emp.designation || "-"}
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        color: "#212529",
+                      }}
+                    >
+                      {emp.doj
+                        ? new Date(emp.doj).toLocaleDateString("en-GB")
+                        : "-"}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <nav className="d-flex align-items-center justify-content-end mt-3 text-muted">
+        <div className="d-flex align-items-center gap-3">
+          {/* Rows per page */}
+          <div className="d-flex align-items-center">
+            <span
+              style={{ fontSize: "14px", marginRight: "8px", color: "#212529" }}
+            >
+              Rows per page:
+            </span>
+            <select
+              className="form-select form-select-sm"
+              style={{ width: "auto", fontSize: "14px" }}
+              value={itemsPerPage}
+              onChange={(e) => {
+                setItemsPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+            </select>
+          </div>
+
+          {/* Range display */}
+          <span
+            style={{ fontSize: "14px", marginLeft: "16px", color: "#212529" }}
+          >
+            {filteredTasks.length === 0
+              ? "0–0 of 0"
+              : `${indexOfFirstItem + 1}-${indexOfLastItem} of ${
+                  filteredTasks.length
+                }`}
+          </span>
+
+          {/* Arrows */}
+          <div
+            className="d-flex align-items-center"
+            style={{ marginLeft: "16px" }}
+          >
+            <button
+              className="btn btn-sm border-0"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              style={{ fontSize: "18px", padding: "2px 8px", color: "#212529" }}
+            >
+              ‹
+            </button>
+            <button
+              className="btn btn-sm border-0"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              style={{ fontSize: "18px", padding: "2px 8px", color: "#212529" }}
+            >
+              ›
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Employee Detail Modal */}
+      {selectedEmployee && (
+        <div
+          className="modal fade show"
+          style={{
+            display: "flex",
+
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.5)",
+            position: "fixed",
+            inset: 0,
+            zIndex: 1050,
+          }}
+          onClick={() => setSelectedEmployee(null)}
+        >
+          <div
+            className="modal-dialog modal-dialog-scrollable"
+            style={{ maxWidth: "650px", width: "95%", marginTop: "120px" }}
+          >
+            <div className="modal-content">
+              <div
+                className="modal-header text-white"
+                style={{ backgroundColor: "#3A5FBE" }}
+              >
+                <h5 className="modal-title mb-0">Employee Details</h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setSelectedEmployee(null)}
+                />
+              </div>
+
+              <div className="modal-body py-2">
+                <div className="container-fluid">
+                  <div className="row mb-2">
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Employee Name
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {selectedEmployee?.name || ""}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-body py-2">
+                <div className="container-fluid">
+                  <div className="row mb-2">
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Employee ID
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {selectedEmployee?.employeeId || ""}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-body py-2">
+                <div className="container-fluid">
+                  <div className="row mb-2">
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Email
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {selectedEmployee?.email || ""}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-body py-2">
+                <div className="container-fluid">
+                  <div className="row mb-2">
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Mobile No
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {selectedEmployee?.contact || ""}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-body py-2">
+                <div className="container-fluid">
+                  <div className="row mb-2">
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Designation
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {selectedEmployee?.designation || ""}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-body py-2">
+                <div className="container-fluid">
+                  <div className="row mb-2">
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Date of Joining
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {selectedEmployee?.doj
+                        ? new Date(selectedEmployee.doj).toLocaleDateString(
+                            "en-GB"
+                          )
+                        : ""}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-footer border-0 pt-0">
+                <button
+                  className="btn btn-sm custom-outline-btn"
+                  onClick={() => setSelectedEmployee(null)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="text-end mt-3">
+        <button
+          className="btn btn-sm custom-outline-btn"
+          style={{ minWidth: 90 }}
+          onClick={() => window.history.go(-1)}
+        >
+          Back
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default AdminAllEmployeeTMS;
