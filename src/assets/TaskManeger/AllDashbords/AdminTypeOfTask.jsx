@@ -17,7 +17,6 @@ function AdminTypeOfTask() {
 
   const [errors, setErrors] = useState({});
 
-
   const openEdit = (item) => {
     setIsEditMode(true);
     setEditId(item._id);
@@ -30,10 +29,6 @@ function AdminTypeOfTask() {
 
     setShowModal(true);
   };
-
-
-
-
 
   const fetchTaskTypes = async () => {
     try {
@@ -51,13 +46,11 @@ function AdminTypeOfTask() {
   const validateStatusForm = () => {
     const newErrors = {};
 
-
     if (!newName || !newName.trim()) {
       newErrors.name = "Name is required";
     } else if (newName.trim().length < 3) {
       newErrors.name = "Name must be at least 3 characters";
     }
-
 
     if (!newDesc || !newDesc.trim()) {
       newErrors.desc = "Description is required";
@@ -65,9 +58,6 @@ function AdminTypeOfTask() {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
-
-
 
   const handleCreate = async (e) => {
     e.preventDefault();
@@ -105,16 +95,13 @@ function AdminTypeOfTask() {
     try {
       setLoading(true);
 
-      await axios.put(
-        `https://server-backend-nu.vercel.app/api/task-types/${editId}`,
-        {
-          name: newName.trim(),
-          description: newDesc?.trim() || "",
-          priority: newPriority,
-          isActive: newIsActive,
-          assignedDepartment: newAssignedDept?.trim() || "",
-        }
-      );
+      await axios.put(`https://server-backend-nu.vercel.app/api/task-types/${editId}`, {
+        name: newName.trim(),
+        description: newDesc?.trim() || "",
+        priority: newPriority,
+        isActive: newIsActive,
+        assignedDepartment: newAssignedDept?.trim() || "",
+      });
 
       setShowModal(false);
       setIsEditMode(false);
@@ -122,15 +109,11 @@ function AdminTypeOfTask() {
       resetForm();
       fetchTaskTypes();
     } catch (error) {
-      alert(
-        error?.response?.data?.message ||
-        "Failed to update task type"
-      );
+      alert(error?.response?.data?.message || "Failed to update task type");
     } finally {
       setLoading(false);
     }
   };
-
 
   const resetForm = () => {
     setNewName("");
@@ -182,22 +165,18 @@ function AdminTypeOfTask() {
   // };
 
   const handleDelete = async (id) => {
-    const ok = window.confirm("Are you sure you want to delete this task type?");
+    const ok = window.confirm(
+      "Are you sure you want to delete this task type?"
+    );
     if (!ok) return;
 
     try {
-      await axios.delete(
-        `https://server-backend-nu.vercel.app/api/task-types/${id}`
-      );
+      await axios.delete(`https://server-backend-nu.vercel.app/api/task-types/${id}`);
       fetchTaskTypes();
     } catch (error) {
-      alert(
-        error?.response?.data?.message ||
-        "Failed to delete task type"
-      );
+      alert(error?.response?.data?.message || "Failed to delete task type");
     }
   };
-
 
   const thStyle = useMemo(
     () => ({
@@ -263,99 +242,140 @@ function AdminTypeOfTask() {
       </div>
 
       {/* Table */}
-      <div className="card shadow-sm border-0 mt-3" >
+      <div className="card shadow-sm border-0 mt-3">
         <div className="table-responsive">
           <table className="table table-hover align-middle mb-0 bg-white">
             <thead style={{ backgroundColor: "#ffffffff" }}>
               <tr>
-                <th style={{
-                  width: "18%", fontWeight: "500",
-                  fontSize: "14px",
-                  color: "#6c757d",
-                  borderBottom: "2px solid #dee2e6",
-                  padding: "12px",
-                  whiteSpace: "nowrap",
-                  maxWidth: "220px"
-                }}>Name</th>
-                <th style={{
-                  width: "32%", fontWeight: "500",
-                  fontSize: "14px",
-                  color: "#6c757d",
-                  borderBottom: "2px solid #dee2e6",
-                  padding: "12px",
-                  whiteSpace: "nowrap",
+                <th
+                  style={{
+                    width: "18%",
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                    maxWidth: "220px",
+                  }}
+                >
+                  Name
+                </th>
+                <th
+                  style={{
+                    width: "32%",
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
 
-                  maxWidth: "220px"
-                }}>Description</th>
-                <th style={{
-                  fontWeight: "500",
-                  fontSize: "14px",
-                  color: "#6c757d",
-                  borderBottom: "2px solid #dee2e6",
-                  padding: "12px",
-                  whiteSpace: "nowrap",
-                  maxWidth: "220px",
-                }}>Priority</th>
-                <th style={{
-                  fontWeight: "500",
-                  fontSize: "14px",
-                  color: "#6c757d",
-                  borderBottom: "2px solid #dee2e6",
-                  padding: "12px",
-                  whiteSpace: "nowrap",
-                  maxWidth: "220px",
-                }}>Active</th>
-                <th style={{
-                  fontWeight: "500",
-                  fontSize: "14px",
-                  color: "#6c757d",
-                  borderBottom: "2px solid #dee2e6",
-                  padding: "12px",
-                  whiteSpace: "nowrap",
-                  maxWidth: "220px",
-                }}>Department</th>
+                    maxWidth: "220px",
+                  }}
+                >
+                  Description
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                    maxWidth: "220px",
+                  }}
+                >
+                  Priority
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                    maxWidth: "220px",
+                  }}
+                >
+                  Active
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                    maxWidth: "220px",
+                  }}
+                >
+                  Department
+                </th>
                 <th style={{ ...thStyle, width: "140px" }}>Action</th>
-
               </tr>
             </thead>
             <tbody>
               {items.map((item) => (
                 <tr key={item._id}>
-                  <td style={{
-                    padding: "12px",
-                    verticalAlign: "middle",
-                    fontSize: "14px",
-                    borderBottom: "1px solid #dee2e6",
-                    whiteSpace: "nowrap",
-                  }}>{item.name}</td>
-                  <td style={{
-                    padding: "12px",
-                    verticalAlign: "middle",
-                    fontSize: "14px",
-                    borderBottom: "1px solid #dee2e6",
-                    whiteSpace: "nowrap",
-                  }}>{item.description || "-"}</td>
-                  <td style={{
-                    padding: "12px",
-                    verticalAlign: "middle",
-                    fontSize: "14px",
-                    borderBottom: "1px solid #dee2e6",
-                    whiteSpace: "nowrap",
-                  }}>{item.priority}</td>
-                  <td style={{
-                    padding: "12px",
-                    verticalAlign: "middle",
-                    fontSize: "14px",
-                    borderBottom: "1px solid #dee2e6",
-                    whiteSpace: "nowrap",
-                  }}>{item.isActive ? "Yes" : "No"}</td>
-                  <td style={{
-                    padding: "12px",
-                    verticalAlign: "middle",
-                    fontSize: "14px",
-                    borderBottom: "1px solid #dee2e6",
-                    whiteSpace: "nowrap",
-                  }}>{item.assignedDepartment || "-"}</td>
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {item.name}
+                  </td>
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {item.description || "-"}
+                  </td>
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {item.priority}
+                  </td>
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {item.isActive ? "Yes" : "No"}
+                  </td>
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {item.assignedDepartment || "-"}
+                  </td>
 
                   <td style={tdStyle}>
                     <div className="d-flex gap-2">
@@ -381,9 +401,6 @@ function AdminTypeOfTask() {
                     </div>
                   </td>
                 </tr>
-
-
-
               ))}
 
               {items.length === 0 && (
@@ -396,14 +413,15 @@ function AdminTypeOfTask() {
             </tbody>
           </table>
         </div>
-
       </div>
       {/* Pgination code start */}
       <nav className="d-flex align-items-center justify-content-end mt-3 text-muted">
         <div className="d-flex align-items-center gap-3">
           {/* Rows per page */}
           <div className="d-flex align-items-center">
-            <span style={{ fontSize: "14px", marginRight: "8px", color: "#212529" }}>
+            <span
+              style={{ fontSize: "14px", marginRight: "8px", color: "#212529" }}
+            >
               Rows per page:
             </span>
 
@@ -423,14 +441,22 @@ function AdminTypeOfTask() {
           </div>
 
           {/* Range display */}
-          <span style={{ fontSize: "14px", marginLeft: "16px", color: "#212529" }}>
+          <span
+            style={{ fontSize: "14px", marginLeft: "16px", color: "#212529" }}
+          >
             {totalItems === 0
               ? "0-0 of 0"
-              : `${indexOfFirstItem + 1}-${Math.min(indexOfLastItem, totalItems)} of ${totalItems}`}
+              : `${indexOfFirstItem + 1}-${Math.min(
+                  indexOfLastItem,
+                  totalItems
+                )} of ${totalItems}`}
           </span>
 
           {/* Arrows */}
-          <div className="d-flex align-items-center" style={{ marginLeft: "16px" }}>
+          <div
+            className="d-flex align-items-center"
+            style={{ marginLeft: "16px" }}
+          >
             <button
               className="btn btn-sm border-0"
               type="button"
@@ -464,7 +490,6 @@ function AdminTypeOfTask() {
         </div>
       </nav>
 
-
       {/* Modal */}
       {showModal && (
         <div
@@ -489,7 +514,9 @@ function AdminTypeOfTask() {
                   justifyContent: "space-between",
                 }}
               >
-                <span>{isEditMode ? "Edit Task Type" : "Add New Task Type"}</span>
+                <span>
+                  {isEditMode ? "Edit Task Type" : "Add New Task Type"}
+                </span>
 
                 <button
                   onClick={() => {
@@ -509,7 +536,6 @@ function AdminTypeOfTask() {
               </div>
 
               <form
-
                 onSubmit={(e) => {
                   e.preventDefault();
                   if (!validateStatusForm()) return;
@@ -530,9 +556,10 @@ function AdminTypeOfTask() {
                           setErrors({ ...errors, name: "" });
                         }
                       }}
-
                     />
-                    {errors.name && <small className="text-danger">{errors.name}</small>}
+                    {errors.name && (
+                      <small className="text-danger">{errors.name}</small>
+                    )}
                   </div>
 
                   <div className="col-md-6 mb-3">
@@ -564,18 +591,22 @@ function AdminTypeOfTask() {
                       }
                     }}
                   />
-                  
-                  {errors.desc && <small className="text-danger">{errors.desc}</small>}
-                  <div className="char-count"
+
+                  {errors.desc && (
+                    <small className="text-danger">{errors.desc}</small>
+                  )}
+                  <div
+                    className="char-count"
                     style={{
                       display: "flex",
                       justifyContent: "flex-end",
                       fontSize: "12px",
                       color: "#6c757d",
                       marginTop: "4px",
-                    }}>
-                    {newDesc.length}/200</div>
-
+                    }}
+                  >
+                    {newDesc.length}/200
+                  </div>
                 </div>
 
                 <div className="row">
@@ -603,7 +634,8 @@ function AdminTypeOfTask() {
 
                 <div className="custom-modal-footer">
                   <button
-                    type="button" className="btn  btn-sm custom-outline-btn"
+                    type="button"
+                    className="btn  btn-sm custom-outline-btn"
                     onClick={() => setShowModal(false)}
                   >
                     Cancel
@@ -619,9 +651,7 @@ function AdminTypeOfTask() {
               </form>
             </div>
           </div>
-
         </div>
-
       )}
 
       <div className="text-end mt-3">

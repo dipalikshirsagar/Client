@@ -36,7 +36,7 @@ const EmployeeTaskTMS = ({ user }) => {
         setFilteredTasks(apiTasks);
         calculateStats(apiTasks);
         const activeTask = apiTasks.find(
-          (task) => task.timeTracking && task.timeTracking.isRunning
+          (task) => task.timeTracking && task.timeTracking.isRunning,
         );
         if (activeTask) {
           setActiveTimer({
@@ -57,7 +57,7 @@ const EmployeeTaskTMS = ({ user }) => {
       interval = setInterval(() => {
         const now = new Date();
         const elapsedSeconds = Math.floor(
-          (now - new Date(activeTimer.startTime)) / 1000
+          (now - new Date(activeTimer.startTime)) / 1000,
         );
         setTimerSeconds(activeTimer.totalSeconds + elapsedSeconds);
       }, 1000);
@@ -113,7 +113,7 @@ const EmployeeTaskTMS = ({ user }) => {
     if (!ref?.current) return;
 
     const focusable = ref.current.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
     );
 
     const first = focusable[0];
@@ -187,7 +187,7 @@ const EmployeeTaskTMS = ({ user }) => {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ status: updatedStatus }),
-        }
+        },
       );
 
       const data = await res.json();
@@ -204,7 +204,7 @@ const EmployeeTaskTMS = ({ user }) => {
       const updatedAllTasks = allTasks.map((task) =>
         task._id === selectedTask._id
           ? { ...task, status: data.task.status.name }
-          : task
+          : task,
       );
 
       setAllTasks(updatedAllTasks);
@@ -283,7 +283,7 @@ const EmployeeTaskTMS = ({ user }) => {
   const totalPages = Math.ceil(filteredTasks.length / itemsPerPage);
   const indexOfLastItem = Math.min(
     currentPage * itemsPerPage,
-    filteredTasks.length
+    filteredTasks.length,
   );
   const indexOfFirstItem = (currentPage - 1) * itemsPerPage;
   const currentTasks = filteredTasks.slice(indexOfFirstItem, indexOfLastItem);
@@ -324,7 +324,7 @@ const EmployeeTaskTMS = ({ user }) => {
       // 🔹 Call backend API
       const res = await axios.post(
         `https://server-backend-nu.vercel.app/task/${commentModalTask._id}/comment`,
-        { comment: newComment }
+        { comment: newComment },
       );
 
       // 🔹 Update task list with new comment
@@ -407,7 +407,7 @@ const EmployeeTaskTMS = ({ user }) => {
 
     try {
       const response = await axios.post(
-        `https://server-backend-nu.vercel.app/task/${taskId}/start`
+        `https://server-backend-nu.vercel.app/task/${taskId}/start`,
       );
       if (response.data.success) {
         setActiveTimer({
@@ -426,12 +426,12 @@ const EmployeeTaskTMS = ({ user }) => {
   const handleStopTimer = async (taskId) => {
     try {
       const response = await axios.post(
-        `https://server-backend-nu.vercel.app/task/${taskId}/stop`
+        `https://server-backend-nu.vercel.app/task/${taskId}/stop`,
       );
       if (response.data.success) {
         setActiveTimer(null);
         alert(
-          `Task timer stopped! Session: ${response.data.currentSession.formatted}\nTotal: ${response.data.totalTime.formatted}`
+          `Task timer stopped! Session: ${response.data.currentSession.formatted}\nTotal: ${response.data.totalTime.formatted}`,
         );
       }
     } catch (error) {
@@ -471,7 +471,7 @@ const EmployeeTaskTMS = ({ user }) => {
     //dip code start
     if (activeTimer && activeTimer.taskId !== task._id) {
       alert(
-        "Please stop the currently running task before starting another one."
+        "Please stop the currently running task before starting another one.",
       );
       return;
     }
@@ -482,7 +482,7 @@ const EmployeeTaskTMS = ({ user }) => {
           task.status === "In Progress"
             ? "Task is already started"
             : "Task is already completed"
-        }`
+        }`,
       );
       return;
     }
@@ -500,7 +500,7 @@ const EmployeeTaskTMS = ({ user }) => {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ status: inProgressStatusId }),
-        }
+        },
       );
 
       if (!statusRes.ok) throw new Error("Failed to update status");
@@ -515,7 +515,7 @@ const EmployeeTaskTMS = ({ user }) => {
               statusId: data.task.status._id,
               status: data.task.status.name,
             }
-          : t
+          : t,
       );
 
       setAllTasks(updatedAllTasks);
@@ -563,7 +563,7 @@ const EmployeeTaskTMS = ({ user }) => {
               statusId: data.task.status._id,
               status: data.task.status.name,
             }
-          : t
+          : t,
       );
 
       setAllTasks(updatedAllTasks);
@@ -1282,12 +1282,42 @@ const EmployeeTaskTMS = ({ user }) => {
                             isTimerRunning(task._id)
                               ? "Timer already running"
                               : task.status === "Completed"
-                              ? "Task completed"
-                              : "Start task & timer"
+                                ? "Task completed"
+                                : "Start task & timer"
                           }
                         >
                           Start
                         </button>
+
+                        {/* rutuja code start*/}
+                        <button
+                          className={`btn btn-sm ${isTimerRunning(task._id) ? "btn-danger" : "btn-warning"}`}
+                          style={{
+                            fontSize: "12px",
+                            padding: "4px 8px",
+                            width: "70px",
+                            textAlign: "center",
+                            opacity: task.status !== "In Progress" ? 0.5 : 1,
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (isTimerRunning(task._id)) {
+                              handleStopTimer(task._id);
+                            } else {
+                              handleStartTimer(task._id);
+                            }
+                          }}
+                          disabled={task.status !== "In Progress"}
+                          title={
+                            isTimerRunning(task._id)
+                              ? "Click to stop timer"
+                              : "Click to restart timer"
+                          }
+                        >
+                          {isTimerRunning(task._id) ? "Stop" : "Restart"}
+                        </button>
+
+                        {/* rutuja code end */}
 
                         {/* comp task button*/}
                         <button
@@ -1318,8 +1348,8 @@ const EmployeeTaskTMS = ({ user }) => {
                             task.status === "Completed"
                               ? "Already completed"
                               : task.status !== "In Progress"
-                              ? "Please start the task first"
-                              : "Complete task"
+                                ? "Please start the task first"
+                                : "Complete task"
                           }
                         >
                           Complete
@@ -1432,8 +1462,8 @@ const EmployeeTaskTMS = ({ user }) => {
           }}
         >
           <div
-            className="modal-dialog modal-dialog-scrollable"
-            style={{ maxWidth: "650px", width: "95%", marginTop: "200px" }}
+            className="modal-dialog "
+            style={{ maxWidth: "650px", width: "95%", marginTop: "120px" }}
           >
             <div className="modal-content">
               <div
@@ -1627,9 +1657,14 @@ const EmployeeTaskTMS = ({ user }) => {
                               ].includes(status.name);
                             }
 
+                            if (currentStatus === "Assigned") {
+                              return ["Hold", "Cancelled"].includes(
+                                status.name,
+                              );
+                            }
                             //  Other statuses - normal workflow
                             return !["Assignment Pending"].includes(
-                              status.name
+                              status.name,
                             );
                           })
                           .map((status) => (
@@ -1675,7 +1710,7 @@ const EmployeeTaskTMS = ({ user }) => {
                                   <small className="text-muted">
                                     {comment.createdAt
                                       ? new Date(
-                                          comment.createdAt
+                                          comment.createdAt,
                                         ).toLocaleDateString("en-GB")
                                       : ""}
                                   </small>

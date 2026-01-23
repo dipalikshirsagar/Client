@@ -56,8 +56,8 @@
 //     <div className="full-screen-container forgot-bg">
 //       <div className="login-container">
 //         <div className="login-form-container">
-//           <img src="/emscwslogo.png" 
-//           style={{ width: "170px", height: "67px" }} 
+//           <img src="/emscwslogo.png"
+//           style={{ width: "170px", height: "67px" }}
 //           alt="Logo" />
 
 //           <h1 className="login-subtitle">Set Your Password</h1>
@@ -67,7 +67,7 @@
 //               <label>Password</label>
 //               <input
 //                 type="password"
-               
+
 //                 value={password}
 //                 onChange={(e) => setPassword(e.target.value)}
 //                 required
@@ -77,7 +77,7 @@
 //               <label>Confirm Password</label>
 //               <input
 //                 type="password"
-               
+
 //                 value={confirmPassword}
 //                 onChange={(e) => setConfirmPassword(e.target.value)}
 //                 required
@@ -99,8 +99,6 @@
 // };
 
 // export default EmployeeVerify;
-
-
 
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
@@ -208,9 +206,7 @@ const EmployeeVerify = () => {
               />
               <FontAwesomeIcon
                 icon={showConfirmPassword ? faEyeSlash : faEye}
-                onClick={() =>
-                  setShowConfirmPassword(!showConfirmPassword)
-                }
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 style={{
                   position: "absolute",
                   right: "10px",

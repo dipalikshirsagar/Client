@@ -39,7 +39,7 @@ function AdminAllEmployeeTMS() {
         console.log("USER RESPONSE:", user);
 
         const role = user.role;
-        const managerId = user._id; // for MongoDB
+        const managerId = user._id;
 
         let url;
 
@@ -53,13 +53,29 @@ function AdminAllEmployeeTMS() {
 
         console.log("Employees API response:", employeesRes.data);
 
-        // Safe assign response
+        // Normalize response
         const resData = Array.isArray(employeesRes.data)
           ? employeesRes.data
           : employeesRes.data.employees || employeesRes.data.data || [];
 
-        setEmployees(resData);
-        setFilteredTasks(resData);
+        // 1. Filter only active employees
+        const activeEmployees = resData.filter((e) => !e.isDeleted);
+
+        // 2. Allowed roles
+        const allowedRoles = ["hr", "manager", "employee", "it_support"];
+
+        // 3. Filter by allowed roles
+        const allowedEmployees = activeEmployees.filter((e) =>
+          allowedRoles.includes(e.role?.toLowerCase()),
+        );
+
+        // Optional: Count
+        const totalEmployeeCount = allowedEmployees.length;
+        console.log("Total Employees:", totalEmployeeCount);
+
+        // Set states
+        setEmployees(allowedEmployees);
+        setFilteredTasks(allowedEmployees);
       } catch (error) {
         console.error("Failed to fetch employees:", error);
       } finally {
@@ -466,7 +482,7 @@ function AdminAllEmployeeTMS() {
                     >
                       {selectedEmployee?.doj
                         ? new Date(selectedEmployee.doj).toLocaleDateString(
-                            "en-GB"
+                            "en-GB",
                           )
                         : ""}
                     </div>

@@ -1,8 +1,6 @@
-
-
 import React, { useState, useEffect } from "react";
 import RichTextEditor from "./RichTextEditor";
-import "./AdminCareer.css"
+import "./AdminCareer.css";
 import axios from "axios";
 
 function AdminCareer({ user }) {
@@ -42,17 +40,15 @@ function AdminCareer({ user }) {
     jobDescription: "",
     ctc: {
       min: "",
-      max: ""
+      max: "",
     },
     experience: {
       min: "",
-      max: ""
+      max: "",
     },
     importantSkills: [],
-    status: "Active"
+    status: "Active",
   });
-
-
 
   useEffect(() => {
     fetchJobs();
@@ -61,7 +57,6 @@ function AdminCareer({ user }) {
   useEffect(() => {
     applyFilters();
   }, [activeTab, jobs]);
-
 
   const fetchJobs = async () => {
     try {
@@ -75,20 +70,21 @@ function AdminCareer({ user }) {
   };
 
   useEffect(() => {
-    const temp = jobs.filter(j => j.jobType === activeTab || j.jobType === "both");
+    const temp = jobs.filter(
+      (j) => j.jobType === activeTab || j.jobType === "both"
+    );
     setFilteredJobs(temp);
   }, [activeTab, jobs]);
   const formatDate = (dateString) =>
     new Intl.DateTimeFormat("en-GB", {
       day: "2-digit",
       month: "short",
-      year: "numeric"
+      year: "numeric",
     }).format(new Date(dateString));
 
   async function handleSaveJob(e) {
     e.preventDefault();
     try {
-
       const payload = {
         jobTitle: newJob.jobTitle,
         department: newJob.department,
@@ -101,14 +97,14 @@ function AdminCareer({ user }) {
         jobDescription: newJob.jobDescription,
         ctc: {
           min: newJob.ctc.min,
-          max: newJob.ctc.max
+          max: newJob.ctc.max,
         },
         experience: {
           min: newJob.experience.min,
-          max: newJob.experience.max
+          max: newJob.experience.max,
         },
         importantSkills: newJob.importantSkills,
-        status: "Active"
+        status: "Active",
       };
       console.log("payload", payload);
       let res;
@@ -148,27 +144,25 @@ function AdminCareer({ user }) {
         jobDescription: "",
         ctc: {
           min: "",
-          max: ""
+          max: "",
         },
         experience: {
           min: "",
-          max: ""
+          max: "",
         },
         importantSkills: [],
-        status: ""
+        status: "",
       });
       alert(editJobId ? "Job updated" : "Job created");
       setEditJobId(null);
-
     } catch (error) {
       console.error("Submit failed:", error.response?.data || error.message);
       alert("Operation failed");
     }
-  };
-
+  }
 
   const handleEdit = (job) => {
-    console.log("jobs from handle edit", job)
+    console.log("jobs from handle edit", job);
     setEditJobId(job._id);
     setShowAddJob(true);
     setEditMode(true);
@@ -184,20 +178,20 @@ function AdminCareer({ user }) {
       jobDescription: job?.jobDescription || "",
       ctc: {
         min: job?.ctc?.min || "",
-        max: job?.ctc?.max || ""
+        max: job?.ctc?.max || "",
       },
       experience: {
         min: job?.experience?.min || "",
-        max: job?.experience?.max || ""
+        max: job?.experience?.max || "",
       },
       importantSkills: Array.isArray(job?.importantSkills)
         ? job.importantSkills
         : typeof job?.importantSkills === "string"
-          ? job.importantSkills.split(",").map(s => s.trim())
-          : [],
-      status: job?.status || ""
+        ? job.importantSkills.split(",").map((s) => s.trim())
+        : [],
+      status: job?.status || "",
     });
-    console.log("new Job from edit", newJob)
+    console.log("new Job from edit", newJob);
   };
 
   async function handleDelete(id) {
@@ -210,7 +204,7 @@ function AdminCareer({ user }) {
       alert("Failed to delete job");
       console.log("error", error.message);
     }
-  };
+  }
 
   //   const applyFilters = () => {
   //   let temp = [...jobs];
@@ -234,12 +228,12 @@ function AdminCareer({ user }) {
   // };
   const applyFilters = () => {
     let temp = jobs.filter(
-      job => job.jobType === activeTab || job.jobType === "both"
+      (job) => job.jobType === activeTab || job.jobType === "both"
     );
 
     // Status Filter
     if (statusFilter !== "All") {
-      temp = temp.filter(job => job.status === statusFilter);
+      temp = temp.filter((job) => job.status === statusFilter);
     }
 
     // Created Date Filter
@@ -247,7 +241,7 @@ function AdminCareer({ user }) {
       const fromDate = new Date(assignDateFromFilter);
       fromDate.setHours(0, 0, 0, 0);
 
-      temp = temp.filter(job => {
+      temp = temp.filter((job) => {
         const created = new Date(job.createdAt);
         created.setHours(0, 0, 0, 0);
         return created >= fromDate;
@@ -259,7 +253,7 @@ function AdminCareer({ user }) {
       const toDate = new Date(assignDateToFilter);
       toDate.setHours(23, 59, 59, 999);
 
-      temp = temp.filter(job => {
+      temp = temp.filter((job) => {
         const due = new Date(job.dueOn);
         due.setHours(0, 0, 0, 0);
         return due <= toDate;
@@ -273,15 +267,12 @@ function AdminCareer({ user }) {
   const getApplicantsInfo = async (jobId) => {
     try {
       setLoadingApplicants(true);
-      const res = await fetch(
-        `https://server-backend-nu.vercel.app/api/apply/job/${jobId}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json"
-          }
-        }
-      );
+      const res = await fetch(`https://server-backend-nu.vercel.app/api/apply/job/${jobId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
       if (!res.ok) {
         throw new Error("Failed to fetch applicants");
@@ -296,7 +287,6 @@ function AdminCareer({ user }) {
     }
   };
 
-
   // const resetFilters = () => {
   //   setStatusFilter("All");
   //   setAssignDateFromFilter("");
@@ -310,7 +300,7 @@ function AdminCareer({ user }) {
     setAssignDateToFilter("");
 
     const temp = jobs.filter(
-      job => job.jobType === activeTab || job.jobType === "both"
+      (job) => job.jobType === activeTab || job.jobType === "both"
     );
 
     setFilteredJobs(temp);
@@ -323,7 +313,10 @@ function AdminCareer({ user }) {
   };
   // Pagination logic
   const totalPages = Math.ceil(filteredJobs.length / itemsPerPage);
-  const indexOfLastItem = Math.min(currentPage * itemsPerPage, filteredJobs.length);
+  const indexOfLastItem = Math.min(
+    currentPage * itemsPerPage,
+    filteredJobs.length
+  );
   const indexOfFirstItem = (currentPage - 1) * itemsPerPage;
   const currentJobs = filteredJobs.slice(indexOfFirstItem, indexOfLastItem);
 
@@ -337,7 +330,7 @@ function AdminCareer({ user }) {
     if (pageNumber < 1 || pageNumber > totalPages) return;
     setCurrentPage(pageNumber);
   };
-  console.log("applicants ", applicants)
+  console.log("applicants ", applicants);
   async function handleStatusChange(applicationId, newStatus) {
     try {
       await axios.put(`https://server-backend-nu.vercel.app/api/apply/${applicationId}`, {
@@ -355,15 +348,17 @@ function AdminCareer({ user }) {
 
     // popup close
     setOpenStatusId(null);
-  };
+  }
 
   return (
     <div className="container-fluid ">
-
       <div className="d-flex justify-content-between mb-3">
-        <h2 style={{ color: "#3A5FBE", fontSize: "25px", marginLeft: "15px" }}>Jobs</h2>
+        <h2 style={{ color: "#3A5FBE", fontSize: "25px", marginLeft: "15px" }}>
+          Jobs
+        </h2>
         {["hr", "admin"].includes(userRole) && (
-          <button className="btn btn-sm custom-outline-btn"
+          <button
+            className="btn btn-sm custom-outline-btn"
             onClick={() => {
               setNewJob({
                 jobTitle: "",
@@ -377,17 +372,18 @@ function AdminCareer({ user }) {
                 jobDescription: "",
                 ctc: {
                   min: "",
-                  max: ""
+                  max: "",
                 },
                 experience: {
                   min: "",
-                  max: ""
+                  max: "",
                 },
                 importantSkills: [],
-                status: ""
+                status: "",
               });
-              setShowAddJob(true)
-            }}>
+              setShowAddJob(true);
+            }}
+          >
             + Add Job
           </button>
         )}
@@ -400,15 +396,20 @@ function AdminCareer({ user }) {
             onSubmit={handleFilterSubmit}
             style={{ justifyContent: "space-between" }}
           >
-
             <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
-              <label htmlFor="statusFilter" className="fw-bold mb-0" style={{ fontSize: "16px", color: "#3A5FBE" }}>Status</label>
+              <label
+                htmlFor="statusFilter"
+                className="fw-bold mb-0"
+                style={{ fontSize: "16px", color: "#3A5FBE" }}
+              >
+                Status
+              </label>
               <select
                 id="statusFilter"
                 className="form-select"
                 style={{ minWidth: 120 }}
                 value={statusFilter}
-                onChange={e => setStatusFilter(e.target.value)}
+                onChange={(e) => setStatusFilter(e.target.value)}
               >
                 <option value="All">All</option>
                 <option value="Active">Active</option>
@@ -418,25 +419,42 @@ function AdminCareer({ user }) {
             </div>
 
             <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
-              <label htmlFor="assignDateFromFilter" className="fw-bold mb-0" style={{ fontSize: "16px", color: "#3A5FBE", width: "130px" }}>Posted Date</label>
+              <label
+                htmlFor="assignDateFromFilter"
+                className="fw-bold mb-0"
+                style={{ fontSize: "16px", color: "#3A5FBE", width: "130px" }}
+              >
+                Posted Date
+              </label>
               <input
                 id="assignDateFromFilter"
                 type="date"
                 className="form-control"
                 value={assignDateFromFilter}
-                onChange={e => setAssignDateFromFilter(e.target.value)}
+                onChange={(e) => setAssignDateFromFilter(e.target.value)}
                 style={{ minWidth: 300 }}
               />
             </div>
 
             <div className="col-12 col-md-auto d-flex align-items-center mb-1">
-              <label htmlFor="assignDateToFilter" className="fw-bold mb-0" style={{ fontSize: "16px", color: "#3A5FBE", marginRight: "8px", width: "100px" }}>Due On</label>
+              <label
+                htmlFor="assignDateToFilter"
+                className="fw-bold mb-0"
+                style={{
+                  fontSize: "16px",
+                  color: "#3A5FBE",
+                  marginRight: "8px",
+                  width: "100px",
+                }}
+              >
+                Due On
+              </label>
               <input
                 id="assignDateToFilter"
                 type="date"
                 className="form-control"
                 value={assignDateToFilter}
-                onChange={e => setAssignDateToFilter(e.target.value)}
+                onChange={(e) => setAssignDateToFilter(e.target.value)}
                 style={{ minWidth: 300 }}
               />
             </div>
@@ -463,11 +481,23 @@ function AdminCareer({ user }) {
       </div>
 
       <div className="d-flex gap-2 mb-3">
-        <button className={`btn btn-sm job-tab-btn ${activeTab === "inhouse" ? "active" : ""}`} onClick={() => setActiveTab("inhouse")}
-        >  In-House Jobs
+        <button
+          className={`btn btn-sm job-tab-btn ${
+            activeTab === "inhouse" ? "active" : ""
+          }`}
+          onClick={() => setActiveTab("inhouse")}
+        >
+          {" "}
+          In-House Jobs
         </button>
-        <button className={`btn btn-sm job-tab-btn ${activeTab === "referral" ? "active" : ""}`} onClick={() => setActiveTab("referral")}
-        > Open for Referral
+        <button
+          className={`btn btn-sm job-tab-btn ${
+            activeTab === "referral" ? "active" : ""
+          }`}
+          onClick={() => setActiveTab("referral")}
+        >
+          {" "}
+          Open for Referral
         </button>
       </div>
 
@@ -476,60 +506,224 @@ function AdminCareer({ user }) {
           <table className="table table-hover mb-0">
             <thead style={{ backgroundColor: "#ffffffff" }}>
               <tr>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Job Title</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Department</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Location</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Openings</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Created</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Due On</th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Job Title
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Department
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Location
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Openings
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Created
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Due On
+                </th>
                 {/* {["hr", "admin"].includes(userRole) && (
                     <>  */}
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Action</th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Action
+                </th>
                 {/* </>
               )} */}
               </tr>
             </thead>
-            <tbody> {currentJobs.length === 0 ? (
-              <tr>
-                <td colSpan="4" className="text-center py-4" style={{ color: "#212529" }}>
-                  No jobs found.
-                </td>
-              </tr>
-            ) : (
-              currentJobs.map(job => (
-                <tr key={job._id}>
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', color: "#212529" }}>{job.jobTitle}</td>
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', color: "#212529" }}>{job.department}</td>
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', color: "#212529" }}>{job.location}</td>
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', color: "#212529" }}>{job.noOfOpenings}</td>
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', color: "#212529" }}>{formatDate(job.createdAt)}</td>
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', color: "#212529" }}>{formatDate(job.dueOn)}</td>
-                  <td>
-                    <button className="btn btn-sm custom-outline-btn" style={{ marginRight: "10px" }}
-                      onClick={() => {
-                        // console.log("VIEW CLICKED", job);
-                        // setViewJob(job);
-                        // getApplicantsInfo(job._id);
-                        // setShowViewPopup(true);
-                        setApplicants([]);
-                        setViewJob(job);
-                        setActiveViewTab("details");
-                        setShowViewPopup(true);
-                        getApplicantsInfo(job._id);
-                      }}
-                    >
-                      View
-                    </button>
-                    {["hr", "admin"].includes(userRole) && (
-                      <>
-                        <button className="btn btn-sm custom-outline-btn me-2"
-                          onClick={(e) => { e.stopPropagation(); handleEdit(job) }}>Edit</button>
-                        <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(job._id)}>Delete</button>
-                      </>
-                    )}
+            <tbody>
+              {" "}
+              {currentJobs.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan="4"
+                    className="text-center py-4"
+                    style={{ color: "#212529" }}
+                  >
+                    No jobs found.
                   </td>
                 </tr>
-              )))}
+              ) : (
+                currentJobs.map((job) => (
+                  <tr key={job._id}>
+                    <td
+                      style={{
+                        padding: "12px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                        color: "#212529",
+                      }}
+                    >
+                      {job.jobTitle}
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                        color: "#212529",
+                      }}
+                    >
+                      {job.department}
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                        color: "#212529",
+                      }}
+                    >
+                      {job.location}
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                        color: "#212529",
+                      }}
+                    >
+                      {job.noOfOpenings}
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                        color: "#212529",
+                      }}
+                    >
+                      {formatDate(job.createdAt)}
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                        color: "#212529",
+                      }}
+                    >
+                      {formatDate(job.dueOn)}
+                    </td>
+                    <td>
+                      <button
+                        className="btn btn-sm custom-outline-btn"
+                        style={{ marginRight: "10px" }}
+                        onClick={() => {
+                          // console.log("VIEW CLICKED", job);
+                          // setViewJob(job);
+                          // getApplicantsInfo(job._id);
+                          // setShowViewPopup(true);
+                          setApplicants([]);
+                          setViewJob(job);
+                          setActiveViewTab("details");
+                          setShowViewPopup(true);
+                          getApplicantsInfo(job._id);
+                        }}
+                      >
+                        View
+                      </button>
+                      {["hr", "admin"].includes(userRole) && (
+                        <>
+                          <button
+                            className="btn btn-sm custom-outline-btn me-2"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEdit(job);
+                            }}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="btn btn-sm btn-outline-danger"
+                            onClick={() => handleDelete(job._id)}
+                          >
+                            Delete
+                          </button>
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -538,7 +732,11 @@ function AdminCareer({ user }) {
         <div className="d-flex align-items-center gap-3">
           {/* Rows per page */}
           <div className="d-flex align-items-center">
-            <span style={{ fontSize: "14px", marginRight: "8px", color: "#212529" }}>Rows per page:</span>
+            <span
+              style={{ fontSize: "14px", marginRight: "8px", color: "#212529" }}
+            >
+              Rows per page:
+            </span>
             <select
               className="form-select form-select-sm"
               style={{ width: "auto", fontSize: "14px" }}
@@ -555,14 +753,21 @@ function AdminCareer({ user }) {
           </div>
 
           {/* Range display */}
-          <span style={{ fontSize: "14px", marginLeft: "16px", color: "#212529" }}>
+          <span
+            style={{ fontSize: "14px", marginLeft: "16px", color: "#212529" }}
+          >
             {filteredJobs.length === 0
               ? "0–0 of 0"
-              : `${indexOfFirstItem + 1}-${indexOfLastItem} of ${filteredJobs.length}`}
+              : `${indexOfFirstItem + 1}-${indexOfLastItem} of ${
+                  filteredJobs.length
+                }`}
           </span>
 
           {/* Arrows */}
-          <div className="d-flex align-items-center" style={{ marginLeft: "16px" }}>
+          <div
+            className="d-flex align-items-center"
+            style={{ marginLeft: "16px" }}
+          >
             <button
               className="btn btn-sm border-0"
               onClick={() => handlePageChange(currentPage - 1)}
@@ -594,7 +799,7 @@ function AdminCareer({ user }) {
                   padding: "16px 20px",
                   fontSize: "20px",
                   fontWeight: "600",
-                  borderRadius: "6px 6px 0 0"
+                  borderRadius: "6px 6px 0 0",
                 }}
               >
                 {editJobId ? "Edit Job" : "Add Job"}
@@ -602,10 +807,6 @@ function AdminCareer({ user }) {
 
               <div className="modal-body job-form">
                 <form onSubmit={handleSaveJob}>
-
-
-
-
                   <h5 className="section-title">Basic Information</h5>
 
                   <div className="row">
@@ -615,7 +816,9 @@ function AdminCareer({ user }) {
                         type="text"
                         placeholder="Enter title"
                         value={newJob.jobTitle}
-                        onChange={e => setNewJob({ ...newJob, jobTitle: e.target.value })}
+                        onChange={(e) =>
+                          setNewJob({ ...newJob, jobTitle: e.target.value })
+                        }
                       />
                     </div>
                   </div>
@@ -625,7 +828,9 @@ function AdminCareer({ user }) {
                       <label>Department</label>
                       <select
                         value={newJob.department}
-                        onChange={e => setNewJob({ ...newJob, department: e.target.value })}
+                        onChange={(e) =>
+                          setNewJob({ ...newJob, department: e.target.value })
+                        }
                       >
                         <option value="">Select Department</option>
                         <option>IT</option>
@@ -639,7 +844,9 @@ function AdminCareer({ user }) {
                       <label>Grade</label>
                       <select
                         value={newJob.grade}
-                        onChange={e => setNewJob({ ...newJob, grade: e.target.value })}
+                        onChange={(e) =>
+                          setNewJob({ ...newJob, grade: e.target.value })
+                        }
                       >
                         <option value="">Select Grade</option>
                         <option>G4</option>
@@ -654,7 +861,9 @@ function AdminCareer({ user }) {
                       <label>Location</label>
                       <select
                         value={newJob.location}
-                        onChange={e => setNewJob({ ...newJob, location: e.target.value })}
+                        onChange={(e) =>
+                          setNewJob({ ...newJob, location: e.target.value })
+                        }
                       >
                         <option value="">Select Location</option>
                         <option>Bangalore</option>
@@ -667,7 +876,9 @@ function AdminCareer({ user }) {
                       <label>Hiring Type</label>
                       <select
                         value={newJob.hiringType}
-                        onChange={e => setNewJob({ ...newJob, hiringType: e.target.value })}
+                        onChange={(e) =>
+                          setNewJob({ ...newJob, hiringType: e.target.value })
+                        }
                       >
                         <option value="">Select Type</option>
                         <option>Full-Time</option>
@@ -681,7 +892,9 @@ function AdminCareer({ user }) {
                       <label>Job Type</label>
                       <select
                         value={newJob.jobType}
-                        onChange={e => setNewJob({ ...newJob, jobType: e.target.value })}
+                        onChange={(e) =>
+                          setNewJob({ ...newJob, jobType: e.target.value })
+                        }
                       >
                         <option value="">Select Job Type</option>
                         <option value="inhouse">In-House</option>
@@ -696,7 +909,9 @@ function AdminCareer({ user }) {
                         type="number"
                         min="1"
                         value={newJob.noOfOpenings}
-                        onChange={e => setNewJob({ ...newJob, noOfOpenings: e.target.value })}
+                        onChange={(e) =>
+                          setNewJob({ ...newJob, noOfOpenings: e.target.value })
+                        }
                       />
                     </div>
                   </div>
@@ -706,7 +921,10 @@ function AdminCareer({ user }) {
                     <RichTextEditor
                       value={newJob.jobDescription}
                       onChange={(value) =>
-                        setNewJob(prev => ({ ...prev, jobDescription: value }))
+                        setNewJob((prev) => ({
+                          ...prev,
+                          jobDescription: value,
+                        }))
                       }
                     />
                   </div>
@@ -719,7 +937,12 @@ function AdminCareer({ user }) {
                       <input
                         type="number"
                         value={newJob.ctc?.min || ""}
-                        onChange={e => setNewJob({ ...newJob, ctc: { ...newJob.ctc, min: e.target.value } })}
+                        onChange={(e) =>
+                          setNewJob({
+                            ...newJob,
+                            ctc: { ...newJob.ctc, min: e.target.value },
+                          })
+                        }
                       />
                     </div>
                     <div className="field">
@@ -727,7 +950,12 @@ function AdminCareer({ user }) {
                       <input
                         type="number"
                         value={newJob.ctc?.max || ""}
-                        onChange={e => setNewJob({ ...newJob, ctc: { ...newJob.ctc, max: e.target.value } })}
+                        onChange={(e) =>
+                          setNewJob({
+                            ...newJob,
+                            ctc: { ...newJob.ctc, max: e.target.value },
+                          })
+                        }
                       />
                     </div>
                   </div>
@@ -740,7 +968,15 @@ function AdminCareer({ user }) {
                       <input
                         type="number"
                         value={newJob.experience?.min || ""}
-                        onChange={e => setNewJob({ ...newJob, experience: { ...newJob.experience, min: e.target.value } })}
+                        onChange={(e) =>
+                          setNewJob({
+                            ...newJob,
+                            experience: {
+                              ...newJob.experience,
+                              min: e.target.value,
+                            },
+                          })
+                        }
                       />
                     </div>
                     <div className="field">
@@ -748,7 +984,15 @@ function AdminCareer({ user }) {
                       <input
                         type="number"
                         value={newJob.experience?.max || ""}
-                        onChange={e => setNewJob({ ...newJob, experience: { ...newJob.experience, max: e.target.value } })}
+                        onChange={(e) =>
+                          setNewJob({
+                            ...newJob,
+                            experience: {
+                              ...newJob.experience,
+                              max: e.target.value,
+                            },
+                          })
+                        }
                       />
                     </div>
                   </div>
@@ -759,7 +1003,12 @@ function AdminCareer({ user }) {
                       type="text"
                       value={newJob.importantSkills.join(", ") || ""}
                       placeholder="Java, React, MongoDB..."
-                      onChange={e => setNewJob({ ...newJob, importantSkills: e.target.value.split(",") })}
+                      onChange={(e) =>
+                        setNewJob({
+                          ...newJob,
+                          importantSkills: e.target.value.split(","),
+                        })
+                      }
                     />
                   </div>
 
@@ -769,19 +1018,27 @@ function AdminCareer({ user }) {
                       <input
                         type="date"
                         value={newJob.dueOn || ""}
-                        onChange={e => setNewJob({ ...newJob, dueOn: e.target.value })}
+                        onChange={(e) =>
+                          setNewJob({ ...newJob, dueOn: e.target.value })
+                        }
                       />
                     </div>
                   </div>
 
-
                   <div className="modal-footer">
-                    <button className="btn btn-secondary" onClick={() => { setShowAddJob(false); setEditJobId(null); }}>Cancel</button>
+                    <button
+                      className="btn btn-secondary"
+                      onClick={() => {
+                        setShowAddJob(false);
+                        setEditJobId(null);
+                      }}
+                    >
+                      Cancel
+                    </button>
                     <button type="submit" className="btn btn-primary">
                       {editJobId ? "Save Changes" : "Save"}
                     </button>
                   </div>
-
                 </form>
               </div>
             </div>
@@ -791,42 +1048,44 @@ function AdminCareer({ user }) {
       {showViewPopup && viewJob && (
         <div className="modal-overlay" key={viewJob._id}>
           <div className="modal-container" style={{ maxWidth: "900px" }}>
-            <h5 style={{
-              backgroundColor: "#3A5FBE",
-              color: "#ffffff",
-              padding: "18px 22px",
-              fontSize: "21px",
-              fontWeight: "600",
-              display: "flex",
-              alignItems: "center",
-              margin: 0,
-              borderRadius: "6px 6px 0 0"
-            }}>{viewJob.jobTitle}</h5>
+            <h5
+              style={{
+                backgroundColor: "#3A5FBE",
+                color: "#ffffff",
+                padding: "18px 22px",
+                fontSize: "21px",
+                fontWeight: "600",
+                display: "flex",
+                alignItems: "center",
+                margin: 0,
+                borderRadius: "6px 6px 0 0",
+              }}
+            >
+              {viewJob.jobTitle}
+            </h5>
             <div className="px-3 pt-3 d-flex gap-2">
-
               <button
-                className={`btn btn-sm custom-outline-btn ${activeViewTab === "details" ? "active" : ""}`}
+                className={`btn btn-sm custom-outline-btn ${
+                  activeViewTab === "details" ? "active" : ""
+                }`}
                 onClick={() => setActiveViewTab("details")}
               >
                 Job Details
               </button>
 
               <button
-                className={`btn btn-sm custom-outline-btn ${activeViewTab === "candidates" ? "active" : ""}`}
+                className={`btn btn-sm custom-outline-btn ${
+                  activeViewTab === "candidates" ? "active" : ""
+                }`}
                 onClick={() => setActiveViewTab("candidates")}
               >
                 Candidates
               </button>
             </div>
 
-
             <div className="modal-body">
-
-
               {activeViewTab === "details" && (
                 <div className="job-details-wrapper">
-
-
                   <div className="job-card">
                     <h6 className="job-card-title">Job Info</h6>
 
@@ -854,7 +1113,8 @@ function AdminCareer({ user }) {
                       <div>
                         <span className="label">Experience</span>
                         <p>
-                          {viewJob.experience?.min} – {viewJob.experience?.max} Years
+                          {viewJob.experience?.min} – {viewJob.experience?.max}{" "}
+                          Years
                         </p>
                       </div>
 
@@ -864,7 +1124,6 @@ function AdminCareer({ user }) {
                       </div>
                     </div>
                   </div>
-
 
                   <div className="job-card">
                     <h6 className="job-card-title">Job Details</h6>
@@ -877,44 +1136,44 @@ function AdminCareer({ user }) {
                         ))}
                       </ul>
 
-                      {viewJob.otherSkills && viewJob.otherSkills.length > 0 && (
-                        <>
-                          <h6 style={{ marginTop: "16px", color: "#3A5FBE" }}>
-                            Other Skills:
-                          </h6>
-                          <ul style={{ paddingLeft: "20px", marginTop: "6px" }}>
-                            {viewJob.otherSkills.map((skill, index) => (
-                              <li
-                                key={index}
-                                style={{
-                                  fontSize: "14px",
-                                  color: "#212529",
-                                  marginBottom: "4px"
-                                }}
-                              >
-                                {skill}
-                              </li>
-                            ))}
-                          </ul>
-
-                        </>
-                      )}
-
+                      {viewJob.otherSkills &&
+                        viewJob.otherSkills.length > 0 && (
+                          <>
+                            <h6 style={{ marginTop: "16px", color: "#3A5FBE" }}>
+                              Other Skills:
+                            </h6>
+                            <ul
+                              style={{ paddingLeft: "20px", marginTop: "6px" }}
+                            >
+                              {viewJob.otherSkills.map((skill, index) => (
+                                <li
+                                  key={index}
+                                  style={{
+                                    fontSize: "14px",
+                                    color: "#212529",
+                                    marginBottom: "4px",
+                                  }}
+                                >
+                                  {skill}
+                                </li>
+                              ))}
+                            </ul>
+                          </>
+                        )}
                     </div>
 
                     <div className="job-section">
                       <b>Description:</b>
                       <div
                         className="job-desc"
-                        dangerouslySetInnerHTML={{ __html: viewJob.jobDescription }}
+                        dangerouslySetInnerHTML={{
+                          __html: viewJob.jobDescription,
+                        }}
                       />
                     </div>
                   </div>
-
                 </div>
-
               )}
-
 
               {activeViewTab === "candidates" && (
                 <div style={{ marginTop: "16px" }}>
@@ -923,21 +1182,23 @@ function AdminCareer({ user }) {
                   ) : (
                     applicants.map((app) => (
                       <div key={app._id} className="candidate-card">
-
                         <div className="candidate-name">
                           {app?.candidate?.name}
                         </div>
 
                         <div className="candidate-grid">
-
                           <div>
                             <span className="label">Email:</span>
-                            <span className="value">{app?.candidate?.email}</span>
+                            <span className="value">
+                              {app?.candidate?.email}
+                            </span>
                           </div>
 
                           <div>
                             <span className="label">Phone:</span>
-                            <span className="value">{app?.candidate?.phone}</span>
+                            <span className="value">
+                              {app?.candidate?.phone}
+                            </span>
                           </div>
 
                           <div>
@@ -949,7 +1210,9 @@ function AdminCareer({ user }) {
 
                           <div>
                             <span className="label">Current Location:</span>
-                            <span className="value">{app?.candidate?.city}</span>
+                            <span className="value">
+                              {app?.candidate?.city}
+                            </span>
                           </div>
 
                           {/* <div>
@@ -966,7 +1229,6 @@ function AdminCareer({ user }) {
                               gap: "6px",
                             }}
                           >
-
                             <span
                               style={{
                                 fontSize: "13px",
@@ -981,9 +1243,7 @@ function AdminCareer({ user }) {
                               {app.status || "Applied"}
                             </span>
 
-
                             {["hr", "admin"].includes(userRole) && (
-
                               <span
                                 style={{ cursor: "pointer", marginLeft: "4px" }}
                                 onClick={(e) => {
@@ -1012,33 +1272,36 @@ function AdminCareer({ user }) {
                                 }}
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                {["Shortlisted", "Interview", "Hired", "Rejected"].map(
-                                  (status) => {
-                                    const isActive = app.status === status;
+                                {[
+                                  "Shortlisted",
+                                  "Interview",
+                                  "Hired",
+                                  "Rejected",
+                                ].map((status) => {
+                                  const isActive = app.status === status;
 
-                                    return (
-                                      <div
-                                        key={status}
-                                        onClick={() => {
-                                          handleStatusChange(app._id, status);
-                                          setOpenStatusId(null);
-                                        }}
-                                        style={{
-                                          padding: "10px 14px",
-                                          cursor: "pointer",
-                                          fontSize: "14px",
-                                          fontWeight: isActive ? 700 : 400,
-                                          backgroundColor: isActive
-                                            ? "#7e9cfdff"
-                                            : "transparent",
-                                          color: "#111827",
-                                        }}
-                                      >
-                                        {status}
-                                      </div>
-                                    );
-                                  }
-                                )}
+                                  return (
+                                    <div
+                                      key={status}
+                                      onClick={() => {
+                                        handleStatusChange(app._id, status);
+                                        setOpenStatusId(null);
+                                      }}
+                                      style={{
+                                        padding: "10px 14px",
+                                        cursor: "pointer",
+                                        fontSize: "14px",
+                                        fontWeight: isActive ? 700 : 400,
+                                        backgroundColor: isActive
+                                          ? "#7e9cfdff"
+                                          : "transparent",
+                                        color: "#111827",
+                                      }}
+                                    >
+                                      {status}
+                                    </div>
+                                  );
+                                })}
                               </div>
                             )}
                           </div>
@@ -1055,15 +1318,14 @@ function AdminCareer({ user }) {
                               <span className="value">
                                 {app?.referredBy?.name}
                               </span>
-                            </div>)}
-
+                            </div>
+                          )}
 
                           <div>
                             <span className="label">Resume:</span>
 
                             {app?.candidate?.resumeUrl ? (
                               <>
-
                                 <a
                                   href={app.candidate.resumeUrl}
                                   target="_blank"
@@ -1073,7 +1335,6 @@ function AdminCareer({ user }) {
                                 >
                                   View
                                 </a>
-
 
                                 <a
                                   href={app.candidate.resumeUrl}
@@ -1087,16 +1348,12 @@ function AdminCareer({ user }) {
                               <span className="value">Not uploaded</span>
                             )}
                           </div>
-
-
                         </div>
                       </div>
                     ))
                   )}
-
                 </div>
               )}
-
             </div>
 
             <div className="modal-footer">
@@ -1108,7 +1365,6 @@ function AdminCareer({ user }) {
                 Close
               </button>
             </div>
-
           </div>
         </div>
       )}
@@ -1117,6 +1373,3 @@ function AdminCareer({ user }) {
 }
 
 export default AdminCareer;
-
-
-

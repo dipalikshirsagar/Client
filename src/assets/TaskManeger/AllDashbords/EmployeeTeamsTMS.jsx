@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
-
+import React, { useState, useEffect, useRef } from "react";
+import axios from "axios";
 const EmployeeTeamsTMS = ({ user }) => {
-
   // ---------- Stat Cards Data ----------
   const initialTaskStats = [
     { title: "Total Teams", color: "#D1ECF1" },
@@ -25,99 +24,166 @@ const EmployeeTeamsTMS = ({ user }) => {
   const [allTeams, setAllTeams] = useState([]);
   const [filteredTeams, setFilteredTeams] = useState([]);
   const [taskStats, setTaskStats] = useState(initialTaskStats);
-  const [searchQuery, setSearchQuery] = useState('');
-
+  const [searchQuery, setSearchQuery] = useState("");
+  const [departments, setDepartments] = useState([]);
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
 
   const [selectedTeam, setSelectedTeam] = useState(null);
+  const normalizeDepartment = (value) => {
+    if (!value) return "";
+    const v = String(value).trim().toLowerCase();
+
+    if (v.startsWith("it")) return "IT";
+    if (v.includes("finance")) return "Finance";
+    if (v.includes("qa") || v.includes("test")) return "QA";
+    if (v.includes("ui")) return "UI/UX";
+
+    return value.trim();
+  };
+
+  const popupRef = useRef(null);
+  useEffect(() => {
+    if (selectedTeam && popupRef.current) {
+      popupRef.current.focus();
+    }
+  }, [selectedTeam]);
+
+  const trapFocus = (e) => {
+    if (!popupRef.current) return;
+
+    const focusableElements = popupRef.current.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+
+    const first = focusableElements[0];
+    const last = focusableElements[focusableElements.length - 1];
+
+    if (e.key === "Tab") {
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+  };
 
   useEffect(() => {
-    console.log("useEffect runs. User is:", user);
+    if (!user || !user._id) return;
 
-    if (!user || !user._id) {
-      console.log("No user or user._id found. Skipping API fetch.");
-      return;
-    }
+    const fetchData = async () => {
+      const token = localStorage.getItem("token");
 
-    fetch(`https://server-backend-nu.vercel.app/api/teams/employee/${user._id}/teams`)
-      .then(res => res.json())
-      .then(response => {
-        console.log("API response received:", response);
+      const headers = {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      };
 
-        if (response.success) {
-          const teams = response.data.map(team => ({
+      let totalMembers = 0;
+
+      try {
+        const empCountRes = await axios.get(
+          "https://server-backend-nu.vercel.app/getEmployeeCount",
+          { headers },
+        );
+        totalMembers = empCountRes.data?.totalEmployees || 0;
+      } catch (err) {
+        console.warn("Employee count failed:", err.response?.status);
+      }
+
+      Promise.all([
+        fetch(
+          `https://server-backend-nu.vercel.app/api/teams/employee/${user._id}/teams`,
+        ).then((res) => res.json()),
+        axios.get("https://server-backend-nu.vercel.app/getAllDepartments"),
+      ])
+        .then(([teamRes, deptRes]) => {
+          if (!teamRes.success) return;
+
+          const teams = teamRes.data.map((team) => ({
             _id: team._id,
             teamName: team.name,
+            projectName:
+              team.project?.projectName || team.project?.name || "N/A",
             teamLead:
-              Array.isArray(team.project?.managers) && team.project.managers.length
-                ? team.project.managers.map(m => m.name).join(", ")
+              Array.isArray(team.project?.managers) &&
+              team.project.managers.length
+                ? team.project.managers.map((m) => m.name).join(", ")
                 : "N/A",
             totalMembers: team.assignToProject?.length || 0,
             assignToProject: team.assignToProject || [],
             department: team.department,
           }));
 
+          const normalizedDepartments =
+            deptRes.data.departments?.map((d) => normalizeDepartment(d)) || [];
+          const uniqueDepartments = [...new Set(normalizedDepartments)];
+
+          setDepartments(uniqueDepartments);
           setAllTeams(teams);
           setFilteredTeams(teams);
-          updateStats(teams);
-        } else {
-          console.log("API response success = false");
-        }
-      })
-      .catch(error => console.error("API Error:", error));
+
+          updateStats(teams, uniqueDepartments, totalMembers);
+        })
+        .catch((error) => console.error("API Error:", error));
+    };
+
+    fetchData();
   }, [user]);
-
-
-
-
-
-
-
-
-
 
   const applyFilters = () => {
     let temp = [...allTeams];
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      temp = temp.filter((team) => {
-        return (
+      temp = temp.filter(
+        (team) =>
           team.teamName.toLowerCase().includes(query) ||
           team.teamLead.toLowerCase().includes(query) ||
           team.department.toLowerCase().includes(query) ||
-          team.totalMembers.toString().includes(query)
-        );
-      });
-    } else {
-      temp = [...allTeams];
+          team.totalMembers.toString().includes(query),
+      );
     }
 
     setFilteredTeams(temp);
     setCurrentPage(1);
 
-    // Update stats based on filtered results
-    updateStats(temp);
+    // Important: departments stays same!
+    updateStats(temp, departments);
   };
 
-  const updateStats = (teams) => {
-    const departments = [...new Set(teams.map(team => team.department))];
-    const totalMembers = teams.reduce((sum, team) => sum + team.totalMembers, 0);
+  // ================== Stats Logic ==================
 
+  const updateStats = (teams, departments, totalMembers) => {
+    const managers = new Set();
 
-    //added by Mrudal Color code changes
+    teams.forEach((team) => {
+      if (team.teamLead && team.teamLead !== "N/A") {
+        team.teamLead.split(",").forEach((m) => managers.add(m.trim()));
+      }
+    });
+
     setTaskStats([
       { title: "Total Teams", count: teams.length, color: "#D1ECF1" },
-      { title: "Total Managers", count: Math.ceil(teams.length * 2.5), color: "#D7F5E4" },
-      { title: "Total Employees", count: totalMembers + Math.ceil(teams.length * 3), color: "#FFE493" },
-      { title: "Total Departments", count: departments.length, color: "#FFB3B3" }
+      { title: "Total Managers", count: managers.size, color: "#FFB3B3" },
+      { title: "Total Employees", count: totalMembers, color: "#FFE493" },
+      {
+        title: "Total Departments",
+        count: departments.length,
+        color: "#D7F5E4",
+      },
     ]);
   };
 
   const resetFilters = () => {
-    setSearchQuery('');
+    setSearchQuery("");
     setFilteredTeams([...allTeams]);
     setTaskStats(initialTaskStats);
     setCurrentPage(1);
@@ -129,14 +195,17 @@ const EmployeeTeamsTMS = ({ user }) => {
   };
 
   const handleSearchKeyPress = (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       applyFilters();
     }
   };
 
   // Pagination logic
   const totalPages = Math.ceil(filteredTeams.length / itemsPerPage);
-  const indexOfLastItem = Math.min(currentPage * itemsPerPage, filteredTeams.length);
+  const indexOfLastItem = Math.min(
+    currentPage * itemsPerPage,
+    filteredTeams.length,
+  );
   const indexOfFirstItem = (currentPage - 1) * itemsPerPage;
   const currentTeams = filteredTeams.slice(indexOfFirstItem, indexOfLastItem);
 
@@ -156,12 +225,14 @@ const EmployeeTeamsTMS = ({ user }) => {
   };
 
   return (
-    <div className="container-fluid" >
-      <h2 style={{ color: "#3A5FBE", fontSize: "25px" }}>Teams</h2>
+    <div className="container-fluid">
+      <h3 className="mb-3" style={{ color: "#3A5FBE", fontSize: "25px" }}>
+        Teams
+      </h3>
 
       {/* Stat Cards */}
       <div className="row g-3 mb-4">
-        {taskStats.map((task, i) => (
+        {taskStats.map((team, i) => (
           <div className="col-12 col-md-3" key={i}>
             <div
               className="p-3 rounded shadow-sm border-0"
@@ -174,23 +245,21 @@ const EmployeeTeamsTMS = ({ user }) => {
                 className="d-flex align-items-center"
                 style={{ gap: "16px" }}
               >
-
                 <h4
                   className="mb-0"
                   style={{
                     fontSize: "32px",
-                    backgroundColor: task.color,
+                    backgroundColor: team.color,
                     minWidth: "70px",
                     minHeight: "70px",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                   
+
                     color: "#3A5FBE",
-                    
                   }}
                 >
-                  {task.count}
+                  {team.count}
                 </h4>
 
                 {/* Title */}
@@ -202,7 +271,7 @@ const EmployeeTeamsTMS = ({ user }) => {
                     textAlign: "left",
                   }}
                 >
-                  {task.title}
+                  {team.title}
                 </p>
               </div>
             </div>
@@ -220,7 +289,13 @@ const EmployeeTeamsTMS = ({ user }) => {
           >
             {/* Search Input - Search by any field */}
             <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
-              <label htmlFor="searchQuery" className="fw-bold mb-0" style={{ fontSize: "16px", color: "#3A5FBE", width: "60px" }}>Search</label>
+              <label
+                htmlFor="searchQuery"
+                className="fw-bold mb-0"
+                style={{ fontSize: "16px", color: "#3A5FBE", width: "60px" }}
+              >
+                Search
+              </label>
               <input
                 id="searchQuery"
                 type="text"
@@ -228,7 +303,7 @@ const EmployeeTeamsTMS = ({ user }) => {
                 placeholder="Search by any field..."
                 style={{ minWidth: 300 }}
                 value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={handleSearchKeyPress}
               />
             </div>
@@ -261,16 +336,76 @@ const EmployeeTeamsTMS = ({ user }) => {
           <table className="table table-hover mb-0">
             <thead style={{ backgroundColor: "#ffffffff" }}>
               <tr>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Team Name</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Team Lead</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Total Members</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Department</th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Team Name
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Project Name
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Team Lead
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Total Members
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Department
+                </th>
               </tr>
             </thead>
             <tbody>
               {currentTeams.length === 0 ? (
                 <tr>
-                  <td colSpan="4" className="text-center py-4" style={{ color: "#212529" }}>
+                  <td
+                    colSpan="4"
+                    className="text-center py-4"
+                    style={{ color: "#212529" }}
+                  >
                     No teams found.
                   </td>
                 </tr>
@@ -281,16 +416,64 @@ const EmployeeTeamsTMS = ({ user }) => {
                     onClick={() => handleRowClick(team)}
                     style={{ cursor: "pointer" }}
                   >
-                    <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', color: "#212529" }}>
+                    <td
+                      style={{
+                        padding: "12px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                        color: "#212529",
+                      }}
+                    >
                       <h6 className="mb-0 fw-normal">{team.teamName}</h6>
                     </td>
-                    <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', color: "#212529" }}>
+                    <td
+                      style={{
+                        padding: "12px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                        color: "#212529",
+                      }}
+                    >
+                      <span>{team.projectName}</span>
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                        color: "#212529",
+                      }}
+                    >
                       <span className="fw-normal">{team.teamLead}</span>
                     </td>
-                    <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', color: "#212529" }}>
+                    <td
+                      style={{
+                        padding: "12px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                        color: "#212529",
+                      }}
+                    >
                       <span className="fw-normal">{team.totalMembers}</span>
                     </td>
-                    <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', color: "#212529" }}>
+                    <td
+                      style={{
+                        padding: "12px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                        color: "#212529",
+                      }}
+                    >
                       <span className="fw-normal">{team.department}</span>
                     </td>
                   </tr>
@@ -305,7 +488,11 @@ const EmployeeTeamsTMS = ({ user }) => {
       <nav className="d-flex align-items-center justify-content-end mt-3 text-muted">
         <div className="d-flex align-items-center gap-3">
           <div className="d-flex align-items-center">
-            <span style={{ fontSize: "14px", marginRight: "8px", color: "#212529" }}>Rows per page:</span>
+            <span
+              style={{ fontSize: "14px", marginRight: "8px", color: "#212529" }}
+            >
+              Rows per page:
+            </span>
             <select
               className="form-select form-select-sm"
               style={{ width: "auto", fontSize: "14px" }}
@@ -321,15 +508,22 @@ const EmployeeTeamsTMS = ({ user }) => {
             </select>
           </div>
 
-          <span style={{ fontSize: "14px", marginLeft: "16px", color: "#212529" }}>
+          <span
+            style={{ fontSize: "14px", marginLeft: "16px", color: "#212529" }}
+          >
             {filteredTeams.length === 0
               ? "0–0 of 0"
-              : `${indexOfFirstItem + 1}-${indexOfLastItem} of ${filteredTeams.length}`}
+              : `${indexOfFirstItem + 1}-${indexOfLastItem} of ${
+                  filteredTeams.length
+                }`}
           </span>
 
-          <div className="d-flex align-items-center" style={{ marginLeft: "16px" }}>
+          <div
+            className="d-flex align-items-center"
+            style={{ marginLeft: "16px" }}
+          >
             <button
-              className="btn btn-sm border-0"
+              className="btn btn-sm focus-ring "
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
               style={{ fontSize: "18px", padding: "2px 8px", color: "#212529" }}
@@ -337,7 +531,7 @@ const EmployeeTeamsTMS = ({ user }) => {
               ‹
             </button>
             <button
-              className="btn btn-sm border-0"
+              className="btn btn-sm focus-ring "
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
               style={{ fontSize: "18px", padding: "2px 8px", color: "#212529" }}
@@ -351,6 +545,10 @@ const EmployeeTeamsTMS = ({ user }) => {
       {/* Team Detail Modal */}
       {selectedTeam && (
         <div
+          ref={popupRef}
+          tabIndex="-1"
+          autoFocus
+          onKeyDown={trapFocus}
           className="modal fade show"
           style={{
             display: "flex",
@@ -363,10 +561,15 @@ const EmployeeTeamsTMS = ({ user }) => {
           }}
           onClick={() => setSelectedTeam(null)}
         >
-          <div className="modal-dialog modal-dialog-scrollable"
-            style={{ maxWidth: "650px", width: "95%", marginTop: "200px" }}>
+          <div
+            className="modal-dialog "
+            style={{ maxWidth: "650px", width: "95%", marginTop: "120px" }}
+          >
             <div className="modal-content">
-              <div className="modal-header text-white" style={{ backgroundColor: "#3A5FBE" }}>
+              <div
+                className="modal-header text-white"
+                style={{ backgroundColor: "#3A5FBE" }}
+              >
                 <h5 className="modal-title mb-0">Team Details</h5>
                 <button
                   type="button"
@@ -378,40 +581,97 @@ const EmployeeTeamsTMS = ({ user }) => {
               <div className="modal-body">
                 <div className="container-fluid">
                   <div className="row mb-2">
-                    <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>Team Name</div>
-                    <div className="col-7 col-sm-9" style={{ color: "#212529" }}>{selectedTeam.teamName}</div>
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Team Name
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {selectedTeam.teamName}
+                    </div>
                   </div>
 
                   <div className="row mb-2">
-                    <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>Team Lead</div>
-                    <div className="col-7 col-sm-9" style={{ color: "#212529" }}>{selectedTeam.teamLead}</div>
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Project Name
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {selectedTeam.projectName}
+                    </div>
                   </div>
 
                   <div className="row mb-2">
-                    <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>Total Members</div>
-                    <div className="col-7 col-sm-9" style={{ color: "#212529" }}>{selectedTeam.totalMembers}</div>
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Team Lead
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {selectedTeam.teamLead}
+                    </div>
                   </div>
 
                   <div className="row mb-2">
-                    <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Total Members
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {selectedTeam.totalMembers}
+                    </div>
+                  </div>
+
+                  <div className="row mb-2">
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
                       Team Members
                     </div>
-                    <div className="col-7 col-sm-9" style={{ color: "#212529" }}>
-                      {selectedTeam.assignToProject?.length > 0 ? (
-                        selectedTeam.assignToProject.map((emp) => (
-                          <div key={emp._id}>
-                            {emp.name}
-                          </div>
-                        ))
-                      ) : (
-                        "NA"
-                      )}
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {selectedTeam.assignToProject?.length > 0
+                        ? selectedTeam.assignToProject.map((emp) => (
+                            <div key={emp._id}>{emp.name}</div>
+                          ))
+                        : "NA"}
                     </div>
                   </div>
 
                   <div className="row mb-2">
-                    <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>Department</div>
-                    <div className="col-7 col-sm-9" style={{ color: "#212529" }}>{selectedTeam.department}</div>
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Department
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {selectedTeam.department}
+                    </div>
                   </div>
                 </div>
               </div>

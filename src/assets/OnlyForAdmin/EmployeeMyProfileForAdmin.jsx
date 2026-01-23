@@ -8,11 +8,11 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
   const [formData, setFormData] = useState(
     stateEmployee
       ? {
-        ...stateEmployee,
-        currentAddress: stateEmployee.currentAddress || {},
-        permanentAddress: stateEmployee.permanentAddress || {},
-        bankDetails: stateEmployee.bankDetails || {},
-      }
+          ...stateEmployee,
+          currentAddress: stateEmployee.currentAddress || {},
+          permanentAddress: stateEmployee.permanentAddress || {},
+          bankDetails: stateEmployee.bankDetails || {},
+        }
       : {}
   );
   const [isEditing, setIsEditing] = useState(false);
@@ -21,7 +21,7 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
   const [errors, setErrors] = useState({});
   const { role, username, id } = useParams();
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   // Fetch employee data if not passed via props
   useEffect(() => {
@@ -29,9 +29,12 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
       const fetchEmployee = async () => {
         try {
           const token = localStorage.getItem("accessToken");
-          const res = await axios.get(`https://server-backend-nu.vercel.app/getEmployee/${empId}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          const res = await axios.get(
+            `https://server-backend-nu.vercel.app/getEmployee/${empId}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
           setEmployee(res.data);
           setFormData({
             ...res.data,
@@ -54,15 +57,19 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
     let error = "";
 
     switch (name) {
-
       case "name":
-        if (!/^[A-Za-z\s]+$/.test(value)) error = "Name must contain only letters and spaces.";
+        if (!/^[A-Za-z\s]+$/.test(value))
+          error = "Name must contain only letters and spaces.";
         else if (value.trim() === "") error = "Name is required.";
         break;
       case "email":
         if (!value || value.trim() === "") {
           error = "Email is required.";
-        } else if (!/^[a-zA-Z0-9._%+-]+@(gmail\.com|creativewebsolution\.in)$/.test(value)) {
+        } else if (
+          !/^[a-zA-Z0-9._%+-]+@(gmail\.com|creativewebsolution\.in)$/.test(
+            value
+          )
+        ) {
           error = "Please enter a valid email address.";
         }
         break;
@@ -107,15 +114,12 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
           error = "UAN Number must be 12 digits.";
         break;
 
-
       default:
         break;
     }
 
     setErrors((prev) => ({ ...prev, [name]: error }));
-
-
-  }
+  };
 
   const validateBankField = (name, value) => {
     let error = "";
@@ -143,7 +147,6 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
           error = "Account number should not start with zero.";
         break;
 
-
       case "ifsc":
         if (!value) error = "IFSC code is required.";
         break;
@@ -170,21 +173,22 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
 
     switch (name) {
       case "street":
-
         if (value && value.trim().length < 3) error = "Street looks too short.";
         break;
 
       case "city":
-        if (value && !/^[A-Za-z\s]+$/.test(value)) error = "City must contain only letters and spaces.";
+        if (value && !/^[A-Za-z\s]+$/.test(value))
+          error = "City must contain only letters and spaces.";
         break;
 
       case "state":
-        if (value && !/^[A-Za-z\s]+$/.test(value)) error = "State must contain only letters and spaces.";
+        if (value && !/^[A-Za-z\s]+$/.test(value))
+          error = "State must contain only letters and spaces.";
         break;
 
       case "zip":
-
-        if (value && !/^\d{6}$/.test(value)) error = "PIN must be exactly 6 digits.";
+        if (value && !/^\d{6}$/.test(value))
+          error = "PIN must be exactly 6 digits.";
         break;
 
       default:
@@ -280,32 +284,24 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
       if (!/^[A-Za-z\s]*$/.test(value)) return;
     }
 
-
-
     if (files && files[0]) {
       // File input
       setFormData((prev) => ({ ...prev, [name]: files[0] }));
-    }
-    else if (name.startsWith("currentAddress.")) {
-
+    } else if (name.startsWith("currentAddress.")) {
       const key = name.split(".")[1];
       setFormData((prev) => ({
         ...prev,
         currentAddress: { ...prev.currentAddress, [key]: value },
       }));
       validateAddressField("currentAddress", key, value);
-    }
-    else if (name.startsWith("permanentAddress.")) {
-
+    } else if (name.startsWith("permanentAddress.")) {
       const key = name.split(".")[1];
       setFormData((prev) => ({
         ...prev,
         permanentAddress: { ...prev.permanentAddress, [key]: value },
       }));
       validateAddressField("permanentAddress", key, value);
-    }
-    else if (name.startsWith("bankDetails.")) {
-
+    } else if (name.startsWith("bankDetails.")) {
       const key = name.split(".")[1];
       setFormData((prev) => ({
         ...prev,
@@ -313,20 +309,15 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
       }));
 
       validateBankField(key, value);
-    }
-    else {
+    } else {
       // Top-level fields
       setFormData((prev) => ({ ...prev, [name]: value }));
       validateField(name, value);
     }
   };
 
-
   // Save updated data
   const handleSave = async () => {
-
-
-
     // 🧩 Contact validation — must be exactly 10 digits
     if (!/^\d{10}$/.test(formData.contact || "")) {
       alert("Contact number must be exactly 10 digits.");
@@ -341,7 +332,10 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
       alert("UAN Number must be 12 digits.");
       return;
     }
-    if ((currentZip && !/^\d{6}$/.test(currentZip)) || (permanentZip && !/^\d{6}$/.test(permanentZip))) {
+    if (
+      (currentZip && !/^\d{6}$/.test(currentZip)) ||
+      (permanentZip && !/^\d{6}$/.test(permanentZip))
+    ) {
       alert("ZIP code must be exactly 6 digits.");
       return;
     }
@@ -360,12 +354,22 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
       const data = new FormData();
 
       Object.keys(formData).forEach((key) => {
-        if (["currentAddress", "permanentAddress", "bankDetails"].includes(key)) {
-          data.append(key, JSON.stringify(formData[key]));
-        } else if (["currentAddress", "permanentAddress", "bankDetails"].includes(key)) {
+        if (
+          ["currentAddress", "permanentAddress", "bankDetails"].includes(key)
+        ) {
           data.append(key, JSON.stringify(formData[key]));
         } else if (
-          ["image", "panCardPdf", "aadharCardPdf", "appointmentLetter", "passbookPdf"].includes(key)
+          ["currentAddress", "permanentAddress", "bankDetails"].includes(key)
+        ) {
+          data.append(key, JSON.stringify(formData[key]));
+        } else if (
+          [
+            "image",
+            "panCardPdf",
+            "aadharCardPdf",
+            "appointmentLetter",
+            "passbookPdf",
+          ].includes(key)
         ) {
           if (formData[key] instanceof File) data.append(key, formData[key]);
         } else if (formData[key] !== undefined && formData[key] !== null) {
@@ -373,16 +377,26 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
         }
       });
 
-      await axios.put(` https://server-backend-nu.vercel.app/employees/${employee._id || empId}`, data, {
-        headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${token}` },
-      });
+      await axios.put(
+        ` https://server-backend-nu.vercel.app/employees/${employee._id || empId}`,
+        data,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       alert("Employee profile updated successfully!");
       setIsEditing(false);
 
-      const updated = await axios.get(` https://server-backend-nu.vercel.app/getEmployee/${employee._id || empId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const updated = await axios.get(
+        ` https://server-backend-nu.vercel.app/getEmployee/${employee._id || empId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       setEmployee(updated.data);
       setFormData({
@@ -397,7 +411,8 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
     }
   };
 
-  if (loading) return <p className="text-center mt-3">Loading employee data...</p>;
+  if (loading)
+    return <p className="text-center mt-3">Loading employee data...</p>;
   if (error) return <p className="text-danger text-center mt-3">{error}</p>;
   if (!employee) return <p>No employee data available.</p>;
   const formatLabel = (label) => {
@@ -412,7 +427,7 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
       casualLeaveBalance: "Casual Leave Balance",
       sickLeaveBalance: "Sick Leave Balance",
       probationMonths: "Probation Period",
-      ifsc: "IFSC"
+      ifsc: "IFSC",
     };
 
     if (specialCases[label]) return specialCases[label];
@@ -424,8 +439,6 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
       .trim()
       .replace(/\b\w/g, (c) => c.toUpperCase());
   };
-
-
 
   //   // Detect file type
   // const getFileType = (fileName) => {
@@ -479,7 +492,12 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
           <img
             src={url}
             alt={label}
-            style={{ width: "80px", height: "80px", objectFit: "cover", borderRadius: "6px" }}
+            style={{
+              width: "80px",
+              height: "80px",
+              objectFit: "cover",
+              borderRadius: "6px",
+            }}
           />
         ) : (
           <img
@@ -492,7 +510,6 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
     );
   };
 
-
   const handlePermanentDelete = async (id) => {
     if (
       !window.confirm(
@@ -503,14 +520,17 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
 
     try {
       const token = localStorage.getItem("accessToken");
-      const res = await axios.delete(`https://server-backend-nu.vercel.app/deleteEmployee/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.delete(
+        `https://server-backend-nu.vercel.app/deleteEmployee/${id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       if (res.data.success) {
         alert("Employee permanently deleted!");
         // Redirect to employee list page
-        navigate(`/dashboard/${role}/${username}/${id}/allemployeedetails`);  // Redirect after delete
+        navigate(`/dashboard/${role}/${username}/${id}/allemployeedetails`); // Redirect after delete
       } else {
         alert("Failed to delete employee.");
       }
@@ -521,13 +541,20 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
   };
 
   return (
-    <div className="container-fluid p-3 p-md-4" style={{ backgroundColor: "#f8f9fa", minHeight: "100vh" }}>
-      <div className="card shadow-sm border-0 rounded" style={{ maxWidth: "1200px", margin: "0 auto" }}>
+    <div
+      className="container-fluid p-3 p-md-4"
+      style={{ backgroundColor: "#f8f9fa", minHeight: "100vh" }}
+    >
+      <div
+        className="card shadow-sm border-0 rounded"
+        style={{ maxWidth: "1200px", margin: "0 auto" }}
+      >
         <div className="d-flex  flex-md-row  align-items-center justify-content-between p-2 p-md-3 gap-3">
           <div className="d-flex  flex-md-row align-items-center gap-2 gap-md-3 w-100 w-md-auto">
-
             <div className="d-flex flex-column align-items-center text-center">
-              <label className="form-label fw-semibold text-primary mb-2">Profile Image</label>
+              <label className="form-label fw-semibold text-primary mb-2">
+                Profile Image
+              </label>
 
               {formData.image instanceof File ? (
                 <img
@@ -585,15 +612,21 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
 
                   {/* Show selected file name */}
                   {formData.image instanceof File ? (
-                    <p className="text-muted small mb-0 mt-1">Selected: {formData.image.name}</p>
+                    <p className="text-muted small mb-0 mt-1">
+                      Selected: {formData.image.name}
+                    </p>
                   ) : (
-                    <p className="text-muted small mb-0 mt-1">No image selected</p>
+                    <p className="text-muted small mb-0 mt-1">
+                      No image selected
+                    </p>
                   )}
                 </>
               )}
             </div>
 
-            <h4 className="mb-0" style={{ textTransform: "capitalize" }}>{employee.name}</h4>
+            <h4 className="mb-0" style={{ textTransform: "capitalize" }}>
+              {employee.name}
+            </h4>
           </div>
 
           {/* <div className="d-flex justify-content-end" style={{ paddingRight: "10px" }}>
@@ -624,8 +657,10 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
             )}
           </div> */}
 
-          <div className="d-flex justify-content-end" style={{ paddingRight: "10px" }}>
-
+          <div
+            className="d-flex justify-content-end"
+            style={{ paddingRight: "10px" }}
+          >
             {/* IF EMPLOYEE IS DELETED */}
             {employee?.isDeleted ? (
               <>
@@ -686,7 +721,6 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
               </>
             )}
           </div>
-
         </div>
 
         <div>
@@ -766,22 +800,27 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
                             value={formData[field] || ""}
                             onChange={handleChange}
                             // className="form-control bg-light border-0"
-                            className={`form-control border-0 ${field === "email" ? "bg-secondary-subtle text-muted" : "bg-light"
-                              }`}
+                            className={`form-control border-0 ${
+                              field === "email"
+                                ? "bg-secondary-subtle text-muted"
+                                : "bg-light"
+                            }`}
                             readOnly={field === "email"} // 👈 only email is read-only
-
                           />
                         )}
 
                         {errors[field] && (
-                          <div className="text-danger small mt-1">{errors[field]}</div>
+                          <div className="text-danger small mt-1">
+                            {errors[field]}
+                          </div>
                         )}
                       </>
                     ) : (
                       <div
                         className="form-control bg-light border-0"
                         style={{
-                          textTransform: field === "email" ? "none" : "capitalize", // ✅ don't capitalize email
+                          textTransform:
+                            field === "email" ? "none" : "capitalize", // ✅ don't capitalize email
                         }}
                       >
                         {employee[field] || "-"}
@@ -835,7 +874,9 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
               </div> */}
 
               <div className="col-md-6">
-                <label className="form-label text-primary">Date Of Birth:</label>
+                <label className="form-label text-primary">
+                  Date Of Birth:
+                </label>
                 {isEditing ? (
                   <>
                     <input
@@ -844,9 +885,13 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
                       value={formData.dob ? formData.dob.split("T")[0] : ""}
                       onChange={handleChange}
                       className="form-control bg-light border-0"
-                      max={new Date(new Date().setFullYear(new Date().getFullYear() - 18))
-                        .toISOString()
-                        .split("T")[0]}
+                      max={
+                        new Date(
+                          new Date().setFullYear(new Date().getFullYear() - 18)
+                        )
+                          .toISOString()
+                          .split("T")[0]
+                      }
                     />
                     {errors.dob && (
                       <div className="text-danger small mt-1">{errors.dob}</div>
@@ -854,14 +899,17 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
                   </>
                 ) : (
                   <div className="form-control bg-light border-0">
-                    {employee.dob ? new Date(employee.dob).toLocaleDateString() : "-"}
+                    {employee.dob
+                      ? new Date(employee.dob).toLocaleDateString()
+                      : "-"}
                   </div>
                 )}
               </div>
 
-
               <div className="col-md-6">
-                <label className="form-label text-primary">Date Of Joining:</label>
+                <label className="form-label text-primary">
+                  Date Of Joining:
+                </label>
                 {isEditing ? (
                   <>
                     <input
@@ -877,10 +925,13 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
                       <div className="text-danger small mt-1">{errors.doj}</div>
                     )}
                   </>
-                ) : <div className="form-control bg-light border-0">
-                  {employee.doj ? new Date(employee.doj).toLocaleDateString() : "-"}
-                </div>
-                }
+                ) : (
+                  <div className="form-control bg-light border-0">
+                    {employee.doj
+                      ? new Date(employee.doj).toLocaleDateString()
+                      : "-"}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -890,7 +941,9 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
               {["street", "city", "state", "zip"].map((field) => (
                 <div key={field} className="col-md-6">
                   {/* <label className="form-label text-primary">{field}</label> */}
-                  <label className="form-label text-primary">{formatLabel(field)}:</label>
+                  <label className="form-label text-primary">
+                    {formatLabel(field)}:
+                  </label>
 
                   {isEditing ? (
                     <>
@@ -902,11 +955,18 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
                         className="form-control bg-light border-0"
                       />
                       {errors[`currentAddress.${field}`] && (
-                        <small className="text-danger">{errors[`currentAddress.${field}`]}</small>
+                        <small className="text-danger">
+                          {errors[`currentAddress.${field}`]}
+                        </small>
                       )}
                     </>
                   ) : (
-                    <div className="form-control bg-light border-0" style={{ textTransform: "capitalize" }}>{employee.currentAddress?.[field] || "-"}</div>
+                    <div
+                      className="form-control bg-light border-0"
+                      style={{ textTransform: "capitalize" }}
+                    >
+                      {employee.currentAddress?.[field] || "-"}
+                    </div>
                   )}
                 </div>
               ))}
@@ -917,7 +977,9 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
               {["street", "city", "state", "zip"].map((field) => (
                 <div key={field} className="col-md-6">
                   {/* <label className="form-label text-primary">{field}</label> */}
-                  <label className="form-label text-primary">{formatLabel(field)}:</label>
+                  <label className="form-label text-primary">
+                    {formatLabel(field)}:
+                  </label>
 
                   {isEditing ? (
                     <>
@@ -930,11 +992,18 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
                       />
 
                       {errors[`permanentAddress.${field}`] && (
-                        <small className="text-danger">{errors[`permanentAddress.${field}`]}</small>
+                        <small className="text-danger">
+                          {errors[`permanentAddress.${field}`]}
+                        </small>
                       )}
                     </>
                   ) : (
-                    <div className="form-control bg-light border-0" style={{ textTransform: "capitalize" }}>{employee.permanentAddress?.[field] || "-"}</div>
+                    <div
+                      className="form-control bg-light border-0"
+                      style={{ textTransform: "capitalize" }}
+                    >
+                      {employee.permanentAddress?.[field] || "-"}
+                    </div>
                   )}
                 </div>
               ))}
@@ -946,7 +1015,9 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
               {["bankName", "accountNumber", "ifsc"].map((field) => (
                 <div key={field} className="col-md-6">
                   {/* <label className="form-label text-primary">{field}</label> */}
-                  <label className="form-label text-primary">{formatLabel(field)}:</label>
+                  <label className="form-label text-primary">
+                    {formatLabel(field)}:
+                  </label>
 
                   {isEditing ? (
                     <>
@@ -965,7 +1036,9 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
                       )}
                     </>
                   ) : (
-                    <div className="form-control bg-light border-0">{employee.bankDetails?.[field] || "-"}</div>
+                    <div className="form-control bg-light border-0">
+                      {employee.bankDetails?.[field] || "-"}
+                    </div>
                   )}
                 </div>
               ))}
@@ -997,7 +1070,6 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
                 )}
               </div>
 
-
               {/* PF Number */}
               <div className="col-md-6">
                 <label className="form-label text-primary">PF Number:</label>
@@ -1009,7 +1081,6 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
                     value={formData.pfNumber || ""}
                     onChange={handleChange}
                     className="form-control bg-light border-0"
-
                   />
                 ) : (
                   <div className="form-control bg-light border-0">
@@ -1017,10 +1088,7 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
                   </div>
                 )}
               </div>
-
-
             </div>
-
 
             {/* Documents */}
             {/* <h6 className="mt-3">Documents</h6>
@@ -1134,13 +1202,11 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
 </div> */}
 
             <div className="d-flex gap-3 flex-wrap">
-
               {[
                 { field: "aadharCardPdf", label: "Aadhar Card" },
                 { field: "panCardPdf", label: "PAN Card" },
                 { field: "appointmentLetter", label: "Appointment Letter" },
               ].map(({ field, label }) => {
-
                 const file = employee[field];
                 const fileType = getFileType(file);
 
@@ -1151,8 +1217,10 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
                   : null;
 
                 return (
-                  <div key={field} className="d-flex flex-column align-items-start">
-
+                  <div
+                    key={field}
+                    className="d-flex flex-column align-items-start"
+                  >
                     <label className="form-label text-primary">{label}</label>
 
                     {isEditing ? (
@@ -1164,20 +1232,29 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
                           onChange={handleFileChange}
                         />
                         {errors[field] && (
-                          <div className="text-danger small mt-1">{errors[field]}</div>
+                          <div className="text-danger small mt-1">
+                            {errors[field]}
+                          </div>
                         )}
                       </>
                     ) : !file ? (
                       "-"
-
                     ) : (
                       <a href={href} target="_blank" rel="noopener noreferrer">
                         {fileType === "pdf" && (
-                          <img src="/pdfimg.png" style={{ width: "50px" }} alt="PDF" />
+                          <img
+                            src="/pdfimg.png"
+                            style={{ width: "50px" }}
+                            alt="PDF"
+                          />
                         )}
 
                         {fileType === "image" && (
-                          <img src="/jpgimg.jpeg" style={{ width: "50px" }} alt="Image" />
+                          <img
+                            src="/jpgimg.jpeg"
+                            style={{ width: "50px" }}
+                            alt="Image"
+                          />
                         )}
 
                         {fileType === "other" && <span>File</span>}
@@ -1200,7 +1277,9 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
                       onChange={handleFileChange}
                     />
                     {errors.passbookPdf && (
-                      <div className="text-danger small mt-1">{errors.passbookPdf}</div>
+                      <div className="text-danger small mt-1">
+                        {errors.passbookPdf}
+                      </div>
                     )}
                   </>
                 ) : employee.bankDetails?.passbookPdf ? (
@@ -1210,15 +1289,23 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
 
                     const href = file.startsWith("http")
                       ? file
-                      : ` https://res.cloudinary.com/dfvumzr0q/raw/upload/${file}`
+                      : ` https://res.cloudinary.com/dfvumzr0q/raw/upload/${file}`;
 
                     return (
                       <a href={href} target="_blank" rel="noopener noreferrer">
                         {fileType === "pdf" && (
-                          <img src="/pdfimg.png" style={{ width: "50px" }} alt="PDF" />
+                          <img
+                            src="/pdfimg.png"
+                            style={{ width: "50px" }}
+                            alt="PDF"
+                          />
                         )}
                         {fileType === "image" && (
-                          <img src="/jpgimg.jpeg" style={{ width: "50px" }} alt="Image" />
+                          <img
+                            src="/jpgimg.jpeg"
+                            style={{ width: "50px" }}
+                            alt="Image"
+                          />
                         )}
                       </a>
                     );
@@ -1229,13 +1316,19 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
               </div>
             </div>
 
-
             {/* Leaves & Salary */}
             <h6 className="fw-bold text-primary mt-4">Leaves & Salary</h6>
             <div className="row g-3">
-              {["casualLeaveBalance", "sickLeaveBalance", "salary", "probationMonths"].map((field) => (
+              {[
+                "casualLeaveBalance",
+                "sickLeaveBalance",
+                "salary",
+                "probationMonths",
+              ].map((field) => (
                 <div key={field} className="col-md-6">
-                  <label className="form-label text-primary">{formatLabel(field)}:</label>
+                  <label className="form-label text-primary">
+                    {formatLabel(field)}:
+                  </label>
                   {isEditing ? (
                     <input
                       type={field === "salary" ? "number" : "text"}
@@ -1245,14 +1338,15 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
                       className="form-control bg-light border-0"
                     />
                   ) : (
-                    <div className="form-control bg-light border-0">{employee[field] ?? "-"}</div>
+                    <div className="form-control bg-light border-0">
+                      {employee[field] ?? "-"}
+                    </div>
                   )}
                 </div>
               ))}
             </div>
           </div>
         </div>
-
       </div>
       {/* <div className="d-flex justify-content-end mt-3">
    <button

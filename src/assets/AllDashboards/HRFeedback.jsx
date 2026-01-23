@@ -22,18 +22,23 @@ const HRFeedback = () => {
   const [formData, setFormData] = useState({
     receiverId: "",
     title: "",
-    message: ""
+    message: "",
   });
 
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     if (token) {
       try {
-        const base64Url = token.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
+        const base64Url = token.split(".")[1];
+        const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+        const jsonPayload = decodeURIComponent(
+          atob(base64)
+            .split("")
+            .map(function (c) {
+              return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+            })
+            .join("")
+        );
         const userData = JSON.parse(jsonPayload);
         setCurrentUser(userData);
       } catch (error) {
@@ -54,15 +59,18 @@ const HRFeedback = () => {
       const token = localStorage.getItem("accessToken");
       if (!token) return;
 
-      const response = await axios.get("https://server-backend-nu.vercel.app/getAllEmployees", {
-        headers: {
-          Authorization: `Bearer ${token}`
+      const response = await axios.get(
+        "https://server-backend-nu.vercel.app/getAllEmployees",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      });
+      );
 
       if (response.data) {
-        const nonHREmployees = response.data.filter(emp =>
-          emp.role !== "hr" && emp._id !== currentUser?._id
+        const nonHREmployees = response.data.filter(
+          (emp) => emp.role !== "hr" && emp._id !== currentUser?._id
         );
         setEmployees(nonHREmployees || []);
       }
@@ -79,23 +87,32 @@ const HRFeedback = () => {
         return;
       }
 
-      const response = await axios.get(`https://server-backend-nu.vercel.app/feedback/employee/${currentUser._id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
+      const response = await axios.get(
+        `https://server-backend-nu.vercel.app/feedback/employee/${currentUser._id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      });
+      );
 
       if (response.data && response.data.success) {
-        const apiFeedbacks = (response.data.feedbacks || []).map(fb => {
+        const apiFeedbacks = (response.data.feedbacks || []).map((fb) => {
           const isSent = fb.sender?._id === currentUser._id;
 
           return {
             id: fb._id,
-            feedbackId: fb.feedbackId || `FDB${fb._id ? fb._id.toString().slice(-6) : '000000'}`,
+            feedbackId:
+              fb.feedbackId ||
+              `FDB${fb._id ? fb._id.toString().slice(-6) : "000000"}`,
             employeeName: !isSent ? fb.sender?.name : fb.receiver?.name,
-            designation: !isSent ? fb.sender?.designation : fb.receiver?.designation,
+            designation: !isSent
+              ? fb.sender?.designation
+              : fb.receiver?.designation,
             assignedTo: fb.receiver?.name,
-            date: fb.createdAt ? new Date(fb.createdAt).toLocaleDateString("en-GB") : new Date().toLocaleDateString("en-GB"),
+            date: fb.createdAt
+              ? new Date(fb.createdAt).toLocaleDateString("en-GB")
+              : new Date().toLocaleDateString("en-GB"),
             status: fb.status === "viewed" ? "Viewed" : "Pending",
             title: fb.title || "No Title",
             description: fb.message || "No Message",
@@ -104,8 +121,10 @@ const HRFeedback = () => {
             receiverName: fb.receiver?.name,
             senderName: fb.sender?.name,
             senderId: fb.sender?._id,
-            readAt: fb.readAt ? new Date(fb.readAt).toLocaleString("en-GB") : null,
-            originalStatus: fb.status
+            readAt: fb.readAt
+              ? new Date(fb.readAt).toLocaleString("en-GB")
+              : null,
+            originalStatus: fb.status,
           };
         });
 
@@ -118,13 +137,6 @@ const HRFeedback = () => {
       setFeedbacks([]);
     }
   };
-
-
-
-
-
-
-
 
   const validateForm = () => {
     let newErrors = {};
@@ -149,7 +161,6 @@ const HRFeedback = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-
   const markAsViewed = async (feedbackId) => {
     try {
       const token = localStorage.getItem("accessToken");
@@ -163,33 +174,32 @@ const HRFeedback = () => {
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json"
-          }
+            "Content-Type": "application/json",
+          },
         }
       );
 
       if (response.data.success) {
-        setFeedbacks(prevFeedbacks =>
-          prevFeedbacks.map(fb =>
+        setFeedbacks((prevFeedbacks) =>
+          prevFeedbacks.map((fb) =>
             fb.id === feedbackId
               ? {
-                ...fb,
-                status: "Viewed",
-                readAt: new Date().toLocaleString("en-GB"),
-                originalStatus: "viewed"
-              }
+                  ...fb,
+                  status: "Viewed",
+                  readAt: new Date().toLocaleString("en-GB"),
+                  originalStatus: "viewed",
+                }
               : fb
           )
         );
 
         if (selectedFeedback && selectedFeedback.id === feedbackId) {
-          setSelectedFeedback(prev => ({
+          setSelectedFeedback((prev) => ({
             ...prev,
             status: "Viewed",
-            readAt: new Date().toLocaleString("en-GB")
+            readAt: new Date().toLocaleString("en-GB"),
           }));
         }
-
       }
     } catch (err) {
       console.error("Error marking feedback as viewed:", err);
@@ -204,12 +214,13 @@ const HRFeedback = () => {
     setStatusFilter("All");
   };
 
-  const sentFeedbacks = feedbacks.filter(fb => fb.type === "sent");
-  const receivedFeedbacks = feedbacks.filter(fb => fb.type === "received");
+  const sentFeedbacks = feedbacks.filter((fb) => fb.type === "sent");
+  const receivedFeedbacks = feedbacks.filter((fb) => fb.type === "received");
 
   const filteredReceivedFeedbacks = receivedFeedbacks.filter((fb) => {
     const q = searchQuery.toLowerCase();
-    const matchesText = q === "" ||
+    const matchesText =
+      q === "" ||
       (fb.feedbackId && fb.feedbackId.toLowerCase().includes(q)) ||
       (fb.employeeName && fb.employeeName.toLowerCase().includes(q)) ||
       (fb.designation && fb.designation.toLowerCase().includes(q)) ||
@@ -221,7 +232,8 @@ const HRFeedback = () => {
 
   const filteredSentFeedbacks = sentFeedbacks.filter((fb) => {
     const q = searchQuery.toLowerCase();
-    const matchesText = q === "" ||
+    const matchesText =
+      q === "" ||
       (fb.feedbackId && fb.feedbackId.toLowerCase().includes(q)) ||
       (fb.employeeName && fb.employeeName.toLowerCase().includes(q)) ||
       (fb.designation && fb.designation.toLowerCase().includes(q)) ||
@@ -230,15 +242,29 @@ const HRFeedback = () => {
     return matchesText;
   });
 
-  const totalPagesReceived = Math.ceil(filteredReceivedFeedbacks.length / itemsPerPage);
-  const indexOfLastItemReceived = Math.min(currentPageReceived * itemsPerPage, filteredReceivedFeedbacks.length);
+  const totalPagesReceived = Math.ceil(
+    filteredReceivedFeedbacks.length / itemsPerPage
+  );
+  const indexOfLastItemReceived = Math.min(
+    currentPageReceived * itemsPerPage,
+    filteredReceivedFeedbacks.length
+  );
   const indexOfFirstItemReceived = (currentPageReceived - 1) * itemsPerPage;
-  const currentReceivedFeedbacks = filteredReceivedFeedbacks.slice(indexOfFirstItemReceived, indexOfLastItemReceived);
+  const currentReceivedFeedbacks = filteredReceivedFeedbacks.slice(
+    indexOfFirstItemReceived,
+    indexOfLastItemReceived
+  );
 
   const totalPagesSent = Math.ceil(filteredSentFeedbacks.length / itemsPerPage);
-  const indexOfLastItemSent = Math.min(currentPageSent * itemsPerPage, filteredSentFeedbacks.length);
+  const indexOfLastItemSent = Math.min(
+    currentPageSent * itemsPerPage,
+    filteredSentFeedbacks.length
+  );
   const indexOfFirstItemSent = (currentPageSent - 1) * itemsPerPage;
-  const currentSentFeedbacks = filteredSentFeedbacks.slice(indexOfFirstItemSent, indexOfLastItemSent);
+  const currentSentFeedbacks = filteredSentFeedbacks.slice(
+    indexOfFirstItemSent,
+    indexOfLastItemSent
+  );
 
   const handlePageChangeSent = (pageNumber) => {
     if (pageNumber < 1 || pageNumber > totalPagesSent) return;
@@ -283,9 +309,9 @@ const HRFeedback = () => {
           {totalItems === 0
             ? "0–0 of 0"
             : `${indexOfFirstItem + 1}-${Math.min(
-              indexOfLastItem,
-              totalItems
-            )} of ${totalItems}`}
+                indexOfLastItem,
+                totalItems
+              )} of ${totalItems}`}
         </span>
 
         <div
@@ -325,7 +351,7 @@ const HRFeedback = () => {
     setFormData({
       receiverId: fb.receiverId || "",
       title: fb.title,
-      message: fb.description
+      message: fb.description,
     });
     setShowForm(true);
   };
@@ -354,44 +380,54 @@ const HRFeedback = () => {
           `https://server-backend-nu.vercel.app/feedback/edit/${editId}`,
           {
             title: formData.title,
-            message: formData.message
+            message: formData.message,
           },
           {
             headers: {
               Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json"
-            }
+              "Content-Type": "application/json",
+            },
           }
         );
       } else {
         response = await axios.post(
-          'https://server-backend-nu.vercel.app/feedback/send',
+          "https://server-backend-nu.vercel.app/feedback/send",
           {
             receiverId: formData.receiverId,
             title: formData.title,
-            message: formData.message
+            message: formData.message,
           },
           {
             headers: {
               Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json"
-            }
+              "Content-Type": "application/json",
+            },
           }
         );
       }
 
       if (response.data.success) {
         await fetchFeedbacks();
-        alert(editId ? "Feedback updated successfully" : "Feedback sent successfully");
+        alert(
+          editId
+            ? "Feedback updated successfully"
+            : "Feedback sent successfully"
+        );
         setShowForm(false);
         setEditId(null);
         setCurrentPageSent(1);
       } else {
-        alert(response.data.message || (editId ? "Failed to update feedback" : "Failed to send feedback"));
+        alert(
+          response.data.message ||
+            (editId ? "Failed to update feedback" : "Failed to send feedback")
+        );
       }
     } catch (err) {
       console.error("Error submitting feedback:", err);
-      alert(err.response?.data?.message || (editId ? "Failed to update feedback" : "Failed to send feedback"));
+      alert(
+        err.response?.data?.message ||
+          (editId ? "Failed to update feedback" : "Failed to send feedback")
+      );
     } finally {
       setSending(false);
     }
@@ -411,16 +447,17 @@ const HRFeedback = () => {
 
   const handleDelete = async (id, e) => {
     if (e) e.stopPropagation();
-    if (!window.confirm("Are you sure you want to delete this feedback?")) return;
+    if (!window.confirm("Are you sure you want to delete this feedback?"))
+      return;
 
     try {
       const token = localStorage.getItem("accessToken");
       if (token) {
         await axios.delete(`https://server-backend-nu.vercel.app/feedback/delete/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
 
-        setFeedbacks(feedbacks.filter(f => f.id !== id));
+        setFeedbacks(feedbacks.filter((f) => f.id !== id));
         setCurrentPageSent(1);
         alert("Feedback deleted successfully");
       }
@@ -431,11 +468,16 @@ const HRFeedback = () => {
   };
 
   return (
-    <div className="container-fluid" >
+    <div className="container-fluid">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 style={{ color: "#3A5FBE", fontSize: "25px", marginLeft: "15px" }}>Employee Feedback Management
+        <h2 style={{ color: "#3A5FBE", fontSize: "25px", marginLeft: "15px" }}>
+          Employee Feedback Management
         </h2>
-        <button className="btn btn-sm custom-outline-btn" onClick={openAddForm} style={{ minWidth: 140 }}>
+        <button
+          className="btn btn-sm custom-outline-btn"
+          onClick={openAddForm}
+          style={{ minWidth: 140 }}
+        >
           Add New Feedback
         </button>
       </div>
@@ -445,15 +487,23 @@ const HRFeedback = () => {
         <div className="card-body">
           <form
             className="row g-2 align-items-center"
-            onSubmit={e => {
+            onSubmit={(e) => {
               e.preventDefault();
               handleSearch();
             }}
             style={{ justifyContent: "space-between" }}
           >
             <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
-              <label htmlFor="statusFilter" className="fw-bold mb-0"
-                style={{ fontSize: "16px", color: "#3A5FBE", marginRight: "5px", minWidth: "50px" }}>
+              <label
+                htmlFor="statusFilter"
+                className="fw-bold mb-0"
+                style={{
+                  fontSize: "16px",
+                  color: "#3A5FBE",
+                  marginRight: "5px",
+                  minWidth: "50px",
+                }}
+              >
                 Status
               </label>
               <select
@@ -469,8 +519,16 @@ const HRFeedback = () => {
             </div>
 
             <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
-              <label htmlFor="searchInput" className="fw-bold mb-0"
-                style={{ fontSize: "16px", color: "#3A5FBE", marginRight: "5px", minWidth: "120px" }}>
+              <label
+                htmlFor="searchInput"
+                className="fw-bold mb-0"
+                style={{
+                  fontSize: "16px",
+                  color: "#3A5FBE",
+                  marginRight: "5px",
+                  minWidth: "120px",
+                }}
+              >
                 Search Feedback
               </label>
               <input
@@ -484,10 +542,19 @@ const HRFeedback = () => {
             </div>
 
             <div className="col-12 col-md-auto ms-md-auto d-flex gap-2 justify-content-end">
-              <button type="submit" className="btn btn-sm custom-outline-btn" style={{ minWidth: 90 }}>
+              <button
+                type="submit"
+                className="btn btn-sm custom-outline-btn"
+                style={{ minWidth: 90 }}
+              >
                 Search
               </button>
-              <button type="button" className="btn btn-sm custom-outline-btn" onClick={handleReset} style={{ minWidth: 90 }}>
+              <button
+                type="button"
+                className="btn btn-sm custom-outline-btn"
+                onClick={handleReset}
+                style={{ minWidth: 90 }}
+              >
                 Reset
               </button>
             </div>
@@ -496,11 +563,15 @@ const HRFeedback = () => {
       </div>
 
       {/* Received Feedback */}
-      <h2 style={{ color: "#3A5FBE", fontSize: "25px", marginLeft: "15px" }}>Received Feedback</h2>
+      <h2 style={{ color: "#3A5FBE", fontSize: "25px", marginLeft: "15px" }}>
+        Received Feedback
+      </h2>
 
       {filteredReceivedFeedbacks.length === 0 ? (
         <div className="text-center py-4">
-          <p style={{ color: "#6c757d", fontSize: "16px" }}>No feedback received yet.</p>
+          <p style={{ color: "#6c757d", fontSize: "16px" }}>
+            No feedback received yet.
+          </p>
         </div>
       ) : (
         <>
@@ -511,55 +582,213 @@ const HRFeedback = () => {
               borderRadius: "8px",
             }}
           >
-            <table className="table table-hover mb-0" style={{ borderCollapse: 'collapse' }}>
-              <thead style={{ backgroundColor: '#f8f9fa' }}>
+            <table
+              className="table table-hover mb-0"
+              style={{ borderCollapse: "collapse" }}
+            >
+              <thead style={{ backgroundColor: "#f8f9fa" }}>
                 <tr>
-                  <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '10px', whiteSpace: 'nowrap' }}>Feedback ID</th>
-                  <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '10px', whiteSpace: 'nowrap' }}>From</th>
-                  <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '10px', whiteSpace: 'nowrap' }}>Designation</th>
-                  <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '10px', whiteSpace: 'nowrap' }}>Date</th>
-                  <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '10px', whiteSpace: 'nowrap' }}>Status</th>
-                  <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '10px', whiteSpace: 'nowrap' }}>Title</th>
-                  <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '10px', whiteSpace: 'nowrap' }}>Actions</th>
+                  <th
+                    style={{
+                      fontWeight: "500",
+                      fontSize: "14px",
+                      color: "#6c757d",
+                      borderBottom: "2px solid #dee2e6",
+                      padding: "10px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Feedback ID
+                  </th>
+                  <th
+                    style={{
+                      fontWeight: "500",
+                      fontSize: "14px",
+                      color: "#6c757d",
+                      borderBottom: "2px solid #dee2e6",
+                      padding: "10px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    From
+                  </th>
+                  <th
+                    style={{
+                      fontWeight: "500",
+                      fontSize: "14px",
+                      color: "#6c757d",
+                      borderBottom: "2px solid #dee2e6",
+                      padding: "10px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Designation
+                  </th>
+                  <th
+                    style={{
+                      fontWeight: "500",
+                      fontSize: "14px",
+                      color: "#6c757d",
+                      borderBottom: "2px solid #dee2e6",
+                      padding: "10px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Date
+                  </th>
+                  <th
+                    style={{
+                      fontWeight: "500",
+                      fontSize: "14px",
+                      color: "#6c757d",
+                      borderBottom: "2px solid #dee2e6",
+                      padding: "10px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Status
+                  </th>
+                  <th
+                    style={{
+                      fontWeight: "500",
+                      fontSize: "14px",
+                      color: "#6c757d",
+                      borderBottom: "2px solid #dee2e6",
+                      padding: "10px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Title
+                  </th>
+                  <th
+                    style={{
+                      fontWeight: "500",
+                      fontSize: "14px",
+                      color: "#6c757d",
+                      borderBottom: "2px solid #dee2e6",
+                      padding: "10px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {currentReceivedFeedbacks.map((fb) => (
                   <tr key={fb.id}>
-                    <td style={{ padding: '10px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                    <td
+                      style={{
+                        padding: "10px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {fb.feedbackId}
                     </td>
-                    <td style={{ padding: '10px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                    <td
+                      style={{
+                        padding: "10px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {fb.employeeName}
                     </td>
-                    <td style={{ padding: '10px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                    <td
+                      style={{
+                        padding: "10px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {fb.designation || "N/A"}
                     </td>
-                    <td style={{ padding: '10px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                    <td
+                      style={{
+                        padding: "10px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {fb.date}
                     </td>
-                    <td style={{ padding: '10px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                    <td
+                      style={{
+                        padding: "10px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {fb.status === "Viewed" ? (
-                        <span style={{ backgroundColor: '#d1f2dd', padding: '6px 12px', borderRadius: '4px', fontSize: '13px', fontWeight: '500', display: 'inline-block', width: "100px", textAlign: "center" }}>
+                        <span
+                          style={{
+                            backgroundColor: "#d1f2dd",
+                            padding: "6px 12px",
+                            borderRadius: "4px",
+                            fontSize: "13px",
+                            fontWeight: "500",
+                            display: "inline-block",
+                            width: "100px",
+                            textAlign: "center",
+                          }}
+                        >
                           Viewed
                         </span>
                       ) : (
-                        <span style={{ backgroundColor: '#fff3cd', padding: '6px 12px', borderRadius: '4px', fontSize: '13px', fontWeight: '500', display: 'inline-block', width: "100px", textAlign: "center" }}>
+                        <span
+                          style={{
+                            backgroundColor: "#fff3cd",
+                            padding: "6px 12px",
+                            borderRadius: "4px",
+                            fontSize: "13px",
+                            fontWeight: "500",
+                            display: "inline-block",
+                            width: "100px",
+                            textAlign: "center",
+                          }}
+                        >
                           Pending
                         </span>
                       )}
                     </td>
-                    <td style={{ padding: '10px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                    <td
+                      style={{
+                        padding: "10px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {fb.title}
                     </td>
-                    <td style={{ padding: '10px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                    <td
+                      style={{
+                        padding: "10px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       <button
                         className="btn btn-sm custom-outline-btn"
                         onClick={(e) => {
                           e.stopPropagation();
                           openFeedbackModal(fb);
                         }}
-                        style={{ minWidth: "80px", padding: '5px 10px' }}
+                        style={{ minWidth: "80px", padding: "5px 10px" }}
                       >
                         View
                       </button>
@@ -582,11 +811,15 @@ const HRFeedback = () => {
       )}
 
       {/* Sent Feedback */}
-      <h2 style={{ color: "#3A5FBE", fontSize: "25px", marginLeft: "15px" }}>Sent Feedback</h2>
+      <h2 style={{ color: "#3A5FBE", fontSize: "25px", marginLeft: "15px" }}>
+        Sent Feedback
+      </h2>
 
       {filteredSentFeedbacks.length === 0 ? (
         <div className="text-center py-4">
-          <p style={{ color: "#6c757d", fontSize: "16px" }}>No feedback sent yet.</p>
+          <p style={{ color: "#6c757d", fontSize: "16px" }}>
+            No feedback sent yet.
+          </p>
         </div>
       ) : (
         <>
@@ -597,16 +830,96 @@ const HRFeedback = () => {
               borderRadius: "8px",
             }}
           >
-            <table className="table table-hover mb-0" style={{ borderCollapse: 'collapse' }}>
-              <thead style={{ backgroundColor: '#f8f9fa' }}>
+            <table
+              className="table table-hover mb-0"
+              style={{ borderCollapse: "collapse" }}
+            >
+              <thead style={{ backgroundColor: "#f8f9fa" }}>
                 <tr>
-                  <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '10px', whiteSpace: 'nowrap' }}>Feedback ID</th>
-                  <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '10px', whiteSpace: 'nowrap' }}>To</th>
-                  <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '10px', whiteSpace: 'nowrap' }}>Designation</th>
-                  <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '10px', whiteSpace: 'nowrap' }}>Date</th>
-                  <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '10px', whiteSpace: 'nowrap' }}>Status</th>
-                  <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '10px', whiteSpace: 'nowrap' }}>Title</th>
-                  <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '10px', whiteSpace: 'nowrap' }}>Actions</th>
+                  <th
+                    style={{
+                      fontWeight: "500",
+                      fontSize: "14px",
+                      color: "#6c757d",
+                      borderBottom: "2px solid #dee2e6",
+                      padding: "10px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Feedback ID
+                  </th>
+                  <th
+                    style={{
+                      fontWeight: "500",
+                      fontSize: "14px",
+                      color: "#6c757d",
+                      borderBottom: "2px solid #dee2e6",
+                      padding: "10px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    To
+                  </th>
+                  <th
+                    style={{
+                      fontWeight: "500",
+                      fontSize: "14px",
+                      color: "#6c757d",
+                      borderBottom: "2px solid #dee2e6",
+                      padding: "10px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Designation
+                  </th>
+                  <th
+                    style={{
+                      fontWeight: "500",
+                      fontSize: "14px",
+                      color: "#6c757d",
+                      borderBottom: "2px solid #dee2e6",
+                      padding: "10px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Date
+                  </th>
+                  <th
+                    style={{
+                      fontWeight: "500",
+                      fontSize: "14px",
+                      color: "#6c757d",
+                      borderBottom: "2px solid #dee2e6",
+                      padding: "10px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Status
+                  </th>
+                  <th
+                    style={{
+                      fontWeight: "500",
+                      fontSize: "14px",
+                      color: "#6c757d",
+                      borderBottom: "2px solid #dee2e6",
+                      padding: "10px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Title
+                  </th>
+                  <th
+                    style={{
+                      fontWeight: "500",
+                      fontSize: "14px",
+                      color: "#6c757d",
+                      borderBottom: "2px solid #dee2e6",
+                      padding: "10px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -615,49 +928,124 @@ const HRFeedback = () => {
                     key={fb.id}
                     style={{
                       cursor: "pointer",
-                      backgroundColor: 'transparent',
-                      transition: 'background-color 0.2s'
+                      backgroundColor: "transparent",
+                      transition: "background-color 0.2s",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#e9ecef';
+                      e.currentTarget.style.backgroundColor = "#e9ecef";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.backgroundColor = "transparent";
                     }}
                     onClick={() => handleRowClick(fb)}
                   >
-                    <td style={{ padding: '10px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                    <td
+                      style={{
+                        padding: "10px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {fb.feedbackId}
                     </td>
-                    <td style={{ padding: '10px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                    <td
+                      style={{
+                        padding: "10px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {fb.employeeName}
                     </td>
-                    <td style={{ padding: '10px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                    <td
+                      style={{
+                        padding: "10px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {fb.designation || "N/A"}
                     </td>
-                    <td style={{ padding: '10px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                    <td
+                      style={{
+                        padding: "10px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {fb.date}
                     </td>
-                    <td style={{ padding: '10px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                    <td
+                      style={{
+                        padding: "10px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {fb.status === "Viewed" ? (
-                        <span style={{ backgroundColor: '#d1f2dd', padding: '6px 12px', borderRadius: '4px', fontSize: '13px', fontWeight: '500', display: 'inline-block', width: "100px", textAlign: "center" }}>
+                        <span
+                          style={{
+                            backgroundColor: "#d1f2dd",
+                            padding: "6px 12px",
+                            borderRadius: "4px",
+                            fontSize: "13px",
+                            fontWeight: "500",
+                            display: "inline-block",
+                            width: "100px",
+                            textAlign: "center",
+                          }}
+                        >
                           Viewed
                         </span>
                       ) : (
-                        <span style={{ backgroundColor: '#fff3cd', padding: '6px 12px', borderRadius: '4px', fontSize: '13px', fontWeight: '500', display: 'inline-block', width: "100px", textAlign: "center" }}>
+                        <span
+                          style={{
+                            backgroundColor: "#fff3cd",
+                            padding: "6px 12px",
+                            borderRadius: "4px",
+                            fontSize: "13px",
+                            fontWeight: "500",
+                            display: "inline-block",
+                            width: "100px",
+                            textAlign: "center",
+                          }}
+                        >
                           Pending
                         </span>
                       )}
                     </td>
-                    <td style={{ padding: '10px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                    <td
+                      style={{
+                        padding: "10px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {fb.title}
                     </td>
                     <td
-                      style={{ padding: '10px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}
+                      style={{
+                        padding: "10px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                      }}
                       onClick={(e) => e.stopPropagation()}
                     >
                       <div className="d-flex gap-2">
-
                         <button
                           className="btn btn-sm custom-outline-btn"
                           onClick={(e) => {
@@ -666,10 +1054,13 @@ const HRFeedback = () => {
                             }
                           }}
                           style={{
-                            padding: '5px 10px',
+                            padding: "5px 10px",
                             minWidth: "70px",
                             opacity: fb.status === "Viewed" ? 0.6 : 1,
-                            cursor: fb.status === "Viewed" ? "not-allowed" : "pointer"
+                            cursor:
+                              fb.status === "Viewed"
+                                ? "not-allowed"
+                                : "pointer",
                           }}
                           disabled={fb.status === "Viewed"}
                         >
@@ -678,7 +1069,7 @@ const HRFeedback = () => {
                         <button
                           className="btn btn-sm btn-outline-danger"
                           onClick={(e) => handleDelete(fb.id, e)}
-                          style={{ padding: '5px 10px', minWidth: "70px" }}
+                          style={{ padding: "5px 10px", minWidth: "70px" }}
                         >
                           Delete
                         </button>
@@ -715,9 +1106,15 @@ const HRFeedback = () => {
             zIndex: 1050,
           }}
         >
-          <div className="modal-dialog" style={{ maxWidth: "500px", width: "95%" }}>
+          <div
+            className="modal-dialog"
+            style={{ maxWidth: "500px", width: "95%" }}
+          >
             <div className="modal-content">
-              <div className="modal-header text-white" style={{ backgroundColor: "#3A5FBE" }}>
+              <div
+                className="modal-header text-white"
+                style={{ backgroundColor: "#3A5FBE" }}
+              >
                 <h5 className="modal-title mb-0">
                   {editId ? "Edit Feedback" : "Send New Feedback"}
                 </h5>
@@ -747,26 +1144,32 @@ const HRFeedback = () => {
                     placeholder="Enter feedback title"
                   />
 
-                  {errors.title && <small className="text-danger">{errors.title}</small>}
+                  {errors.title && (
+                    <small className="text-danger">{errors.title}</small>
+                  )}
                 </div>
 
                 <div className="mb-3">
                   <label className="form-label fw-semibold">Send To</label>
                   {editId ? (
                     <div className="form-control bg-light">
-                      {employees.find(emp => emp._id === formData.receiverId)?.name || "Employee"}
+                      {employees.find((emp) => emp._id === formData.receiverId)
+                        ?.name || "Employee"}
                     </div>
                   ) : (
                     <select
                       className="form-select"
                       value={formData.receiverId}
                       onChange={(e) => {
-                        setFormData({ ...formData, receiverId: e.target.value });
+                        setFormData({
+                          ...formData,
+                          receiverId: e.target.value,
+                        });
                         setErrors({ ...errors, receiverId: "" });
                       }}
                     >
                       <option value="">Select Employee/Manager</option>
-                      {employees.map(emp => (
+                      {employees.map((emp) => (
                         <option key={emp._id} value={emp._id}>
                           {emp.name} - {emp.designation || "No Designation"}
                         </option>
@@ -774,7 +1177,9 @@ const HRFeedback = () => {
                     </select>
                   )}
 
-                  {errors.receiverId && <small className="text-danger">{errors.receiverId}</small>}
+                  {errors.receiverId && (
+                    <small className="text-danger">{errors.receiverId}</small>
+                  )}
                 </div>
 
                 <div className="mb-3">
@@ -788,21 +1193,24 @@ const HRFeedback = () => {
                       setFormData({ ...formData, message: e.target.value });
                       setErrors({ ...errors, message: "" });
                     }}
-
                     placeholder="Enter feedback message"
                   />
-                  <div className="char-count"
+                  <div
+                    className="char-count"
                     style={{
                       display: "flex",
                       justifyContent: "flex-end",
                       fontSize: "12px",
                       color: "#6c757d",
                       marginTop: "4px",
-                    }}>
-                    {formData.message.length}/300</div>
+                    }}
+                  >
+                    {formData.message.length}/300
+                  </div>
 
-                  {errors.message && <small className="text-danger">{errors.message}</small>}
-
+                  {errors.message && (
+                    <small className="text-danger">{errors.message}</small>
+                  )}
                 </div>
               </div>
 
@@ -812,7 +1220,13 @@ const HRFeedback = () => {
                   onClick={handleSubmit}
                   disabled={sending || (!editId && employees.length === 0)}
                 >
-                  {sending ? (editId ? "Updating..." : "Sending...") : (editId ? "Update Feedback" : "Send Feedback")}
+                  {sending
+                    ? editId
+                      ? "Updating..."
+                      : "Sending..."
+                    : editId
+                    ? "Update Feedback"
+                    : "Send Feedback"}
                 </button>
                 <button
                   className="btn custom-outline-btn"
@@ -846,9 +1260,15 @@ const HRFeedback = () => {
             zIndex: 1050,
           }}
         >
-          <div className="modal-dialog" style={{ maxWidth: "600px", width: "95%" }}>
+          <div
+            className="modal-dialog"
+            style={{ maxWidth: "600px", width: "95%" }}
+          >
             <div className="modal-content">
-              <div className="modal-header text-white" style={{ backgroundColor: "#3A5FBE" }}>
+              <div
+                className="modal-header text-white"
+                style={{ backgroundColor: "#3A5FBE" }}
+              >
                 <h5 className="modal-title mb-0">Feedback Details</h5>
                 <button
                   type="button"
@@ -860,36 +1280,56 @@ const HRFeedback = () => {
               <div className="modal-body">
                 <div className="container-fluid">
                   <div className="row mb-2">
-                    <div className="col-5 col-sm-4 fw-semibold">Feedback ID</div>
-                    <div className="col-sm-8 col-5">{selectedFeedback.feedbackId}</div>
+                    <div className="col-5 col-sm-4 fw-semibold">
+                      Feedback ID
+                    </div>
+                    <div className="col-sm-8 col-5">
+                      {selectedFeedback.feedbackId}
+                    </div>
                   </div>
 
                   {selectedFeedback.type === "received" ? (
                     <div className="row mb-2">
                       <div className="col-5 col-sm-4 fw-semibold">From</div>
-                      <div className="col-sm-8 col-5">{selectedFeedback.employeeName}</div>
+                      <div className="col-sm-8 col-5">
+                        {selectedFeedback.employeeName}
+                      </div>
                     </div>
                   ) : (
                     <div className="row mb-2">
                       <div className="col-5 col-sm-4 fw-semibold">To</div>
-                      <div className="col-sm-8 col-5">{selectedFeedback.employeeName}</div>
+                      <div className="col-sm-8 col-5">
+                        {selectedFeedback.employeeName}
+                      </div>
                     </div>
                   )}
 
                   <div className="row mb-2">
-                    <div className="col-5 col-sm-4 fw-semibold">Designation</div>
-                    <div className="col-sm-8 col-5">{selectedFeedback.designation || "N/A"}</div>
+                    <div className="col-5 col-sm-4 fw-semibold">
+                      Designation
+                    </div>
+                    <div className="col-sm-8 col-5">
+                      {selectedFeedback.designation || "N/A"}
+                    </div>
                   </div>
 
                   <div className="row mb-2">
                     <div className="col-5 col-sm-4 fw-semibold">Date</div>
-                    <div className="col-sm-8 col-5">{selectedFeedback.date}</div>
+                    <div className="col-sm-8 col-5">
+                      {selectedFeedback.date}
+                    </div>
                   </div>
 
                   <div className="row mb-2">
                     <div className="col-5 col-sm-4 fw-semibold">Status</div>
                     <div className="col-sm-8 col-5">
-                      <span className={`badge ${selectedFeedback.status === "Viewed" ? "bg-success" : "bg-warning text-dark"}`}>
+                      <span
+                        className={`badge ${
+                          selectedFeedback.status === "Viewed"
+                            ? "bg-success"
+                            : "bg-warning text-dark"
+                        }`}
+                      >
                         {selectedFeedback.status}
                       </span>
                     </div>
@@ -897,19 +1337,30 @@ const HRFeedback = () => {
 
                   {selectedFeedback.readAt && (
                     <div className="row mb-2">
-                      <div className="col-5 col-sm-4 fw-semibold">Viewed At</div>
-                      <div className="col-sm-8 col-5">{selectedFeedback.readAt}</div>
+                      <div className="col-5 col-sm-4 fw-semibold">
+                        Viewed At
+                      </div>
+                      <div className="col-sm-8 col-5">
+                        {selectedFeedback.readAt}
+                      </div>
                     </div>
                   )}
 
                   <div className="row mb-2">
                     <div className="col-5 col-sm-4 fw-semibold">Title</div>
-                    <div className="col-sm-8 col-5">{selectedFeedback.title}</div>
+                    <div className="col-sm-8 col-5">
+                      {selectedFeedback.title}
+                    </div>
                   </div>
 
                   <div className="row mb-2">
-                    <div className="col-5 col-sm-4 fw-semibold">Description</div>
-                    <div className="col-sm-8 col-5" style={{ whiteSpace: "pre-wrap" }}>
+                    <div className="col-5 col-sm-4 fw-semibold">
+                      Description
+                    </div>
+                    <div
+                      className="col-sm-8 col-5"
+                      style={{ whiteSpace: "pre-wrap" }}
+                    >
                       {selectedFeedback.description}
                     </div>
                   </div>
@@ -917,7 +1368,10 @@ const HRFeedback = () => {
               </div>
 
               <div className="modal-footer border-0 pt-0">
-                <button className="btn custom-outline-btn" onClick={() => setSelectedFeedback(null)}>
+                <button
+                  className="btn custom-outline-btn"
+                  onClick={() => setSelectedFeedback(null)}
+                >
                   Close
                 </button>
               </div>

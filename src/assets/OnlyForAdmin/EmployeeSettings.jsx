@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 // import axios from "axios";
-import MyProfile from "../AllDashboards/MyProfile"
-import ChangePassword from './ChangePassword';
+import MyProfile from "../AllDashboards/MyProfile";
+import ChangePassword from "./ChangePassword";
+import SupportEmployeeSetting from "../ITSupport/SupportEmployeeSetting";
 function EmployeeSettings({ user }) {
   const [activeTab, setActiveTab] = useState("changePassword");
   // const [passwords, setPasswords] = useState({
@@ -17,8 +18,6 @@ function EmployeeSettings({ user }) {
   // const [passwordLoading, setPasswordLoading] = useState(false);
   // const [passwordError, setPasswordError] = useState("");
   // const [passwordSuccess, setPasswordSuccess] = useState("");
-
-
 
   // const handleChangePassword = async () => {
   //   setPasswordError("");
@@ -86,25 +85,26 @@ function EmployeeSettings({ user }) {
   //   }
   // };
 
-
   // const handlePasswordInputChange = (e) => {
   //   const { name, value } = e.target;
   //   setPasswords((prev) => ({ ...prev, [name]: value }));
   // };
   return (
-
-
-
-    <div className="container-fluid p-3 p-md-4 p-2" style={{ backgroundColor: "#f8f9fa", minHeight: "100vh" }}>
+    <div
+      className="container-fluid p-3 p-md-4 p-2"
+      style={{ backgroundColor: "#f8f9fa", minHeight: "100vh" }}
+    >
       <div className="d-flex justify-content-center  mb-3 gap-2">
         <button
           type="button"
-          className={`btn btn-sm ${activeTab === "profile" ? "btn-primary" : "btn-outline-primary"
-            }`}
+          className={`btn btn-sm ${
+            activeTab === "profile" ? "btn-primary" : "btn-outline-primary"
+          }`}
           style={{
-            backgroundColor: activeTab === "profile" ? "#3A5FBE" : "transparent",
+            backgroundColor:
+              activeTab === "profile" ? "#3A5FBE" : "transparent",
             borderColor: "#3A5FBE",
-            color: activeTab === "profile" ? "white" : "#3A5FBE"
+            color: activeTab === "profile" ? "white" : "#3A5FBE",
           }}
           onClick={() => setActiveTab("profile")}
         >
@@ -113,36 +113,56 @@ function EmployeeSettings({ user }) {
 
         <button
           type="button"
-          className={`btn btn-sm ${activeTab === "changePassword" ? "btn-primary" : "btn-outline-primary"
-            }`}
+          className={`btn btn-sm ${
+            activeTab === "changePassword"
+              ? "btn-primary"
+              : "btn-outline-primary"
+          }`}
           style={{
-            backgroundColor: activeTab === "changePassword" ? "#3A5FBE" : "transparent",
+            backgroundColor:
+              activeTab === "changePassword" ? "#3A5FBE" : "transparent",
             borderColor: "#3A5FBE",
-            color: activeTab === "changePassword" ? "white" : "#3A5FBE"
+            color: activeTab === "changePassword" ? "white" : "#3A5FBE",
           }}
           onClick={() => setActiveTab("changePassword")}
         >
           Change Password
         </button>
+        <button
+          type="button"
+          className={`btn btn-sm ${
+            activeTab === "support" ? "btn-primary" : "btn-outline-primary"
+          }`}
+          style={{
+            backgroundColor:
+              activeTab === "support" ? "#3A5FBE" : "transparent",
+            borderColor: "#3A5FBE",
+            color: activeTab === "support" ? "white" : "#3A5FBE",
+          }}
+          onClick={() => setActiveTab("support")}
+        >
+          IT Support
+        </button>
       </div>
-
-
       {activeTab === "profile" && (
         <>
-
           <MyProfile user={user} />
         </>
       )}
-
       {/* Change Password - same card design */}
       {activeTab === "changePassword" && (
         <>
           <ChangePassword />
         </>
       )}
-
+      {/*  Support Option added snehal */} {/* //Added Support Snehal */}
+      {activeTab === "support" && (
+        <>
+          <SupportEmployeeSetting />
+        </>
+      )}
     </div>
   );
 }
 
-export default EmployeeSettings
+export default EmployeeSettings;

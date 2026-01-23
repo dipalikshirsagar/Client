@@ -1,14 +1,12 @@
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import EmployeeMyRegularization from "./EmployeeMyRegularization";
 
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { TimePicker } from '@mui/x-date-pickers/TimePicker';
-import { renderTimeViewClock } from '@mui/x-date-pickers/timeViewRenderers';
-import dayjs from 'dayjs';
-
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { TimePicker } from "@mui/x-date-pickers/TimePicker";
+import { renderTimeViewClock } from "@mui/x-date-pickers/timeViewRenderers";
+import dayjs from "dayjs";
 
 function ApplyRegularization({ user, selectedRecord }) {
   const [date, setDate] = useState("");
@@ -57,8 +55,6 @@ function ApplyRegularization({ user, selectedRecord }) {
     fetchCounts();
   }, [user._id, refresh]);
 
-
-
   const [weeklyOffs, setWeeklyOffs] = useState([]);
 
   useEffect(() => {
@@ -73,7 +69,10 @@ function ApplyRegularization({ user, selectedRecord }) {
         const sundayOff = true; // all Sundays are off
 
         setWeeklyOffs({ saturdays: saturdayOffs, sundayOff });
-        console.log("✅ Weekly offs fetched:", { saturdays: saturdayOffs, sundayOff });
+        console.log("✅ Weekly offs fetched:", {
+          saturdays: saturdayOffs,
+          sundayOff,
+        });
       } catch (err) {
         console.error("❌ Error fetching weekly offs:", err);
         setWeeklyOffs({ saturdays: [], sundayOff: true });
@@ -83,22 +82,21 @@ function ApplyRegularization({ user, selectedRecord }) {
     fetchWeeklyOffs();
   }, []);
 
-
   // ✅ Fetch Attendance Data (used to prefill Check-In)
   useEffect(() => {
     const fetchAttendance = async () => {
       try {
-        const res = await axios.get(`https://server-backend-nu.vercel.app/attendance/regularization/my/${user._id}`
+        const res = await axios.get(
+          `https://server-backend-nu.vercel.app/attendance/regularization/my/${user._id}`
         );
         setAttendance(res.data);
-        console.log(res.data)
+        console.log(res.data);
       } catch (err) {
         console.error("❌ Error fetching attendance:", err);
       }
     };
     fetchAttendance();
   }, [user._id]);
-
 
   // ✅ Whenever date changes, check if there’s an attendance record for it
   // useEffect(() => {
@@ -139,10 +137,6 @@ function ApplyRegularization({ user, selectedRecord }) {
   //   }
   // }, [date, attendance]);
 
-
-
-
-
   // ✅ Whenever date changes, check if there’s an attendance record for it
   useEffect(() => {
     if (!date || attendance.length === 0) return;
@@ -158,12 +152,15 @@ function ApplyRegularization({ user, selectedRecord }) {
     if (record) {
       // 🕒 Convert and prefill existing Check-In
       if (record.checkIn) {
-        const localCheckIn = new Date(record.checkIn).toLocaleTimeString("en-IN", {
-          timeZone: "Asia/Kolkata",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        });
+        const localCheckIn = new Date(record.checkIn).toLocaleTimeString(
+          "en-IN",
+          {
+            timeZone: "Asia/Kolkata",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          }
+        );
         setCheckIn(localCheckIn);
       } else {
         setCheckIn("");
@@ -171,12 +168,15 @@ function ApplyRegularization({ user, selectedRecord }) {
 
       // 🕒 Convert and prefill existing Check-Out
       if (record.checkOut) {
-        const localCheckOut = new Date(record.checkOut).toLocaleTimeString("en-IN", {
-          timeZone: "Asia/Kolkata",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        });
+        const localCheckOut = new Date(record.checkOut).toLocaleTimeString(
+          "en-IN",
+          {
+            timeZone: "Asia/Kolkata",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          }
+        );
         setCheckOut(localCheckOut);
       } else {
         setCheckOut("");
@@ -196,7 +196,7 @@ function ApplyRegularization({ user, selectedRecord }) {
     }
   }, [date, attendance]);
 
-  console.log("attendance", attendance)
+  console.log("attendance", attendance);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -239,7 +239,6 @@ function ApplyRegularization({ user, selectedRecord }) {
         return;
       }
 
-
       // ✅ Use reference weeklyOffs (already fetched in useEffect)
       const day = selected.getDay(); // 0 = Sunday, 6 = Saturday
 
@@ -252,19 +251,28 @@ function ApplyRegularization({ user, selectedRecord }) {
 
       // 🚫 2nd/4th Saturday Off Check
       if (day === 6 && Array.isArray(weeklyOffs.saturdays)) {
-        const firstDay = new Date(selected.getFullYear(), selected.getMonth(), 1);
+        const firstDay = new Date(
+          selected.getFullYear(),
+          selected.getMonth(),
+          1
+        );
         let saturdayCount = 0;
-        for (let temp = new Date(firstDay); temp <= selected; temp.setDate(temp.getDate() + 1)) {
+        for (
+          let temp = new Date(firstDay);
+          temp <= selected;
+          temp.setDate(temp.getDate() + 1)
+        ) {
           if (temp.getDay() === 6) saturdayCount++;
         }
 
         if (weeklyOffs.saturdays.includes(saturdayCount)) {
-          alert(`❌ You cannot apply regularization on Weekly Off Saturday (${date})`);
+          alert(
+            `❌ You cannot apply regularization on Weekly Off Saturday (${date})`
+          );
           setMessage("❌ Regularization not allowed on 2nd/4th Saturday");
           return;
         }
       }
-
 
       //       // 🚫 BLOCK REGULARIZATION IF CHECK-IN/CHECK-OUT ALREADY EXISTS FOR THAT DATE
       // const existingAttendance = attendance.find((a) => {
@@ -303,8 +311,12 @@ function ApplyRegularization({ user, selectedRecord }) {
         !existingAttendance.checkOut &&
         selectedDate.getTime() === today.getTime()
       ) {
-        alert("Please check out first before applying regularization for today.");
-        setMessage("Please check out first before applying regularization for today.");
+        alert(
+          "Please check out first before applying regularization for today."
+        );
+        setMessage(
+          "Please check out first before applying regularization for today."
+        );
         return;
       }
 
@@ -314,15 +326,19 @@ function ApplyRegularization({ user, selectedRecord }) {
         existingAttendance.checkIn &&
         existingAttendance.checkOut
       ) {
-        alert("You cannot apply regularization for this date because check-in and check-out are already recorded.");
-        setMessage("Regularization not allowed because full attendance already exists for this date.");
+        alert(
+          "You cannot apply regularization for this date because check-in and check-out are already recorded."
+        );
+        setMessage(
+          "Regularization not allowed because full attendance already exists for this date."
+        );
         return;
       }
 
-
-
       // 1️⃣ Fetch existing leaves for the employee
-      const leaveRes = await axios.get(`https://server-backend-nu.vercel.app/leave/my/${user._id}`);
+      const leaveRes = await axios.get(
+        `https://server-backend-nu.vercel.app/leave/my/${user._id}`
+      );
       const leaves = leaveRes.data || [];
 
       // 🔹 Check if the selected date falls in any leave range
@@ -331,7 +347,9 @@ function ApplyRegularization({ user, selectedRecord }) {
         const to = new Date(leave.dateTo);
         from.setHours(0, 0, 0, 0);
         to.setHours(23, 59, 59, 999);
-        return selected >= from && selected <= to && leave.status !== "rejected";
+        return (
+          selected >= from && selected <= to && leave.status !== "rejected"
+        );
       });
 
       if (isLeaveDay) {
@@ -354,11 +372,12 @@ function ApplyRegularization({ user, selectedRecord }) {
       });
 
       if (isHoliday) {
-        alert("🎉 It's a holiday! You cannot apply regularization on this date.");
+        alert(
+          "🎉 It's a holiday! You cannot apply regularization on this date."
+        );
         setMessage("🎉 You cannot apply regularization on a holiday.");
         return;
       }
-
 
       // 3 Fetch existing regularization requests (✅ fixed link)
       const regRes = await axios.get(
@@ -398,7 +417,7 @@ function ApplyRegularization({ user, selectedRecord }) {
         mode: workMode,
         reason: reason.trim(),
       });
-      console.log("res", res)
+      console.log("res", res);
       // ✅ Reset after success
       setRefresh((prev) => !prev);
       alert("✅ Regularization request submitted successfully!");
@@ -421,7 +440,6 @@ function ApplyRegularization({ user, selectedRecord }) {
     }
   };
 
-
   // ✅ Date limits
   const today = new Date();
   const yyyy = today.getFullYear();
@@ -433,11 +451,17 @@ function ApplyRegularization({ user, selectedRecord }) {
   const checkOutMissing =
     !selectedRecord?.checkOut && !selectedRecord?.leaveType;
 
-
-
   return (
     <div className="container-fluid">
-      <h2 style={{ color: "#3A5FBE", fontSize: "25px", marginLeft: "15px", marginBottom: "40px" }}>Regularization
+      <h2
+        style={{
+          color: "#3A5FBE",
+          fontSize: "25px",
+          marginLeft: "15px",
+          marginBottom: "40px",
+        }}
+      >
+        Regularization
       </h2>
 
       <style>{`
@@ -576,7 +600,6 @@ function ApplyRegularization({ user, selectedRecord }) {
 
       {/* 🔹 Apply Button */}
       <button
-
         className="btn btn-sm custom-outline-btn"
         style={{ marginBottom: "30px" }}
         onClick={() => setShowModal(true)}
@@ -672,22 +695,11 @@ function ApplyRegularization({ user, selectedRecord }) {
                     </div>
                   )} */}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
                   {/* ✅ Requested Check-In Time */}
                   <div className="mb-2">
-                    <label className="form-label">Requested Check-In Time</label>
+                    <label className="form-label">
+                      Requested Check-In Time
+                    </label>
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                       <TimePicker
                         label="Select Check-In Time"
@@ -695,11 +707,14 @@ function ApplyRegularization({ user, selectedRecord }) {
                           checkIn
                             ? dayjs(checkIn, "HH:mm") // if employee already checked in
                             : checkInTime
-                              ? dayjs(checkInTime)
-                              : null
+                            ? dayjs(checkInTime)
+                            : null
                         }
                         onChange={(newValue) => {
-                          if (checkInTime && dayjs(checkInTime).isSame(newValue, "minute")) {
+                          if (
+                            checkInTime &&
+                            dayjs(checkInTime).isSame(newValue, "minute")
+                          ) {
                             document.activeElement.blur(); // 👈 close on repeat click
                           } else {
                             setCheckInTime(newValue);
@@ -719,7 +734,9 @@ function ApplyRegularization({ user, selectedRecord }) {
 
                   {/* ✅ Requested Check-Out Time */}
                   <div className="mb-2">
-                    <label className="form-label">Requested Check-Out Time</label>
+                    <label className="form-label">
+                      Requested Check-Out Time
+                    </label>
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                       <TimePicker
                         label="Select Check-Out Time"
@@ -727,11 +744,14 @@ function ApplyRegularization({ user, selectedRecord }) {
                           checkOut
                             ? dayjs(checkOut, "HH:mm") // if employee already checked out
                             : checkOutTime
-                              ? dayjs(checkOutTime)
-                              : null
+                            ? dayjs(checkOutTime)
+                            : null
                         }
                         onChange={(newValue) => {
-                          if (checkOutTime && dayjs(checkOutTime).isSame(newValue, "minute")) {
+                          if (
+                            checkOutTime &&
+                            dayjs(checkOutTime).isSame(newValue, "minute")
+                          ) {
                             document.activeElement.blur();
                           } else {
                             setCheckOutTime(newValue);
@@ -749,7 +769,6 @@ function ApplyRegularization({ user, selectedRecord }) {
                     </LocalizationProvider>
                   </div>
 
-
                   <div className="mb-2">
                     <label className="form-label">Work Mode (optional)</label>
                     <select
@@ -763,7 +782,6 @@ function ApplyRegularization({ user, selectedRecord }) {
                     </select>
                   </div>
 
-
                   <div className="mb-2">
                     <label className="form-label">Reason </label>
                     <textarea
@@ -776,21 +794,34 @@ function ApplyRegularization({ user, selectedRecord }) {
                     ></textarea>
                   </div>
 
-
                   <div className="d-flex justify-content-end gap-2">
                     <button
                       type="submit"
                       className="btn btn-sm custom-outline-btn"
-                      style={{ backgroundColor: "transparent", color: "#3A5FBE", border: "1px solid #3A5FBE", padding: "10px 28px", fontSize: "14px", fontWeight: "500", borderRadius: "4px" }}
-
+                      style={{
+                        backgroundColor: "transparent",
+                        color: "#3A5FBE",
+                        border: "1px solid #3A5FBE",
+                        padding: "10px 28px",
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        borderRadius: "4px",
+                      }}
                     >
                       Submit
                     </button>
                     <button
                       type="button"
                       className="btn btn-sm custom-outline-btn"
-                      style={{ backgroundColor: "transparent", color: "#3A5FBE", border: "1px solid #3A5FBE", padding: "10px 28px", fontSize: "14px", fontWeight: "500", borderRadius: "4px" }}
-
+                      style={{
+                        backgroundColor: "transparent",
+                        color: "#3A5FBE",
+                        border: "1px solid #3A5FBE",
+                        padding: "10px 28px",
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        borderRadius: "4px",
+                      }}
                       //onClick={() => setShowModal(false)}
                       onClick={() => {
                         setShowModal(false);

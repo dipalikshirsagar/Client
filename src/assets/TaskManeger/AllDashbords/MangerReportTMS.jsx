@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState,useRef } from "react";
 import axios from "axios";
 import {
   PieChart,
@@ -15,6 +15,117 @@ import {
 } from "recharts";
 import "./ReportTMSGraph.css";
 
+const formatDate = (date) => {
+  if (!date) return "-";
+  return new Date(date).toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+const normalize = (value) => {
+  if (!value) return "";
+  return value.toString().toLowerCase();
+};
+
+// const handleClose = () => {
+//   setShowCardList(null); // hide card list
+//   setShowFilter(false); // hide filter
+// };
+
+//focus pop-up - MOVED INSIDE TableRowModal
+function TableRowModal({ show, onClose, title, fields }) {
+  const popupRef = useRef(null);
+  
+  useEffect(() => {
+    if (show && popupRef.current) {
+      popupRef.current.focus();
+    }
+  }, [show]);
+
+  const trapFocus = (e) => {
+    if (!popupRef.current) return;
+
+    const focusableElements = popupRef.current.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+
+    const first = focusableElements[0];
+    const last = focusableElements[focusableElements.length - 1];
+
+    if (e.key === "Tab") {
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+  };
+
+  if (!show) return null;
+
+  return (
+    <div
+      ref={popupRef}
+      tabIndex="-1"
+      onKeyDown={trapFocus}
+      className="modal fade show"
+      style={{
+        display: "block",
+        position: "fixed",
+        inset: 0,
+        zIndex: 1050,
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+      }}
+      onClick={onClose}
+    >
+      <div
+        className="modal-dialog modal-dialog-centered"
+        style={{ maxWidth: "650px", width: "95%" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="modal-content">
+          {/* HEADER */}
+          <div
+            className="modal-header text-white"
+            style={{ backgroundColor: "#3A5FBE" }}
+          >
+            <h5 className="modal-title mb-0">{title}</h5>
+            <button
+              type="button"
+              className="btn-close btn-close-white"
+              onClick={onClose}
+            />
+          </div>
+
+          {/* BODY */}
+          <div className="modal-body">
+            {fields.map(({ label, value }) => (
+              <div className="row mb-2" key={label}>
+                <div className="col-4 fw-semibold">{label}</div>
+                <div className="col-8">{value || "-"}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* FOOTER */}
+          <div className="modal-footer">
+            <button className="btn btn-sm custom-outline-btn" onClick={onClose}>
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 // Mock data
 const MOCK_TEAM_EMPLOYEES = [
   { id: 1, name: "Dipali", role: "Developer", managerId: 1 },
@@ -81,7 +192,7 @@ function PaginationFooter({
           style={{ marginLeft: "16px" }}
         >
           <button
-            className="btn btn-sm border-0"
+            className="btn btn-sm focus-ring "
             type="button"
             onClick={() => goTo(currentPage - 1)}
             disabled={isPrevDisabled}
@@ -96,7 +207,7 @@ function PaginationFooter({
           </button>
 
           <button
-            className="btn btn-sm border-0"
+            className="btn btn-sm focus-ring "
             type="button"
             onClick={() => goTo(currentPage + 1)}
             disabled={isNextDisabled}
@@ -117,7 +228,10 @@ function PaginationFooter({
 
 function ManagerReportTMS({ user }) {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [showCardList, setShowCardList] = useState("teamMembers");
+  // const [showCardList, setShowCardList] = useState(null);
+  //added by harshda
+  const [showCardList, setShowCardList] = useState(null);
+
   const [teamEmployees, setTeamEmployees] = useState([]);
   const [employeesTasks, setEmployeesTasks] = useState([]);
   const [managerProjects, setManagerProjects] = useState([]);
@@ -127,6 +241,31 @@ function ManagerReportTMS({ user }) {
   const [projects, setProjects] = useState([]);
   const [monthRange, setMonthRange] = useState(0);
   const [selectedTaskMonth, setSelectedTaskMonth] = useState("all");
+  //shivani
+  const [selectedDonutStatus, setSelectedDonutStatus] = useState(null);
+  const [donutPopupTasks, setDonutPopupTasks] = useState([]);
+  const [isTooltipActive, setIsTooltipActive] = useState(false);
+  const [showProjectPopup, setShowProjectPopup] = useState(false);
+  const [selectedProjectMonth, setSelectedProjectMonth] = useState(null);
+  const [searchText, setSearchText] = useState("");
+  const [appliedSearch, setAppliedSearch] = useState("");
+  const totalProjects = projects.length;
+  //popup
+  const [showRowModal, setShowRowModal] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalFields, setModalFields] = useState([]);
+  const [linePopupProjects, setLinePopupProjects] = useState({
+    Assigned: [],
+    Completed: [],
+    Delayed: [],
+  });
+
+  //added by harshda
+  const handleClose = () => {
+    setShowCardList(null);
+    setShowFilter(false);
+    setSelectedEmployee(null); // Reset employee selection when closing
+  };
 
   const TASK_COLORS = {
     Completed: "#198754",
@@ -137,6 +276,157 @@ function ManagerReportTMS({ user }) {
     Cancelled: "#adb5bd",
     Delayed: "#dc3545",
   };
+
+  const STATUS_COLORS = {
+    Assigned: "#0d6efd",
+    Completed: "#198754",
+    Delayed: "#dc3545",
+  };
+
+  //shivani
+  const handleDonutClick = (statusName) => {
+    setSelectedDonutStatus(statusName);
+
+    const filtered = allTasks.filter((task) => {
+      // status match
+      const statusMatch =
+        task?.status?.name?.toLowerCase() === statusName.toLowerCase();
+
+      if (!statusMatch) return false;
+
+      // month filter
+      if (selectedTaskMonth === "all") return true;
+
+      const d = new Date(task.dateOfTaskAssignment);
+      if (isNaN(d)) return false;
+
+      const taskMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
+        2,
+        "0",
+      )}`;
+
+      return taskMonth === selectedTaskMonth;
+    });
+
+    setDonutPopupTasks(filtered);
+  };
+  const donutTasksByEmployee = useMemo(() => {
+    const map = {};
+
+    donutPopupTasks.forEach((task) => {
+      const empName = task?.assignedTo?.name || "Unassigned";
+
+      if (!map[empName]) map[empName] = [];
+
+      map[empName].push({
+        taskName: task.taskName,
+        taskType: task.typeOfTask,
+        assignDate: task.dateOfTaskAssignment,
+        dueDate: task.dateOfExpectedCompletion,
+      });
+    });
+
+    return map;
+  }, [donutPopupTasks]);
+
+  const filterProjectsByMonth = (monthLabel) => {
+    const [monthStr, yearStr] = monthLabel.split(" ");
+    const d = new Date(`${monthStr} 1, ${yearStr}`);
+
+    const month = d.getMonth();
+    const year = d.getFullYear();
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const result = {
+      "In Progress": [],
+      Completed: [],
+      Delayed: [],
+      Cancelled: [],
+    };
+
+    projects.forEach((p) => {
+      const status =
+        typeof p.status === "string"
+          ? p.status.toLowerCase()
+          : p.status?.name?.toLowerCase();
+
+      if (!status) return;
+
+      //  completed / cancelled
+      if (status === "completed") {
+        const d = p.deliveryDate || p.dueDate;
+        if (!d) return;
+
+        const date = new Date(d);
+        if (date.getMonth() === month && date.getFullYear() === year) {
+          result.Completed.push(p);
+        }
+        return;
+      }
+
+      if (status === "cancelled") {
+        const d = p.dueDate;
+        if (!d) return;
+
+        const date = new Date(d);
+        if (date.getMonth() === month && date.getFullYear() === year) {
+          result.Cancelled.push(p);
+        }
+        return;
+      }
+
+      //  exclude upcoming project
+      if (status === "upcoming project") return;
+
+      if (!p.dueDate) return;
+
+      const dueDate = new Date(p.dueDate);
+      dueDate.setHours(0, 0, 0, 0);
+
+      if (dueDate.getMonth() !== month || dueDate.getFullYear() !== year)
+        return;
+
+      //  DELAYED
+      if (dueDate < today) {
+        result.Delayed.push(p);
+        result["In Progress"].push(p); // Delayed ⊂ In Progress
+        return;
+      }
+
+      //  ON TRACK (today or future)
+      if (dueDate >= today) {
+        result["In Progress"].push(p);
+      }
+    });
+
+    return result;
+  };
+
+  const extractManagerIds = (managers) => {
+    if (!Array.isArray(managers)) return [];
+    return managers.map((m) => (typeof m === "string" ? m : m?._id || m?.id));
+  };
+
+  const getManagerNames = (managers) => {
+    if (!Array.isArray(managers)) return [];
+    const ids = [...new Set(extractManagerIds(managers))];
+
+    return ids
+      .map((id) => managerList.find((m) => m._id === id)?.name)
+      .filter(Boolean);
+  };
+  const [managerList, setManagerList] = useState([]);
+
+  useEffect(() => {
+    axios
+      .get("https://server-backend-nu.vercel.app/managers/list")
+      .then((res) => setManagerList(res.data || []))
+      .catch((err) => console.error(err));
+  }, []);
+
+  //End shivani
 
   const taskMonthOptions = useMemo(() => {
     const months = [];
@@ -153,7 +443,7 @@ function ManagerReportTMS({ user }) {
         }),
         value: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
           2,
-          "0"
+          "0",
         )}`,
       });
     }
@@ -183,7 +473,7 @@ function ManagerReportTMS({ user }) {
             if (isNaN(d)) return false;
 
             const taskMonth = `${d.getFullYear()}-${String(
-              d.getMonth() + 1
+              d.getMonth() + 1,
             ).padStart(2, "0")}`;
 
             return taskMonth === selectedTaskMonth;
@@ -228,7 +518,7 @@ function ManagerReportTMS({ user }) {
 
       const taskMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
         2,
-        "0"
+        "0",
       )}`;
 
       return taskMonth === selectedTaskMonth;
@@ -284,27 +574,37 @@ function ManagerReportTMS({ user }) {
     return projects.reduce((latest, p) => {
       const status = p.status?.name?.toLowerCase();
 
-      let dateStr = null;
-      if (status === "assigned") {
-        dateStr = p.startDate;
-      } else if (status === "completed" || status === "delayed") {
-        dateStr = p.deliveryDate || p.dueDate;
+      let dateForMonth = null;
+      if (status === "completed") {
+        dateForMonth = p.deliveryDate || p.dueDate;
+      } else {
+        dateForMonth = p.dueDate;
       }
 
-      if (!dateStr) return latest;
+      const d = dateForMonth ? new Date(dateForMonth) : null;
+      if (!d || isNaN(d)) return latest;
 
-      const date = new Date(dateStr);
-      if (isNaN(date)) return latest;
-
-      return !latest || date > latest ? date : latest;
+      return !latest || d > latest ? d : latest;
     }, null);
   };
 
+  const getProjectMonthDate = (project) => {
+    const status = project.status?.name?.toLowerCase();
+
+    if (status === "completed") {
+      return project.deliveryDate
+        ? new Date(project.deliveryDate)
+        : project.dueDate
+          ? new Date(project.dueDate)
+          : null;
+    }
+
+    return project.dueDate ? new Date(project.dueDate) : null;
+  };
   const getLastMonths = (projects, range) => {
     const latest = getLatestMonthDate(projects);
     if (!latest) return [];
 
-    // 0 = ALL (12 months)
     const total = !range || range === 0 ? 12 : Number(range);
     const months = [];
 
@@ -318,56 +618,84 @@ function ManagerReportTMS({ user }) {
           year: "numeric",
         }),
         sortDate: d,
-        Assigned: 0,
+        "In Progress": 0,
         Completed: 0,
         Delayed: 0,
+        Cancelled: 0,
       });
     }
 
     return months;
   };
-
   const projectStatusLineData = useMemo(() => {
-    //  Create exact month buckets (3 / 6)
+    if (!projects.length) return [];
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     const months = getLastMonths(projects, monthRange);
 
-    //  Convert to map
     const monthMap = {};
     months.forEach((m) => {
-      monthMap[m.key] = m;
+      monthMap[m.key] = {
+        ...m,
+        "In Progress": 0,
+        Completed: 0,
+        Delayed: 0,
+        Cancelled: 0,
+      };
     });
 
-    //  Fill counts
-    projects.forEach((project) => {
-      const status = project.status?.name?.toLowerCase();
+    projects.forEach((p) => {
+      const status = typeof p.status === "string" ? p.status : p.status?.name;
 
-      let dateStr = null;
-      let chartStatus = null;
+      if (!status) return;
 
-      if (status === "assigned") {
-        dateStr = project.startDate;
-        chartStatus = "Assigned";
-      } else if (status === "completed") {
-        dateStr = project.deliveryDate || project.dueDate;
-        chartStatus = "Completed";
-      } else if (status === "delayed") {
-        dateStr = project.deliveryDate || project.dueDate;
-        chartStatus = "Delayed";
+      const statusLower = status.toLowerCase();
+
+      // ❌ Exclude these
+      if (statusLower === "completed" || statusLower === "cancelled") {
+        const d = getProjectMonthDate(p);
+        if (!d) return;
+
+        const key = `${d.getFullYear()}-${d.getMonth()}`;
+        if (!monthMap[key]) return;
+
+        if (statusLower === "completed") monthMap[key].Completed++;
+        if (statusLower === "cancelled") monthMap[key].Cancelled++;
+        return;
       }
 
-      if (!dateStr || !chartStatus) return;
+      // ❌ Exclude Upcoming Projects from progress
+      if (statusLower === "upcoming project") return;
 
-      const d = new Date(dateStr);
-      if (isNaN(d)) return;
+      const dueDate = p.dueDate ? new Date(p.dueDate) : null;
+      if (!dueDate) return;
 
-      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      dueDate.setHours(0, 0, 0, 0);
 
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const key = `${dueDate.getFullYear()}-${dueDate.getMonth()}`;
       if (!monthMap[key]) return;
 
-      monthMap[key][chartStatus]++;
+      // 🔴 DELAYED → crossed due date
+      if (dueDate < today) {
+        monthMap[key].Delayed++;
+        monthMap[key]["In Progress"]++; // Delayed ⊂ In Progress
+        return;
+      }
+
+      // 🟢 ON TRACK
+      const isTodayLastDate = dueDate.getTime() === today.getTime();
+      const isFutureDue = dueDate > today;
+
+      if (isTodayLastDate || isFutureDue) {
+        monthMap[key]["In Progress"]++;
+      }
     });
 
-    //  IMPORTANT: return ALL months (even zero values)
     return Object.values(monthMap).sort((a, b) => a.sortDate - b.sortDate);
   }, [projects, monthRange]);
 
@@ -399,14 +727,23 @@ function ManagerReportTMS({ user }) {
   };
 
   //graph api
+  const managerId = user?._id;
+
   useEffect(() => {
+    if (!managerId) return;
+
     const fetchTasks = async () => {
-      const res = await axios.get("https://server-backend-nu.vercel.app/task/getall");
-      setAllTasks(res.data || []);
+      try {
+        const res = await axios.get(`https://server-backend-nu.vercel.app/tasks/${managerId}`);
+
+        setAllTasks(res.data.tasks || []);
+      } catch (error) {
+        console.error("Error fetching tasks:", error);
+      }
     };
 
     fetchTasks();
-  }, []);
+  }, [managerId]);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -426,7 +763,7 @@ function ManagerReportTMS({ user }) {
           `https://server-backend-nu.vercel.app/api/projects/manager/${managerId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
-          }
+          },
         );
 
         setProjects(res.data.data || []);
@@ -441,7 +778,7 @@ function ManagerReportTMS({ user }) {
   async function fetchRequiredDetails() {
     try {
       const empResponse = await axios.get(
-        `https://server-backend-nu.vercel.app/employees/manager/${user._id}`
+        `https://server-backend-nu.vercel.app/employees/manager/${user._id}`,
       );
       const employeeList = empResponse.data.employees;
       const taskResponse = await axios.get("https://server-backend-nu.vercel.app/task/getall");
@@ -460,10 +797,10 @@ function ManagerReportTMS({ user }) {
           status,
           assignedTo,
           dateOfExpectedCompletion,
-        })
+        }),
       );
       const projectsResponse = await axios.get(
-        `https://server-backend-nu.vercel.app/api/projects/manager/${user._id}`
+        `https://server-backend-nu.vercel.app/api/projects/manager/${user._id}`,
       );
       const projects = projectsResponse.data.data;
       setEmployeesTasks(tasks);
@@ -495,7 +832,7 @@ function ManagerReportTMS({ user }) {
     const filtered = employeesTasks.filter(
       (t) =>
         managerProjectSet.has(t.projectName) &&
-        managerEmployeeSet.has(t.assignedTo?._id || t.assignedTo)
+        managerEmployeeSet.has(t.assignedTo?._id || t.assignedTo),
     );
 
     setEmployeesTasks(filtered);
@@ -521,24 +858,26 @@ function ManagerReportTMS({ user }) {
   const projectCount = managerProjects.length;
   // const activeProjectCount = myProjects.filter((p) => p.status === "Active").length;
   const activeProjectCount = myProjects.filter(
-    (p) => p?.status?.name !== "Completed"
+    (p) => p?.status?.name !== "Completed",
   ).length;
 
-  //const delayedTasks = employeesTasks.filter((t) => t?.status?.name === "Delayed");
-  const delayedTasks = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  const delayedTasks = employeesTasks.filter(
+    (t) => t?.status?.name === "Delayed",
+  );
+  // const delayedTasks = useMemo(() => {
+  //   const today = new Date();
+  //   today.setHours(0, 0, 0, 0);
 
-    return employeesTasks.filter((t) => {
-      if (!t.dateOfExpectedCompletion) return false;
-      const due = new Date(t.dateOfExpectedCompletion);
+  //   return employeesTasks.filter((t) => {
+  //     if (!t.dateOfExpectedCompletion) return false;
+  //     const due = new Date(t.dateOfExpectedCompletion);
 
-      if (isNaN(due)) return false;
-      due.setHours(0, 0, 0, 0);
+  //     if (isNaN(due)) return false;
+  //     due.setHours(0, 0, 0, 0);
 
-      return today > due;
-    });
-  }, [employeesTasks]);
+  //     return today > due;
+  //   });
+  // }, [employeesTasks]);
 
   const delayedCount = delayedTasks.length;
 
@@ -552,7 +891,7 @@ function ManagerReportTMS({ user }) {
   const upcomingTasks = employeesTasks.filter(
     (t) =>
       t.dateOfExpectedCompletion >= todayStr &&
-      t.dateOfExpectedCompletion <= nextWeekStr
+      t.dateOfExpectedCompletion <= nextWeekStr,
   );
   const upcomingCount = upcomingTasks.length;
 
@@ -562,7 +901,7 @@ function ManagerReportTMS({ user }) {
     console.log("employeesTasks", employeesTasks);
     console.log("selectedEmployee", selectedEmployee);
     let tasks = employeesTasks.filter(
-      (t) => t?.assignedTo?._id === selectedEmployee._id
+      (t) => t?.assignedTo?._id === selectedEmployee._id,
     );
     console.log("tasks", tasks);
     if (appliedStatus !== "All")
@@ -576,34 +915,105 @@ function ManagerReportTMS({ user }) {
 
   const employeeTasks = getEmployeeTasks();
 
+  const filteredTeamEmployees = useMemo(() => {
+    if (!appliedSearch) return teamEmployees;
+
+    const search = appliedSearch.toLowerCase();
+
+    return teamEmployees.filter((emp) => {
+      const searchableText = Object.values(emp)
+        .map((v) => normalize(v))
+        .join(" ");
+
+      return searchableText.includes(search);
+    });
+  }, [teamEmployees, appliedSearch]);
+
+  const filteredProjects = useMemo(() => {
+    if (!appliedSearch) return myProjects;
+
+    const search = appliedSearch.toLowerCase();
+
+    return myProjects.filter((p) => {
+      const searchableText = `
+      ${p.name}
+      ${p.status?.name}
+      ${formatDate(p.deliveryDate)}
+      ${formatDate(p.dueDate)}
+    `.toLowerCase();
+
+      return searchableText.includes(search);
+    });
+  }, [myProjects, appliedSearch]);
+
+  const filteredDelayedTasks = useMemo(() => {
+    if (!appliedSearch) return delayedTasks;
+
+    const search = appliedSearch.toLowerCase();
+
+    return delayedTasks.filter((t) => {
+      const searchableText = `
+      ${t.taskName}
+      ${t.assignedTo?.name}
+      ${formatDate(t.dateOfExpectedCompletion)}
+    `.toLowerCase();
+
+      return searchableText.includes(search);
+    });
+  }, [delayedTasks, appliedSearch]);
+
+  const filteredUpcomingTasks = useMemo(() => {
+    if (!appliedSearch) return upcomingTasks;
+
+    const search = appliedSearch.toString().toLowerCase();
+
+    return delayedTasks.filter((t) => {
+      const searchableText = `
+      ${t.taskName}
+      ${t.assignedTo?.name}
+      ${formatDate(t.dateOfExpectedCompletion)}
+    `.toLowerCase();
+
+      return searchableText.includes(search);
+    });
+  }, [upcomingTasks, appliedSearch]);
+
+  const filteredEmployeeTasks = useMemo(() => {
+    if (!appliedSearch) return employeeTasks;
+
+    return employeeTasks.filter(
+      (t) =>
+        t.taskName?.toLowerCase().includes(appliedSearch.toLowerCase()) ||
+        t.projectName?.toLowerCase().includes(appliedSearch.toLowerCase()) ||
+        t.status?.name?.toLowerCase().includes(appliedSearch.toLowerCase()),
+    );
+  }, [employeeTasks, appliedSearch]);
+
   function handleFilter() {
-    setAppliedStatus(statusFilter);
-    setAppliedFromDate(fromDate);
-    setAppliedToDate(toDate);
+    setAppliedSearch(searchText); // 🔑 makes search work
   }
 
   function handleReset() {
-    setStatusFilter("All");
-    setFromDate("");
-    setToDate("");
-    setAppliedStatus("All");
-    setAppliedFromDate("");
-    setAppliedToDate("");
+    setSearchText("");
+    setAppliedSearch("");
   }
 
-  function getStatusStyle(status) {
-    if (status === "Completed")
-      return { backgroundColor: "#d1f2dd", color: "#0f5132" };
-    if (status === "Assignment Pending")
-      return { backgroundColor: "#fff3cd", color: "#856404" };
-    if (status === "Assigned")
-      return { backgroundColor: "#cfe2ff", color: "#084298" };
-    if (status === "Delayed" || status === "Hold")
-      return { backgroundColor: "#f8d7da", color: "#842029" };
-    if (status === "In Progress")
-      return { backgroundColor: "#d1e7ff", color: "#0d6efd" };
-    return { backgroundColor: "#e2e3e5", color: "#495057" };
-  }
+  // function handleFilter() {
+  //   setAppliedStatus(statusFilter);
+  //   setAppliedFromDate(fromDate);
+  //   setAppliedToDate(toDate);
+  // }
+
+  // function handleReset() {
+  //   setStatusFilter("All");
+  //   setFromDate("");
+  //   setToDate("");
+  //   setAppliedStatus("All");
+  //   setAppliedFromDate("");
+  //   setAppliedToDate("");
+  // }
+
+  function getStatusStyle() {}
 
   // ================= Pagination (ONLY ADDITION) =================
   const [teamPage, setTeamPage] = useState(1);
@@ -636,195 +1046,291 @@ function ManagerReportTMS({ user }) {
 
   const paginatedTeamEmployees = useMemo(() => {
     const start = (teamPage - 1) * teamRows;
-    return teamEmployees.slice(start, start + teamRows);
-  }, [teamPage, teamRows, teamEmployees]);
-  console.log("paginatedTeamEmployees", paginatedTeamEmployees);
+    return filteredTeamEmployees.slice(start, start + teamRows);
+  }, [filteredTeamEmployees, teamPage, teamRows]);
 
   const paginatedMyProjects = useMemo(() => {
     const start = (projPage - 1) * projRows;
-    return myProjects.slice(start, start + projRows);
-  }, [myProjects, projPage, projRows]);
+    return filteredProjects.slice(start, start + projRows);
+  }, [filteredProjects, projPage, projRows]);
 
   const paginatedDelayedTasks = useMemo(() => {
     const start = (delayedPage - 1) * delayedRows;
-    return delayedTasks.slice(start, start + delayedRows);
-  }, [delayedTasks, delayedPage, delayedRows]);
+    return filteredDelayedTasks.slice(start, start + delayedRows);
+  }, [filteredDelayedTasks, delayedPage, delayedRows]);
 
   const paginatedUpcomingTasks = useMemo(() => {
     const start = (upcomingPage - 1) * upcomingRows;
-    return upcomingTasks.slice(start, start + upcomingRows);
-  }, [upcomingTasks, upcomingPage, upcomingRows]);
+    return filteredUpcomingTasks.slice(start, start + upcomingRows);
+  }, [filteredUpcomingTasks, upcomingPage, upcomingRows]);
 
   const paginatedEmployeeTasks = useMemo(() => {
     const start = (taskPage - 1) * taskRows;
-    return employeeTasks.slice(start, start + taskRows);
-  }, [employeeTasks, taskPage, taskRows]);
+    return filteredEmployeeTasks.slice(start, start + taskRows);
+  }, [filteredEmployeeTasks, taskPage, taskRows]);
+
+  useEffect(() => {
+    setTeamPage(1);
+    setProjPage(1);
+    setDelayedPage(1);
+    setUpcomingPage(1);
+    setTaskPage(1);
+  }, [appliedSearch, appliedStatus, appliedFromDate, appliedToDate]);
   // =============================================================
   //Date format
-  const formatDate = (date) => {
-    if (!date) return "-";
-    return new Date(date).toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-  };
 
   return (
     <div className="container-fluid ">
       <h2 style={{ color: "#3A5FBE", fontSize: "25px" }}>Reports</h2>
 
       {/* Top Cards */}
-      <div className="row mb-4">
-        {/* Team Members Card */}
+      <div className="row mb-4 g-3">
+        {/* My Team Members */}
         <div className="col-12 col-sm-6 col-lg-3">
           <div
             className="card shadow-sm border-0 h-100"
-            style={{ cursor: "pointer", backgroundColor: "#3A5FBE" }}
+            style={{ borderRadius: "7px", cursor: "pointer" }}
             onClick={() => {
-              setSelectedEmployee(null);
-              setShowCardList("teamMembers");
+              setSelectedEmployee(null); // Reset employee selection
+              setShowCardList("teamMembers"); // or "myProjects", "delayedTasks", "upcomingTasks"
             }}
-          >
-            <div className="card-body">
+            >
+            <div
+              className="card-body d-flex align-items-center"
+              style={{ gap: "16px" }}
+            >
               <div
-                className="mb-1 fw-semibold"
-                style={{ fontSize: "16px", color: "#fff" }}
+                className="fw-semibold d-flex align-items-center justify-content-center"
+                style={{
+                  fontSize: "32px",
+                  backgroundColor: "#D1ECF1",
+                  minWidth: "70px",
+                  minHeight: "70px",
+                  color: "#3A5FBE",
+                }}
               >
-                My Team Members
+                {teamCount}
               </div>
-              <div className="d-flex justify-content-between align-items-end">
-                <div>
-                  <div className="h4 mb-0 text-white">{teamCount}</div>
-                  <small className="text-white-50">Click to view list</small>
-                </div>
+
+              <div>
                 <div
-                  className="rounded-circle d-flex align-items-center justify-content-center"
-                  style={{
-                    width: 36,
-                    height: 36,
-                    backgroundColor: "rgba(255,255,255,0.18)",
-                    color: "#fff",
-                    fontSize: 18,
-                  }}
+                  className="fw-semibold"
+                  style={{ fontSize: "18px", color: "#3A5FBE" }}
                 >
-                  👥
+                  My Team
                 </div>
+                <small style={{ color: "#9e9e9e" }}>Click to view list</small>
               </div>
             </div>
           </div>
         </div>
 
-        {/* My Projects Card */}
+        {/* My Projects */}
         <div className="col-12 col-sm-6 col-lg-3">
           <div
             className="card shadow-sm border-0 h-100"
-            style={{ cursor: "pointer", backgroundColor: "#3A5FBE" }}
-            onClick={() => setShowCardList("myProjects")}
+            style={{ borderRadius: "7px", cursor: "pointer" }}
+            onClick={() => {
+  setSelectedEmployee(null); // Reset employee selection
+  setShowCardList("myProjects"); // or "myProjects", "delayedTasks", "upcomingTasks"
+}}
+            // onClick={() => setShowCardList("myProjects")}
           >
-            <div className="card-body">
+            <div
+              className="card-body d-flex align-items-center"
+              style={{ gap: "16px" }}
+            >
               <div
-                className="mb-1 fw-semibold"
-                style={{ fontSize: "16px", color: "#fff" }}
+                className="fw-semibold d-flex align-items-center justify-content-center"
+                style={{
+                  fontSize: "32px",
+                  backgroundColor: "#FFB3B3",
+                  minWidth: "70px",
+                  minHeight: "70px",
+                  color: "#3A5FBE",
+                }}
               >
-                My Projects
+                {projectCount}
               </div>
-              <div className="d-flex justify-content-between align-items-end">
-                <div>
-                  <div className="h4 mb-0 text-white">{projectCount}</div>
-                  <small className="text-white-50">
-                    {activeProjectCount} active
-                  </small>
-                </div>
+
+              <div>
                 <div
-                  className="rounded-circle d-flex align-items-center justify-content-center"
-                  style={{
-                    width: 36,
-                    height: 36,
-                    backgroundColor: "rgba(255,255,255,0.18)",
-                    color: "#fff",
-                    fontSize: 18,
-                  }}
+                  className="fw-semibold"
+                  style={{ fontSize: "18px", color: "#3A5FBE" }}
                 >
-                  📁
+                  My Projects
                 </div>
+                <small style={{ color: "#9e9e9e" }}>Click to view list</small>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Delayed Tasks Card */}
+        {/* Delayed Tasks */}
         <div className="col-12 col-sm-6 col-lg-3">
           <div
             className="card shadow-sm border-0 h-100"
-            style={{ cursor: "pointer", backgroundColor: "#3A5FBE" }}
-            onClick={() => setShowCardList("delayedTasks")}
+            style={{ borderRadius: "7px", cursor: "pointer" }}
+            onClick={() => {
+  setSelectedEmployee(null); // Reset employee selection
+  setShowCardList("delayedTasks"); // or "myProjects", "delayedTasks", "upcomingTasks"
+}}
+            // onClick={() => setShowCardList("delayedTasks")}
           >
-            <div className="card-body">
+            <div
+              className="card-body d-flex align-items-center"
+              style={{ gap: "18px" }}
+            >
               <div
-                className="mb-1 fw-semibold"
-                style={{ fontSize: "16px", color: "#fff" }}
+                className="fw-semibold d-flex align-items-center justify-content-center"
+                style={{
+                  fontSize: "32px",
+                  backgroundColor: "#FFE493",
+                  minWidth: "70px",
+                  minHeight: "70px",
+                  color: "#3A5FBE",
+                }}
               >
-                Delayed Tasks
+                {delayedCount}
               </div>
-              <div className="d-flex justify-content-between align-items-end">
-                <div>
-                  <div className="h4 mb-0 text-white">{delayedCount}</div>
-                  <small className="text-white-50">Require attention</small>
-                </div>
+
+              <div>
                 <div
-                  className="rounded-circle d-flex align-items-center justify-content-center"
-                  style={{
-                    width: 36,
-                    height: 36,
-                    backgroundColor: "rgba(255,255,255,0.18)",
-                    color: "#fff",
-                    fontSize: 18,
-                  }}
+                  className="fw-semibold"
+                  style={{ fontSize: "18px", color: "#3A5FBE" }}
                 >
-                  ⚠️
+                  Delayed Tasks
                 </div>
+                <small style={{ color: "#9e9e9e" }}>Click to view list</small>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Upcoming Tasks Card */}
+        {/* Upcoming Tasks */}
         <div className="col-12 col-sm-6 col-lg-3">
           <div
             className="card shadow-sm border-0 h-100"
-            style={{ cursor: "pointer", backgroundColor: "#3A5FBE" }}
-            onClick={() => setShowCardList("upcomingTasks")}
+            style={{ borderRadius: "7px", cursor: "pointer" }}
+            onClick={() => {
+  setSelectedEmployee(null); // Reset employee selection
+  setShowCardList("upcomingTasks"); // or "myProjects", "delayedTasks", "upcomingTasks"
+}}
+            // onClick={() => setShowCardList("upcomingTasks")}
           >
-            <div className="card-body">
+            <div
+              className="card-body d-flex align-items-center"
+              style={{ gap: "18px" }}
+            >
               <div
-                className="mb-1 fw-semibold"
-                style={{ fontSize: "16px", color: "#fff" }}
+                className="fw-semibold d-flex align-items-center justify-content-center"
+                style={{
+                  fontSize: "32px",
+                  backgroundColor: "#D7F5E4",
+                  minWidth: "70px",
+                  minHeight: "70px",
+                  color: "#3A5FBE",
+                }}
               >
-                Upcoming Tasks (Next 7 days)
+                {upcomingCount}
               </div>
-              <div className="d-flex justify-content-between align-items-end">
-                <div>
-                  <div className="h4 mb-0 text-white">{upcomingCount}</div>
-                  <small className="text-white-50">Click to view list</small>
-                </div>
+
+              <div>
                 <div
-                  className="rounded-circle d-flex align-items-center justify-content-center"
-                  style={{
-                    width: 36,
-                    height: 36,
-                    backgroundColor: "rgba(255,255,255,0.18)",
-                    color: "#fff",
-                    fontSize: 18,
-                  }}
+                  className="fw-semibold"
+                  style={{ fontSize: "18px", color: "#3A5FBE" }}
                 >
-                  📅
+                  Upcoming Tasks
                 </div>
+                <small style={{ color: "#9e9e9e" }}>Click to view list</small>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* {showCardList === "teamMembers" && (
+        <div className="mb-3 border-0">
+          <div className="d-flex justify-content-between align-items-center">
+            <span
+              className="fw-semibold"
+              style={{ color: "#3A5FBE", fontSize: "20px" }}
+            >
+              My Team Members
+            </span>
+
+            <button
+              className="btn btn-sm custom-outline-btn"
+              onClick={handleClose}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )} */}
+
+      {showCardList && (
+        <>
+          {/* ===== Title + Close ===== */}
+          <div className="mb-3 border-0">
+            <div className="d-flex justify-content-between align-items-center">
+              <span
+                className="fw-semibold"
+                style={{ color: "#3A5FBE", fontSize: "20px" }}
+              >
+                {showCardList === "teamMembers" && "My Team"}
+                {showCardList === "myProjects" && "My Projects"}
+                {showCardList === "delayedTasks" && "Delayed Tasks"}
+                {showCardList === "upcomingTasks" && "Upcoming Tasks"}
+              </span>
+
+              <button
+                className="btn btn-sm custom-outline-btn"
+                onClick={() => setShowCardList(null)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+
+          {/* ===== Filter ===== */}
+          <div className="card bg-white shadow-sm p-3 mb-4 border-0">
+            <div className="d-flex align-items-center justify-content-between flex-wrap">
+              <div className="d-flex align-items-center me-3 mb-2">
+                <label
+                  className="me-3 fw-bold mb-0"
+                  style={{ color: "#3A5FBE", fontSize: "16px" }}
+                >
+                  Search
+                </label>
+
+                <input
+                  className="form-control"
+                  placeholder="Search by any field..."
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                />
+              </div>
+
+              <div className="col-auto ms-auto d-flex gap-2">
+                <button
+                  className="btn btn-sm custom-outline-btn"
+                  onClick={handleFilter}
+                >
+                  Filter
+                </button>
+
+                <button
+                  className="btn btn-sm custom-outline-btn"
+                  onClick={handleReset}
+                >
+                  Reset
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Employee Detail View */}
       {selectedEmployee && (
@@ -853,9 +1359,8 @@ function ManagerReportTMS({ user }) {
               </button>
             </div>
 
-            <div className="card-body pt-3">
-              {/* Filter Section */}
-              <div className="card bg-white shadow-sm p-3 mb-4 border-0">
+            {/* <div className="card-body pt-3"> */}
+              {/* <div className="card bg-white shadow-sm p-3 mb-4 border-0">
                 <div className="row g-3 align-items-end">
                   <div className="col-12 col-md-3">
                     <label
@@ -927,7 +1432,7 @@ function ManagerReportTMS({ user }) {
                     </button>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               {/* Task Table */}
               <div className="table-responsive">
@@ -984,7 +1489,30 @@ function ManagerReportTMS({ user }) {
                   <tbody>
                     {employeeTasks.length > 0 ? (
                       paginatedEmployeeTasks.map((task) => (
-                        <tr key={task._id}>
+                        <tr // change tr 10 jan--------------
+                          key={task._id}
+                          style={{ cursor: "pointer" }}
+                          onClick={() => {
+                            setModalTitle("Employee Task Details");
+                            setModalFields([
+                              { label: "Task", value: task.taskName },
+
+                              {
+                                label: "Status",
+                                value: <span>{task?.status?.name || "-"}</span>,
+                              },
+
+                              { label: "Project", value: task.projectName },
+                              {
+                                label: "Due Date",
+                                value: formatDate(
+                                  task.dateOfExpectedCompletion,
+                                ),
+                              },
+                            ]);
+                            setShowRowModal(true);
+                          }}
+                        >
                           <td
                             style={{
                               padding: "12px",
@@ -1002,18 +1530,7 @@ function ManagerReportTMS({ user }) {
                               borderBottom: "1px solid #dee2e6",
                             }}
                           >
-                            <span
-                              style={{
-                                ...getStatusStyle(task?.status?.name),
-                                padding: "6px 12px",
-                                borderRadius: "6px",
-                                fontSize: "13px",
-                                fontWeight: "500",
-                                display: "inline-block",
-                              }}
-                            >
-                              {task?.status?.name}
-                            </span>
+                            <span>{task?.status?.name}</span>
                           </td>
                           <td
                             style={{
@@ -1048,11 +1565,11 @@ function ManagerReportTMS({ user }) {
                 </table>
               </div>
             </div>
-          </div>
+          {/* </div> */}
 
           <div className="d-flex justify-content-end mt-3">
             <PaginationFooter
-              totalItems={employeeTasks.length}
+              totalItems={filteredEmployeeTasks.length}
               currentPage={taskPage}
               itemsPerPage={taskRows}
               setCurrentPage={setTaskPage}
@@ -1063,7 +1580,7 @@ function ManagerReportTMS({ user }) {
       )}
 
       {/* Team Members List */}
-      {showCardList === "teamMembers" && !selectedEmployee && (
+      {/* {showCardList === "teamMembers" && !selectedEmployee && (
         <>
           <div className="card shadow-sm border-0 mb-3">
             <div className="card-header bg-white border-0 d-flex justify-content-between align-items-center">
@@ -1167,7 +1684,107 @@ function ManagerReportTMS({ user }) {
 
           <div className="d-flex justify-content-end mt-3">
             <PaginationFooter
-              totalItems={teamEmployees.length}
+              totalItems={filteredTeamEmployees.length}
+              currentPage={teamPage}
+              itemsPerPage={teamRows}
+              setCurrentPage={setTeamPage}
+              setItemsPerPage={setTeamRows}
+            />
+          </div>
+        </>
+      )} */}
+
+      {showCardList === "teamMembers" && !selectedEmployee && (
+        <>
+          {/* 1️⃣ TITLE + CLOSE IN ONE LINE */}
+
+          {/* 2️⃣ FILTER SECTION
+          <div style={{ marginTop: "10px", display: "flex", gap: "8px" }}>
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Search..."
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              style={{ maxWidth: "250px" }}
+            />
+
+            <button className="btn btn-sm custom-outline-btn" onClick={handleFilter}>
+              Filter
+            </button>
+
+            <button className="btn btn-sm custom-outline-btn" onClick={handleReset}>
+              Reset
+            </button>
+          </div> * */}
+
+          {/* 3️⃣ TABLE / LIST */}
+          <div
+            className="card shadow-sm border-0 mb-3"
+            style={{ marginTop: "10px" }}
+          >
+            <div className="card-body p-0">
+              <table className="table table-hover mb-0">
+                <thead style={{ backgroundColor: "#fff" }}>
+                  <tr>
+                    <th
+                      style={{
+                        fontWeight: 500,
+                        fontSize: "14px",
+                        padding: "12px",
+                      }}
+                    >
+                      Name
+                    </th>
+                    <th
+                      style={{
+                        fontWeight: 500,
+                        fontSize: "14px",
+                        padding: "12px",
+                      }}
+                    >
+                      Role
+                    </th>
+                    <th
+                      style={{
+                        fontWeight: 500,
+                        fontSize: "14px",
+                        padding: "12px",
+                      }}
+                    >
+                      Action
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {paginatedTeamEmployees.map((emp) => (
+                    <tr key={emp._id}>
+                      <td style={{ padding: "12px", fontSize: "14px" }}>
+                        {emp.name}
+                      </td>
+                      <td style={{ padding: "12px", fontSize: "14px" }}>
+                        {emp.designation}
+                      </td>
+                      <td style={{ padding: "12px" }}>
+                        <button
+                          className="btn btn-sm custom-outline-btn"
+                          onClick={() => setSelectedEmployee(emp)}
+                        >
+                          View Tasks
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* 4️⃣ PAGINATION (NO CHANGE) */}
+          <div className="d-flex justify-content-end mt-3">
+            <PaginationFooter
+              totalItems={filteredTeamEmployees.length}
               currentPage={teamPage}
               itemsPerPage={teamRows}
               setCurrentPage={setTeamPage}
@@ -1181,20 +1798,6 @@ function ManagerReportTMS({ user }) {
       {showCardList === "myProjects" && (
         <>
           <div className="card shadow-sm border-0 mb-3">
-            <div className="card-header bg-white border-0 d-flex justify-content-between align-items-center">
-              <span
-                className="fw-semibold"
-                style={{ color: "#3A5FBE", fontSize: "20px" }}
-              >
-                My Projects
-              </span>
-              <button
-                className="btn btn-sm custom-outline-btn"
-                onClick={() => setShowCardList(null)}
-              >
-                Close
-              </button>
-            </div>
             <div className="card-body p-0">
               <table className="table table-hover mb-0">
                 <thead style={{ backgroundColor: "#ffffffff" }}>
@@ -1236,7 +1839,27 @@ function ManagerReportTMS({ user }) {
                 </thead>
                 <tbody>
                   {paginatedMyProjects.map((proj) => (
-                    <tr key={proj._id}>
+                    <tr
+                      key={proj._id}
+                      style={{ cursor: "pointer" }}
+                      onClick={() => {
+                        setModalTitle("Project Details");
+                        setModalFields([
+                          { label: "Project Name", value: proj.name },
+
+                          {
+                            label: "Status",
+                            value: <span>{proj?.status || "-"}</span>,
+                          },
+
+                          {
+                            label: "Delivery Date",
+                            value: formatDate(proj.dueDate),
+                          },
+                        ]);
+                        setShowRowModal(true);
+                      }}
+                    >
                       <td
                         style={{
                           padding: "12px",
@@ -1252,22 +1875,13 @@ function ManagerReportTMS({ user }) {
                           padding: "12px",
                           fontSize: "14px",
                           borderBottom: "1px solid #dee2e6",
+                           color: "#212529",
                         }}
                       >
                         <span
-                          style={{
-                            ...getStatusStyle(
-                              proj?.status?.name ? "Delayed" : "Completed"
-                            ),
-                            padding: "6px 12px",
-                            borderRadius: "6px",
-                            fontSize: "13px",
-                            fontWeight: "500",
-                          }}
+                          
                         >
-                          {proj?.status?.name === "Delayed"
-                            ? "Delayed"
-                            : proj?.status?.name}
+                          {proj?.status}
                         </span>
                       </td>
                       <td
@@ -1289,7 +1903,7 @@ function ManagerReportTMS({ user }) {
 
           <div className="d-flex justify-content-end mt-3">
             <PaginationFooter
-              totalItems={myProjects.length}
+              totalItems={filteredProjects.length}
               currentPage={projPage}
               itemsPerPage={projRows}
               setCurrentPage={setProjPage}
@@ -1303,20 +1917,20 @@ function ManagerReportTMS({ user }) {
       {showCardList === "delayedTasks" && (
         <>
           <div className="card shadow-sm border-0 mb-3">
-            <div className="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+            {/* <div className="card-header bg-white border-0 d-flex justify-content-between align-items-center">
               <span
                 className="fw-semibold"
                 style={{ color: "#3A5FBE", fontSize: "20px" }}
               >
                 Delayed Tasks
-              </span>
-              <button
+              </span> */}
+            {/* <button
                 className="btn btn-sm custom-outline-btn"
                 onClick={() => setShowCardList(null)}
               >
                 Close
-              </button>
-            </div>
+              </button> */}
+            {/* </div> */}
             <div className="card-body p-0">
               <table className="table table-hover mb-0">
                 <thead style={{ backgroundColor: "#ffffffff" }}>
@@ -1359,10 +1973,28 @@ function ManagerReportTMS({ user }) {
                 <tbody>
                   {paginatedDelayedTasks.map((task) => {
                     const emp = MOCK_TEAM_EMPLOYEES.find(
-                      (e) => e.id === task.employeeId
+                      (e) => e.id === task.employeeId,
                     );
                     return (
-                      <tr key={task._id}>
+                      <tr // change tr 10 jan--------------
+                        key={task._id}
+                        style={{ cursor: "pointer" }}
+                        onClick={() => {
+                          setModalTitle("Delayed Task Details");
+                          setModalFields([
+                            { label: "Task", value: task.taskName },
+                            {
+                              label: "Employee",
+                              value: task?.assignedTo?.name,
+                            },
+                            {
+                              label: "Due Date",
+                              value: formatDate(task.dateOfExpectedCompletion),
+                            },
+                          ]);
+                          setShowRowModal(true);
+                        }}
+                      >
                         <td
                           style={{
                             padding: "12px",
@@ -1403,7 +2035,7 @@ function ManagerReportTMS({ user }) {
 
           <div className="d-flex justify-content-end mt-3">
             <PaginationFooter
-              totalItems={delayedTasks.length}
+              totalItems={filteredDelayedTasks.length}
               currentPage={delayedPage}
               itemsPerPage={delayedRows}
               setCurrentPage={setDelayedPage}
@@ -1417,20 +2049,14 @@ function ManagerReportTMS({ user }) {
       {showCardList === "upcomingTasks" && (
         <>
           <div className="card shadow-sm border-0 mb-3">
-            <div className="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+            {/* <div className="card-header bg-white border-0 d-flex justify-content-between align-items-center">
               <span
                 className="fw-semibold"
                 style={{ color: "#3A5FBE", fontSize: "20px" }}
               >
                 Upcoming Tasks (Next 7 days)
               </span>
-              <button
-                className="btn btn-sm custom-outline-btn"
-                onClick={() => setShowCardList(null)}
-              >
-                Close
-              </button>
-            </div>
+            </div> */}
             <div className="card-body p-0">
               <table className="table table-hover mb-0">
                 <thead style={{ backgroundColor: "#ffffffff" }}>
@@ -1473,7 +2099,25 @@ function ManagerReportTMS({ user }) {
                 <tbody>
                   {paginatedUpcomingTasks.map((task) => {
                     return (
-                      <tr key={task._id}>
+                      <tr // change tr 10 jan--------------
+                        key={task._id}
+                        style={{ cursor: "pointer" }}
+                        onClick={() => {
+                          setModalTitle("Upcoming Task Details");
+                          setModalFields([
+                            { label: "Task", value: task.taskName },
+                            {
+                              label: "Employee",
+                              value: task?.assignedTo?.name,
+                            },
+                            {
+                              label: "Due Date",
+                              value: formatDate(task.dateOfExpectedCompletion),
+                            },
+                          ]);
+                          setShowRowModal(true);
+                        }}
+                      >
                         <td
                           style={{
                             padding: "12px",
@@ -1514,7 +2158,7 @@ function ManagerReportTMS({ user }) {
 
           <div className="d-flex justify-content-end mt-3">
             <PaginationFooter
-              totalItems={upcomingTasks.length}
+              totalItems={filteredUpcomingTasks.length}
               currentPage={upcomingPage}
               itemsPerPage={upcomingRows}
               setCurrentPage={setUpcomingPage}
@@ -1550,7 +2194,7 @@ function ManagerReportTMS({ user }) {
                     {selectedTaskMonth === "all"
                       ? "All Months"
                       : taskMonthOptions.find(
-                          (m) => m.value === selectedTaskMonth
+                          (m) => m.value === selectedTaskMonth,
                         )?.label}
                   </button>
 
@@ -1598,6 +2242,13 @@ function ManagerReportTMS({ user }) {
                     paddingAngle={2}
                     label={renderCustomizedLabel}
                     labelLine={false}
+                    onMouseEnter={() => setIsTooltipActive(true)}
+                    onMouseLeave={() => setIsTooltipActive(false)}
+                    onClick={(data) => {
+                      setIsTooltipActive(false);
+                      handleDonutClick(data.name);
+                    }}
+                    isAnimationActive={false}
                   >
                     {taskStatusChartData.map((entry, i) => (
                       <Cell key={i} fill={TASK_COLORS[entry.name]} />
@@ -1629,7 +2280,11 @@ function ManagerReportTMS({ user }) {
                     Total Tasks
                   </text>
 
-                  <Tooltip content={<TaskStatusTooltip />} />
+                  <Tooltip
+                    content={<TaskStatusTooltip />}
+                    active={isTooltipActive}
+                    wrapperStyle={{ pointerEvents: "none" }}
+                  />
 
                   <Legend
                     verticalAlign="bottom"
@@ -1650,6 +2305,9 @@ function ManagerReportTMS({ user }) {
                 <h6 className="fw-semibold mb-0 text-primary">
                   📈 Project Status Trend
                 </h6>
+                <span className="text-muted ms-2 fs-6">
+                  (Total Projects: {totalProjects})
+                </span>
 
                 <small className="text-muted">Monthly overview</small>
                 <div className="d-flex align-items-center gap-2">
@@ -1668,8 +2326,8 @@ function ManagerReportTMS({ user }) {
                       {monthRange === 0
                         ? "All"
                         : monthRange === 3
-                        ? "Last 3 Months"
-                        : "Last 6 Months"}
+                          ? "Last 3 Months"
+                          : "Last 6 Months"}
                     </button>
 
                     <ul
@@ -1710,36 +2368,49 @@ function ManagerReportTMS({ user }) {
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart
                   data={projectStatusLineData}
+                  onClick={(e) => {
+                    if (!e || !e.activeLabel) return;
+
+                    const filtered = filterProjectsByMonth(e.activeLabel);
+
+                    setSelectedProjectMonth(e.activeLabel);
+                    setLinePopupProjects(filtered);
+                  }}
                   margin={{ top: 20, right: 30, left: 0, bottom: 10 }}
                 >
                   <CartesianGrid stroke="#e9ecef" strokeDasharray="4 4" />
                   <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                   <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
                   <Tooltip />
-                  <Legend verticalAlign="bottom" iconType="circle" />
+                  <Legend
+                    verticalAlign="bottom"
+                    iconType="circle"
+                    wrapperStyle={{ paddingTop: "25px" }}
+                  />
 
                   <Line
-                    dataKey="Assigned"
+                    dataKey="In Progress"
                     stroke="#0d6efd"
                     strokeWidth={3}
                     dot={{ r: 4 }}
                   />
-
                   <Line
-                    type="monotone"
                     dataKey="Completed"
                     stroke="#198754"
                     strokeWidth={3}
                     dot={{ r: 4 }}
-                    activeDot={{ r: 6 }}
                   />
                   <Line
-                    type="monotone"
                     dataKey="Delayed"
                     stroke="#dc3545"
                     strokeWidth={3}
                     dot={{ r: 4 }}
-                    activeDot={{ r: 6 }}
+                  />
+                  <Line
+                    dataKey="Cancelled"
+                    stroke="#6c757d"
+                    strokeWidth={3}
+                    dot={{ r: 4 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -1747,6 +2418,225 @@ function ManagerReportTMS({ user }) {
           </div>
         </div>
       </div>
+
+      {/* shivani */}
+      {selectedDonutStatus && (
+        <div
+          className="modal fade show"
+          style={{
+            display: "block",
+            position: "fixed",
+            inset: 0,
+            zIndex: 1050,
+            backgroundColor: "rgba(0,0,0,0.5)",
+          }}
+          onClick={() => setSelectedDonutStatus(null)}
+        >
+          <div
+            className="modal-dialog modal-lg modal-dialog-scrollable"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-content">
+              {/* HEADER */}
+              <div
+                className="modal-header text-white"
+                style={{ backgroundColor: "#3A5FBE" }}
+              >
+                <h5 className="modal-title">{selectedDonutStatus} Tasks</h5>
+                <button
+                  className="btn-close btn-close-white"
+                  onClick={() => setSelectedDonutStatus(null)}
+                />
+              </div>
+
+              {/* BODY */}
+              <div className="modal-body">
+                {Object.entries(donutTasksByEmployee).length > 0 ? (
+                  Object.entries(donutTasksByEmployee).map(
+                    ([empName, tasks]) => (
+                      <div key={empName} className="mb-4">
+                        {/* Employee Header */}
+                        <div
+                          className="mb-3 p-2 rounded"
+                          style={{
+                            backgroundColor: "#E8F0FE",
+                            color: "#3A5FBE",
+                            fontWeight: "600",
+                          }}
+                        >
+                          👤 {empName} ({tasks.length} Tasks)
+                        </div>
+
+                        {/* Task Cards */}
+                        <div className="row g-3">
+                          {tasks.map((task, index) => (
+                            <div key={index} className="col-12 col-md-6">
+                              <div
+                                className="border rounded p-3 h-100"
+                                style={{ backgroundColor: "#ffffff" }}
+                              >
+                                <div className="row mb-1">
+                                  <div className="col-4 fw-semibold">
+                                    Task Name
+                                  </div>
+                                  <div className="col-8">{task.taskName}</div>
+                                </div>
+
+                                <div className="row mb-1">
+                                  <div className="col-4 fw-semibold">
+                                    Task Type
+                                  </div>
+                                  <div className="col-8">
+                                    {task.taskType || "N/A"}
+                                  </div>
+                                </div>
+
+                                <div className="row mb-1">
+                                  <div className="col-4 fw-semibold">
+                                    Assign Date
+                                  </div>
+                                  <div className="col-8">
+                                    {formatDate(task.assignDate)}
+                                  </div>
+                                </div>
+
+                                <div className="row mb-0">
+                                  <div className="col-4 fw-semibold">
+                                    Due Date
+                                  </div>
+                                  <div className="col-8">
+                                    {formatDate(task.dueDate)}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ),
+                  )
+                ) : (
+                  <div className="text-center text-muted py-4">
+                    No tasks found
+                  </div>
+                )}
+              </div>
+
+              {/* FOOTER */}
+              <div className="modal-footer">
+                <button
+                  className="btn btn-sm custom-outline-btn"
+                  onClick={() => setSelectedDonutStatus(null)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedProjectMonth && (
+        <div
+          className="modal fade show"
+          style={{
+            display: "block",
+            position: "fixed",
+            inset: 0,
+            zIndex: 1050,
+            backgroundColor: "rgba(0,0,0,0.5)",
+          }}
+          onClick={() => setSelectedProjectMonth(null)}
+        >
+          <div
+            className="modal-dialog modal-lg modal-dialog-scrollable"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-content">
+              <div
+                className="modal-header text-white"
+                style={{ background: "#3A5FBE" }}
+              >
+                <h5 className="modal-title">
+                  Projects – {selectedProjectMonth}
+                </h5>
+                <button
+                  className="btn-close btn-close-white"
+                  onClick={() => setSelectedProjectMonth(null)}
+                />
+              </div>
+
+              <div className="modal-body">
+                {["In Progress", "Completed", "Delayed", "Cancelled"].map(
+                  (status) => (
+                    <div key={status} className="mb-4">
+                      <h6 style={{ color: STATUS_COLORS[status] }}>
+                        {status} ({linePopupProjects[status].length})
+                      </h6>
+
+                      {linePopupProjects[status].length ? (
+                        linePopupProjects[status].map((p) => (
+                          <div key={p._id} className="border rounded p-2 mb-2">
+                            <div className="row mb-1">
+                              <div className="col-4 fw-semibold">
+                                Project Name
+                              </div>
+                              <div className="col-8">{p.name}</div>
+                            </div>
+
+                            <div className="row mb-1">
+                              <div className="col-4 fw-semibold">
+                                Assigned To
+                              </div>
+                              <div className="col-8">
+                                {getManagerNames(p.managers).join(", ") || "-"}
+                              </div>
+                            </div>
+
+                            <div className="row mb-1">
+                              <div className="col-4 fw-semibold">
+                                Start Date
+                              </div>
+                              <div className="col-8">
+                                {p.startDate ? formatDate(p.startDate) : "—"}
+                              </div>
+                            </div>
+
+                            <div className="row mb-1">
+                              <div className="col-4 fw-semibold">Due Date</div>
+                              <div className="col-8">
+                                {p.dueDate ? formatDate(p.dueDate) : "—"}
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-muted">No projects</div>
+                      )}
+                    </div>
+                  ),
+                )}
+              </div>
+
+              <div className="modal-footer">
+                <button
+                  className="btn btn-sm custom-outline-btn"
+                  onClick={() => setSelectedProjectMonth(null)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <TableRowModal
+        show={showRowModal}
+        onClose={() => setShowRowModal(false)}
+        title={modalTitle}
+        fields={modalFields}
+      />
 
       <div className="text-end mt-3">
         <button

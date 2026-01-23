@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import "./AddEmployee.css"
+import "./AddEmployee.css";
 
 const AddEmployee = () => {
   const [message, setMessage] = useState("");
@@ -42,7 +42,6 @@ const AddEmployee = () => {
     },
     pfNumber: "",
     uanNumber: "",
-
   });
 
   const [files, setFiles] = useState({
@@ -93,7 +92,6 @@ const AddEmployee = () => {
   //       if (value.trim() === "") error = "Department is required.";
   //       break;
 
-
   //     default:
   //       break;
   //   }
@@ -102,8 +100,6 @@ const AddEmployee = () => {
 
   //   return error;
   // }
-
-
 
   const validateField = (name, value) => {
     let error = "";
@@ -121,7 +117,9 @@ const AddEmployee = () => {
         if (!value.trim()) {
           error = "Email is required.";
         } else if (
-          !/^[a-zA-Z0-9._%+-]+@(gmail\.com|creativewebsolution\.in)$/.test(value)
+          !/^[a-zA-Z0-9._%+-]+@(gmail\.com|creativewebsolution\.in)$/.test(
+            value,
+          )
         ) {
           error = "Please enter a valid email address.";
         }
@@ -175,30 +173,26 @@ const AddEmployee = () => {
 
       case "pfNumber":
         // if (!value.trim()) error = "PF Number is required.";
-        // else 
+        // else
         if (!/^[A-Za-z0-9]+$/.test(value))
           error = "PF Number must be alphanumeric.";
         break;
 
       case "uanNumber":
         // if (!value.trim()) error = "UAN Number is required.";
-        // else 
+        // else
         if (!/^\d{12}$/.test(value))
           error = "UAN Number must be exactly 12 digits.";
         break;
-
 
       default:
         break;
     }
 
-
     setErrors((prev) => ({ ...prev, [name]: error }));
 
     return error;
-  }
-
-
+  };
 
   const validateBankField = (name, value) => {
     let error = "";
@@ -232,7 +226,6 @@ const AddEmployee = () => {
       return next;
     });
 
-
     return error;
   };
 
@@ -241,21 +234,22 @@ const AddEmployee = () => {
 
     switch (name) {
       case "street":
-
         if (value && value.trim().length < 3) error = "Street looks too short.";
         break;
 
       case "city":
-        if (value && !/^[A-Za-z\s]+$/.test(value)) error = "City must contain only letters and spaces.";
+        if (value && !/^[A-Za-z\s]+$/.test(value))
+          error = "City must contain only letters and spaces.";
         break;
 
       case "state":
-        if (value && !/^[A-Za-z\s]+$/.test(value)) error = "State must contain only letters and spaces.";
+        if (value && !/^[A-Za-z\s]+$/.test(value))
+          error = "State must contain only letters and spaces.";
         break;
 
       case "zip":
-
-        if (value && !/^\d{6}$/.test(value)) error = "PIN must be exactly 6 digits.";
+        if (value && !/^\d{6}$/.test(value))
+          error = "PIN must be exactly 6 digits.";
         break;
 
       default:
@@ -297,11 +291,8 @@ const AddEmployee = () => {
         },
       }));
 
-
       validateAddressField(addressKey, key, value);
-
     } else {
-
       setFormData((prev) => ({ ...prev, [fieldName]: value }));
       validateField(fieldName, value);
     }
@@ -311,9 +302,6 @@ const AddEmployee = () => {
     const { name, files: selectedFiles } = e.target;
     const file = selectedFiles[0];
     let error = "";
-
-
-
 
     if (!file) {
       error = "This file is required.";
@@ -334,7 +322,6 @@ const AddEmployee = () => {
 
     setErrors((prev) => ({ ...prev, [name]: error }));
 
-
     if (!error) {
       setFiles((prev) => ({ ...prev, [name]: file }));
     } else {
@@ -346,16 +333,19 @@ const AddEmployee = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = "Name is required.";
     if (!formData.email) newErrors.email = "Email is required.";
-    if (!/^\d{10}$/.test(formData.contact)) newErrors.contact = "Contact must be 10 digits.";
+    if (!/^\d{10}$/.test(formData.contact))
+      newErrors.contact = "Contact must be 10 digits.";
     if (!formData.employeeId) newErrors.employeeId = "Employee ID is required.";
-    if (!formData.salary || formData.salary <= 0) newErrors.salary = "Salary must be greater than 0.";
+    if (!formData.salary || formData.salary <= 0)
+      newErrors.salary = "Salary must be greater than 0.";
     if (!formData.dob) newErrors.dob = "Date of birth is required.";
-    if (!formData.designation.trim()) newErrors.designation = "Designation is required.";
-    if (!formData.department.trim()) newErrors.department = "Department is required.";
+    if (!formData.designation.trim())
+      newErrors.designation = "Designation is required.";
+    if (!formData.department.trim())
+      newErrors.department = "Department is required.";
 
     // if (!formData.pfNumber) newErrors.pfNumber = "PF Number is required.";
     // if (!formData.uanNumber) newErrors.uanNumber = "UAN Number is required.";
-
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -418,7 +408,6 @@ const AddEmployee = () => {
     setLoading(true);
     setMessage("");
 
-
     try {
       const payload = new FormData();
 
@@ -436,9 +425,13 @@ const AddEmployee = () => {
         if (files[key]) payload.append(key, files[key]);
       });
 
-      const res = await axios.post("https://server-backend-nu.vercel.app/admin/add-employee", payload, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const res = await axios.post(
+        "https://server-backend-nu.vercel.app/admin/add-employee",
+        payload,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        },
+      );
       // ✅ Show success alert after submission
       alert(res.data.message || "Employee added and email sent successfully!");
 
@@ -472,7 +465,7 @@ const AddEmployee = () => {
       });
     } catch (err) {
       setMessage(err.response?.data?.error || "Server error");
-      console.log(err)
+      console.log(err);
     } finally {
       setLoading(false);
     }
@@ -504,11 +497,30 @@ const AddEmployee = () => {
     const newErrors = {};
 
     // top-level fields
-    const topFields = ["name", "email", "contact", "employeeId", "salary", "dob", "designation", "department"];
-    topFields.forEach(k => {
+    const topFields = [
+      "name",
+      "email",
+      "contact",
+      "employeeId",
+      "salary",
+      "dob",
+      "designation",
+      "department",
+    ];
+    topFields.forEach((k) => {
       const v = formData?.[k] ?? "";
       // use field validator when we have rules
-      if (["name", "email", "contact", "salary", "dob", "designation", "department"].includes(k)) {
+      if (
+        [
+          "name",
+          "email",
+          "contact",
+          "salary",
+          "dob",
+          "designation",
+          "department",
+        ].includes(k)
+      ) {
         const msg = validateField(k, v);
         if (msg) newErrors[k] = msg;
       } else {
@@ -518,7 +530,11 @@ const AddEmployee = () => {
 
     // bank
     const b = formData.bankDetails || {};
-    [["bankName", b.bankName], ["accountNumber", b.accountNumber], ["ifsc", b.ifsc]].forEach(([k, v]) => {
+    [
+      ["bankName", b.bankName],
+      ["accountNumber", b.accountNumber],
+      ["ifsc", b.ifsc],
+    ].forEach(([k, v]) => {
       const msg = validateBankField(k, v);
       if (msg) newErrors[`bankDetails.${k}`] = msg;
     });
@@ -537,17 +553,24 @@ const AddEmployee = () => {
   }
 
   return (
-
     <>
       <button
         className="btn btn-sm custom-outline-btn"
         style={{ minWidth: 90 }}
-        onClick={() => setShowModal(true)}>
+        onClick={() => setShowModal(true)}
+      >
         Add Employee
       </button>
       {showModal && (
-        <div className="modal fade show" tabIndex="-1" style={{ display: "block", backgroundColor: "rgba(0,0,0,0.5)" }}>
-          <div className="modal-dialog" style={{ maxWidth: "700px" }}>
+        <div
+          className="modal fade show"
+          tabIndex="-1"
+          style={{ display: "block", backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
+          <div
+            className="modal-dialog  modal-dialog-scrollable"
+            style={{ maxWidth: "700px" }}
+          >
             <div className="modal-content">
               <div className="custom-modal-header">
                 <span className="custom-modal-title">Add Employee</span>
@@ -562,46 +585,66 @@ const AddEmployee = () => {
                     setFormData(initialFormData);
                     setFiles(initialFiles);
                   }}
-
                 >
                   &times;
                 </button>
               </div>
               {message && (
-                <p className={`mb-3 text-center fw-medium ${message.includes("successfully") ? "text-success" : "text-danger"}`}>
+                <p
+                  className={`mb-3 text-center fw-medium ${
+                    message.includes("successfully")
+                      ? "text-success"
+                      : "text-danger"
+                  }`}
+                >
                   {message}
                 </p>
               )}
 
               <div className="custom-modal-body">
-
-
                 <form className="formModel" onSubmit={handleSubmit}>
                   {/* Step 1: Personal Details */}
                   {step === 1 && (
                     <>
                       <h5 className="mb-3">Personal Details</h5>
-                      <div className="row mb-4 "  >
-
+                      <div className="row mb-4 ">
                         <div className="col-md-6 mb-0">
                           <label>Name:</label>
-                          <input type="text" className="form-control" name="name" value={formData.name}
-                            //onChange={handleChange} 
+                          <input
+                            type="text"
+                            className="form-control"
+                            name="name"
+                            value={formData.name}
+                            //onChange={handleChange}
                             onChange={handleChange}
                           />
-                          {errors.name && <small className="text-danger">{errors.name}</small>}
-
+                          {errors.name && (
+                            <small className="text-danger">{errors.name}</small>
+                          )}
                         </div>
                         <div className="col-md-6 mb-0">
                           <label>Email:</label>
-                          <input type="email" className="form-control" name="email" value={formData.email} onChange={handleChange} required />
-                          {errors.email && <small className="text-danger">{errors.email}</small>}
+                          <input
+                            type="email"
+                            className="form-control"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            required
+                          />
+                          {errors.email && (
+                            <small className="text-danger">
+                              {errors.email}
+                            </small>
+                          )}
                         </div>
                         <div className="col-md-6 mb-0">
                           <label>Contact:</label>
-                          <input type="text"
+                          <input
+                            type="text"
                             className="form-control"
-                            name="contact" value={formData.contact}
+                            name="contact"
+                            value={formData.contact}
                             // onChange={handleChange}
                             onChange={(e) => {
                               const value = e.target.value;
@@ -611,17 +654,38 @@ const AddEmployee = () => {
                               }
                             }}
                             required
-                            maxLength="10" />
-                          {errors.contact && <small className="text-danger">{errors.contact}</small>}
+                            maxLength="10"
+                          />
+                          {errors.contact && (
+                            <small className="text-danger">
+                              {errors.contact}
+                            </small>
+                          )}
                         </div>
                         <div className="col-md-6 mb-0">
                           <label>Employee ID:</label>
-                          <input type="text" className="form-control" name="employeeId" value={formData.employeeId} onChange={handleChange} required />
-                          {errors.employeeId && <small className="text-danger">{errors.employeeId}</small>}
+                          <input
+                            type="text"
+                            className="form-control"
+                            name="employeeId"
+                            value={formData.employeeId}
+                            onChange={handleChange}
+                            required
+                          />
+                          {errors.employeeId && (
+                            <small className="text-danger">
+                              {errors.employeeId}
+                            </small>
+                          )}
                         </div>
                         <div className="col-md-6 mb-0">
                           <label>Gender:</label>
-                          <select className="form-select" name="gender" value={formData.gender} onChange={handleChange}>
+                          <select
+                            className="form-select"
+                            name="gender"
+                            value={formData.gender}
+                            onChange={handleChange}
+                          >
                             <option>Male</option>
                             <option>Female</option>
                             <option>Other</option>
@@ -629,12 +693,25 @@ const AddEmployee = () => {
                         </div>
                         <div className="col-md-6 mb-0">
                           <label>Date of Birth:</label>
-                          <input type="date" className="form-control" name="dob" value={formData.dob} onChange={handleChange}
-                            max={new Date(new Date().setFullYear(new Date().getFullYear() - 18))
-                              .toISOString()
-                              .split("T")[0]}  // 👈 disables underage dates
+                          <input
+                            type="date"
+                            className="form-control"
+                            name="dob"
+                            value={formData.dob}
+                            onChange={handleChange}
+                            max={
+                              new Date(
+                                new Date().setFullYear(
+                                  new Date().getFullYear() - 18,
+                                ),
+                              )
+                                .toISOString()
+                                .split("T")[0]
+                            } // 👈 disables underage dates
                           />
-                          {errors.dob && <small className="text-danger">{errors.dob}</small>}
+                          {errors.dob && (
+                            <small className="text-danger">{errors.dob}</small>
+                          )}
                         </div>
                         <div className="col-md-6 mb-0">
                           <label>Marital Status:</label>
@@ -647,18 +724,38 @@ const AddEmployee = () => {
                             <option value="Single">Single</option>
                             <option value="Married">Married</option>
                           </select>
-
-
                         </div>
                         <div className="col-md-6 mb-0">
                           <label>Designation:</label>
-                          <input type="text" className="form-control" name="designation" value={formData.designation} onChange={handleChange} required />
-                          {errors.designation && <small className="text-danger">{errors.designation}</small>}
+                          <input
+                            type="text"
+                            className="form-control"
+                            name="designation"
+                            value={formData.designation}
+                            onChange={handleChange}
+                            required
+                          />
+                          {errors.designation && (
+                            <small className="text-danger">
+                              {errors.designation}
+                            </small>
+                          )}
                         </div>
                         <div className="col-md-6 mb-0">
                           <label>Department:</label>
-                          <input type="text" className="form-control" name="department" value={formData.department} onChange={handleChange} required />
-                          {errors.department && <small className="text-danger">{errors.department}</small>}
+                          <input
+                            type="text"
+                            className="form-control"
+                            name="department"
+                            value={formData.department}
+                            onChange={handleChange}
+                            required
+                          />
+                          {errors.department && (
+                            <small className="text-danger">
+                              {errors.department}
+                            </small>
+                          )}
                         </div>
 
                         <div className="col-md-6 mb-0">
@@ -667,16 +764,17 @@ const AddEmployee = () => {
                             className="form-select"
                             name="role"
                             value={formData.role}
-                            onChange={handleChange}>
+                            onChange={handleChange}
+                          >
                             <option value="employee">Employee</option>
                             <option value="admin">Admin</option>
                             <option value="hr">HR</option>
                             <option value="manager">Manager</option>
                             <option value="ceo">CEO</option>
                             <option value="md">MD</option>
+                            <option value="IT_Support">IT_SupportS</option>
                           </select>
                         </div>
-
 
                         <div className="col-md-6 mb-0">
                           {/* <div className="mb-3">
@@ -720,7 +818,6 @@ const AddEmployee = () => {
   )}
 </div> */}
 
-
                           {/* <div className="mb-3 salary-field">
                             <label className="form-label salary-label">Salary:</label>
                             <div className="input-group salary-input-group">
@@ -753,9 +850,16 @@ const AddEmployee = () => {
                           </div> */}
 
                           <div className="mb-3 salary-field">
-                            <label className="form-label salary-label">Salary:</label>
+                            <label className="form-label salary-label">
+                              Salary:
+                            </label>
                             <div className="input-group salary-input-group">
-                              <span className="form-control" style={{ height: "50px", width: "100%" }}>₹</span>
+                              <span
+                                className="form-control"
+                                style={{ height: "50px", width: "100%" }}
+                              >
+                                ₹
+                              </span>
                               <input
                                 type="number"
                                 //className="form-control salary-input"
@@ -775,24 +879,27 @@ const AddEmployee = () => {
                                 value={formData.salaryType || "monthly"}
                                 onChange={handleChange}
                                 style={{ height: "50px", width: "100%" }}
-
                               >
-                                <option value="monthly" >Per Month</option>
-                                <option value="yearly" >Per Year</option>
-
+                                <option value="monthly">Per Month</option>
+                                <option value="yearly">Per Year</option>
                               </select>
                             </div>
                             {errors.salary && (
-                              <small className="text-danger salary-error">{errors.salary}</small>
+                              <small className="text-danger salary-error">
+                                {errors.salary}
+                              </small>
                             )}
                           </div>
-
-
                         </div>
                         <div className="col-md-6 mb-0">
                           <label>Date of Joining:</label>
-                          <input type="date" className="form-control" name="doj" value={formData.doj} onChange={handleChange} />
-
+                          <input
+                            type="date"
+                            className="form-control"
+                            name="doj"
+                            value={formData.doj}
+                            onChange={handleChange}
+                          />
                         </div>
                       </div>
                     </>
@@ -801,7 +908,7 @@ const AddEmployee = () => {
                   {/* Step 2: Address */}
                   {step === 2 && (
                     <>
-                      <h5 className="mb-3">  Current Address</h5>
+                      <h5 className="mb-3"> Current Address</h5>
 
                       <div className="mb-4">
                         <div className="row less-gap">
@@ -815,7 +922,9 @@ const AddEmployee = () => {
                               onChange={handleChange}
                             />
                             {errors["currentAddress.street"] && (
-                              <small className="text-danger">{errors["currentAddress.street"]}</small>
+                              <small className="text-danger">
+                                {errors["currentAddress.street"]}
+                              </small>
                             )}
                           </div>
                           <div className="col-md-6 mb-0">
@@ -828,7 +937,9 @@ const AddEmployee = () => {
                               onChange={handleChange}
                             />
                             {errors["currentAddress.city"] && (
-                              <small className="text-danger">{errors["currentAddress.city"]}</small>
+                              <small className="text-danger">
+                                {errors["currentAddress.city"]}
+                              </small>
                             )}
                           </div>
                           <div className="col-md-6 mb-0">
@@ -841,7 +952,9 @@ const AddEmployee = () => {
                               onChange={handleChange}
                             />
                             {errors["currentAddress.state"] && (
-                              <small className="text-danger">{errors["currentAddress.state"]}</small>
+                              <small className="text-danger">
+                                {errors["currentAddress.state"]}
+                              </small>
                             )}
                           </div>
                           <div className="col-md-6 mb-0">
@@ -861,14 +974,16 @@ const AddEmployee = () => {
                               }}
                             />
                             {errors["currentAddress.zip"] && (
-                              <small className="text-danger">{errors["currentAddress.zip"]}</small>
+                              <small className="text-danger">
+                                {errors["currentAddress.zip"]}
+                              </small>
                             )}
                           </div>
                         </div>
                       </div>
 
                       <h5 className="mb-3">Permanent Address</h5>
-                      <div className="mb-4" style={{ marginbo: '-30px' }}>
+                      <div className="mb-4" style={{ marginbo: "-30px" }}>
                         <div className="row mb-3">
                           <div className="col-md-6 mb-0">
                             <label>Street:</label>
@@ -880,7 +995,9 @@ const AddEmployee = () => {
                               onChange={handleChange}
                             />
                             {errors["permanentAddress.street"] && (
-                              <small className="text-danger">{errors["permanentAddress.street"]}</small>
+                              <small className="text-danger">
+                                {errors["permanentAddress.street"]}
+                              </small>
                             )}
                           </div>
                           <div className="col-md-6 mb-0">
@@ -893,7 +1010,9 @@ const AddEmployee = () => {
                               onChange={handleChange}
                             />
                             {errors["permanentAddress.city"] && (
-                              <small className="text-danger">{errors["permanentAddress.city"]}</small>
+                              <small className="text-danger">
+                                {errors["permanentAddress.city"]}
+                              </small>
                             )}
                           </div>
                           <div className="col-md-6 mb-0">
@@ -904,11 +1023,12 @@ const AddEmployee = () => {
                               name="permanentAddress.state"
                               value={formData.permanentAddress.state}
                               onChange={handleChange}
-
                             />
 
                             {errors["permanentAddress.state"] && (
-                              <small className="text-danger">{errors["permanentAddress.state"]}</small>
+                              <small className="text-danger">
+                                {errors["permanentAddress.state"]}
+                              </small>
                             )}
                           </div>
                           <div className="col-md-6 mb-0">
@@ -926,15 +1046,15 @@ const AddEmployee = () => {
                                   handleChange(e);
                                 }
                               }}
-
                             />
                             {errors["permanentAddress.zip"] && (
-                              <small className="text-danger">{errors["permanentAddress.zip"]}</small>
+                              <small className="text-danger">
+                                {errors["permanentAddress.zip"]}
+                              </small>
                             )}
                           </div>
                         </div>
                       </div>
-
                     </>
                   )}
 
@@ -977,7 +1097,6 @@ const AddEmployee = () => {
                               {errors["bankDetails.bankName"]}
                             </small>
                           )}
-
                         </div>
 
                         {/* IFSC */}
@@ -998,9 +1117,6 @@ const AddEmployee = () => {
                           )}
                         </div>
 
-
-
-
                         <h5>PF Details</h5>
 
                         <div className="col-md-6 mb-0">
@@ -1016,7 +1132,11 @@ const AddEmployee = () => {
                               if (/^\d*$/.test(val)) handleChange(e); // digits only
                             }}
                           />
-                          {errors.uanNumber && <small className="text-danger">{errors.uanNumber}</small>}
+                          {errors.uanNumber && (
+                            <small className="text-danger">
+                              {errors.uanNumber}
+                            </small>
+                          )}
                         </div>
                         {/* pf and uan number */}
                         <div className="col-md-6 mb-0">
@@ -1028,14 +1148,16 @@ const AddEmployee = () => {
                             value={formData.pfNumber}
                             onChange={handleChange}
                           />
-                          {errors.pfNumber && <small className="text-danger">{errors.pfNumber}</small>}
+                          {errors.pfNumber && (
+                            <small className="text-danger">
+                              {errors.pfNumber}
+                            </small>
+                          )}
                         </div>
 
-
-
                         {/* Profile Image */}
-                        <h5 >File Uploads</h5>
-                        <div className="col-md-6 mb-0" >
+                        <h5>File Uploads</h5>
+                        <div className="col-md-6 mb-0">
                           <label className="form-label">Profile Image:</label>
                           <input
                             type="file"
@@ -1044,7 +1166,11 @@ const AddEmployee = () => {
                             onChange={handleFileChange}
                             accept=".jpg,.jpeg,.png"
                           />
-                          {errors.image && <small className="text-danger">{errors.image}</small>}
+                          {errors.image && (
+                            <small className="text-danger">
+                              {errors.image}
+                            </small>
+                          )}
                         </div>
 
                         {/* PAN Card */}
@@ -1057,7 +1183,11 @@ const AddEmployee = () => {
                             onChange={handleFileChange}
                             accept=".jpg,.jpeg,.png,application/pdf"
                           />
-                          {errors.panCardPdf && <small className="text-danger">{errors.panCardPdf}</small>}
+                          {errors.panCardPdf && (
+                            <small className="text-danger">
+                              {errors.panCardPdf}
+                            </small>
+                          )}
                         </div>
 
                         {/* Aadhar Card */}
@@ -1071,12 +1201,18 @@ const AddEmployee = () => {
                             accept=".jpg,.jpeg,.png,application/pdf"
                           />
 
-                          {errors.aadharCardPdf && <small className="text-danger">{errors.aadharCardPdf}</small>}
+                          {errors.aadharCardPdf && (
+                            <small className="text-danger">
+                              {errors.aadharCardPdf}
+                            </small>
+                          )}
                         </div>
 
                         {/* Appointment Letter */}
                         <div className="col-md-6 mb-0">
-                          <label className="form-label">Appointment Letter:</label>
+                          <label className="form-label">
+                            Appointment Letter:
+                          </label>
                           <input
                             type="file"
                             className="form-control"
@@ -1084,7 +1220,11 @@ const AddEmployee = () => {
                             onChange={handleFileChange}
                             accept="application/pdf"
                           />
-                          {errors.appointmentLetter && <small className="text-danger">{errors.appointmentLetter}</small>}
+                          {errors.appointmentLetter && (
+                            <small className="text-danger">
+                              {errors.appointmentLetter}
+                            </small>
+                          )}
                         </div>
 
                         {/* Passbook PDF */}
@@ -1097,7 +1237,11 @@ const AddEmployee = () => {
                             onChange={handleFileChange}
                             accept=".jpg,.jpeg,.png,application/pdf"
                           />
-                          {errors.passbookPdf && <small className="text-danger">{errors.passbookPdf}</small>}
+                          {errors.passbookPdf && (
+                            <small className="text-danger">
+                              {errors.passbookPdf}
+                            </small>
+                          )}
                         </div>
 
                         <div className="col-md-6 mb-0">
@@ -1110,16 +1254,14 @@ const AddEmployee = () => {
                             onChange={handleFileChange}
                           />
                           {errors.certificatePdf && (
-                            <small className="text-danger">{errors.certificatePdf}</small>
+                            <small className="text-danger">
+                              {errors.certificatePdf}
+                            </small>
                           )}
                         </div>
-
-
                       </div>
-
                     </>
                   )}
-
 
                   {/* Navigation Buttons */}
                   <div className="d-flex justify-content-end mt-4 gap-2">
@@ -1134,7 +1276,6 @@ const AddEmployee = () => {
                         <span>&larr;</span> Previous
                       </button>
                     )}
-
 
                     {/* Next or Submit Button */}
                     {step < 3 ? (
@@ -1154,8 +1295,12 @@ const AddEmployee = () => {
                       // <button type="submit" className="btn btn-primary" disabled={loading}>
                       //   {loading ? "Adding..." : "Add Employee"}
                       // </button>
-                      <button type="submit" className="btn btn-sm custom-outline-btn"
-                        style={{ minWidth: 90 }} disabled={loading}>
+                      <button
+                        type="submit"
+                        className="btn btn-sm custom-outline-btn"
+                        style={{ minWidth: 90 }}
+                        disabled={loading}
+                      >
                         {loading ? (
                           <>
                             <span
@@ -1171,8 +1316,6 @@ const AddEmployee = () => {
                       </button>
                     )}
                   </div>
-
-
                 </form>
               </div>
             </div>
@@ -1180,10 +1323,7 @@ const AddEmployee = () => {
         </div>
       )}
     </>
-
   );
-}
-
-
+};
 
 export default AddEmployee;

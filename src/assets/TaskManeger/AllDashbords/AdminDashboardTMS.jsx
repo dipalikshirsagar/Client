@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from "react-router-dom";
 function AdminDashboardTMS() {
   const [totalTasks, setTotalTasks] = useState(0);
   const [totalProjects, setTotalProjects] = useState(0);
@@ -11,9 +11,10 @@ function AdminDashboardTMS() {
   const [tasks, setTasks] = useState([]);
   const [filteredUpcomingItems, setFilteredUpcomingItems] = useState([]);
   const [availableEmployees, setAvailableEmployees] = useState([]);
-  // 
+  //
   const [showProfile, setShowProfile] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [teams, setTeams] = useState([]); //added by harshada
 
   const navigate = useNavigate();
   const { role, username, id } = useParams();
@@ -26,15 +27,36 @@ function AdminDashboardTMS() {
         /* EMPLOYEES */
         const empRes = await axios.get(
           "https://server-backend-nu.vercel.app/getAllEmployees",
-          { headers }
+          { headers },
         );
-        setTotalEmployees(empRes.data.length);
-        setAvailableEmployees(empRes.data);
+
+        const benchEmp = await axios.get(
+          "https://server-backend-nu.vercel.app/bench-employees",
+          { headers },
+        );
+        setAvailableEmployees(benchEmp.data.benchEmployees || []);
+
+        const allEmployees = empRes.data || [];
+
+        // 1. Filter active employees only
+        const activeEmployees = allEmployees.filter((e) => !e.isDeleted);
+
+        // 2. Filter allowed roles for count (HR, Manager, Employee)
+        const allowedRoles = ["hr", "manager", "employee", "it_support"];
+
+        const totalEmployeeCount = activeEmployees.filter((e) =>
+          allowedRoles.includes(e.role?.toLowerCase()),
+        ).length;
+        setAvailableEmployees(activeEmployees);
+
+        setTotalEmployees(totalEmployeeCount);
+
+        // 4. Set employees table (active only)
 
         /* PROJECTS */
         const projectRes = await axios.get(
           "https://server-backend-nu.vercel.app/api/projects",
-          { headers }
+          { headers },
         );
 
         const projectList = projectRes.data || [];
@@ -42,24 +64,25 @@ function AdminDashboardTMS() {
         setTotalProjects(projectList.length);
 
         /* TEAMS */
-        const teamRes = await axios.get(
-          "https://server-backend-nu.vercel.app/api/teams",
-          { headers }
-        );
+        // const teamRes = await axios.get("https://server-backend-nu.vercel.app/api/teams", {
+        //   headers,
+        // });
+        const teamRes = await axios.get("https://server-backend-nu.vercel.app/api/teams", {
+          headers,
+        });
         setTotalTeams(teamRes.data?.data?.length || 0);
 
         /* TASKS */
-        const taskRes = await axios.get(
-          "https://server-backend-nu.vercel.app/task/getall",
-          { headers }
-        );
+        const taskRes = await axios.get("https://server-backend-nu.vercel.app/task/getall", {
+          headers,
+        });
         const taskList = taskRes.data || [];
         setTasks(taskList);
         setTotalTasks(taskList.length);
 
         /* 🔥 UPCOMING DUE DATES LOGIC */
-        prepareUpcomingItems(projectList, taskList);
-
+        //added by Teamlist in harshada
+        prepareUpcomingItems(projectList, taskList, teamList);
       } catch (error) {
         console.error("Dashboard fetch error", error);
       }
@@ -84,7 +107,7 @@ function AdminDashboardTMS() {
     });
   };
 
-  const prepareUpcomingItems = (projects, tasks) => {
+  const prepareUpcomingItems = (projects, tasks, teams) => {
     const formattedProjects = projects.map((p) => ({
       type: "PROJECT",
       title: p.name || "—",
@@ -98,8 +121,7 @@ function AdminDashboardTMS() {
     const formattedTasks = tasks.map((t) => ({
       type: "TASK",
       title: t.taskName || "—",
-      dueDate:
-        t.dateOfExpectedCompletion || t.deadline || t.endDate || null,
+      dueDate: t.dateOfExpectedCompletion || t.deadline || t.endDate || null,
       assignedTo: t.assignedTo?.name || "—",
       projectName: t.projectName || "—",
     }));
@@ -138,11 +160,8 @@ function AdminDashboardTMS() {
       status: p.status?.name || "On Track",
     }))
     .filter((p) => isUpcomingStart(p.startDate))
-    .sort(
-      (a, b) => new Date(a.startDate) - new Date(b.startDate)
-    )
+    .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
     .slice(0, 3); // show only 3
-
 
   const getActiveProjects = (projects) => {
     const today = new Date();
@@ -168,25 +187,31 @@ function AdminDashboardTMS() {
 
     return Math.min(100, Math.max(0, Math.round((completed / total) * 100)));
   };
+  //added by harshada
   const activeProjects = getActiveProjects(projects);
+  const getTeamSizeByProject = (projectId) => {
+    return teams
+      .filter((t) => t.project && t.project._id === projectId)
+      .reduce((total, team) => total + team.assignToProject.length, 0);
+  };
 
   return (
-
     <div className="container-fluid" style={{ marginTop: "-25px" }}>
-
-
       {/* Main Content */}
-      <div >
-
-
+      <div>
         {/* Stats Cards Row */}
         <div className="row g-3 mb-4">
-
           {/* Total Tasks */}
           <div className="col-md-3">
-            <div className="card shadow-sm h-100 border-0" style={{ borderRadius: "7px" }}>
+            <div
+              className="card shadow-sm h-100 border-0"
+              style={{ borderRadius: "7px" }}
+            >
               <div className="card-body d-flex align-items-center justify-content-between">
-                <div className="d-flex align-items-center" style={{ gap: "20px" }}>
+                <div
+                  className="d-flex align-items-center"
+                  style={{ gap: "20px" }}
+                >
                   <h4
                     className="mb-0"
                     style={{
@@ -202,21 +227,36 @@ function AdminDashboardTMS() {
                   >
                     {totalTasks}
                   </h4>
-                  <p className="mb-0 fw-semibold" style={{ color: "#3A5FBE", fontSize: "18px" }}>
+                  <p
+                    className="mb-0 fw-semibold"
+                    style={{ color: "#3A5FBE", fontSize: "18px" }}
+                  >
                     Total Tasks
                   </p>
                 </div>
-                <button className="btn btn-sm custom-outline-btn" onClick={() =>
-                  navigate(`/tms-dashboard/${role}/${username}/${id}/task`)}>View</button>
+                <button
+                  className="btn btn-sm custom-outline-btn"
+                  onClick={() =>
+                    navigate(`/tms-dashboard/${role}/${username}/${id}/task`)
+                  }
+                >
+                  View
+                </button>
               </div>
             </div>
           </div>
 
           {/* Total Project */}
           <div className="col-md-3">
-            <div className="card shadow-sm h-100 border-0" style={{ borderRadius: "7px" }}>
+            <div
+              className="card shadow-sm h-100 border-0"
+              style={{ borderRadius: "7px" }}
+            >
               <div className="card-body d-flex align-items-center justify-content-between">
-                <div className="d-flex align-items-center" style={{ gap: "20px" }}>
+                <div
+                  className="d-flex align-items-center"
+                  style={{ gap: "20px" }}
+                >
                   <h4
                     className="mb-0"
                     style={{
@@ -232,21 +272,36 @@ function AdminDashboardTMS() {
                   >
                     {totalProjects}
                   </h4>
-                  <p className="mb-0 fw-semibold" style={{ color: "#3A5FBE", fontSize: "18px" }}>
+                  <p
+                    className="mb-0 fw-semibold"
+                    style={{ color: "#3A5FBE", fontSize: "18px" }}
+                  >
                     Total Project
                   </p>
                 </div>
-                <button className="btn btn-sm custom-outline-btn" onClick={() =>
-                  navigate(`/tms-dashboard/${role}/${username}/${id}/project`)}>View</button>
+                <button
+                  className="btn btn-sm custom-outline-btn"
+                  onClick={() =>
+                    navigate(`/tms-dashboard/${role}/${username}/${id}/project`)
+                  }
+                >
+                  View
+                </button>
               </div>
             </div>
           </div>
 
           {/* Total Teams */}
           <div className="col-md-3">
-            <div className="card shadow-sm h-100 border-0" style={{ borderRadius: "7px" }}>
+            <div
+              className="card shadow-sm h-100 border-0"
+              style={{ borderRadius: "7px" }}
+            >
               <div className="card-body d-flex align-items-center justify-content-between">
-                <div className="d-flex align-items-center" style={{ gap: "20px" }}>
+                <div
+                  className="d-flex align-items-center"
+                  style={{ gap: "20px" }}
+                >
                   <h4
                     className="mb-0"
                     style={{
@@ -262,21 +317,36 @@ function AdminDashboardTMS() {
                   >
                     {totalTeams}
                   </h4>
-                  <p className="mb-0 fw-semibold" style={{ color: "#3A5FBE", fontSize: "18px" }}>
+                  <p
+                    className="mb-0 fw-semibold"
+                    style={{ color: "#3A5FBE", fontSize: "18px" }}
+                  >
                     Total Teams
                   </p>
                 </div>
-                <button className="btn btn-sm custom-outline-btn" onClick={() =>
-                  navigate(`/tms-dashboard/${role}/${username}/${id}/teams`)}>View</button>
+                <button
+                  className="btn btn-sm custom-outline-btn"
+                  onClick={() =>
+                    navigate(`/tms-dashboard/${role}/${username}/${id}/teams`)
+                  }
+                >
+                  View
+                </button>
               </div>
             </div>
           </div>
 
           {/* Total Employees */}
           <div className="col-md-3">
-            <div className="card shadow-sm h-100 border-0" style={{ borderRadius: "7px" }}>
+            <div
+              className="card shadow-sm h-100 border-0"
+              style={{ borderRadius: "7px" }}
+            >
               <div className="card-body d-flex align-items-center justify-content-between">
-                <div className="d-flex align-items-center" style={{ gap: "20px" }}>
+                <div
+                  className="d-flex align-items-center"
+                  style={{ gap: "20px" }}
+                >
                   <h4
                     className="mb-0"
                     style={{
@@ -292,24 +362,30 @@ function AdminDashboardTMS() {
                   >
                     {totalEmployees}
                   </h4>
-                  <p className="mb-0 fw-semibold" style={{ color: "#3A5FBE", fontSize: "18px" }}>
+                  <p
+                    className="mb-0 fw-semibold"
+                    style={{ color: "#3A5FBE", fontSize: "18px" }}
+                  >
                     Total Employees
                   </p>
                 </div>
-                <button className="btn btn-sm custom-outline-btn"
+                <button
+                  className="btn btn-sm custom-outline-btn"
                   onClick={() =>
-                    navigate(`/tms-dashboard/${role}/${username}/${id}`)
-                  }>View</button>
+                    navigate(
+                      `/tms-dashboard/${role}/${username}/${id}/employee`,
+                    )
+                  }
+                >
+                  View
+                </button>
               </div>
             </div>
           </div>
-
         </div>
-
 
         {/* Second Row */}
         <div className="row g-3 mb-4">
-
           {/* Active Project Summary */}
           <div className="col-md-6">
             <div
@@ -325,7 +401,7 @@ function AdminDashboardTMS() {
                     activeProjects.map((project) => {
                       const progress = getProgress(
                         project.startDate,
-                        project.endDate || project.dueDate
+                        project.endDate || project.dueDate,
                       );
 
                       const isDelayed =
@@ -336,32 +412,24 @@ function AdminDashboardTMS() {
                         <div key={project._id} className="mb-3">
                           <div className="d-flex align-items-center justify-content-between">
                             <div className="d-flex align-items-center gap-2">
-                              <div
-                                className="rounded-circle d-flex align-items-center justify-content-center"
-                                style={{
-                                  width: "40px",
-                                  height: "40px",
-                                  backgroundColor: "#E3F2FD",
-                                }}
-                              >
-                                <span style={{ fontWeight: 600, color: "#1976D2" }}>
-                                  {progress}%
-                                </span>
-                              </div>
-
                               <div>
-                                <div style={{ fontWeight: 600, fontSize: "14px" }}>
+                                <div
+                                  style={{ fontWeight: 600, fontSize: "14px" }}
+                                >
                                   {project.name}
                                 </div>
-                                <div style={{ fontSize: "12px", color: "#6c757d" }}>
-                                  Team Size: {project.assignedEmployees?.length || 0}
+                                <div
+                                  style={{ fontSize: "12px", color: "#6c757d" }}
+                                >
+                                  Team Size: {getTeamSizeByProject(project._id)}
                                 </div>
                               </div>
                             </div>
 
                             <span
-                              className={`badge ${isDelayed ? "bg-danger" : "bg-success"
-                                }`}
+                              className={`badge ${
+                                isDelayed ? "bg-danger" : "bg-success"
+                              }`}
                             >
                               {isDelayed ? "Delayed" : "On Track"}
                             </span>
@@ -375,11 +443,12 @@ function AdminDashboardTMS() {
             </div>
           </div>
 
-
-
           {/*  Upcoming Project */}
           <div className="col-md-6">
-            <div className="card" style={{ borderRadius: "12px", height: "100%" }}>
+            <div
+              className="card"
+              style={{ borderRadius: "12px", height: "100%" }}
+            >
               <div className="card-body">
                 <h5 className="card-title mb-3">Upcoming Project</h5>
 
@@ -409,22 +478,27 @@ function AdminDashboardTMS() {
               </div>
             </div>
           </div>
-
         </div>
 
         {/* Third Row */}
         <div className="row g-3">
-
           <div className="col-md-6">
             <div
               className="card"
               style={{ borderRadius: "12px", height: "300px" }}
             >
-              <div className="card-body d-flex flex-column" style={{ padding: "1rem", height: "100%" }}>
-                <h5 className="card-title mb-3" style={{ flexShrink: 0 }}>Upcoming Due Dates</h5>
+              <div
+                className="card-body d-flex flex-column"
+                style={{ padding: "1rem", height: "100%" }}
+              >
+                <h5 className="card-title mb-3" style={{ flexShrink: 0 }}>
+                  Upcoming Due Dates
+                </h5>
                 <div style={{ overflowY: "auto", flex: 1 }}>
                   {filteredUpcomingItems.length === 0 && (
-                    <p className="text-muted text-center">No upcoming due dates</p>
+                    <p className="text-muted text-center">
+                      No upcoming due dates
+                    </p>
                   )}
 
                   {filteredUpcomingItems.map((item, index) => {
@@ -437,16 +511,18 @@ function AdminDashboardTMS() {
                         className="mb-3 p-3"
                         style={{
                           backgroundColor: urgent ? "#fff3cd" : "#d1ecf1",
-                          borderLeft: `4px solid ${urgent ? "#ffc107" : "#0dcaf0"
-                            }`,
+                          borderLeft: `4px solid ${
+                            urgent ? "#ffc107" : "#0dcaf0"
+                          }`,
                           borderRadius: "8px",
                         }}
                       >
                         {/* HEADER */}
                         <div className="d-flex align-items-center gap-2 mb-2">
                           <span
-                            className={`badge ${item.type === "TASK" ? "bg-primary" : ""
-                              }`}
+                            className={`badge ${
+                              item.type === "TASK" ? "bg-primary" : ""
+                            }`}
                             style={{
                               backgroundColor:
                                 item.type === "PROJECT" ? "#8B5FBF" : "",
@@ -454,10 +530,11 @@ function AdminDashboardTMS() {
                             }}
                           >
                             <i
-                              className={`bi ${item.type === "PROJECT"
-                                ? "bi-folder2"
-                                : "bi-check2-square"
-                                } me-1`}
+                              className={`bi ${
+                                item.type === "PROJECT"
+                                  ? "bi-folder2"
+                                  : "bi-check2-square"
+                              } me-1`}
                             ></i>
                             {item.type}
                           </span>
@@ -493,16 +570,22 @@ function AdminDashboardTMS() {
                           <i className="bi bi-calendar-event"></i>
                           <span style={{ fontSize: "12px", fontWeight: 600 }}>
                             Due:{" "}
-                            {new Date(item.dueDate).toLocaleDateString("en-GB", {
-                              weekday: "short",   // Mon, Tue, Wed
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            })}
+                            {new Date(item.dueDate).toLocaleDateString(
+                              "en-GB",
+                              {
+                                weekday: "short", // Mon, Tue, Wed
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                              },
+                            )}
                           </span>
                           <span
-                            className={`badge ms-2 ${urgent ? "bg-warning text-dark" : "bg-info text-dark"
-                              }`}
+                            className={`badge ms-2 ${
+                              urgent
+                                ? "bg-warning text-dark"
+                                : "bg-info text-dark"
+                            }`}
                             style={{ fontSize: "10px" }}
                           >
                             {daysLeft} days left
@@ -518,12 +601,22 @@ function AdminDashboardTMS() {
 
           {/* Available Employees - separate card, takes 4 columns */}
           <div className="col-md-6">
-            <div className="card" style={{ borderRadius: "12px", height: "300px" }}>
-              <div className="card-body d-flex flex-column" style={{ padding: "1rem", height: "100%" }}>
-                <h5 className="card-title mb-3" style={{ flexShrink: 0 }}>Available Employees</h5>
+            <div
+              className="card"
+              style={{ borderRadius: "12px", height: "300px" }}
+            >
+              <div
+                className="card-body d-flex flex-column"
+                style={{ padding: "1rem", height: "100%" }}
+              >
+                <h5 className="card-title mb-3" style={{ flexShrink: 0 }}>
+                  Available Employees
+                </h5>
                 <div style={{ overflowY: "auto", flex: 1 }}>
                   {availableEmployees.length === 0 && (
-                    <p className="text-muted text-center">No available employees</p>
+                    <p className="text-muted text-center">
+                      No available employees
+                    </p>
                   )}
 
                   {availableEmployees.map((emp) => (
@@ -558,9 +651,6 @@ function AdminDashboardTMS() {
                         View Profile
                       </button>
                     </div>
-
-
-
                   ))}
                 </div>
               </div>
@@ -579,12 +669,14 @@ function AdminDashboardTMS() {
                   zIndex: 1050,
                 }}
               >
-                <div className="modal-dialog modal-dialog-scrollable"
+                <div
+                  className="modal-dialog modal-dialog-scrollable"
                   style={{ maxWidth: "650px", width: "95%" }}
                 >
                   <div className="modal-content">
                     {/* HEADER */}
-                    <div className="modal-header text-white"
+                    <div
+                      className="modal-header text-white"
                       style={{ backgroundColor: "#3A5FBE" }}
                     >
                       <h5 className="modal-title mb-0">Employee Profile</h5>
@@ -599,7 +691,9 @@ function AdminDashboardTMS() {
                     <div className="modal-body">
                       <div className="row mb-2">
                         <div className="col-4 fw-semibold">Employee ID</div>
-                        <div className="col-8">{selectedEmployee.employeeId || "-"}</div>
+                        <div className="col-8">
+                          {selectedEmployee.employeeId || "-"}
+                        </div>
                       </div>
 
                       <div className="row mb-2">
@@ -609,24 +703,32 @@ function AdminDashboardTMS() {
 
                       <div className="row mb-2">
                         <div className="col-4 fw-semibold">Email</div>
-                        <div className="col-8">{selectedEmployee.email || "-"}</div>
+                        <div className="col-8">
+                          {selectedEmployee.email || "-"}
+                        </div>
                       </div>
 
                       <div className="row mb-2">
                         <div className="col-4 fw-semibold">Mobile</div>
-                        <div className="col-8">{selectedEmployee.contact || "-"}</div>
+                        <div className="col-8">
+                          {selectedEmployee.contact || "-"}
+                        </div>
                       </div>
 
                       <div className="row mb-2">
                         <div className="col-4 fw-semibold">Designation</div>
-                        <div className="col-8">{selectedEmployee.designation || "-"}</div>
+                        <div className="col-8">
+                          {selectedEmployee.designation || "-"}
+                        </div>
                       </div>
 
                       <div className="row mb-2">
                         <div className="col-4 fw-semibold">Date of Joining</div>
                         <div className="col-8">
                           {selectedEmployee.doj
-                            ? new Date(selectedEmployee.doj).toLocaleDateString("en-GB")
+                            ? new Date(selectedEmployee.doj).toLocaleDateString(
+                                "en-GB",
+                              )
                             : "-"}
                         </div>
                       </div>
@@ -646,13 +748,9 @@ function AdminDashboardTMS() {
               </div>
             )}
           </div>
-
-
-
         </div>
       </div>
     </div>
-
   );
 }
 export default AdminDashboardTMS;

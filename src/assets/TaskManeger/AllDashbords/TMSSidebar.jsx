@@ -7,6 +7,7 @@ import {
   PeopleFill,
   BarChartFill,
   GearFill,
+  ClipboardCheck,
 } from "react-bootstrap-icons";
 import "./TMSSidebar.css";
 
@@ -23,13 +24,17 @@ function TMSSidebar() {
       {/* Toggle button for small screens (same as EMS) */}
       <button
         className="btn btn-primary d-md-none position-fixed m-2"
-        style={{ zIndex: 1100, backgroundColor: "#3A5FBE", borderColor: "#fcfcfcff" }}
+        style={{
+          zIndex: 1100,
+          backgroundColor: "#3A5FBE",
+          borderColor: "#fcfcfcff",
+        }}
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Toggle menu"
       >
         ☰
       </button>
-      
+
       <div className={`sidebar text-white ${isOpen ? "open" : ""}`}>
         <ul className="nav flex-column text-center mt-4">
           <li className="nav-item">
@@ -53,6 +58,17 @@ function TMSSidebar() {
             >
               <ListCheck size={20} />
               <h6 className="mt-1">Task</h6>
+            </NavLink>
+          </li>
+          <li className="nav-item">
+            <NavLink
+              to={`/tms-dashboard/${role}/${username}/${id}/tasklogs`}
+              className="nav-link text-white d-flex flex-column align-items-center justify-content-center"
+              onClick={handleLinkClick}
+              end
+            >
+              <ClipboardCheck size={20} />
+              <h6 className="mt-1">Task Logs</h6>
             </NavLink>
           </li>
 
@@ -91,18 +107,19 @@ function TMSSidebar() {
               <h6 className="mt-1">Reports</h6>
             </NavLink>
           </li>
-
-          <li className="nav-item">
-            <NavLink
-              to={`/tms-dashboard/${role}/${username}/${id}/setting`}
-              className="nav-link text-white d-flex flex-column align-items-center justify-content-center"
-              onClick={handleLinkClick}
-              end
-            >
-              <GearFill size={20} />
-              <h6 className="mt-1">Settings</h6>
-            </NavLink>
-          </li>
+          {role === "admin" && (
+            <li className="nav-item">
+              <NavLink
+                to={`/tms-dashboard/${role}/${username}/${id}/setting`}
+                className="nav-link text-white d-flex flex-column align-items-center justify-content-center"
+                onClick={handleLinkClick}
+                end
+              >
+                <GearFill size={20} />
+                <h6 className="mt-1">Settings</h6>
+              </NavLink>
+            </li>
+          )}
         </ul>
       </div>
     </>

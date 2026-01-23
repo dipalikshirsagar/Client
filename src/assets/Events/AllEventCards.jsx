@@ -41,7 +41,6 @@ function AllEventsCards() {
   //console.log("upcomingEvents", eventsList);
 
   return (
-
     <div className="container mt-4">
       <h5 className="mb-4 fw-bold text-center">Upcoming Events</h5>
       {/* Show Add Event Form only if role is admin */}
@@ -53,13 +52,15 @@ function AllEventsCards() {
           {eventsList.map((event, idx) => (
             <div key={idx} className="col-md-4">
               <div
-                className={`card shadow-sm border-0 text-center ${event.isToday ? "border-success" : ""
-                  }`}
+                className={`card shadow-sm border-0 text-center ${
+                  event.isToday ? "border-success" : ""
+                }`}
               >
                 <div className="card-body">
                   <h6
-                    className={`card-title fw-bold ${event.isToday ? "text-success" : ""
-                      }`}
+                    className={`card-title fw-bold ${
+                      event.isToday ? "text-success" : ""
+                    }`}
                   >
                     {event.isToday
                       ? `🎉 ${event.type} Today: ${event.name}`

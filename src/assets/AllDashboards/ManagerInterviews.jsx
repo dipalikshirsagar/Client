@@ -1,8 +1,10 @@
-import React, { useState } from "react";
-import { useParams } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 
 const ManagerInterviews = () => {
-  const { username } = useParams();
+  const [managerId, setManagerId] = useState(null);
+
+  const location = useLocation();
 
   const [allInterviews, setAllInterviews] = useState([]);
   const [interviews, setInterviews] = useState([]);
@@ -17,15 +19,131 @@ const ManagerInterviews = () => {
   // ===== PAGINATION STATES =====
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [isEditing, setIsEditing] = useState(false);
 
-  const handleView = () => {
-    const all = JSON.parse(localStorage.getItem("scheduledInterviews")) || [];
-    const filtered = all.filter((item) => item.interviewer === username);
+  const [editData, setEditData] = useState({
+    status: "",
+    comment: "",
+  });
 
-    setAllInterviews(filtered);
-    setInterviews(filtered);
-    setShowTable(true);
-    setCurrentPage(1);
+  // to get table after click on notification
+  useEffect(() => {
+    const query = new URLSearchParams(location.search);
+    const id = query.get("interviewerId"); // ye notification se aa raha hai
+    if (id && managerId) {
+      handleView(); // 🔥 auto open table
+    }
+  }, [location.search, managerId]);
+
+  // 🔥 GET MANAGER ID (SAME AS EMPLOYEE)
+  useEffect(() => {
+    const raw = localStorage.getItem("activeUser");
+
+    if (!raw) {
+      console.error("activeUser missing");
+      return;
+    }
+
+    const user = JSON.parse(raw);
+
+    if (user._id) {
+      setManagerId(user._id);
+    } else {
+      console.error("manager _id not found");
+    }
+  }, []);
+
+  // 🔥 FETCH MANAGER INTERVIEWS
+  const handleView = async () => {
+    console.log("Manager View clicked, managerId:", managerId);
+
+    if (!managerId) {
+      console.error("managerId not ready yet");
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        `https://server-backend-nu.vercel.app/interviews/manager/${managerId}`,
+        {
+          headers: {
+            role: "manager",
+          },
+        },
+      );
+
+      const data = await res.json();
+      console.log("Manager interview data:", data);
+
+      setAllInterviews(data); // always keep original
+
+      setInterviews(data);
+      setShowTable(true);
+      setCurrentPage(1);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  //status & comment update
+  const handleUpdate = async () => {
+    try {
+      const res = await fetch(
+        `https://server-backend-nu.vercel.app/interviews/managerUpdate/${selected._id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            role: "manager",
+          },
+          body: JSON.stringify(editData),
+        },
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || "Update failed");
+        return;
+      }
+
+      // ✅ update table + modal
+      setAllInterviews((prev) =>
+        prev.map((i) => (i._id === data.data._id ? data.data : i)),
+      );
+
+      setInterviews((prev) =>
+        prev.map((i) => (i._id === data.data._id ? data.data : i)),
+      );
+
+      setIsEditing(false);
+
+      alert("Interview updated successfully");
+      setSelected(null);
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong");
+    }
+  };
+
+  {
+    /*--------status colour-----*/
+  }
+  const getStatusClass = (status) => {
+    switch (status) {
+      case "Completed":
+        return "bg-success text-white";
+      case "Cancelled":
+        return "bg-danger text-white";
+      case "Scheduled":
+        return "bg-primary text-white";
+      case "On-going":
+        return "bg-warning text-dark";
+      case "Not-completed":
+        return "bg-secondary text-white";
+      default:
+        return "bg-secondary";
+    }
   };
 
   // ===== APPLY FILTERS =====
@@ -37,19 +155,19 @@ const ManagerInterviews = () => {
         (item) =>
           item.status &&
           item.status.toLowerCase().trim() ===
-          statusFilter.toLowerCase().trim()
+            statusFilter.toLowerCase().trim(),
       );
     }
 
     if (dateFromFilter) {
       filtered = filtered.filter(
-        (item) => new Date(item.date) >= new Date(dateFromFilter)
+        (item) => new Date(item.date) >= new Date(dateFromFilter),
       );
     }
 
     if (dateToFilter) {
       filtered = filtered.filter(
-        (item) => new Date(item.date) <= new Date(dateToFilter)
+        (item) => new Date(item.date) <= new Date(dateToFilter),
       );
     }
 
@@ -79,19 +197,17 @@ const ManagerInterviews = () => {
   };
 
   return (
-    <div className="container-fluid ">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 style={{ color: "#3A5FBE", fontSize: "25px", marginLeft: "15px", marginBottom: "30px" }}>
-          Manager – Assigned Interviews
-        </h2>
+    <div className="container-fluid px-3 mt-3">
+      <h5 className="mb-3 fw-semibold" style={{ color: "#3A5FBE" }}>
+        Manager – Assigned Interviews
+      </h5>
 
-        <button
-          className="btn btn-sm custom-outline-btn mb-3"
-          onClick={handleView}
-        >
-          View Assigned Interviews
-        </button>
-      </div>
+      <button
+        className="btn btn-sm custom-outline-btn mb-3"
+        onClick={handleView}
+      >
+        View Assigned Interviews
+      </button>
 
       {/* ================= FILTER CARD ================= */}
       {showTable && (
@@ -217,16 +333,19 @@ const ManagerInterviews = () => {
                   {[
                     "Interview ID",
                     "Candidate",
-                    "Email",
                     "Role",
+                    "Resume",
                     "Date",
                     "Time",
                     "Type",
                     "Interviewer",
                     "Link",
                     "Status",
+                    "Action",
                   ].map((h) => (
-                    <th key={h} style={thStyle}>{h}</th>
+                    <th key={h} style={thStyle}>
+                      {h}
+                    </th>
                   ))}
                 </tr>
               </thead>
@@ -234,23 +353,54 @@ const ManagerInterviews = () => {
               <tbody>
                 {currentInterviews.length === 0 ? (
                   <tr>
-                    <td colSpan="10" className="text-center py-4" style={{ color: "#6c757d" }}>
+                    <td
+                      colSpan="10"
+                      className="text-center py-4"
+                      style={{ color: "#6c757d" }}
+                    >
                       No interviews assigned.
                     </td>
                   </tr>
                 ) : (
                   currentInterviews.map((item, i) => (
-                    <tr key={i} onClick={() => setSelected(item)} style={{ cursor: "pointer" }}>
-                      <td style={tdStyle("#3A5FBE", 500)}>{item.interviewId}</td>
+                    <tr
+                      key={item._id || item.interviewId}
+                      onClick={() => setSelected(item)}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <td style={tdStyle("#3A5FBE", 500)}>
+                        {item.interviewId}
+                      </td>
                       <td style={tdStyle()}>{item.candidateName}</td>
-                      <td style={tdStyle()}>{item.email}</td>
                       <td style={tdStyle()}>{item.role}</td>
+                      <td>
+                        {item.resumeUrl ? (
+                          <a
+                            href={`https://server-backend-nu.vercel.app${item.resumeUrl}`}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            View Resume
+                          </a>
+                        ) : (
+                          "-"
+                        )}
+                      </td>
                       <td style={tdStyle()}>{item.date}</td>
-                      <td style={tdStyle()}>{item.time}</td>
+                      <td style={tdStyle()}>{item.startTime}</td>
                       <td style={tdStyle()}>{item.interviewType}</td>
-                      <td style={tdStyle()}>{item.interviewer}</td>
+                      <td style={tdStyle()}>{item.interviewerName}</td>
                       <td style={tdStyle()}>
-                        {item.link ? <a href={item.link} target="_blank" rel="noreferrer">Join</a> : "-"}
+                        {item.status !== "Completed" &&
+                        item.status !== "Cancelled" &&
+                        item.status !== "Not-completed" &&
+                        item.link ? (
+                          <a href={item.link} target="_blank" rel="noreferrer">
+                            Join
+                          </a>
+                        ) : (
+                          "-"
+                        )}
                       </td>
                       <td style={tdStyle()}>
                         <span
@@ -260,7 +410,14 @@ const ManagerInterviews = () => {
                                 ? "#d1f2dd"
                                 : item.status === "Cancelled"
                                   ? "#f8d7da"
-                                  : "#FFE493",
+                                  : item.status === "Scheduled"
+                                    ? "#dbeafe"
+                                    : item.status === "On-going"
+                                      ? "#FFE493"
+                                      : item.status === "Not-completed"
+                                        ? "#e2e3e5"
+                                        : "#e2e3e5",
+
                             padding: "8px 16px",
                             borderRadius: "4px",
                             fontSize: "13px",
@@ -272,6 +429,26 @@ const ManagerInterviews = () => {
                         >
                           {item.status}
                         </span>
+                      </td>
+
+                      <td style={tdStyle()}>
+                        {item.status !== "On-going" && (
+                          <button
+                            className="btn btn-sm btn-outline-primary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+
+                              setSelected(item); // open SAME modal
+                              setIsEditing(true); // 🔥 edit mode ON
+                              setEditData({
+                                status: item.status,
+                                comment: item.comment || "",
+                              });
+                            }}
+                          >
+                            Update
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))
@@ -308,7 +485,10 @@ const ManagerInterviews = () => {
                   : `${indexOfFirstItem + 1}-${Math.min(indexOfLastItem, interviews.length)} of ${interviews.length}`}
               </span>
 
-              <div className="d-flex align-items-center" style={{ marginLeft: "16px" }}>
+              <div
+                className="d-flex align-items-center"
+                style={{ marginLeft: "16px" }}
+              >
                 <button
                   className="btn btn-sm border-0"
                   onClick={() => handlePageChange(currentPage - 1)}
@@ -328,29 +508,50 @@ const ManagerInterviews = () => {
               </div>
             </div>
           </nav>
+          <div className="text-end mt-3">
+            <button
+              style={{ minWidth: 90 }}
+              className="btn btn-sm custom-outline-btn"
+              onClick={() => window.history.go(-1)}
+            >
+              Back
+            </button>
+          </div>
         </>
       )}
 
       {/* ================= MODAL ================= */}
       {selected && (
-        <div className="modal fade show" style={{ display: "block", background: "rgba(0,0,0,0.5)" }}>
-          <div className="modal-dialog modal-dialog-scrollable" style={{ maxWidth: "650px", marginTop: "60px" }}>
+        <div
+          className="modal fade show"
+          style={{ display: "block", background: "rgba(0,0,0,0.5)" }}
+        >
+          <div
+            className="modal-dialog modal-dialog-scrollable"
+            style={{ maxWidth: "650px", marginTop: "60px" }}
+          >
             <div className="modal-content">
-              <div className="modal-header text-white" style={{ backgroundColor: "#3A5FBE" }}>
+              <div
+                className="modal-header text-white"
+                style={{ backgroundColor: "#3A5FBE" }}
+              >
                 <h5 className="modal-title mb-0">Interview Details</h5>
-                <button className="btn-close btn-close-white" onClick={() => setSelected(null)} />
+                <button
+                  className="btn-close btn-close-white"
+                  onClick={() => setSelected(null)}
+                />
               </div>
 
               <div className="modal-body">
                 {Object.entries({
                   "Interview ID": selected.interviewId,
                   Candidate: selected.candidateName,
-                  Email: selected.email,
                   Role: selected.role,
                   Date: selected.date,
-                  Time: selected.time,
+                  Time: selected.startTime,
+                  Duration: selected.duration,
                   Type: selected.interviewType,
-                  Interviewer: selected.interviewer,
+                  Interviewer: selected.interviewerName,
                 }).map(([k, v]) => (
                   <div className="row mb-2" key={k}>
                     <div className="col-4 fw-semibold">{k}</div>
@@ -358,28 +559,116 @@ const ManagerInterviews = () => {
                   </div>
                 ))}
 
+                {/* Interview Join Link */}
+                <div className="row mb-2">
+                  <div className="col-4 fw-semibold">Interview Link</div>
+                  <div className="col-8">
+                    {selected.status !== "Completed" &&
+                    selected.status !== "Cancelled" &&
+                    selected.status !== "Not-completed" &&
+                    selected.link ? (
+                      <a href={selected.link} target="_blank" rel="noreferrer">
+                        Join
+                      </a>
+                    ) : (
+                      "-"
+                    )}
+                  </div>
+                </div>
+
+                {/* ✅ RESUME SECTION (SEPARATE) */}
+                <div className="row mb-2">
+                  <div className="col-4 fw-semibold">Resume</div>
+                  <div className="col-8">
+                    {selected?.resumeUrl ? (
+                      <a
+                        href={`https://server-backend-nu.vercel.app${selected.resumeUrl}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="btn custom-outline-btn"
+                      >
+                        View Resume
+                      </a>
+                    ) : (
+                      "-"
+                    )}
+                  </div>
+                </div>
+
+                {/* Status  */}
                 <div className="row mb-2">
                   <div className="col-4 fw-semibold">Status</div>
                   <div className="col-8">
-                    <span
-                      className={
-                        "badge text-capitalize " +
-                        (selected.status === "Completed"
-                          ? "bg-success"
-                          : selected.status === "Cancelled"
-                            ? "bg-danger"
-                            : "bg-warning text-dark")
-                      }
-                      style={{ padding: "8px 16px", fontSize: "13px", fontWeight: 500, borderRadius: "4px" }}
-                    >
-                      {selected.status}
-                    </span>
+                    {isEditing ? (
+                      // ✏️ EDIT MODE
+                      <select
+                        className={`form-select ${getStatusClass(editData.status)}`}
+                        value={editData.status}
+                        onChange={(e) =>
+                          setEditData({ ...editData, status: e.target.value })
+                        }
+                        style={{ fontWeight: 500 }}
+                      >
+                        <option value="Scheduled">Scheduled</option>
+                        <option value="On-going">On-going</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Not-completed">Not-completed</option>
+                        <option value="Cancelled">Cancelled</option>
+                      </select>
+                    ) : (
+                      // 👁 VIEW MODE
+                      <span
+                        className={`badge ${getStatusClass(selected.status)}`}
+                        style={{
+                          padding: "8px 16px",
+                          fontSize: "13px",
+                          fontWeight: 500,
+                        }}
+                      >
+                        {selected.status}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Comment / Remark */}
+                <div className="row mb-2">
+                  <div className="col-4 fw-semibold">Comment</div>
+                  <div className="col-8">
+                    {isEditing ? (
+                      <textarea
+                        className="form-control"
+                        rows={3}
+                        value={editData.comment}
+                        onChange={(e) =>
+                          setEditData({ ...editData, comment: e.target.value })
+                        }
+                      />
+                    ) : (
+                      <div className="p-2 border rounded bg-light">
+                        {selected.comment || "-"}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
 
               <div className="modal-footer border-0 pt-0">
-                <button className="btn custom-outline-btn" onClick={() => setSelected(null)}>Close</button>
+                {isEditing ? (
+                  <button
+                    className="btn custom-outline-btn"
+                    onClick={handleUpdate}
+                  >
+                    Update
+                  </button>
+                ) : (
+                  <button
+                    className="btn custom-outline-btn"
+                    onClick={() => setSelected(null)}
+                  >
+                    Close
+                  </button>
+                )}
               </div>
             </div>
           </div>

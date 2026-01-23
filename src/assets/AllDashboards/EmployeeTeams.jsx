@@ -29,10 +29,7 @@ function EmployeeTeams() {
   /* ===== Pagination logic ===== */
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentEmployees = employees.slice(
-    indexOfFirstItem,
-    indexOfLastItem
-  );
+  const currentEmployees = employees.slice(indexOfFirstItem, indexOfLastItem);
 
   /* ===== LOADING ===== */
   if (loading) {
@@ -45,8 +42,7 @@ function EmployeeTeams() {
           width: "100%",
           position: "absolute",
           top: 0,
-          left: 0
-
+          left: 0,
         }}
       >
         <div
@@ -65,10 +61,18 @@ function EmployeeTeams() {
 
   return (
     <div className="container-fluid">
-      <h2 style={{ color: "#3A5FBE", fontSize: "25px", marginLeft: "15px", marginBottom: "40px" }}>All Employee Details</h2>
+      <h2
+        style={{
+          color: "#3A5FBE",
+          fontSize: "25px",
+          marginLeft: "15px",
+          marginBottom: "40px",
+        }}
+      >
+        All Employee Details
+      </h2>
       <div className="card mb-4 mt-3 shadow-sm border-0">
         <div className="card-body">
-
           {/* ===== Table ===== */}
           <div
             className="table-responsive"
@@ -127,7 +131,6 @@ function EmployeeTeams() {
             </table>
           </div>
 
-
           {/* ===== Pagination ===== */}
           <nav className="d-flex justify-content-end align-items-center mt-3 text-muted">
             <div className="d-flex align-items-center gap-3">
@@ -154,9 +157,9 @@ function EmployeeTeams() {
                 {employees.length === 0
                   ? "0–0 of 0"
                   : `${indexOfFirstItem + 1}-${Math.min(
-                    indexOfLastItem,
-                    employees.length
-                  )} of ${employees.length}`}
+                      indexOfLastItem,
+                      employees.length
+                    )} of ${employees.length}`}
               </span>
 
               <div>
@@ -199,9 +202,15 @@ function EmployeeTeams() {
                 </div>
 
                 <div className="modal-body">
-                  <Detail label="Employee ID" value={selectedEmployee.employeeId} />
+                  <Detail
+                    label="Employee ID"
+                    value={selectedEmployee.employeeId}
+                  />
                   <Detail label="Name" value={selectedEmployee.name} />
-                  <Detail label="Department" value={selectedEmployee.department} />
+                  <Detail
+                    label="Department"
+                    value={selectedEmployee.department}
+                  />
                   <Detail
                     label="Designation"
                     value={selectedEmployee.designation}
@@ -225,7 +234,6 @@ function EmployeeTeams() {
               </div>
             </div>
           </div>
-
         )}
       </div>
     </div>
@@ -245,11 +253,10 @@ const thStyle = {
 
 const tdStyle = {
   padding: "12px",
-  verticalAlign: 'middle',
+  verticalAlign: "middle",
   fontSize: "14px",
   borderBottom: "1px solid #dee2e6",
-  whiteSpace: 'nowrap'        // ✅ allow wrap
-
+  whiteSpace: "nowrap", // ✅ allow wrap
 };
 
 const Detail = ({ label, value }) => (

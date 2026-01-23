@@ -51,8 +51,9 @@
   background: #fff;
   padding: 24px 22px 18px 22px;
   border-radius: 0 0 10px 10px;
+   max-height: 70vh;        /* controls popup height */
+  overflow-y: auto;
 }
-
 .custom-modal-body label, .custom-modal-body .form-label {
   font-weight: 500;
   color: #444;

@@ -61,6 +61,10 @@ import Resignation from "./Resignation";
 import EmployeeResignation from "./EmployeeResignation";
 import Performances from "../Performances/Performances";
 import ManagerPerformances from "../Performances/ManagerPerformances";
+import ManagerResignation from "./ManagerResignation";
+import SupportEmployeeSetting from "../ITSupport/SupportEmployeeSetting";
+import ITSupportDashboard from "../ITSupport/ITSupportDashboard";
+import AdminFeedback from "./AdminFeedback"
 
 function Dashboard() {
   const { role, username, id } = useParams();
@@ -72,7 +76,7 @@ function Dashboard() {
   console.log("Dashboard rendered");
   //////////ems tms button
   const [activeTab, setActiveTab] = useState(
-    location.pathname.includes("/tms-dashboard") ? "TMS" : "EMS"
+    location.pathname.includes("/tms-dashboard") ? "TMS" : "EMS",
   );
 
   //rutuja
@@ -161,12 +165,12 @@ function Dashboard() {
               "lastEMSRoute",
               `/dashboard/${res.data.role}/${
                 res.data.username || res.data.name
-              }/${res.data._id}`
+              }/${res.data._id}`,
             );
             setLastEMSRoute(
               `/dashboard/${res.data.role}/${
                 res.data.username || res.data.name
-              }/${res.data._id}`
+              }/${res.data._id}`,
             );
           }
         }
@@ -276,6 +280,7 @@ function Dashboard() {
     manager: <EmployeeDashbord user={user} />,
     coo: <AdminDashboard user={user} role={role} />,
     md: <AdminDashboard user={user} role={role} />,
+    IT_Support: <EmployeeDashbord user={user} />,
   };
 
   console.log("user", user);
@@ -480,6 +485,17 @@ function Dashboard() {
                   )
                 }
               />
+              <Route
+                path="regularization"
+                element={
+                  // snehal add IT_Supportt
+                  ["employee", "IT_Support"].includes(user.role) ? (
+                    <ApplyRegularization />
+                  ) : (
+                    <h5 className="text-danger text-center">Access Denied</h5>
+                  )
+                }
+              />
               <Route path="allRequest" element={<AllRequest />} />
               <Route
                 path="TodaysAttendanceDetails"
@@ -516,7 +532,7 @@ function Dashboard() {
               <Route
                 path="interviews"
                 element={
-                  user.role === "employee" ? (
+                  user.role === "employee" || user.role === "IT_Support" ? (
                     <EmployeeInterviews />
                   ) : (
                     <h5 className="text-center mt-4 text-danger">
@@ -543,7 +559,8 @@ function Dashboard() {
                 element={
                   user.role === "employee" ||
                   user.role === "hr" ||
-                  user.role === "manager" ? ( // employee roles
+                  user.role === "manager" ||
+                  user.role === "IT_Support" ? ( // employee roles
                     <MyAttendance employeeId={user._id} />
                   ) : user.role === "ceo" ||
                     user.role === "admin" ||
@@ -622,18 +639,29 @@ function Dashboard() {
               <Route
                 path="feedback"
                 element={
-                  ["hr", "admin"].includes(user?.role?.toLowerCase()) ? (
+                  ["hr"].includes(user?.role?.toLowerCase()) ? (
                     <HRFeedback />
+                  ) : ["admin"].includes(user?.role?.toLowerCase()) ? (
+                    <AdminFeedback />
                   ) : (
                     <h5 className="text-danger text-center">Access Denied</h5>
                   )
                 }
               />
+
+              <Route
+                path="/SupportEmployeeSetting"
+                element={<SupportEmployeeSetting />}
+              />
+              <Route
+                path="/ITSupportDashboard"
+                element={<ITSupportDashboard />}
+              />
               <Route
                 path="employee-feedback"
                 element={
                   ["employee", "manager"].includes(
-                    user?.role?.toLowerCase()
+                    user?.role?.toLowerCase(),
                   ) ? (
                     <EmployeeFeedback user={user} />
                   ) : (
@@ -654,7 +682,7 @@ function Dashboard() {
               <Route
                 path="teams"
                 element={
-                  user.role === "employee" ? (
+                  user.role === "employee" || user.role == "IT_Support" ? (
                     <EmployeeTeams />
                   ) : (
                     <h5 className="text-center mt-4 text-danger">
@@ -667,7 +695,7 @@ function Dashboard() {
               <Route
                 path="employee-policy"
                 element={
-                  ["employee", "manager"].includes(user.role) ? (
+                  ["employee", "manager", "IT_Support"].includes(user.role) ? (
                     <EmployeePolicy />
                   ) : (
                     <h5 className="text-danger text-center">Access Denied</h5>
@@ -689,7 +717,7 @@ function Dashboard() {
               <Route
                 path="Employee-Resignation"
                 element={
-                  user?.role === "employee" ? (
+                  user?.role === "employee" || user.role === "IT_Support" ? (
                     <EmployeeResignation user={user} />
                   ) : (
                     <h5 className="text-danger text-center mt-4">
@@ -698,6 +726,19 @@ function Dashboard() {
                   )
                 }
               />
+              <Route
+                path="Manager-Resignation"
+                element={
+                  user?.role === "manager" ? (
+                    <ManagerResignation user={user} />
+                  ) : (
+                    <h5 className="text-danger text-center mt-4">
+                      Access Denied
+                    </h5>
+                  )
+                }
+              />
+              {/* It support  */}
               <Route
                 path="performance"
                 element={

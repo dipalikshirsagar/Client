@@ -4,7 +4,7 @@ import axios from "axios";
 function EmployeeMyLeave({ user, refreshKey }) {
   const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [deletingId, setDeletingId] = useState(null)
+  const [deletingId, setDeletingId] = useState(null);
 
   // ✅ Pagination state as React state
   const [currentPage, setCurrentPage] = useState(1);
@@ -15,12 +15,10 @@ function EmployeeMyLeave({ user, refreshKey }) {
   const [dateToFilter, setDateToFilter] = useState("");
   const [filteredLeaves, setFilteredLeaves] = useState([]); // For filtered results
 
-
-  // aditya code 
+  // aditya code
   const [selectedLeave, setSelectedLeave] = useState(null);
 
   // ✅ Pagination logic
-
 
   useEffect(() => {
     const fetchLeaves = async () => {
@@ -30,26 +28,25 @@ function EmployeeMyLeave({ user, refreshKey }) {
         );
 
         console.log("raw leaves from API:", res.data);
-const today = new Date();
-      today.setHours(0, 0, 0, 0);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
-      const threeMonthsAgo = new Date(today);
-      threeMonthsAgo.setMonth(today.getMonth() - 3);
+        const threeMonthsAgo = new Date(today);
+        threeMonthsAgo.setMonth(today.getMonth() - 3);
 
-      // ✅ FILTER FIRST
-      const filteredByDate = res.data.filter((l) => {
-        const appliedDate = new Date(l.appliedAt || l.createdAt);
-        appliedDate.setHours(0, 0, 0, 0);
-        return appliedDate >= threeMonthsAgo && appliedDate <= today;
-      });
+        // ✅ FILTER FIRST
+        const filteredByDate = res.data.filter((l) => {
+          const appliedDate = new Date(l.appliedAt || l.createdAt);
+          appliedDate.setHours(0, 0, 0, 0);
+          return appliedDate >= threeMonthsAgo && appliedDate <= today;
+        });
 
-      // ✅ SORT AFTER FILTER
-      const leavesData = filteredByDate.sort(
-        (a, b) =>
-          new Date(b.appliedAt || b.createdAt) -
-          new Date(a.appliedAt || a.createdAt)
-      );
-     
+        // ✅ SORT AFTER FILTER
+        const leavesData = filteredByDate.sort(
+          (a, b) =>
+            new Date(b.appliedAt || b.createdAt) -
+            new Date(a.appliedAt || a.createdAt)
+        );
 
         // small cache
         const nameCache = {};
@@ -68,8 +65,10 @@ const today = new Date();
         const leavesWithNames = await Promise.all(
           leavesData.map(async (leave) => {
             // Try multiple common field names (adjust to what your API actually returns)
-            const reportingManagerId = leave.reportingManager || leave.reportingManagerId;
-            const approverId = leave.approver || leave.approvedBy || leave.approvedById;
+            const reportingManagerId =
+              leave.reportingManager || leave.reportingManagerId;
+            const approverId =
+              leave.approver || leave.approvedBy || leave.approvedById;
             const rejectedById = leave.rejectedBy || leave.rejectedById;
 
             const reportingManagerName = await getName(reportingManagerId);
@@ -82,10 +81,16 @@ const today = new Date();
             if (status === "pending") {
               approverDisplay = reportingManagerName || "N/A";
             } else if (status === "approved") {
-              approverDisplay = approverName !== "N/A" ? approverName : reportingManagerName || "N/A";
+              approverDisplay =
+                approverName !== "N/A"
+                  ? approverName
+                  : reportingManagerName || "N/A";
             } else if (status === "rejected") {
-              approverDisplay = rejectedByName !== "N/A" ? rejectedByName
-                : approverName !== "N/A" ? approverName
+              approverDisplay =
+                rejectedByName !== "N/A"
+                  ? rejectedByName
+                  : approverName !== "N/A"
+                  ? approverName
                   : reportingManagerName || "N/A";
             } else {
               approverDisplay = approverName || reportingManagerName || "N/A";
@@ -128,16 +133,20 @@ const today = new Date();
 
     // Status filter
     if (statusFilter !== "All") {
-      temp = temp.filter(l => (l.status || "").toLowerCase() === statusFilter.toLowerCase());
+      temp = temp.filter(
+        (l) => (l.status || "").toLowerCase() === statusFilter.toLowerCase()
+      );
     }
 
     // Date From filter
     if (dateFromFilter) {
-      temp = temp.filter(l => new Date(l.dateFrom) >= new Date(dateFromFilter));
+      temp = temp.filter(
+        (l) => new Date(l.dateFrom) >= new Date(dateFromFilter)
+      );
     }
     // Date To filter
     if (dateToFilter) {
-      temp = temp.filter(l => new Date(l.dateTo) <= new Date(dateToFilter));
+      temp = temp.filter((l) => new Date(l.dateTo) <= new Date(dateToFilter));
     }
 
     setFilteredLeaves(temp);
@@ -152,7 +161,6 @@ const today = new Date();
     setCurrentPage(1);
   };
 
-
   const handlePageChange = (pageNumber) => {
     if (pageNumber >= 1 && pageNumber <= totalPages) {
       setCurrentPage(pageNumber);
@@ -160,7 +168,6 @@ const today = new Date();
   };
 
   // if (loading) return <p>Loading leaves...</p>;
-
 
   if (loading) {
     return (
@@ -172,7 +179,7 @@ const today = new Date();
           width: "100%",
           position: "absolute",
           top: 0,
-          left: 0
+          left: 0,
         }}
       >
         <div
@@ -189,9 +196,7 @@ const today = new Date();
     );
   }
 
-
   if (leaves.length === 0) return <p>No leave applications found.</p>;
-
 
   const handleDelete = async (id) => {
     const leave = leaves.find((x) => x._id === id);
@@ -233,21 +238,31 @@ const today = new Date();
     }
   };
 
-
   return (
     <div>
-
       <div className="card mb-4 mt-3 shadow-sm border-0">
         <div className="card-body">
-          <form className="row g-2 align-items-center" onSubmit={e => { e.preventDefault(); applyFilters(); }}>
-<div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1 ms-2">
-              <label htmlFor="statusFilter" className="fw-bold mb-0 text-start text-md-end" style={{ fontSize: "16px", color: "#3A5FBE"}}>Status</label>
+          <form
+            className="row g-2 align-items-center"
+            onSubmit={(e) => {
+              e.preventDefault();
+              applyFilters();
+            }}
+          >
+            <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1 ms-2">
+              <label
+                htmlFor="statusFilter"
+                className="fw-bold mb-0 text-start text-md-end"
+                style={{ fontSize: "16px", color: "#3A5FBE" }}
+              >
+                Status
+              </label>
               <select
                 id="statusFilter"
                 className="form-select"
                 style={{ minWidth: 100 }}
                 value={statusFilter}
-                onChange={e => setStatusFilter(e.target.value)}
+                onChange={(e) => setStatusFilter(e.target.value)}
               >
                 <option value="All">All</option>
                 <option value="pending">Pending</option>
@@ -257,46 +272,70 @@ const today = new Date();
             </div>
 
             <div className="col-12 col-md-auto d-flex align-items-center mb-1 ms-2">
-              <label htmlFor="dateFromFilter" className="fw-bold mb-0 text-start text-md-end" style={{ fontSize: "16px", color: "#3A5FBE", width: "50px" ,minWidth:"50px" ,marginRight: "8px"}}>From</label>
+              <label
+                htmlFor="dateFromFilter"
+                className="fw-bold mb-0 text-start text-md-end"
+                style={{
+                  fontSize: "16px",
+                  color: "#3A5FBE",
+                  width: "50px",
+                  minWidth: "50px",
+                  marginRight: "8px",
+                }}
+              >
+                From
+              </label>
               <input
                 id="dateFromFilter"
                 type="date"
                 className="form-control"
                 value={dateFromFilter}
-                onChange={e => setDateFromFilter(e.target.value)}
-                style={{ minWidth: "140px"}}
+                onChange={(e) => setDateFromFilter(e.target.value)}
+                style={{ minWidth: "140px" }}
               />
-            </div> 
+            </div>
             <div className="col-12 col-md-auto d-flex align-items-center mb-1 ms-2">
-              <label htmlFor="dateToFilter" className="fw-bold mb-0 text-start text-md-end" 
-              style={{width: "50px" , fontSize: "16px", color: "#3A5FBE", minWidth:"50px",marginRight: "8px" }}>To</label>
+              <label
+                htmlFor="dateToFilter"
+                className="fw-bold mb-0 text-start text-md-end"
+                style={{
+                  width: "50px",
+                  fontSize: "16px",
+                  color: "#3A5FBE",
+                  minWidth: "50px",
+                  marginRight: "8px",
+                }}
+              >
+                To
+              </label>
               <input
                 id="dateToFilter"
                 type="date"
                 className="form-control"
                 value={dateToFilter}
-                onChange={e => setDateToFilter(e.target.value)}
+                onChange={(e) => setDateToFilter(e.target.value)}
                 style={{ minWidth: "140px" }}
               />
-            </div>
+                        
+            </div>
 
             <div className="col-auto ms-auto d-flex gap-2">
               <button
                 type="submit"
-
                 style={{ minWidth: 90 }}
                 className="btn btn-sm custom-outline-btn"
-
-              >Filter</button>
+              >
+                Filter
+              </button>
               <button
                 type="button"
                 // className="btn btn-primary"
                 style={{ minWidth: 90 }}
                 className="btn btn-sm custom-outline-btn"
-
-
                 onClick={resetFilters}
-              >Reset</button>
+              >
+                Reset
+              </button>
             </div>
           </form>
         </div>
@@ -314,77 +353,299 @@ const today = new Date();
         <table className="table table-hover align-middle mb-0 bg-white">
           <thead style={{ backgroundColor: "#ffffffff" }}>
             <tr>
-              <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Leave Type</th>
-              <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Apply Date</th>
-              <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>From</th>
-              <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>To</th>
-              <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Duration</th>
-              <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Status</th>
-              <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Reason for Leave</th>
-              <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Approved By</th>
-              <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Action</th>
+              <th
+                style={{
+                  fontWeight: "500",
+                  fontSize: "14px",
+                  color: "#6c757d",
+                  borderBottom: "2px solid #dee2e6",
+                  padding: "12px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Leave Type
+              </th>
+              <th
+                style={{
+                  fontWeight: "500",
+                  fontSize: "14px",
+                  color: "#6c757d",
+                  borderBottom: "2px solid #dee2e6",
+                  padding: "12px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Apply Date
+              </th>
+              <th
+                style={{
+                  fontWeight: "500",
+                  fontSize: "14px",
+                  color: "#6c757d",
+                  borderBottom: "2px solid #dee2e6",
+                  padding: "12px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                From
+              </th>
+              <th
+                style={{
+                  fontWeight: "500",
+                  fontSize: "14px",
+                  color: "#6c757d",
+                  borderBottom: "2px solid #dee2e6",
+                  padding: "12px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                To
+              </th>
+              <th
+                style={{
+                  fontWeight: "500",
+                  fontSize: "14px",
+                  color: "#6c757d",
+                  borderBottom: "2px solid #dee2e6",
+                  padding: "12px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Duration
+              </th>
+              <th
+                style={{
+                  fontWeight: "500",
+                  fontSize: "14px",
+                  color: "#6c757d",
+                  borderBottom: "2px solid #dee2e6",
+                  padding: "12px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Status
+              </th>
+              <th
+                style={{
+                  fontWeight: "500",
+                  fontSize: "14px",
+                  color: "#6c757d",
+                  borderBottom: "2px solid #dee2e6",
+                  padding: "12px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Reason for Leave
+              </th>
+              <th
+                style={{
+                  fontWeight: "500",
+                  fontSize: "14px",
+                  color: "#6c757d",
+                  borderBottom: "2px solid #dee2e6",
+                  padding: "12px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Approved By
+              </th>
+              <th
+                style={{
+                  fontWeight: "500",
+                  fontSize: "14px",
+                  color: "#6c757d",
+                  borderBottom: "2px solid #dee2e6",
+                  padding: "12px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Action
+              </th>
             </tr>
           </thead>
           <tbody>
             {currentLeaves.length === 0 ? (
               <tr>
-                <td colSpan="6" className="text-center py-4" style={{ color: "#6c757d" }}>
+                <td
+                  colSpan="6"
+                  className="text-center py-4"
+                  style={{ color: "#6c757d" }}
+                >
                   No leaves requests found.
                 </td>
               </tr>
             ) : (
               currentLeaves.map((l) => (
-                <tr key={l._id} onClick={() => setSelectedLeave(l)}  style={{ cursor: "pointer" }}>
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>{l.leaveType}</td>
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                <tr
+                  key={l._id}
+                  onClick={() => setSelectedLeave(l)}
+                  style={{ cursor: "pointer" }}
+                >
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {l.leaveType}
+                  </td>
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
                     {new Date(l.appliedAt).toLocaleDateString("en-GB", {
-                     day: '2-digit',
+                      day: "2-digit",
                       month: "short",
                       year: "numeric",
                     })}
                   </td>
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
                     {new Date(l.dateFrom).toLocaleDateString("en-GB", {
                       day: "2-digit",
                       month: "short",
                       year: "numeric",
                     })}
                   </td>
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
                     {new Date(l.dateTo).toLocaleDateString("en-GB", {
                       day: "2-digit",
                       month: "short",
                       year: "numeric",
                     })}
                   </td>
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
                     {l.duration === "half"
                       ? 0.5
                       : Math.floor(
-                        (new Date(l.dateTo) - new Date(l.dateFrom)) /
-                        (1000 * 60 * 60 * 24)
-                      ) + 1}
+                          (new Date(l.dateTo) - new Date(l.dateFrom)) /
+                            (1000 * 60 * 60 * 24)
+                        ) + 1}
                   </td>
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
                     {l.status === "approved" ? (
-                      <span style={{ backgroundColor: '#d1f2dd', padding: '8px 16px', borderRadius: '4px', fontSize: '13px', fontWeight: '500', display: 'inline-block', width: "100px", textAlign: "center" }}>
+                      <span
+                        style={{
+                          backgroundColor: "#d1f2dd",
+                          padding: "8px 16px",
+                          borderRadius: "4px",
+                          fontSize: "13px",
+                          fontWeight: "500",
+                          display: "inline-block",
+                          width: "100px",
+                          textAlign: "center",
+                        }}
+                      >
                         Approved
                       </span>
                     ) : l.status === "rejected" ? (
-                      <span style={{ backgroundColor: '#f8d7da', padding: '8px 16px', borderRadius: '4px', fontSize: '13px', fontWeight: '500', display: 'inline-block', width: "100px", textAlign: "center" }}>
+                      <span
+                        style={{
+                          backgroundColor: "#f8d7da",
+                          padding: "8px 16px",
+                          borderRadius: "4px",
+                          fontSize: "13px",
+                          fontWeight: "500",
+                          display: "inline-block",
+                          width: "100px",
+                          textAlign: "center",
+                        }}
+                      >
                         Rejected
                       </span>
                     ) : (
-                      <span style={{ backgroundColor: '#FFE493', padding: '8px 16px', borderRadius: '4px', fontSize: '13px', fontWeight: '500', display: 'inline-block', width: "100px", textAlign: "center" }}>
+                      <span
+                        style={{
+                          backgroundColor: "#FFE493",
+                          padding: "8px 16px",
+                          borderRadius: "4px",
+                          fontSize: "13px",
+                          fontWeight: "500",
+                          display: "inline-block",
+                          width: "100px",
+                          textAlign: "center",
+                        }}
+                      >
                         Pending
                       </span>
                     )}
                   </td>
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', maxWidth: '220px', wordBreak: 'break-word', overflow: 'auto' }}>{l.reason}</td>
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', textTransform: "capitalize" }}>{l.approverDisplay || "N/A"}</td>
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                      maxWidth: "220px",
+                      wordBreak: "break-word",
+                      overflow: "auto",
+                    }}
+                  >
+                    {l.reason}
+                  </td>
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                      textTransform: "capitalize",
+                    }}
+                  >
+                    {l.approverDisplay || "N/A"}
+                  </td>
 
-
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', cursor: 'pointer' }} >
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                      cursor: "pointer",
+                    }}
+                  >
                     {l.status === "pending" && (
                       <button
                         type="button"
@@ -399,13 +660,12 @@ const today = new Date();
                       </button>
                     )}
                   </td>
-
                 </tr>
-              )))}
+              ))
+            )}
           </tbody>
         </table>
       </div>
-
 
       {/* select table model box */}
 
@@ -414,16 +674,23 @@ const today = new Date();
           className="modal fade show"
           style={{ display: "block", background: "rgba(0,0,0,0.5)" }}
         >
-          <div className="modal-dialog modal-dialog-scrollable" style={{
-            maxWidth: "650px",
-            width: "95%",
-            marginTop: "60px",
-            marginLeft: "auto",
-            marginRight: "auto",
-          }}>            <div className="modal-content">
-
+          <div
+            className="modal-dialog modal-dialog-scrollable"
+            style={{
+              maxWidth: "650px",
+              width: "95%",
+              marginTop: "60px",
+              marginLeft: "auto",
+              marginRight: "auto",
+            }}
+          >
+            {" "}
+            <div className="modal-content">
               {/* Header */}
-              <div className="modal-header text-white" style={{ backgroundColor: "#3A5FBE" }}>
+              <div
+                className="modal-header text-white"
+                style={{ backgroundColor: "#3A5FBE" }}
+              >
                 <h5 className="modal-title mb-0">Leave Request Details</h5>
                 <button
                   type="button"
@@ -445,22 +712,28 @@ const today = new Date();
                   <div className="row mb-2">
                     <div className="col-5 col-sm-3 fw-semibold">Date From</div>
                     <div className="col-sm-9 col-7">
-                      {new Date(selectedLeave.dateFrom).toLocaleDateString("en-GB", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      })}
+                      {new Date(selectedLeave.dateFrom).toLocaleDateString(
+                        "en-GB",
+                        {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        }
+                      )}
                     </div>
                   </div>
 
                   <div className="row mb-2">
                     <div className="col-5 col-sm-3 fw-semibold">Date To</div>
                     <div className="col-sm-9 col-7">
-                      {new Date(selectedLeave.dateTo).toLocaleDateString("en-GB", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      })}
+                      {new Date(selectedLeave.dateTo).toLocaleDateString(
+                        "en-GB",
+                        {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        }
+                      )}
                     </div>
                   </div>
 
@@ -472,14 +745,16 @@ const today = new Date();
                   </div>
 
                   <div className="row mb-2">
-                    <div className="col-5 col-sm-3 fw-semibold">Approved By</div>
+                    <div className="col-5 col-sm-3 fw-semibold">
+                      Approved By
+                    </div>
                     <div
                       className="col-sm-9 col-7"
                       style={{
                         whiteSpace: "normal",
                         wordBreak: "break-word",
                         overflowWrap: "break-word",
-                        textTransform: "capitalize"
+                        textTransform: "capitalize",
                       }}
                     >
                       {selectedLeave.approverName || "-"}
@@ -500,8 +775,6 @@ const today = new Date();
                     </div>
                   </div>
 
-
-
                   <div className="row mb-2">
                     <div className="col-5 col-sm-3 fw-semibold">Status</div>
                     <div className="col-sm-9 col-7">
@@ -511,15 +784,14 @@ const today = new Date();
                           (selectedLeave.status === "approved"
                             ? "bg-success"
                             : selectedLeave.status === "rejected"
-                              ? "bg-danger"
-                              : "bg-warning text-dark")
+                            ? "bg-danger"
+                            : "bg-warning text-dark")
                         }
                       >
                         {selectedLeave.status}
                       </span>
                     </div>
                   </div>
-
                 </div>
               </div>
 
@@ -538,29 +810,16 @@ const today = new Date();
                 )}
 
                 <button
-                   className="btn  custom-outline-btn"
+                  className="btn  custom-outline-btn"
                   onClick={() => setSelectedLeave(null)}
                 >
                   Close
                 </button>
               </div>
-
             </div>
           </div>
         </div>
       )}
-
-
-
-
-
-
-
-
-
-
-
-
 
       {/* ✅ Pagination controls */}
       <nav className="d-flex align-items-center justify-content-end mt-3 text-muted">
@@ -589,11 +848,17 @@ const today = new Date();
           <span style={{ fontSize: "14px", marginLeft: "16px" }}>
             {filteredLeaves.length === 0
               ? "0–0 of 0"
-              : `${indexOfFirstItem + 1}-${Math.min(indexOfLastItem, filteredLeaves.length)} of ${filteredLeaves.length}`}
+              : `${indexOfFirstItem + 1}-${Math.min(
+                  indexOfLastItem,
+                  filteredLeaves.length
+                )} of ${filteredLeaves.length}`}
           </span>
 
           {/* Navigation arrows */}
-          <div className="d-flex align-items-center" style={{ marginLeft: "16px" }}>
+          <div
+            className="d-flex align-items-center"
+            style={{ marginLeft: "16px" }}
+          >
             <button
               className="btn btn-sm border-0"
               onClick={() => handlePageChange(currentPage - 1)}

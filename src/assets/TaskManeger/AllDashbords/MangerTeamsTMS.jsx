@@ -15,12 +15,17 @@ const ManagerTeamsTMS = ({ role }) => {
   const [showAddTeam, setShowAddTeam] = useState(false);
   const [department, setDepartment] = useState([]);
   const [employees, setEmployees] = useState([]);
-  const [projects, setProjects] = useState([]);
+  const [projects, setProjects] = useState([]); //////dip code
+  const [projectOpen, setProjectOpen] = useState(false);
+  const [departmentOpen, setDepartmentOpen] = useState(false);
+  const projectRef = useRef(null);
+  const departmentRef = useRef(null);
+
   const initialTaskStats = [
-    { title: "Total Teams", count: 6 },
-    { title: "Total Managers", count: 20 },
-    { title: "Total Employees", count: 70 },
-    { title: "Total Departments", count: 6 },
+    { title: "Total Teams", count: 0 },
+    { title: "Total Managers", count: 0 },
+    { title: "Total Employees", count: 0 },
+    { title: "Total Departments", count: 0 },
   ];
   const [taskStats, setTaskStats] = useState(initialTaskStats);
   // Pagination states
@@ -46,6 +51,37 @@ const ManagerTeamsTMS = ({ role }) => {
     return value.trim();
   };
   //const assignRef = useRef(null);
+  const teamPopupRef = useRef(null);
+  const addTeamPopupRef = useRef(null);
+
+  useEffect(() => {
+    if (selectedTeam && teamPopupRef.current) {
+      teamPopupRef.current.focus();
+    }
+    if (showAddTeam && addTeamPopupRef.current) {
+      addTeamPopupRef.current.focus();
+    }
+  }, [selectedTeam, showAddTeam]);
+  const trapFocus = (e, popupRef) => {
+    if (!popupRef.current) return;
+
+    const focusable = popupRef.current.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    if (e.key === "Tab") {
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  };
 
   async function fetchUser() {
     try {
@@ -70,19 +106,18 @@ const ManagerTeamsTMS = ({ role }) => {
           axios.get("https://server-backend-nu.vercel.app/managers", {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get("https://server-backend-nu.vercel.app/getAllEmployees", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
+          axios.get("https://server-backend-nu.vercel.app/getEmployeeCount", {}),
+
           axios.get("https://server-backend-nu.vercel.app/getAllDepartments"),
         ]);
 
       const normalizedDepartments = departmentsRes.data.departments.map((d) =>
-        normalizeDepartment(d)
+        normalizeDepartment(d),
       );
       const uniqueDepartments = [...new Set(normalizedDepartments)];
       const totalTeams = teamsRes.data?.data?.length || 0;
       const totalManagers = managersRes.data?.length || 0;
-      const totalEmployees = employeesRes.data?.length || 0;
+      const totalEmployees = employeesRes.data?.totalEmployees || 0;
       const totalDepartments = uniqueDepartments?.length || 0;
 
       setTaskStats([
@@ -99,7 +134,7 @@ const ManagerTeamsTMS = ({ role }) => {
     try {
       const user = await fetchUser();
       const res = await axios.get(
-        `https://server-backend-nu.vercel.app/api/teams/createdBy/${user._id}`
+        `https://server-backend-nu.vercel.app/api/teams/createdBy/${user._id}`,
       );
 
       setAllTeams(res.data.data || []);
@@ -107,7 +142,7 @@ const ManagerTeamsTMS = ({ role }) => {
     } catch (error) {
       console.error(
         "ERROR FETCHING Teams:",
-        error.response?.data || error.message
+        error.response?.data || error.message,
       );
     }
   };
@@ -116,20 +151,19 @@ const ManagerTeamsTMS = ({ role }) => {
     const fetchAddTaskRequiredDetails = async () => {
       try {
         const token = localStorage.getItem("accessToken");
-        console.log("token is " + token);
         const res = await axios.get("https://server-backend-nu.vercel.app/getAllDepartments");
         const user = await fetchUser();
         const empRes = await axios.get(
-          `https://server-backend-nu.vercel.app/employees/manager/${user._id}`
+          `https://server-backend-nu.vercel.app/employees/manager/${user._id}`,
         );
         const projectRes = await axios.get(
-          `https://server-backend-nu.vercel.app/api/projects/manager/${user._id}`
+          `https://server-backend-nu.vercel.app/api/projects/manager/${user._id}`,
         );
         const departments = res.data.departments;
         const employeesNames = empRes.data.employees;
         const projectNames = projectRes.data.data;
         const normalizedDepartments = departments.map((d) =>
-          normalizeDepartment(d)
+          normalizeDepartment(d),
         );
         const uniqueDepartments = [...new Set(normalizedDepartments)];
         setProjects(projectNames);
@@ -193,14 +227,14 @@ const ManagerTeamsTMS = ({ role }) => {
         res = await axios.put(
           `https://server-backend-nu.vercel.app/api/teams/${editTaskId}`,
           payload,
-          { headers: { "Content-Type": "application/json" } }
+          { headers: { "Content-Type": "application/json" } },
         );
         await fetchTeams();
       } else {
         const res = await axios.post(
           "https://server-backend-nu.vercel.app/api/teams",
           payload,
-          { headers: { "Content-Type": "application/json" } }
+          { headers: { "Content-Type": "application/json" } },
         );
 
         await fetchTeams();
@@ -254,7 +288,7 @@ const ManagerTeamsTMS = ({ role }) => {
     const departments = [...new Set(teams.map((team) => team.department))];
     const totalMembers = teams.reduce(
       (sum, team) => sum + team.totalMembers,
-      0
+      0,
     );
     setTaskStats([
       { title: "Total Teams", count: teams?.length || 0 },
@@ -311,7 +345,7 @@ const ManagerTeamsTMS = ({ role }) => {
   const totalPages = Math.ceil(filteredTeams.length / itemsPerPage);
   const indexOfLastItem = Math.min(
     currentPage * itemsPerPage,
-    filteredTeams.length
+    filteredTeams.length,
   );
   const indexOfFirstItem = (currentPage - 1) * itemsPerPage;
   const currentTeams = filteredTeams.slice(indexOfFirstItem, indexOfLastItem);
@@ -360,7 +394,42 @@ const ManagerTeamsTMS = ({ role }) => {
   };
 
   const statCardColors = ["#D1ECF1", "#FFB3B3", "#FFE493", "#D7F5E4"];
-  //added by aditya
+  //added by aditya Replace(Dip)
+  // PROJECT DROPDOWN
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (projectRef.current && !projectRef.current.contains(e.target)) {
+        setProjectOpen(false);
+      }
+    };
+
+    if (projectOpen) {
+      document.addEventListener("mousedown", handleOutsideClick);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, [projectOpen]);
+
+  // DEPARTMENT DROPDOWN
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (departmentRef.current && !departmentRef.current.contains(e.target)) {
+        setDepartmentOpen(false);
+      }
+    };
+
+    if (departmentOpen) {
+      document.addEventListener("mousedown", handleOutsideClick);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, [departmentOpen]);
+
+  // ASSIGN TO
   useEffect(() => {
     const handleOutsideClick = (e) => {
       if (assignRef.current && !assignRef.current.contains(e.target)) {
@@ -379,8 +448,8 @@ const ManagerTeamsTMS = ({ role }) => {
 
   return (
     <div className="container-fluid ">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 style={{ color: "#3A5FBE", fontSize: "25px", marginLeft: "15px" }}>
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h2 className="mb-0" style={{ color: "#3A5FBE", fontSize: "25px" }}>
           Teams
         </h2>
 
@@ -481,6 +550,9 @@ const ManagerTeamsTMS = ({ role }) => {
       </div>
       {showAddTeam && (
         <div
+          ref={addTeamPopupRef}
+          tabIndex={0}
+          onKeyDown={(e) => trapFocus(e, addTeamPopupRef)}
           className="modal fade show"
           style={{
             display: "flex",
@@ -492,9 +564,17 @@ const ManagerTeamsTMS = ({ role }) => {
             zIndex: 1050,
           }}
         >
-          <div className="modal-dialog modal-lg">
+          <div
+            className="modal-dialog modal-lg"
+            style={{
+              maxHeight: "100vh",
+              width: "700px",
+              maxWidth: "95vw",
+            }} //change
+          >
             <div className="modal-content">
               <form onSubmit={handleAddTeamSubmit}>
+                {/* Header */}
                 <div
                   className="modal-header"
                   style={{ background: "#3A5FBE", color: "#fff" }}
@@ -502,7 +582,6 @@ const ManagerTeamsTMS = ({ role }) => {
                   <h5 className="modal-title">
                     {editTaskId ? "Edit Team" : "Add Team"}
                   </h5>
-
                   <button
                     type="button"
                     className="btn-close btn-close-white"
@@ -513,193 +592,289 @@ const ManagerTeamsTMS = ({ role }) => {
                   />
                 </div>
 
+                {/* Body   */}
                 <div
                   className="modal-body"
-                  style={{
-                    maxHeight: "70vh", // controls popup height
-                    overflowY: "auto", // enables scroll
-                  }}
+                  style={{ maxHeight: "70vh", overflowY: "auto" }}
                 >
-                  <div className="row g-3">
-                    <div className="col-md-6">
-                      <label className="form-label">Team Name</label>
-                      <input
-                        name="name"
-                        className="form-control"
-                        placeholder="Enter team Name"
-                        value={newTeam.name}
-                        disabled={userRole !== "manager"}
-                        onChange={(e) => {
-                          setNewTeam({ ...newTeam, name: e.target.value });
-                          if (teamErrors.name)
-                            setTeamErrors({ ...teamErrors, name: "" });
-                        }}
-                      />
-                      {teamErrors.name && (
-                        <small className="text-danger">{teamErrors.name}</small>
-                      )}
-                    </div>
-
-                    {/* Project */}
-                    <div className="col-md-6">
-                      <label className="form-label">Project</label>
-                      <select
-                        name="project"
-                        className="form-select"
-                        value={newTeam.project}
-                        onChange={(e) => {
-                          setNewTeam({ ...newTeam, project: e.target.value });
-                          if (teamErrors.project)
-                            setTeamErrors({ ...teamErrors, project: "" });
-                        }}
-                      >
-                        <option value="">Select Project</option>
-                        {projects.map((pro) => (
-                          <option key={pro._id} value={pro._id}>
-                            {pro.name}
-                          </option>
-                        ))}
-                      </select>
-                      {teamErrors.project && (
-                        <small className="text-danger">
-                          {teamErrors.project}
-                        </small>
-                      )}
-                    </div>
-
-                    <div className="col-md-6">
-                      <label className="form-label">Department</label>
-                      <select
-                        name="department"
-                        className="form-select"
-                        value={newTeam.department}
-                        onChange={(e) => {
-                          setNewTeam({
-                            ...newTeam,
-                            department: e.target.value,
-                          });
-                          if (teamErrors.department)
-                            setTeamErrors({ ...teamErrors, department: "" });
-                        }}
-                      >
-                        <option value="">Select Department</option>
-                        {department.map((dept, index) => (
-                          <option key={index} value={dept}>
-                            {dept}
-                          </option>
-                        ))}
-                      </select>
-                      {teamErrors.department && (
-                        <small className="text-danger">
-                          {teamErrors.department}
-                        </small>
-                      )}
-                    </div>
-
-                    <div
-                      className="col-md-6 position-relative"
-                      ref={assignRef}
-                      style={{ position: "relative" }} // added  by aditya
-                    >
-                      <label className="form-label">Assign To</label>
-                      {/* Dropdown Header */}
-                      <div
-                        className="form-control d-flex justify-content-between align-items-center"
-                        style={{ cursor: "pointer" }}
-                        onClick={() => setIsOpen(!isOpen)}
-                      >
-                        <span>
-                          {newTeam.assignToProject.length > 0
-                            ? `${newTeam.assignToProject.length} employee(s) selected`
-                            : "Select Employees"}
-                        </span>
-                        <span>▾</span>
+                  <div className="container-fluid">
+                    {/* Team Name  */}
+                    <div className="row align-items-center mb-2">
+                      <div className="col-md-3">
+                        <label className="form-label mb-0">Team Name:</label>
                       </div>
-
-                      {/* Dropdown Menu */}
-                      {/* Dropdown Menu */}
-                      {isOpen && (
-                        <div
-                          className="border rounded mt-1 p-2 bg-white"
-                          style={{
-                            maxHeight: "200px",
-                            overflowY: "auto",
-                            position: "absolute",
-                            width: "100%",
-                            zIndex: 1000,
+                      <div className="col-md-9">
+                        <input
+                          name="name"
+                          className="form-control"
+                          placeholder="Enter team name"
+                          value={newTeam.name}
+                          disabled={userRole !== "manager"}
+                          onChange={(e) => {
+                            setNewTeam({ ...newTeam, name: e.target.value });
+                            if (teamErrors.name)
+                              setTeamErrors({ ...teamErrors, name: "" });
                           }}
+                        />
+                        {teamErrors.name && (
+                          <small className="text-danger mt-1">
+                            {teamErrors.name}
+                          </small>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* PROJECT DROPDOWN */}
+                    <div
+                      className="row align-items-center mb-2"
+                      ref={projectRef}
+                    >
+                      <div className="col-md-3">
+                        <label className="form-label mb-0">Project:</label>
+                      </div>
+                      <div className="col-md-9 position-relative">
+                        <div
+                          className="form-control d-flex justify-content-between align-items-center p-2"
+                          style={{ cursor: "pointer" }}
+                          onClick={() => setProjectOpen(!projectOpen)}
                         >
-                          {employees.map((emp) => (
-                            <div key={emp._id} className="form-check">
-                              <input
-                                type="checkbox"
-                                className="form-check-input"
-                                id={emp._id}
-                                checked={newTeam.assignToProject.includes(
-                                  emp._id
-                                )}
-                                onChange={(e) => {
-                                  const updatedList = e.target.checked
-                                    ? [...newTeam.assignToProject, emp._id]
-                                    : newTeam.assignToProject.filter(
-                                        (id) => id !== emp._id
-                                      );
+                          <span className="flex-grow-1">
+                            {newTeam.project
+                              ? projects.find((p) => p._id === newTeam.project)
+                                  ?.name || "Select Project"
+                              : "Select Project"}
+                          </span>
+                          <span>▾</span>
+                        </div>
 
-                                  setNewTeam({
-                                    ...newTeam,
-                                    assignToProject: updatedList,
-                                  });
-
-                                  if (teamErrors.assignToProject) {
+                        {projectOpen && (
+                          <div
+                            className="border rounded mt-1 bg-white position-absolute shadow-sm"
+                            style={{
+                              top: "100%",
+                              left: 0,
+                              right: 0,
+                              width: "100%",
+                              maxWidth: "100%",
+                              boxSizing: "border-box",
+                              maxHeight: "250px",
+                              overflowY: "auto",
+                              zIndex: 1060,
+                            }}
+                          >
+                            {projects.map((pro) => (
+                              <div
+                                key={pro._id}
+                                className="px-3 py-2 "
+                                style={{ cursor: "pointer" }}
+                                onMouseEnter={(e) =>
+                                  (e.currentTarget.style.backgroundColor =
+                                    "#f0f0f0")
+                                }
+                                onMouseLeave={(e) =>
+                                  (e.currentTarget.style.backgroundColor =
+                                    "transparent")
+                                }
+                                onClick={() => {
+                                  setNewTeam({ ...newTeam, project: pro._id });
+                                  if (teamErrors.project)
                                     setTeamErrors({
                                       ...teamErrors,
-                                      assignToProject: "",
+                                      project: "",
                                     });
-                                  }
+                                  setProjectOpen(false);
                                 }}
-                              />
-                              <label
-                                className="form-check-label"
-                                htmlFor={emp._id}
                               >
-                                {emp.name}
-                              </label>
-                            </div>
-                          ))}
+                                {pro.name}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {teamErrors.project && (
+                          <small className="text-danger mt-1">
+                            {teamErrors.project}
+                          </small>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* DEPARTMENT DROPDOWN  */}
+                    <div
+                      className="row align-items-center mb-2"
+                      ref={departmentRef}
+                    >
+                      <div className="col-md-3">
+                        <label className="form-label mb-0">Department:</label>
+                      </div>
+                      <div className="col-md-9 position-relative">
+                        <div
+                          className="form-control d-flex justify-content-between align-items-center p-2"
+                          style={{ cursor: "pointer" }}
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.backgroundColor = "#f0f0f0")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.currentTarget.style.backgroundColor =
+                              "transparent")
+                          }
+                          onClick={() => setDepartmentOpen(!departmentOpen)}
+                        >
+                          <span className="flex-grow-1">
+                            {newTeam.department || "Select Department"}
+                          </span>
+                          <span>▾</span>
                         </div>
-                      )}
-                      {teamErrors.assignToProject && (
-                        <small className="text-danger">
-                          {teamErrors.assignToProject}
-                        </small>
-                      )}
+
+                        {departmentOpen && (
+                          <div
+                            className="border rounded mt-1 bg-white position-absolute shadow-sm"
+                            style={{
+                              top: "100%",
+                              left: 0,
+                              right: 0,
+                              maxHeight: "250px",
+                              overflowY: "auto",
+                              zIndex: 1060,
+                              width: "100%",
+                            }}
+                          >
+                            {department.map((dept, index) => (
+                              <div
+                                key={index}
+                                className="px-3 py-2 "
+                                style={{ cursor: "pointer" }}
+                                onClick={() => {
+                                  setNewTeam({ ...newTeam, department: dept });
+                                  if (teamErrors.department)
+                                    setTeamErrors({
+                                      ...teamErrors,
+                                      department: "",
+                                    });
+                                  setDepartmentOpen(false);
+                                }}
+                              >
+                                {dept}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {teamErrors.department && (
+                          <small className="text-danger mt-1">
+                            {teamErrors.department}
+                          </small>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* ASSIGN TO  */}
+                    <div
+                      className="row align-items-center mb-2"
+                      ref={assignRef}
+                    >
+                      <div className="col-md-3">
+                        <label className="form-label mb-0">Assign To:</label>
+                      </div>
+                      <div className="col-md-9 position-relative">
+                        <div
+                          className="form-control d-flex justify-content-between align-items-center p-2"
+                          style={{ cursor: "pointer" }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setIsOpen(!isOpen);
+                          }}
+                        >
+                          <span className="flex-grow-1">
+                            {newTeam.assignToProject.length > 0
+                              ? `${newTeam.assignToProject.length} employee(s) selected`
+                              : "Select Employees"}
+                          </span>
+                          <span>▾</span>
+                        </div>
+
+                        {isOpen && (
+                          <div
+                            className="border rounded mt-1 bg-white position-absolute shadow-sm"
+                            style={{
+                              top: "100%",
+                              left: 0,
+                              right: 0,
+                              maxHeight: "250px",
+                              overflowY: "auto",
+                              zIndex: 1060,
+                              width: "100%",
+                            }}
+                          >
+                            {employees.map((emp) => (
+                              <div key={emp._id} className="form-check  py-2">
+                                <input
+                                  type="checkbox"
+                                  className="form-check-input me-2"
+                                  id={emp._id}
+                                  checked={newTeam.assignToProject.includes(
+                                    emp._id,
+                                  )}
+                                  onChange={(e) => {
+                                    const updatedList = e.target.checked
+                                      ? [...newTeam.assignToProject, emp._id]
+                                      : newTeam.assignToProject.filter(
+                                          (id) => id !== emp._id,
+                                        );
+                                    setNewTeam({
+                                      ...newTeam,
+                                      assignToProject: updatedList,
+                                    });
+                                    if (teamErrors.assignToProject) {
+                                      setTeamErrors({
+                                        ...teamErrors,
+                                        assignToProject: "",
+                                      });
+                                    }
+                                  }}
+                                />
+                                <label
+                                  className="form-check-label mb-0"
+                                  htmlFor={emp._id}
+                                >
+                                  {emp.name}
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {teamErrors.assignToProject && (
+                          <small className="text-danger mt-1">
+                            {teamErrors.assignToProject}
+                          </small>
+                        )}
+                      </div>
                     </div>
                   </div>
+                </div>
 
-                  <div className="modal-footer">
+                {/* Footer */}
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-sm custom-outline-btn"
+                    style={{ minWidth: "90px" }}
+                    onClick={() => {
+                      setShowAddTeam(false);
+                      setEditTaskId(null);
+                      resetAddTeamForm();
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  {userRole === "manager" && (
                     <button
-                      type="button"
+                      type="submit"
                       className="btn btn-sm custom-outline-btn"
                       style={{ minWidth: "90px" }}
-                      onClick={() => {
-                        setShowAddTeam(false);
-                        setEditTaskId(null);
-                        resetAddTeamForm();
-                      }}
                     >
-                      Cancel
+                      {/* {editTaskId ? "Save Changes" : "Save Team"} */}
+                      Save
                     </button>
-
-                    {userRole === "manager" && (
-                      <button
-                        type="submit"
-                        className="btn btn-sm custom-outline-btn"
-                        style={{ minWidth: "90px" }}
-                      >
-                        {editTaskId ? "Save Changes" : "Save Team"}
-                      </button>
-                    )}
-                  </div>
+                  )}
                 </div>
               </form>
             </div>
@@ -953,7 +1128,7 @@ const ManagerTeamsTMS = ({ role }) => {
             style={{ marginLeft: "16px" }}
           >
             <button
-              className="btn btn-sm border-0"
+              className="btn btn-sm focus-ring "
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
               style={{ fontSize: "18px", padding: "2px 8px", color: "#212529" }}
@@ -961,7 +1136,7 @@ const ManagerTeamsTMS = ({ role }) => {
               ‹
             </button>
             <button
-              className="btn btn-sm border-0"
+              className="btn btn-sm focus-ring "
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
               style={{ fontSize: "18px", padding: "2px 8px", color: "#212529" }}
@@ -975,6 +1150,9 @@ const ManagerTeamsTMS = ({ role }) => {
       {/* Team Detail Modal */}
       {selectedTeam && (
         <div
+          ref={teamPopupRef}
+          tabIndex={0}
+          onKeyDown={(e) => trapFocus(e, teamPopupRef)}
           className="modal fade show"
           style={{
             display: "flex",
@@ -987,8 +1165,8 @@ const ManagerTeamsTMS = ({ role }) => {
           }}
         >
           <div
-            className="modal-dialog modal-dialog-scrollable"
-            style={{ maxWidth: "650px", width: "95%", marginTop: "200px" }}
+            className="modal-dialog"
+            style={{ maxWidth: "650px", width: "95%" }}
           >
             <div className="modal-content">
               <div

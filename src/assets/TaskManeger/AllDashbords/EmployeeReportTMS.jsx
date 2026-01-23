@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import "./ReportTMSGraph.css";
 import axios from "axios";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 import {
   PieChart,
   Pie,
@@ -22,7 +24,7 @@ function EmployeeReportTMS({ employeeId }) {
     console.log(" useEffect MOUNTED");
   }, []);
 
-  const [showCardList, setShowCardList] = useState("teamMembers");
+  const [showCardList, setShowCardList] = useState();
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -125,7 +127,7 @@ function EmployeeReportTMS({ employeeId }) {
 
   const totalTasks = employeeTaskDonutData.reduce(
     (sum, item) => sum + item.value,
-    0
+    0,
   );
 
   const renderCustomizedLabel = ({
@@ -180,7 +182,7 @@ function EmployeeReportTMS({ employeeId }) {
 
     const total = employeeTaskDonutData.reduce(
       (sum, item) => sum + item.value,
-      0
+      0,
     );
 
     const performance = total > 0 ? Math.round((completed / total) * 100) : 0;
@@ -200,7 +202,7 @@ function EmployeeReportTMS({ employeeId }) {
       setLoadingProjects(true);
 
       const res = await axios.get(
-        `https://server-backend-nu.vercel.app/projects/employee/${employeeId}`
+        `https://server-backend-nu.vercel.app/projects/employee/${employeeId}`,
       );
 
       if (res.data.success) {
@@ -224,7 +226,7 @@ function EmployeeReportTMS({ employeeId }) {
       setLoadingDelayedTasks(true);
 
       const res = await axios.get(
-        `https://server-backend-nu.vercel.app/api/tasks/employee/${employeeId}/delayed-tasks`
+        `https://server-backend-nu.vercel.app/api/tasks/employee/${employeeId}/delayed-tasks`,
       );
 
       if (res.data.success) {
@@ -248,7 +250,7 @@ function EmployeeReportTMS({ employeeId }) {
       setLoadingUpcomingTasks(true);
 
       const res = await axios.get(
-        `https://server-backend-nu.vercel.app/api/tasks/employee/${employeeId}/upcoming-tasks`
+        `https://server-backend-nu.vercel.app/api/tasks/employee/${employeeId}/upcoming-tasks`,
       );
 
       if (res.data.success) {
@@ -281,7 +283,7 @@ function EmployeeReportTMS({ employeeId }) {
       setLoadingTeam(true);
 
       const res = await axios.get(
-        `https://server-backend-nu.vercel.app/api/employee/${employeeId}/teams`
+        `https://server-backend-nu.vercel.app/api/employee/${employeeId}/teams`,
       );
 
       if (res.data.success) {
@@ -305,7 +307,72 @@ function EmployeeReportTMS({ employeeId }) {
       setLoadingTeam(false);
     }
   };
+// 
+const handleDownloadExcel = () => {
+  if (!filteredListData || filteredListData.length === 0) {
+    alert("No data to download");
+    return;
+  }
 
+  let excelData = [];
+
+  switch (showCardList) {
+    case "teamMembers":
+      excelData = filteredListData.map((item) => ({
+        "Team Name": item.teamName,
+        "Project Name": item.projectName,
+        "Employees Assigned": item.employeeCount,
+      }));
+      break;
+
+    case "myProjects":
+      excelData = filteredListData.map((item) => ({
+        "Project Name": item.name,
+        Status: item.isDelayed ? "Delayed" : item.status?.name,
+        "Delivery Date": formatDate(item.endDate),
+      }));
+      break;
+
+    case "delayedTasks":
+      excelData = filteredListData.map((item) => ({
+        "Project Name": item.project,
+        "Task Title": item.title,
+        "Due Date": formatDate(item.dueDate),
+      }));
+      break;
+
+    case "upcomingTasks":
+      excelData = filteredListData.map((item) => ({
+        "Project Name": item.project,
+        "Task Title": item.title,
+        "Start Date": formatDate(item.startDate),
+        "Due Date": formatDate(item.dueDate),
+        Status: item.status,
+      }));
+      break;
+
+    default:
+      return;
+  }
+
+  const worksheet = XLSX.utils.json_to_sheet(excelData);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
+
+  const excelBuffer = XLSX.write(workbook, {
+    bookType: "xlsx",
+    type: "array",
+  });
+
+  const blob = new Blob([excelBuffer], {
+    type:
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+
+  const fileName = `${getListTitle().replaceAll(" ", "_")}.xlsx`;
+  saveAs(blob, fileName);
+};
+// 
   useEffect(() => {
     if (!employeeId) return;
 
@@ -322,7 +389,39 @@ function EmployeeReportTMS({ employeeId }) {
   //Row Clickeble
   const [selectedItem, setSelectedItem] = useState(null);
   const [modalTitle, setModalTitle] = useState("");
+  ///focus pop-up
+  const popupRef = useRef(null);
+  useEffect(() => {
+    if (selectedItem && popupRef.current) {
+      popupRef.current.focus();
+    }
+  }, [selectedItem]);
 
+  const trapFocus = (e) => {
+    if (!popupRef.current) return;
+
+    const focusableElements = popupRef.current.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+
+    const first = focusableElements[0];
+    const last = focusableElements[focusableElements.length - 1];
+
+    if (e.key === "Tab") {
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+  };
+  ////
   const handleRowClick = (item) => {
     setSelectedItem(item);
     switch (showCardList) {
@@ -446,12 +545,12 @@ function EmployeeReportTMS({ employeeId }) {
   const totalPages = Math.ceil(filteredListData.length / itemsPerPage);
   const indexOfLastItem = Math.min(
     currentPage * itemsPerPage,
-    filteredListData.length
+    filteredListData.length,
   );
   const indexOfFirstItem = (currentPage - 1) * itemsPerPage;
   const currentItems = filteredListData.slice(
     indexOfFirstItem,
-    indexOfLastItem
+    indexOfLastItem,
   );
 
   useEffect(() => {
@@ -480,27 +579,29 @@ function EmployeeReportTMS({ employeeId }) {
     }
   };
 
-  function getStatusStyle(status) {
-    if (status === "Completed") {
-      return { backgroundColor: "#d1f2dd", color: "#0f5132" };
-    } else if (status === "Assignment Pending") {
-      return { backgroundColor: "#fff3cd", color: "#856404" };
-    } else if (status === "Assigned") {
-      return { backgroundColor: "#cfe2ff", color: "#084298" };
-    } else if (status === "Delayed" || status === "Hold") {
-      return { backgroundColor: "#f8d7da", color: "#842029" };
-    } else if (status === "In Progress") {
-      return { backgroundColor: "#d1e7ff", color: "#0d6efd" };
-    } else if (status === "Approved") {
-      return { backgroundColor: "#d1f2dd", color: "#0f5132" };
-    } else if (status === "Rejected") {
-      return { backgroundColor: "#f8d7da", color: "#842029" };
-    } else if (status === "Pending") {
-      return { backgroundColor: "#fff3cd", color: "#856404" };
-    } else {
-      return { backgroundColor: "#e2e3e5", color: "#495057" };
-    }
-  }
+  // function getStatusStyle(status) {
+  //   if (status === "Completed") {
+  //     return { backgroundColor: "#d1f2dd", color: "#0f5132" };
+  //   } else if (status === "Assignment Pending") {
+  //     return { backgroundColor: "#fff3cd", color: "#856404" };
+  //   } else if (status === "Assigned") {
+  //     return { backgroundColor: "#cfe2ff", color: "#084298" };
+  //   } else if (status === "Delayed" || status === "Hold") {
+  //     return { backgroundColor: "#f8d7da", color: "#842029" };
+  //   } else if (status === "In Progress") {
+  //     return { backgroundColor: "#d1e7ff", color: "#0d6efd" };
+  //   } else if (status === "Approved") {
+  //     return { backgroundColor: "#d1f2dd", color: "#0f5132" };
+  //   } else if (status === "Rejected") {
+  //     return { backgroundColor: "#f8d7da", color: "#842029" };
+  //   } else if (status === "Pending") {
+  //     return { backgroundColor: "#fff3cd", color: "#856404" };
+  //   } else {
+  //     return { backgroundColor: "#e2e3e5", color: "#495057" };
+  //   }
+  // }
+
+  const getStatusStyle = () => ({});
 
   const handleCardClick = (listType) => {
     setShowCardList(listType);
@@ -526,7 +627,7 @@ function EmployeeReportTMS({ employeeId }) {
   const getListTitle = () => {
     switch (showCardList) {
       case "teamMembers":
-        return "My Team Members";
+        return "My Team";
       case "myProjects":
         return "My Projects";
       case "delayedTasks":
@@ -568,6 +669,13 @@ function EmployeeReportTMS({ employeeId }) {
             </div>
 
             <div className="col-auto ms-auto d-flex gap-2">
+              <button
+                type="button"
+                 className="btn btn-sm custom-outline-btn"
+                onClick={handleDownloadExcel}
+              >
+                Download Excel
+              </button>
               <button
                 type="submit"
                 style={{ minWidth: 90 }}
@@ -768,20 +876,7 @@ function EmployeeReportTMS({ employeeId }) {
                 textAlign: "left",
               }}
             >
-              <span
-                style={{
-                  ...getStatusStyle(
-                    proj.isDelayed ? "Delayed" : proj.status?.name
-                  ),
-                  padding: "6px 12px",
-                  borderRadius: "6px",
-                  fontSize: "13px",
-                  fontWeight: "500",
-                  display: "inline-block",
-                }}
-              >
-                {proj.isDelayed ? "Delayed" : proj.status?.name}
-              </span>
+              <span>{proj.isDelayed ? "Delayed" : proj.status}</span>
             </td>
 
             <td
@@ -1034,18 +1129,7 @@ function EmployeeReportTMS({ employeeId }) {
                 textAlign: "left",
               }}
             >
-              <span
-                style={{
-                  ...getStatusStyle(task.status),
-                  padding: "6px 12px",
-                  borderRadius: "6px",
-                  fontSize: "13px",
-                  fontWeight: "500",
-                  display: "inline-block",
-                }}
-              >
-                {task.status}
-              </span>
+              <span>{task.status}</span>
             </td>
           </tr>
         ));
@@ -1058,9 +1142,9 @@ function EmployeeReportTMS({ employeeId }) {
     return (
       <>
         <div className="card shadow-sm border-0">
-          <div className="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+          {/* <div className="card-header bg-white border-0 d-flex justify-content-between align-items-center">
             {/*add---------------------------------------------------------------------------- */}
-            <span
+          {/* <span
               className="fw-semibold"
               style={{ color: "#3A5FBE", fontSize: "20px" }}
             >
@@ -1073,7 +1157,7 @@ function EmployeeReportTMS({ employeeId }) {
             >
               Close
             </button>
-          </div>
+          </div> */}
           {/*---------------------------------------------------------------------------- */}
           <div className="table-responsive bg-white">
             <table className="table table-hover mb-0">
@@ -1221,7 +1305,7 @@ function EmployeeReportTMS({ employeeId }) {
               style={{ marginLeft: "16px" }}
             >
               <button
-                className="btn btn-sm border-0"
+                className="btn btn-sm focus-ring"
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
                 style={{
@@ -1233,7 +1317,7 @@ function EmployeeReportTMS({ employeeId }) {
                 ‹
               </button>
               <button
-                className="btn btn-sm border-0"
+                className="btn btn-sm focus-ring"
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
                 style={{
@@ -1253,197 +1337,215 @@ function EmployeeReportTMS({ employeeId }) {
 
   return (
     <div
-      className="container-fluid p-4"
-      style={{
-        marginTop: "-25px",
-        backgroundColor: "#f5f7fb",
-        minHeight: "100vh",
-      }}
+      className="container-fluid"
+      
     >
       <h3
-        className="mb-4 fw-bold"
+        className="mb-4 "
         style={{ color: "#3A5FBE", fontSize: "25px" }}
       >
         My Reports
       </h3>
 
       <div className="row g-3 mb-4">
-        {/* my team member */}
-        <div className="col-12 col-sm-6 col-lg-3">
+        {/* My Team Members */}
+        <div className="col-md-3 col-sm-6 col-12">
           <div
-            className="card shadow-sm border-0 h-100"
-            style={{ cursor: "pointer", backgroundColor: "#3A5FBE" }}
+            className="card shadow-sm h-100 border-0"
+            style={{ borderRadius: "7px", cursor: "pointer" }}
             onClick={() => handleCardClick("teamMembers")}
           >
-            <div className="card-body">
-              <div
-                className="mb-1 fw-semibold"
-                style={{ fontSize: "16px", color: "#fff" }}
+            <div
+              className="card-body d-flex align-items-center"
+              style={{ gap: "20px" }}
+            >
+              <h4
+                className="mb-0 d-flex align-items-center justify-content-center"
+                style={{
+                  fontSize: "32px",
+                  backgroundColor: "#D1ECF1",
+                  minWidth: "70px",
+                  minHeight: "70px",
+                  color: "#3A5FBE",
+                }}
               >
-                My Team Members
-              </div>
-              <div className="d-flex justify-content-between align-items-end">
-                <div>
-                  <div className="h4 mb-0 text-white">
-                    {loadingTeam ? "..." : teamCount}
-                  </div>
-                  <small className="text-white-50">Click to view list</small>
-                </div>
+                {loadingTeam ? "..." : teamCount}
+              </h4>
+
+              <div>
                 <div
-                  className="rounded-circle d-flex align-items-center justify-content-center"
-                  style={{
-                    width: 36,
-                    height: 36,
-                    backgroundColor: "rgba(255,255,255,0.18)",
-                    color: "#fff",
-                    fontSize: 18,
-                  }}
+                  className="fw-semibold"
+                  style={{ color: "#3A5FBE", fontSize: "18px" }}
                 >
-                  👥
+                  My Team
                 </div>
+                <small style={{ color: "#9e9e9e", fontSize: "12px" }}>
+                  Click to view list
+                </small>
               </div>
             </div>
           </div>
         </div>
 
-        {/* my projects */}
-        <div className="col-12 col-sm-6 col-lg-3">
+        {/* My Projects */}
+        <div className="col-md-3 col-sm-6 col-12">
           <div
-            className="card shadow-sm border-0 h-100"
-            style={{ cursor: "pointer", backgroundColor: "#3A5FBE" }}
+            className="card shadow-sm h-100 border-0"
+            style={{ borderRadius: "7px", cursor: "pointer" }}
             onClick={() => handleCardClick("myProjects")}
           >
-            <div className="card-body">
-              <div
-                className="mb-1 fw-semibold"
-                style={{ fontSize: "16px", color: "#fff" }}
+            <div
+              className="card-body d-flex align-items-center"
+              style={{ gap: "20px" }}
+            >
+              <h4
+                className="mb-0 d-flex align-items-center justify-content-center"
+                style={{
+                  fontSize: "32px",
+                  backgroundColor: "#FFB3B3",
+                  minWidth: "70px",
+                  minHeight: "70px",
+                  color: "#3A5FBE",
+                }}
               >
-                My Projects
-              </div>
-              <div className="d-flex justify-content-between align-items-end">
-                <div>
-                  <div className="h4 mb-0 text-white">
-                    {loadingProjects ? "..." : projectCount}
-                  </div>
+                {loadingProjects ? "..." : projectCount}
+              </h4>
 
-                  <small className="text-white-50">Click to view list</small>
-                </div>
+              <div>
                 <div
-                  className="rounded-circle d-flex align-items-center justify-content-center"
-                  style={{
-                    width: 36,
-                    height: 36,
-                    backgroundColor: "rgba(255,255,255,0.18)",
-                    color: "#fff",
-                    fontSize: 18,
-                  }}
+                  className="fw-semibold"
+                  style={{ color: "#3A5FBE", fontSize: "18px" }}
                 >
-                  📁
+                  My Projects
                 </div>
+                <small style={{ color: "#9e9e9e", fontSize: "12px" }}>
+                  Click to view list
+                </small>
               </div>
             </div>
           </div>
         </div>
 
-        {/* my delayed task  */}
-        <div className="col-12 col-sm-6 col-lg-3">
+        {/* Delayed Tasks */}
+        <div className="col-md-3 col-sm-6 col-12">
           <div
-            className="card shadow-sm border-0 h-100"
-            style={{ cursor: "pointer", backgroundColor: "#3A5FBE" }}
+            className="card shadow-sm h-100 border-0"
+            style={{ borderRadius: "7px", cursor: "pointer" }}
             onClick={() => handleCardClick("delayedTasks")}
           >
-            <div className="card-body">
-              <div
-                className="mb-1 fw-semibold"
-                style={{ fontSize: "16px", color: "#fff" }}
+            <div
+              className="card-body d-flex align-items-center"
+              style={{ gap: "20px" }}
+            >
+              <h4
+                className="mb-0 d-flex align-items-center justify-content-center"
+                style={{
+                  fontSize: "32px",
+                  backgroundColor: "#FFE493",
+                  minWidth: "70px",
+                  minHeight: "70px",
+                  color: "#3A5FBE",
+                }}
               >
-                Delayed Tasks
-              </div>
-              <div className="d-flex justify-content-between align-items-end">
-                <div>
-                  <div className="h4 mb-0 text-white">
-                    {loadingDelayedTasks ? "..." : delayedCount}
-                  </div>
-                  <small className="text-white-50">Click to view list</small>
-                </div>
+                {loadingDelayedTasks ? "..." : delayedCount}
+              </h4>
+
+              <div>
                 <div
-                  className="rounded-circle d-flex align-items-center justify-content-center"
-                  style={{
-                    width: 36,
-                    height: 36,
-                    backgroundColor: "rgba(255,255,255,0.18)",
-                    color: "#fff",
-                    fontSize: 18,
-                  }}
+                  className="fw-semibold"
+                  style={{ color: "#3A5FBE", fontSize: "18px" }}
                 >
-                  ⚠️
+                  Delayed Tasks
                 </div>
+                <small style={{ color: "#9e9e9e", fontSize: "12px" }}>
+                  Click to view list
+                </small>
               </div>
             </div>
           </div>
         </div>
 
-        {/*Upcomming tasks*/}
-        <div className="col-12 col-sm-6 col-lg-3">
+        {/* Upcoming Tasks */}
+        <div className="col-md-3 col-sm-6 col-12">
           <div
-            className="card shadow-sm border-0 h-100"
-            style={{ cursor: "pointer", backgroundColor: "#3A5FBE" }}
+            className="card shadow-sm h-100 border-0"
+            style={{ borderRadius: "7px", cursor: "pointer" }}
             onClick={() => handleCardClick("upcomingTasks")}
           >
-            <div className="card-body">
-              <div
-                className="mb-1 fw-semibold"
-                style={{ fontSize: "16px", color: "#fff" }}
+            <div
+              className="card-body d-flex align-items-center"
+              style={{ gap: "20px" }}
+            >
+              <h4
+                className="mb-0 d-flex align-items-center justify-content-center"
+                style={{
+                  fontSize: "32px",
+                  backgroundColor: "#D7F5E4",
+                  minWidth: "70px",
+                  minHeight: "70px",
+                  color: "#3A5FBE",
+                }}
               >
-                Upcoming Tasks (Next 7 days)
-              </div>
-              <div className="d-flex justify-content-between align-items-end">
-                <div>
-                  <div className="h4 mb-0 text-white">
-                    {loadingUpcomingTasks ? "..." : upcomingCount}
-                  </div>
-                  <small className="text-white-50">Click to view list</small>
-                </div>
+                {loadingUpcomingTasks ? "..." : upcomingCount}
+              </h4>
+
+              <div>
                 <div
-                  className="rounded-circle d-flex align-items-center justify-content-center"
-                  style={{
-                    width: 36,
-                    height: 36,
-                    backgroundColor: "rgba(255,255,255,0.18)",
-                    color: "#fff",
-                    fontSize: 18,
-                  }}
+                  className="fw-semibold"
+                  style={{ color: "#3A5FBE", fontSize: "18px" }}
                 >
-                  📅
+                  Upcoming Tasks
                 </div>
+                <small style={{ color: "#9e9e9e", fontSize: "12px" }}>
+                  Click to view list
+                </small>
               </div>
             </div>
           </div>
         </div>
       </div>
 
+      {/* ✅ Title & Close button BELOW cards */}
+      {showCardList && (
+        <div className=" mb-3  border-0">
+          <div className=" d-flex justify-content-between align-items-center">
+            <span
+              className="fw-semibold"
+              style={{ color: "#3A5FBE", fontSize: "20px" }}
+            >
+              {getListTitle()}
+            </span>
+
+            <button
+              className="btn btn-sm custom-outline-btn"
+              onClick={() => setShowCardList(null)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* filter */}
 
       {showCardList && renderFilterSection()}
 
-      {/* table heading
-     {showCardList && (
-  <div className="mb-4">
-    <div className="card-header d-flex justify-content-between align-items-center">
-      <span className="fw-semibold" style={{ color: "#3A5FBE", fontSize: "20px" }}>
-        {getListTitle()}
-      </span>
-      <button
-        className="btn btn-sm custom-outline-btn"
-        onClick={() => setShowCardList(null)}
-      >
-        Close
-      </button>
-    </div>
-  </div>
-)}
+      {/* {showCardList && (
+        <div className="mb-4">
+          <div className="card-header d-flex justify-content-between align-items-center">
+            <span className="fw-semibold" style={{ color: "#3A5FBE", fontSize: "20px" }}>
+              {getListTitle()}
+            </span>
+            <button
+              className="btn btn-sm custom-outline-btn"
+              onClick={() => setShowCardList(null)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )} */}
 
- */}
       {showCardList && renderTable()}
 
       <div className="row mb-4 mt-4">
@@ -1586,10 +1688,10 @@ function EmployeeReportTMS({ employeeId }) {
                 employeeStatusBarData[0].Performance >= 80
                   ? "#198754"
                   : employeeStatusBarData[0].Performance >= 60
-                  ? "#0d6efd"
-                  : employeeStatusBarData[0].Performance >= 40
-                  ? "#fd7e14"
-                  : "#dc3545",
+                    ? "#0d6efd"
+                    : employeeStatusBarData[0].Performance >= 40
+                      ? "#fd7e14"
+                      : "#dc3545",
               fontWeight: "600",
             }}
           >
@@ -1610,6 +1712,10 @@ function EmployeeReportTMS({ employeeId }) {
 
       {selectedItem && (
         <div
+          ref={popupRef}
+          tabIndex="-1"
+          autoFocus
+          onKeyDown={trapFocus}
           className="modal fade show"
           style={{
             display: "flex",
@@ -1623,8 +1729,8 @@ function EmployeeReportTMS({ employeeId }) {
           onClick={() => setSelectedItem(null)}
         >
           <div
-            className="modal-dialog modal-dialog-scrollable"
-            style={{ maxWidth: "650px", width: "95%", marginTop: "200px" }}
+            className="modal-dialog modal-dialog"
+            style={{ maxWidth: "650px", width: "95%", marginTop: "120px" }}
           >
             <div className="modal-content">
               <div
@@ -1658,8 +1764,7 @@ function EmployeeReportTMS({ employeeId }) {
                             className="col-7 col-sm-8"
                             style={{ color: "#212529" }}
                           >
-                            {" "}
-                            Software Engineer
+                            {emp.designation}
                           </div>
                           <div
                             className="col-5 col-sm-4 fw-semibold"
@@ -1671,8 +1776,7 @@ function EmployeeReportTMS({ employeeId }) {
                             className="col-7 col-sm-8"
                             style={{ color: "#212529" }}
                           >
-                            {" "}
-                            employee@company.com
+                            {emp.email}
                           </div>
                           <div
                             className="col-5 col-sm-4 fw-semibold"
@@ -1684,8 +1788,7 @@ function EmployeeReportTMS({ employeeId }) {
                             className="col-7 col-sm-8"
                             style={{ color: "#212529" }}
                           >
-                            {" "}
-                            9999999999
+                            {emp.contact}
                           </div>
                         </div>
                       </div>
@@ -1715,7 +1818,7 @@ function EmployeeReportTMS({ employeeId }) {
                                   day: "2-digit",
                                   month: "short",
                                   year: "numeric",
-                                }
+                                },
                               )
                             : "-"}
                         </div>
@@ -1724,23 +1827,10 @@ function EmployeeReportTMS({ employeeId }) {
                       <div className="row mb-2">
                         <div className="col-5 col-sm-4 fw-semibold">Status</div>
                         <div className="col-7 col-sm-8">
-                          <span
-                            style={{
-                              ...getStatusStyle(
-                                selectedItem.isDelayed
-                                  ? "Delayed"
-                                  : selectedItem.status?.name
-                              ),
-                              padding: "4px 12px",
-                              borderRadius: "6px",
-                              fontSize: "13px",
-                              fontWeight: "500",
-                              display: "inline-block",
-                            }}
-                          >
+                          <span>
                             {selectedItem.isDelayed
                               ? "Delayed"
-                              : selectedItem.status?.name || "-"}
+                              : selectedItem.status || "-"}
                           </span>
                         </div>
                       </div>
@@ -1795,7 +1885,7 @@ function EmployeeReportTMS({ employeeId }) {
                             {formatDate(
                               selectedItem.startDate
                                 ? selectedItem.startDate.slice(0, 10)
-                                : "N/A"
+                                : "N/A",
                             )}
                           </div>
                         </div>
@@ -1815,7 +1905,7 @@ function EmployeeReportTMS({ employeeId }) {
                           {formatDate(
                             selectedItem.dueDate
                               ? selectedItem.dueDate.slice(0, 10)
-                              : "N/A"
+                              : "N/A",
                           )}
                         </div>
                       </div>
@@ -1830,18 +1920,7 @@ function EmployeeReportTMS({ employeeId }) {
                           className="col-7 col-sm-8"
                           style={{ color: "#212529" }}
                         >
-                          <span
-                            style={{
-                              ...getStatusStyle(selectedItem.status),
-                              padding: "4px 12px",
-                              borderRadius: "6px",
-                              fontSize: "13px",
-                              fontWeight: "500",
-                              display: "inline-block",
-                            }}
-                          >
-                            {selectedItem.status}
-                          </span>
+                          <span>{selectedItem.status}</span>
                         </div>
                       </div>
                     </>

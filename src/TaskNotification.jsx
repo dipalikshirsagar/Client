@@ -13,7 +13,7 @@ const TaskNotification = ({ userId }) => {
 
     try {
       const res = await axios.get(
-        `https://server-backend-nu.vercel.app/task-notifications/${userId}`
+        `https://server-backend-nu.vercel.app/task-notifications/${userId}`,
       );
 
       const notificationsArray = res.data;
@@ -39,12 +39,16 @@ const TaskNotification = ({ userId }) => {
 
       setNotifications((prev) =>
         prev.map((item) =>
-          item._id === n._id ? { ...item, isRead: true } : item
-        )
+          item._id === n._id ? { ...item, isRead: true } : item,
+        ),
       );
 
       //redirect based on type and role
-      if (n.type === "Task_Assigned" || n.type === "Task_Status_Update" || n.type === "Task_Comment") {
+      if (
+        n.type === "Task_Assigned" ||
+        n.type === "Task_Status_Update" ||
+        n.type === "Task_Comment"
+      ) {
         if (role === "manager") {
           navigate(`/tms-dashboard/${role}/${username}/${id}/task`);
         } else if (role === "admin") {
@@ -52,7 +56,11 @@ const TaskNotification = ({ userId }) => {
         } else {
           navigate(`/tms-dashboard/${role}/${username}/${id}/task`);
         }
-      } else if (n.type === "Project_Assigned" || n.type === "Project_update" || n.type === "Project_deleted") {
+      } else if (
+        n.type === "Project_Assigned" ||
+        n.type === "Project_update" ||
+        n.type === "Project_deleted"
+      ) {
         if (role === "manager") {
           navigate(`/tms-dashboard/${role}/${username}/${id}/project`);
         } else if (role === "admin") {
@@ -60,8 +68,7 @@ const TaskNotification = ({ userId }) => {
         } else {
           navigate(`/tms-dashboard/${role}/${username}/${id}/project`);
         }
-      }
-      else if (n.type === "Team") {
+      } else if (n.type === "Team") {
         if (role === "manager") {
           navigate(`/tms-dashboard/${role}/${username}/${id}/teams`);
         } else if (role === "admin") {
@@ -69,18 +76,19 @@ const TaskNotification = ({ userId }) => {
         } else {
           navigate(`/tms-dashboard/${role}/${username}/${id}/teams`);
         }
-      }
-      else if (n.type === "Project_created" || n.type === "Project_update" || n.type === "Project_deleted") {
+      } else if (
+        n.type === "Project_created" ||
+        n.type === "Project_update" ||
+        n.type === "Project_deleted"
+      ) {
         if (role === "ceo") {
           navigate(`/tms-dashboard/${role}/${username}/${id}/project`);
         } else if (role === "hr") {
           navigate(`/tms-dashboard/${role}/${username}/${id}/project`);
-        }
-        else if (role === "md") {
+        } else if (role === "md") {
           navigate(`/tms-dashboard/${role}/${username}/${id}/project`);
         }
       }
-
     } catch (error) {
       console.error("Failed to mark notification as read", error);
     }
@@ -135,11 +143,17 @@ const TaskNotification = ({ userId }) => {
 
   return (
     <div className="dropdown">
-      <button
-        className="btn position-relative"
+      <button //-------------------------------------------add
+        className="btn position-relative focus-ring"
         type="button"
         data-bs-toggle="dropdown"
         aria-expanded="false"
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            e.currentTarget.click();
+          }
+        }}
       >
         <i className="bi bi-bell fs-5 text-secondary"></i>
         {unreadCount > 0 && (

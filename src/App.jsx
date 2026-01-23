@@ -1,4 +1,9 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import EmployeeVerify from "./assets/LoginRegistration/EmployeeVerify";
 import AddEmployee from "./assets/LoginRegistration/AddEmployee";
 import Login from "./assets/LoginRegistration/Login";
@@ -8,7 +13,7 @@ import PasswordReset from "./assets/LoginRegistration/PasswordReset";
 import ForgotPassword from "./assets/LoginRegistration/ForgotPassword";
 import BackButton from "./BackButton";
 import React, { useEffect } from "react";
-import "./App.css"
+import "./App.css";
 import TMSDashboard from "./assets/TaskManeger/AllDashbords/TMSDashboard";
 //import TMSMainDashboard from "./assets/TaskManeger/AllDashbords/TMSMainDashboard";
 import AdminDashboardTMS from "./assets/TaskManeger/AllDashbords/AdminDashboardTMS";
@@ -48,13 +53,15 @@ function App() {
     //  return () => bc.close();
   }, []);
 
-
   return (
     <Router>
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
-        <Route path="/employee/verify/:id/:token" element={<EmployeeVerify />} />
+        <Route
+          path="/employee/verify/:id/:token"
+          element={<EmployeeVerify />}
+        />
         <Route path="/forgotpassword/:id/:token" element={<ForgotPassword />} />
         <Route path="/password-reset" element={<PasswordReset />} />
 
@@ -62,7 +69,18 @@ function App() {
         <Route
           path="/dashboard/:role/:username/:id/*"
           element={
-            <ProtectedRoute allowedRoles={["admin", "employee", "manager", "hr", "ceo", "coo", "md"]}>
+            <ProtectedRoute
+              allowedRoles={[
+                "admin",
+                "employee",
+                "manager",
+                "hr",
+                "ceo",
+                "coo",
+                "md",
+                "IT_Support",
+              ]}
+            >
               <Dashboard />
             </ProtectedRoute>
           }
@@ -73,12 +91,21 @@ function App() {
         <Route
           path="/tms-dashboard/:role/:username/:id/*"
           element={
-            <ProtectedRoute allowedRoles={["admin", "employee", "manager", "hr", "ceo", "coo", "md"]}>
+            <ProtectedRoute
+              allowedRoles={[
+                "admin",
+                "employee",
+                "manager",
+                "hr",
+                "ceo",
+                "coo",
+                "md",
+              ]}
+            >
               <TMSDashboard />
             </ProtectedRoute>
-          }>
-
-
+          }
+        >
           {/* <Route index element={<MangerDashbarodTMS />} />
             <Route path="task" element={<MangerTaskTMS/>}/>
             <Route path="project" element={<MangerProjectTMS/>}/>
@@ -100,12 +127,7 @@ function App() {
           <Route path="teams" element={<AdminTeamsTMS/>}/>
           <Route path="report" element={<AdminReportTMS/>}/>
           <Route path="setting" element={<AdminSettingTMS/>}/> */}
-
-
-
-
         </Route>
-
 
         {/* 404 or fallback route */}
         <Route
@@ -114,7 +136,10 @@ function App() {
             <div style={{ textAlign: "center", marginTop: "50px" }}>
               <h1>404 - Page Not Found</h1>
               <p>The page you are looking for doesn't exist.</p>
-              <a href="/login" style={{ color: "#007bff" }}>Go to Login</a><br />
+              <a href="/login" style={{ color: "#007bff" }}>
+                Go to Login
+              </a>
+              <br />
               <BackButton />
             </div>
           }

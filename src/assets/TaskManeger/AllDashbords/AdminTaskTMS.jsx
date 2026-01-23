@@ -25,7 +25,7 @@ const AdminTaskTMS = () => {
     if (!popupRef.current) return;
 
     const focusableElements = popupRef.current.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
     );
 
     const first = focusableElements[0];
@@ -135,25 +135,25 @@ const AdminTaskTMS = () => {
   const calculateTaskStatus = () => {
     const totalTasks = filteredTasks.length; // Use filteredTasks
     const completedTasks = filteredTasks.filter(
-      (task) => task.status === "Completed"
+      (task) => task.status === "Completed",
     ).length;
     const ongoingTasks = filteredTasks.filter(
-      (task) => task.status === "In Progress"
+      (task) => task.status === "In Progress",
     ).length;
     const unassignedTasks = filteredTasks.filter(
-      (task) => task.status === "Assignment Pending"
+      (task) => task.status === "Assignment Pending",
     ).length;
     const holdTasks = filteredTasks.filter(
-      (task) => task.status === "On Hold" || task.status === "Hold"
+      (task) => task.status === "On Hold" || task.status === "Hold",
     ).length;
     const cancelledTasks = filteredTasks.filter(
-      (task) => task.status === "Cancelled"
+      (task) => task.status === "Cancelled",
     ).length;
     const delayedTasks = filteredTasks.filter(
-      (task) => task.status === "Delayed"
+      (task) => task.status === "Delayed",
     ).length;
     const assignedTasks = filteredTasks.filter(
-      (task) => task.status === "Assigned"
+      (task) => task.status === "Assigned",
     ).length;
 
     return {
@@ -255,7 +255,7 @@ const AdminTaskTMS = () => {
   const totalPages = Math.ceil(filteredTasks.length / itemsPerPage);
   const indexOfLastItem = Math.min(
     currentPage * itemsPerPage,
-    filteredTasks.length
+    filteredTasks.length,
   );
   const indexOfFirstItem = (currentPage - 1) * itemsPerPage;
   const currentTasks = filteredTasks.slice(indexOfFirstItem, indexOfLastItem);
@@ -331,7 +331,7 @@ const AdminTaskTMS = () => {
         const timer = activeTimers[taskId];
         if (timer) {
           const elapsedSeconds = Math.floor(
-            (now - new Date(timer.startTime)) / 1000
+            (now - new Date(timer.startTime)) / 1000,
           );
           const newSeconds = timer.totalSeconds + elapsedSeconds;
 
@@ -351,7 +351,7 @@ const AdminTaskTMS = () => {
   }, [activeTimers, timerSeconds]);
   return (
     <div className="container-fluid ">
-      <h2 style={{ color: "#3A5FBE", fontSize: "25px" }}>Task</h2>
+      <h2 style={{ color: "#3A5FBE", fontSize: "25px" }}>Tasks</h2>
 
       {/* Stat Cards */}
       <div className="row g-3 mb-4">
@@ -945,7 +945,7 @@ const AdminTaskTMS = () => {
                             {formatTimeClock(
                               timerSeconds[task._id] ||
                                 task.timeTracking.totalSeconds ||
-                                0
+                                0,
                             )}
                           </span>
                         </div>
@@ -1042,8 +1042,8 @@ const AdminTaskTMS = () => {
           onClick={() => setSelectedTask(null)}
         >
           <div
-            className="modal-dialog modal-dialog-scrollable"
-            style={{ maxWidth: "650px", width: "95%", marginTop: "200px" }}
+            className="modal-dialog "
+            style={{ maxWidth: "650px", width: "95%", marginTop: "120px" }}
           >
             <div className="modal-content">
               <div
@@ -1187,7 +1187,7 @@ const AdminTaskTMS = () => {
                             {formatTimeClock(
                               timerSeconds[selectedTask._id] ||
                                 selectedTask.timeTracking.totalSeconds ||
-                                0
+                                0,
                             )}
                           </span>
                         </div>

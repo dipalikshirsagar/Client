@@ -1,435 +1,737 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 function Resignation() {
-    const [requests, setRequests] = useState([
-        {
-            id: "RES001",
-            empId: "EMP001",
-            name: "Rushikesh Takale",
-            designation: "Software Engineer",
-            dept: "IT",
-            joiningDate: "01-06-2023",
-            reportingManager: "Sagar Patil",
-            applyDate: "29-12-2025",
-            lwd: "31-01-2026",
-            reason: "Career Growth",
-            status: "Pending",
+  const [requests, setRequests] = useState([]);
+  const [filteredRequests, setFilteredRequests] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [selected, setSelected] = useState(null);
+  const [editedLwd, setEditedLwd] = useState("");
+  const [comment, setComment] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+
+  // Get token from localStorage
+  const getToken = () => {
+    return localStorage.getItem("token") || localStorage.getItem("accessToken");
+  };
+
+  // Get all resignations
+  const fetchResignations = async () => {
+    try {
+      const token = getToken();
+      const response = await axios.get("https://server-backend-nu.vercel.app/resignation", {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-    ]);
+      });
 
-    const [showModal, setShowModal] = useState(false);
-    const [selected, setSelected] = useState(null);
-    const [editedLwd, setEditedLwd] = useState("");
-    const [comment, setComment] = useState("");
-    const [viewType, setViewType] = useState("current");
-    const [searchText, setSearchText] = useState("");
-    const [appliedSearch, setAppliedSearch] = useState("");
-    const filteredRequests = requests.filter((r) => {
-        const search = appliedSearch.toLowerCase();
+      const transformedData = response.data.map((r) => ({
+        id: r.resignationId,
+        empId: r.employeeId,
+        name: r.employeeName,
+        designation: r.designation,
+        dept: r.department,
+        applyDate: formatDate(r.applyDate),
+        lwd: r.lastWorkingDay ? formatDate(r.lastWorkingDay) : "-",
+        reason: r.reason,
+        status: r.status,
+        approverComment: r.approverComment || "-",
+        approvedBy: r.approvedBy
+          ? {
+              name: r.approvedBy.name,
+            }
+          : null,
+        approvedDate: r.approvedDate ? formatDate(r.approvedDate) : null,
+        joiningDate: r.joiningDate ? formatDate(r.joiningDate) : "N/A",
+        reportingManager: r.reportingManager || "Not assigned",
+        comments: r.comments || "",
+        originalData: r,
+      }));
 
-        const matchesSearch =
-            r.id.toLowerCase().includes(search) ||
-            r.empId.toLowerCase().includes(search) ||
-            r.name.toLowerCase().includes(search) ||
-            r.designation.toLowerCase().includes(search) ||
-            r.dept.toLowerCase().includes(search) ||
-            r.status.toLowerCase().includes(search) ||
-            r.reportingManager.toLowerCase().includes(search) ||
-            r.applyDate.toLowerCase().includes(search) ||
-            r.lwd.toLowerCase().includes(search);
+      setRequests(transformedData);
+      setFilteredRequests(transformedData);
+    } catch (err) {
+      console.error("Error fetching resignations:", err);
+      if (err.response?.status === 401) {
+        alert("Authentication failed. Please log in again.");
+      }
+    }
+  };
 
-        const matchesView =
-            viewType === "current"
-                ? r.status === "Pending"
-                : r.status !== "Pending";
+  // Approve/reject resignation
+  const handleResignationAction = async (action) => {
+    if (action === "approve") {
+      if (!editedLwd) {
+        alert("Please enter Last Working Day for approval");
+        return;
+      }
+    } else if (action === "reject") {
+      if (!comment.trim()) {
+        alert("Please enter rejection reason");
+        return;
+      }
+    }
 
-        return matchesSearch && matchesView;
+    try {
+      const token = getToken();
+      if (!token) {
+        alert("Authentication token not found. Please log in again.");
+        return;
+      }
+
+      const payload = {
+        action: action,
+        lastWorkingDay: action === "approve" ? editedLwd : null,
+        approverComment: comment || "-",
+      };
+
+      const response = await axios.put(
+        `https://server-backend-nu.vercel.app/resignation/${selected.originalData.resignationId}`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (response.data.message) {
+        alert(response.data.message);
+        closeModal();
+        fetchResignations();
+      }
+    } catch (err) {
+      console.error(`Error ${action}ing resignation:`, err);
+      if (err.response?.status === 401) {
+        alert("Authentication failed. Please log in again.");
+      } else {
+        alert(err.response?.data?.message || `Failed to ${action} resignation`);
+      }
+    }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
     });
+  };
 
+  useEffect(() => {
+    fetchResignations();
+  }, []);
 
+  // Filter and search logic
+  useEffect(() => {
+    let temp = [...requests];
 
-    // OPEN MODAL
-    const openModal = (item) => {
-        setSelected(item);
-        setEditedLwd(item.lwd);
-        setComment("");
-        setShowModal(true);
-    };
+    if (searchInput.trim() !== "") {
+      const query = searchInput.toLowerCase();
+      temp = temp.filter((r) => {
+        const searchableFields = [
+          r.id,
+          r.empId,
+          r.name,
+          r.designation,
+          r.dept,
+          r.status,
+          r.reportingManager,
+          r.applyDate,
+          r.lwd,
+          r.reason,
+          r.approverComment,
+          r.comments,
+          r.approvedBy?.name,
+        ];
 
-    // CLOSE MODAL
-    const closeModal = () => {
-        setShowModal(false);
-        setSelected(null);
-    };
+        const searchString = searchableFields
+          .filter((field) => field !== null && field !== undefined)
+          .join(" ")
+          .toLowerCase();
 
-    // APPROVE
-    const handleApprove = () => {
-        setRequests((prev) =>
-            prev.map((r) =>
-                r.id === selected.id
-                    ? { ...r, status: "Approved", lwd: editedLwd }
-                    : r
-            )
-        );
-        closeModal();
-    };
+        return searchString.includes(query);
+      });
+    }
 
-    // REJECT
-    const handleReject = () => {
-        if (!comment.trim()) {
-            alert("Please enter rejection reason");
-            return;
-        }
+    setFilteredRequests(temp);
+    setCurrentPage(1);
+  }, [requests, searchInput]);
 
-        setRequests((prev) =>
-            prev.map((r) =>
-                r.id === selected.id ? { ...r, status: "Rejected" } : r
-            )
-        );
-        closeModal();
-    };
+  // Open modal
+  const openModal = (item) => {
+    setSelected(item);
+    setEditedLwd(item.lwd === "To be set" ? "" : item.lwd);
+    setComment("");
+    setShowModal(true);
+  };
 
-    const handleSearch = () => {
-        setAppliedSearch(searchText);
-    };
-    const handleReset = () => {
-        setSearchText("");
-        setAppliedSearch("");
-    };
+  // Close modal
+  const closeModal = () => {
+    setShowModal(false);
+    setSelected(null);
+  };
 
+  // Approve
+  const handleApprove = () => {
+    handleResignationAction("approve");
+  };
 
-    return (
-        <div style={{ padding: "24px", background: "#f8fafc", minHeight: "100vh" }}>
-            <h2 style={{ color: "#3A5FBE", marginBottom: "16px" }}>
-                HR – Resignation Requests
-            </h2>
-            <div
-                style={{
-                    background: "#ffffff",
-                    padding: "10px 14px",
-                    borderRadius: "10px",
+  // Reject
+  const handleReject = () => {
+    handleResignationAction("reject");
+  };
+
+  // Reset filters
+  const resetFilters = () => {
+    setSearchInput("");
+  };
+
+  // Calculate counts for status cards
+  const statusCounts = requests.reduce((acc, request) => {
+    acc.total = (acc.total || 0) + 1;
+    if (request.status === "Pending") {
+      acc.pending = (acc.pending || 0) + 1;
+    } else if (request.status === "Approved") {
+      acc.approved = (acc.approved || 0) + 1;
+    } else if (request.status === "Rejected") {
+      acc.rejected = (acc.rejected || 0) + 1;
+    }
+    return acc;
+  }, {});
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
+  const indexOfLastItem = Math.min(
+    currentPage * itemsPerPage,
+    filteredRequests.length,
+  );
+  const indexOfFirstItem = (currentPage - 1) * itemsPerPage;
+  const currentRequests = filteredRequests.slice(
+    indexOfFirstItem,
+    indexOfLastItem,
+  );
+
+  const handlePageChange = (pageNumber) => {
+    if (pageNumber < 1 || pageNumber > totalPages) return;
+    setCurrentPage(pageNumber);
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "Pending":
+        return { bg: "#fde68a", color: "#92400e" };
+      case "Approved":
+        return { bg: "#bbf7d0", color: "#065f46" };
+      case "Rejected":
+        return { bg: "#fecaca", color: "#7f1d1d" };
+      default:
+        return { bg: "#e5e7eb", color: "#374151" };
+    }
+  };
+
+  return (
+    <div className="container-fluid">
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2 style={{ color: "#3A5FBE", fontSize: "25px", marginLeft: "15px" }}>
+          Resignation Requests
+        </h2>
+      </div>
+
+      {/* Status Cards */}
+      <div className="row g-3 mb-4">
+        {[
+          {
+            title: "Total Requests",
+            count: statusCounts.total || 0,
+            bg: "#D1ECF1",
+          },
+          {
+            title: "Pending Requests",
+            count: statusCounts.pending || 0,
+            bg: "#FFE493",
+          },
+          {
+            title: "Approved Requests",
+            count: statusCounts.approved || 0,
+            bg: "#D7F5E4",
+          },
+          {
+            title: "Rejected Requests",
+            count: statusCounts.rejected || 0,
+            bg: "#F2C2C2",
+          },
+        ].map((stat, idx) => (
+          <div className="col-12 col-md-4 col-lg-3 mb-3" key={idx}>
+            <div className="card shadow-sm h-100 border-0">
+              <div
+                className="card-body d-flex align-items-center"
+                style={{ gap: "20px" }}
+              >
+                <h4
+                  className="mb-0"
+                  style={{
+                    fontSize: "32px",
+                    backgroundColor: stat.bg,
+                    padding: "15px",
+                    textAlign: "center",
+                    minWidth: "70px",
+                    minHeight: "70px",
                     display: "flex",
                     alignItems: "center",
-                    gap: "12px",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-                    border: "1px solid #e5e7eb",
-                    marginBottom: "16px",
-                }}
-            >
-                {/* SMALL LABEL */}
-                <div
-                    style={{
-                        fontSize: "15px",        // 👈 size कमी
-                        fontWeight: "500",
-                        color: "#3A5FBE",
-                        whiteSpace: "nowrap",
-                    }}
+                    justifyContent: "center",
+                    color: "#3A5FBE",
+                  }}
                 >
-                    Search by any feild
-                </div>
-
-                {/* INPUT */}
-                <input
-                    type="text"
-                    placeholder="Search by any field..."
-                    value={searchText}
-                    onChange={(e) => setSearchText(e.target.value)}
-                    style={{
-                        width: "320px",         // 👈 MAIN FIX (adjust as needed)
-                        height: "34px",
-                        padding: "4px 10px",
-                        borderRadius: "6px",
-                        border: "1px solid #cbd5f5",
-                        outline: "none",
-                        fontSize: "13px",
-                    }}
-                />
-
-                {/* SEARCH BUTTON */}
-                <button
-                    onClick={handleSearch}
-                    className="btn btn-sm custom-outline-btn"
-                    style={{
-                        marginLeft: "800px",
-                    }}
+                  {stat.count}
+                </h4>
+                <p
+                  className="mb-0 fw-semibold"
+                  style={{ fontSize: "18px", color: "#3A5FBE" }}
                 >
-                    Search
-                </button>
-
-                {/* RESET BUTTON */}
-                <button
-                    onClick={handleReset}
-                    className="btn btn-sm custom-outline-btn"
-                >
-                    Reset
-                </button>
+                  {stat.title}
+                </p>
+              </div>
             </div>
+          </div>
+        ))}
+      </div>
 
-
-            <div style={{ display: "flex", gap: "10px", marginBottom: "14px" }}>
-                <button
-                    onClick={() => setViewType("current")}
-                    className="btn btn-sm custom-outline-btn"
-                >
-                    Current Requests
-                </button>
-
-                <button
-                    onClick={() => setViewType("previous")}
-                    className="btn btn-sm custom-outline-btn"
-                >
-                    Previous Requests
-                </button>
-            </div>
-
-            {/* ===== TABLE ===== */}
+      {/* Filter Section */}
+      <div className="card mb-4 shadow-sm border-0">
+        <div className="card-body">
+          <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
+            {/* Search Input */}
             <div
-                style={{
-                    background: "#fff",
-                    borderRadius: "12px",
-                    overflow: "hidden",
-                    boxShadow: "0 4px 14px rgba(0,0,0,0.08)",
-                }}
+              className="d-flex align-items-center gap-2"
+              style={{ maxWidth: "400px" }}
             >
-
-
-                <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                    <thead>
-                        <tr style={{ background: "#3A5FBE", color: "#fff" }}>
-                            <th style={th}>Resignation ID</th>
-                            <th style={th}>Employee ID</th>
-                            <th style={th}>Employee Name</th>
-                            <th style={th}>Designation</th>
-                            <th style={th}>Department</th>
-                            <th style={th}>Apply Date</th>
-                            <th style={th}>LWD</th>
-                            <th style={th}>Status</th>
-                            <th style={th}>Action</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        {filteredRequests.map((r) => (
-
-                            <tr key={r.id} style={{ borderBottom: "1px solid #e5e7eb" }}>
-                                <td style={td}>{r.id}</td>
-                                <td style={td}>{r.empId}</td>
-                                <td style={td}>{r.name}</td>
-                                <td style={td}>{r.designation}</td>
-                                <td style={td}>{r.dept}</td>
-                                <td style={td}>{r.applyDate}</td>
-                                <td style={td}>{r.lwd}</td>
-                                <td style={td}>
-                                    <span style={statusPill(r.status)}>{r.status}</span>
-                                </td>
-                                <td style={td}>
-                                    <button className="btn btn-sm custom-outline-btn" onClick={() => openModal(r)}>
-                                        View
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+              <label
+                className="fw-bold mb-0"
+                style={{ fontSize: "16px", color: "#3A5FBE" }}
+              >
+                Search
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Search by any field..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+              />
             </div>
 
-            {/* ===== MODAL ===== */}
-            {showModal && selected && (
-
-                <div style={overlay}>
-                    <div style={modal}>
-                        {/* MODAL HEADER */}
-                        <div style={modalHeader}>Resignation Details</div>
-
-                        {/* MODAL BODY */}
-                        <div style={{ padding: "16px", fontSize: "14px" }}>
-                            {/* Employee Info */}
-                            <div style={section}>
-                                <h4 style={sectionTitle}>Employee Information</h4>
-                                <p><b>Employee ID:</b> {selected.empId}</p>
-                                <p><b>Name:</b> {selected.name}</p>
-                                <p><b>Designation:</b> {selected.designation}</p>
-                                <p><b>Department:</b> {selected.dept}</p>
-                                <p><b>Joining Date:</b> {selected.joiningDate}</p>
-                                <p><b>Reporting Manager:</b> {selected.reportingManager}</p>
-                            </div>
-
-                            {/* Resignation Info */}
-                            <div style={section}>
-                                <h4 style={sectionTitle}>Resignation Information</h4>
-                                <p><b>Apply Date:</b> {selected.applyDate}</p>
-                                <p><b>Reason:</b> {selected.reason}</p>
-                                <p>
-                                    <b>Status:</b>{" "}
-                                    <span style={statusPill(selected.status)}>
-                                        {selected.status}
-                                    </span>
-                                </p>
-                            </div>
-
-                            {/* HR Action */}
-                            <div style={section}>
-                                <h4 style={sectionTitle}>HR Action</h4>
-
-                                <label><b>Last Working Day</b></label>
-                                <input
-                                    type="date"
-                                    value={editedLwd}
-                                    onChange={(e) => setEditedLwd(e.target.value)}
-                                    style={input}
-                                />
-
-                                <textarea
-                                    placeholder="Rejection comment (required if rejecting)"
-                                    value={comment}
-                                    onChange={(e) => setComment(e.target.value)}
-                                    style={textarea}
-                                />
-                            </div>
-
-                            {/* Buttons */}
-                            <div style={{ display: "flex", gap: "10px" }}>
-                                <button style={approveBtn} onClick={handleApprove}>
-                                    Approve
-                                </button>
-                                <button style={rejectBtn} onClick={handleReject}>
-                                    Reject
-                                </button>
-                                <button className="btn btn-sm custom-outline-btn" onClick={closeModal}>
-                                    Cancel
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* Filter and Reset Buttons */}
+            <div className="d-flex gap-2 ms-auto">
+              <button
+                type="button"
+                style={{ minWidth: 90 }}
+                className="btn btn-sm custom-outline-btn"
+                onClick={() => {}}
+              >
+                Filter
+              </button>
+              <button
+                type="button"
+                style={{ minWidth: 90 }}
+                className="btn btn-sm custom-outline-btn"
+                onClick={resetFilters}
+              >
+                Reset
+              </button>
+            </div>
+          </div>
         </div>
-    );
+      </div>
+
+      {/* Table */}
+      <div className="card shadow-sm border-0 mt-4">
+        <div className="table-responsive">
+          <table className="table table-hover align-middle mb-0 bg-white">
+            <thead style={{ backgroundColor: "#ffffffff" }}>
+              <tr>
+                <th style={thStyle}>Resignation ID</th>
+                <th style={thStyle}>Employee ID</th>
+                <th style={thStyle}>Employee Name</th>
+                <th style={thStyle}>Designation</th>
+                <th style={thStyle}>Department</th>
+                <th style={thStyle}>Apply Date</th>
+                <th style={thStyle}>LWD</th>
+                <th style={thStyle}>Approved/Rejected By</th>
+                <th style={thStyle}>Status</th>
+                <th style={thStyle}>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentRequests.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan="10"
+                    className="text-center py-4"
+                    style={{ color: "#6c757d" }}
+                  >
+                    No resignation requests found
+                  </td>
+                </tr>
+              ) : (
+                currentRequests.map((r) => (
+                  <tr key={r.id}>
+                    <td style={tdStyle}>{r.id}</td>
+                    <td style={tdStyle}>{r.empId}</td>
+                    <td style={tdStyle}>{r.name}</td>
+                    <td style={tdStyle}>{r.designation}</td>
+                    <td style={tdStyle}>{r.dept}</td>
+                    <td style={tdStyle}>{r.applyDate}</td>
+                    <td style={tdStyle}>{r.lwd}</td>
+                    <td style={tdStyle}>
+                      {r.approvedBy ? <div>{r.approvedBy.name}</div> : "N/A"}
+                    </td>
+                    <td style={tdStyle}>
+                      <span
+                        style={{
+                          padding: "6px 14px",
+                          borderRadius: "4px",
+                          fontSize: "13px",
+                          fontWeight: "500",
+                          backgroundColor: getStatusColor(r.status).bg,
+                          color: getStatusColor(r.status).color,
+                          display: "inline-block",
+                          minWidth: "100px",
+                          textAlign: "center",
+                        }}
+                      >
+                        {r.status}
+                      </span>
+                    </td>
+                    <td style={tdStyle}>
+                      <button
+                        className="btn btn-sm custom-outline-btn"
+                        onClick={() => openModal(r)}
+                      >
+                        View
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Pagination */}
+      <nav className="d-flex align-items-center justify-content-end mt-3 text-muted">
+        <div className="d-flex align-items-center gap-3">
+          {/* Rows per page */}
+          <div className="d-flex align-items-center">
+            <span
+              style={{ fontSize: "14px", marginRight: "8px", color: "#212529" }}
+            >
+              Rows per page:
+            </span>
+            <select
+              className="form-select form-select-sm"
+              style={{ width: "auto", fontSize: "14px" }}
+              value={itemsPerPage}
+              onChange={(e) => {
+                setItemsPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+            </select>
+          </div>
+          {/* Range display */}
+          <span
+            style={{ fontSize: "14px", marginLeft: "16px", color: "#212529" }}
+          >
+            {filteredRequests.length === 0
+              ? "0–0 of 0"
+              : `${indexOfFirstItem + 1}-${indexOfLastItem} of ${filteredRequests.length}`}
+          </span>
+
+          {/* Arrows */}
+          <div
+            className="d-flex align-items-center"
+            style={{ marginLeft: "16px" }}
+          >
+            <button
+              className="btn btn-sm border-0"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              style={{ fontSize: "18px", padding: "2px 8px", color: "#212529" }}
+            >
+              ‹
+            </button>
+            <button
+              className="btn btn-sm border-0"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              style={{ fontSize: "18px", padding: "2px 8px", color: "#212529" }}
+            >
+              ›
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Modal */}
+      {showModal && selected && (
+        <div
+          className="modal fade show"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.5)",
+            position: "fixed",
+            inset: 0,
+            zIndex: 1050,
+          }}
+        >
+          <div
+            className="modal-dialog modal-dialog-scrollable"
+            style={{ maxWidth: "650px", width: "95%" }}
+          >
+            <div className="modal-content">
+              {/* Header */}
+              <div
+                className="modal-header text-white"
+                style={{ backgroundColor: "#3A5FBE" }}
+              >
+                <h5 className="modal-title mb-0">Resignation Details</h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={closeModal}
+                />
+              </div>
+
+              {/* Body */}
+              <div className="modal-body">
+                <div className="container-fluid">
+                  {/* Employee Information */}
+                  <div className="row mb-3">
+                    <div className="col-12">
+                      <h6
+                        className="fw-semibold mb-3"
+                        style={{ color: "#3A5FBE" }}
+                      >
+                        Employee Information
+                      </h6>
+                    </div>
+                    <div className="col-md-6 mb-2">
+                      <div className="fw-semibold">Employee ID</div>
+                      <div>{selected.empId}</div>
+                    </div>
+                    <div className="col-md-6 mb-2">
+                      <div className="fw-semibold">Name</div>
+                      <div>{selected.name}</div>
+                    </div>
+                    <div className="col-md-6 mb-2">
+                      <div className="fw-semibold">Designation</div>
+                      <div>{selected.designation}</div>
+                    </div>
+                    <div className="col-md-6 mb-2">
+                      <div className="fw-semibold">Department</div>
+                      <div>{selected.dept}</div>
+                    </div>
+                    <div className="col-md-6 mb-2">
+                      <div className="fw-semibold">Joining Date</div>
+                      <div>{selected.joiningDate}</div>
+                    </div>
+                    <div className="col-md-6 mb-2">
+                      <div className="fw-semibold">Reporting Manager</div>
+                      <div>{selected.reportingManager}</div>
+                    </div>
+                  </div>
+
+                  {/* Resignation Information */}
+                  <div className="row mb-3">
+                    <div className="col-12">
+                      <h6
+                        className="fw-semibold mb-3"
+                        style={{ color: "#3A5FBE" }}
+                      >
+                        Resignation Information
+                      </h6>
+                    </div>
+                    <div className="col-md-6 mb-2">
+                      <div className="fw-semibold">Apply Date</div>
+                      <div>{selected.applyDate}</div>
+                    </div>
+                    <div className="col-md-6 mb-2">
+                      <div className="fw-semibold">Status</div>
+                      <div>
+                        <span
+                          style={{
+                            padding: "4px 12px",
+                            borderRadius: "999px",
+                            fontSize: "12px",
+                            backgroundColor: getStatusColor(selected.status).bg,
+                            color: getStatusColor(selected.status).color,
+                          }}
+                        >
+                          {selected.status}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="col-12 mb-2">
+                      <div className="fw-semibold">Reason</div>
+                      <div>{selected.reason}</div>
+                    </div>
+                    <div className="col-12 mb-2">
+                      <div className="fw-semibold">Employee Comment</div>
+                      <div>{selected.comments || "-"}</div>
+                    </div>
+                  </div>
+
+                  {/* HR Action Section */}
+                  {selected.status === "Pending" && (
+                    <div className="row mb-3">
+                      <div className="col-12">
+                        <h6
+                          className="fw-semibold mb-3"
+                          style={{ color: "#3A5FBE" }}
+                        >
+                          HR Action
+                        </h6>
+                      </div>
+                      <div className="col-12 mb-3">
+                        <label className="form-label fw-semibold">
+                          Last Working Day *
+                        </label>
+                        <input
+                          type="date"
+                          className="form-control"
+                          value={editedLwd}
+                          onChange={(e) => setEditedLwd(e.target.value)}
+                        />
+                      </div>
+                      <div className="col-12 mb-3">
+                        <label className="form-label fw-semibold">
+                          Comments{" "}
+                          {selected.status === "Pending" &&
+                            "(Required for rejection)"}
+                        </label>
+                        <textarea
+                          className="form-control"
+                          rows="3"
+                          placeholder="Enter comments here..."
+                          value={comment}
+                          onChange={(e) => setComment(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Processed Details */}
+                  {selected.status !== "Pending" && (
+                    <div className="row mb-3">
+                      <div className="col-12">
+                        <h6
+                          className="fw-semibold mb-3"
+                          style={{ color: "#3A5FBE" }}
+                        >
+                          Processed Details
+                        </h6>
+                      </div>
+                      <div className="col-md-6 mb-2">
+                        <div className="fw-semibold">Approver Comment</div>
+                        <div>{selected.approverComment}</div>
+                      </div>
+                      <div className="col-md-6 mb-2">
+                        <div className="fw-semibold">Approved/Rejected By</div>
+                        <div>
+                          {selected.approvedBy ? (
+                            <div>
+                              <div>{selected.approvedBy.name}</div>
+                            </div>
+                          ) : (
+                            "N/A"
+                          )}
+                        </div>
+                      </div>
+                      <div className="col-md-6 mb-2">
+                        <div className="fw-semibold">
+                          Approved/Rejected Date
+                        </div>
+                        <div>{selected.approvedDate || "N/A"}</div>
+                      </div>
+                      <div className="col-md-6 mb-2">
+                        <div className="fw-semibold">Last Working Day</div>
+                        <div>{selected.lwd}</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="modal-footer border-0 pt-0 d-flex gap-2">
+                {selected.status === "Pending" ? (
+                  <>
+                    <button
+                      className="btn btn-sm custom-outline-btn"
+                      style={{
+                        backgroundColor: "#22c55e",
+                        color: "#fff",
+                        border: "none",
+                      }}
+                      onClick={handleApprove}
+                    >
+                      Approve
+                    </button>
+                    <button
+                      className="btn btn-sm custom-outline-btn"
+                      style={{
+                        backgroundColor: "#ef4444",
+                        color: "#fff",
+                        border: "none",
+                      }}
+                      onClick={handleReject}
+                    >
+                      Reject
+                    </button>
+                  </>
+                ) : null}
+                <button
+                  className="btn btn-sm custom-outline-btn"
+                  onClick={closeModal}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
-/* ===== STYLES ===== */
-
-const th = {
-    padding: "12px",
-    fontSize: "14px",
-    fontWeight: "500",
-    textAlign: "left",
+// Table styles
+const thStyle = {
+  fontWeight: "500",
+  fontSize: "14px",
+  color: "#6c757d",
+  borderBottom: "2px solid #dee2e6",
+  padding: "12px",
+  whiteSpace: "nowrap",
 };
 
-const td = {
-    padding: "12px",
-    fontSize: "13px",
-    color: "#0f172a",
-};
-
-const statusPill = (status) => ({
-    padding: "4px 12px",
-    borderRadius: "999px",
-    fontSize: "12px",
-    background:
-        status === "Pending"
-            ? "#fde68a"
-            : status === "Approved"
-                ? "#bbf7d0"
-                : "#fecaca",
-    color:
-        status === "Pending"
-            ? "#92400e"
-            : status === "Approved"
-                ? "#065f46"
-                : "#7f1d1d",
-});
-const toggleBtn = {
-    border: "none",
-    padding: "8px 14px",
-    borderRadius: "6px",
-    cursor: "pointer",
-    fontSize: "14px",
-};
-
-const viewBtn = {
-    border: "1px solid #3A5FBE",
-    background: "#fff",
-    color: "#3A5FBE",
-    padding: "6px 12px",
-    borderRadius: "6px",
-    cursor: "pointer",
-};
-
-const overlay = {
-    position: "fixed",
-    inset: 0,
-    background: "rgba(0,0,0,0.4)",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 1000,
-};
-
-const modal = {
-    width: "480px",
-    background: "#ffffff",
-    borderRadius: "12px",
-    overflow: "hidden",
-};
-
-const modalHeader = {
-    background: "#3A5FBE",
-    color: "#ffffff",
-    padding: "14px 18px",
-    fontSize: "18px",
-    fontWeight: "500",
-};
-
-const section = {
-    marginBottom: "12px",
-    paddingBottom: "8px",
-    borderBottom: "1px solid #e5e7eb",
-};
-
-const sectionTitle = {
-    color: "#3A5FBE",
-    fontSize: "15px",
-    marginBottom: "6px",
-};
-
-const input = {
-    width: "100%",
-    padding: "8px",
-    marginTop: "6px",
-};
-
-const textarea = {
-    width: "100%",
-    height: "70px",
-    marginTop: "10px",
-    padding: "8px",
-};
-
-const approveBtn = {
-    background: "#22c55e",
-    color: "#fff",
-    border: "none",
-    padding: "8px 14px",
-    borderRadius: "6px",
-    cursor: "pointer",
-};
-
-const rejectBtn = {
-    background: "#ef4444",
-    color: "#fff",
-    border: "none",
-    padding: "8px 14px",
-    borderRadius: "6px",
-    cursor: "pointer",
-};
-
-const cancelBtn = {
-    background: "#e5e7eb",
-    border: "none",
-    padding: "8px 14px",
-    borderRadius: "6px",
-    cursor: "pointer",
+const tdStyle = {
+  padding: "12px",
+  verticalAlign: "middle",
+  fontSize: "14px",
+  borderBottom: "1px solid #dee2e6",
+  whiteSpace: "nowrap",
 };
 
 export default Resignation;

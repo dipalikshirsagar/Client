@@ -45,8 +45,10 @@ function HRDashboard({ user }) {
           const result = [];
           const maxLength = Math.max(leavesArr.length, regsArr.length);
           for (let i = 0; i < maxLength; i++) {
-            if (i < leavesArr.length) result.push({ ...leavesArr[i], type: "Leave" });
-            if (i < regsArr.length) result.push({ ...regsArr[i], type: "Regularization" });
+            if (i < leavesArr.length)
+              result.push({ ...leavesArr[i], type: "Leave" });
+            if (i < regsArr.length)
+              result.push({ ...regsArr[i], type: "Regularization" });
           }
           return result;
         };
@@ -74,9 +76,10 @@ function HRDashboard({ user }) {
     >
       <span className="visually-hidden">Loading...</span>
     </div>
-    <p className="mt-3 fw-semibold" style={{ color: "#3A5FBE" }}>Loading ...</p>
-  </div>
-
+    <p className="mt-3 fw-semibold" style={{ color: "#3A5FBE" }}>
+      Loading ...
+    </p>
+  </div>;
 
   if (loading) {
     return (
@@ -98,7 +101,6 @@ function HRDashboard({ user }) {
     );
   }
 
-
   const checkedInCount =
     attendanceData?.employees?.filter((emp) => emp.hasCheckedIn).length || 0;
   const pendingLeaves = leaves.filter((l) => l.status === "pending");
@@ -119,16 +121,36 @@ function HRDashboard({ user }) {
   const upcomingEvents = employees
     .map((emp) => {
       const dob = new Date(emp.dob);
-      let nextBirthday = new Date(today.getFullYear(), dob.getMonth(), dob.getDate());
-      if (nextBirthday < today) nextBirthday.setFullYear(today.getFullYear() + 1);
+      let nextBirthday = new Date(
+        today.getFullYear(),
+        dob.getMonth(),
+        dob.getDate()
+      );
+      if (nextBirthday < today)
+        nextBirthday.setFullYear(today.getFullYear() + 1);
 
       const doj = new Date(emp.doj);
-      let nextAnniversary = new Date(today.getFullYear(), doj.getMonth(), doj.getDate());
-      if (nextAnniversary < today) nextAnniversary.setFullYear(today.getFullYear() + 1);
+      let nextAnniversary = new Date(
+        today.getFullYear(),
+        doj.getMonth(),
+        doj.getDate()
+      );
+      if (nextAnniversary < today)
+        nextAnniversary.setFullYear(today.getFullYear() + 1);
 
       return [
-        { type: "Birthday", name: emp.name, date: nextBirthday, isToday: nextBirthday.toDateString() === today.toDateString() },
-        { type: "Anniversary", name: emp.name, date: nextAnniversary, isToday: nextAnniversary.toDateString() === today.toDateString() },
+        {
+          type: "Birthday",
+          name: emp.name,
+          date: nextBirthday,
+          isToday: nextBirthday.toDateString() === today.toDateString(),
+        },
+        {
+          type: "Anniversary",
+          name: emp.name,
+          date: nextAnniversary,
+          isToday: nextAnniversary.toDateString() === today.toDateString(),
+        },
       ];
     })
     .flat()
@@ -145,24 +167,44 @@ function HRDashboard({ user }) {
             <div className="col-md-6 mt-3">
               <div className="card shadow-sm h-100">
                 <div className="card-body d-flex justify-content-between align-items-center">
-                  <div style={{
-                    backgroundColor: "#D7F5E4", padding: "10px",
-                    textAlign: "center",
-                    minWidth: "75px",
-                    minHeight: "75px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center"
-                  }}>
-                    <h4 className="text-success mb-0" style={{ fontSize: "40px" }}>{employees.length}</h4>
+                  <div
+                    style={{
+                      backgroundColor: "#D7F5E4",
+                      padding: "10px",
+                      textAlign: "center",
+                      minWidth: "75px",
+                      minHeight: "75px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <h4
+                      className="text-success mb-0"
+                      style={{ fontSize: "40px" }}
+                    >
+                      {employees.length}
+                    </h4>
                   </div>
-                  <p className="mb-0 fw-semibold" style={{ fontSize: "20px", color: "#3A5FBE" }}>
-                    <span style={{ marginLeft: "20px", display: "inline-block" }}>Total</span><br />
+                  <p
+                    className="mb-0 fw-semibold"
+                    style={{ fontSize: "20px", color: "#3A5FBE" }}
+                  >
+                    <span
+                      style={{ marginLeft: "20px", display: "inline-block" }}
+                    >
+                      Total
+                    </span>
+                    <br />
                     Employees
-                  </p>                  <button
+                  </p>{" "}
+                  <button
                     className="btn btn-sm custom-outline-btn"
-                   
-                    onClick={() => navigate(`/dashboard/${role}/${username}/${id}/allemployeedetails`)}
+                    onClick={() =>
+                      navigate(
+                        `/dashboard/${role}/${username}/${id}/allemployeedetails`
+                      )
+                    }
                   >
                     View
                   </button>
@@ -173,27 +215,47 @@ function HRDashboard({ user }) {
             {/* Pending Leaves */}
             <div className="col-md-6 mt-3">
               {/* onClick={() => navigate(`/dashboard/${role}/${username}/${id}/leavebalance`)} */}
-              <div className="card shadow-sm h-100" >
+              <div className="card shadow-sm h-100">
                 <div className="card-body d-flex justify-content-between align-items-center">
-                  <div style={{
-                    backgroundColor: "#FFE493", padding: "10px",
-                    textAlign: "center",
-                    minWidth: "75px",
-                    minHeight: "75px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center"
-                  }}>
-                    <h4 className="text-success mb-0" style={{ fontSize: "40px" }}>{pendingLeaves.length}</h4>
+                  <div
+                    style={{
+                      backgroundColor: "#FFE493",
+                      padding: "10px",
+                      textAlign: "center",
+                      minWidth: "75px",
+                      minHeight: "75px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <h4
+                      className="text-success mb-0"
+                      style={{ fontSize: "40px" }}
+                    >
+                      {pendingLeaves.length}
+                    </h4>
                   </div>
-                  <p className="mb-0 fw-semibold" style={{ fontSize: "20px", color: "#3A5FBE" }}>
-                    <span style={{ marginLeft: "30px", display: "inline-block" }}>Pending </span><br />Leave Requests</p>
+                  <p
+                    className="mb-0 fw-semibold"
+                    style={{ fontSize: "20px", color: "#3A5FBE" }}
+                  >
+                    <span
+                      style={{ marginLeft: "30px", display: "inline-block" }}
+                    >
+                      Pending{" "}
+                    </span>
+                    <br />
+                    Leave Requests
+                  </p>
                   <button
                     className="btn btn-sm custom-outline-btn"
                     style={{ color: "#3A5FBE", borderColor: "#3A5FBE" }}
                     onClick={(e) => {
                       e.stopPropagation(); // prevent card click event from firing
-                      navigate(`/dashboard/${role}/${username}/${id}/hr-leavebalance`);
+                      navigate(
+                        `/dashboard/${role}/${username}/${id}/hr-leavebalance`
+                      );
                     }}
                   >
                     View
@@ -206,23 +268,45 @@ function HRDashboard({ user }) {
             <div className="col-md-6">
               <div className="card shadow-sm h-100">
                 <div className="card-body d-flex justify-content-between align-items-center">
-                  <div style={{
-                    backgroundColor: "#FFE493", padding: "10px",
-                    textAlign: "center",
-                    minWidth: "75px",
-                    minHeight: "75px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center"
-                  }}>
-                    <h4 className="text-success mb-0" style={{ fontSize: "40px" }}>{pendingRegularizations.length}</h4>
+                  <div
+                    style={{
+                      backgroundColor: "#FFE493",
+                      padding: "10px",
+                      textAlign: "center",
+                      minWidth: "75px",
+                      minHeight: "75px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <h4
+                      className="text-success mb-0"
+                      style={{ fontSize: "40px" }}
+                    >
+                      {pendingRegularizations.length}
+                    </h4>
                   </div>
-                  <p className="mb-0 fw-semibold" style={{ fontSize: "20px", color: "#3A5FBE" }}>
-                    <span style={{ marginLeft: "10px", display: "inline-block" }}>Attendance</span> <br />Regularization</p>
+                  <p
+                    className="mb-0 fw-semibold"
+                    style={{ fontSize: "20px", color: "#3A5FBE" }}
+                  >
+                    <span
+                      style={{ marginLeft: "10px", display: "inline-block" }}
+                    >
+                      Attendance
+                    </span>{" "}
+                    <br />
+                    Regularization
+                  </p>
                   <button
                     className="btn btn-sm custom-outline-btn"
                     style={{ color: "#3A5FBE", borderColor: "#3A5FBE" }}
-                    onClick={() => navigate(`/dashboard/${role}/${username}/${id}/hr-employee-regularization`)}
+                    onClick={() =>
+                      navigate(
+                        `/dashboard/${role}/${username}/${id}/hr-employee-regularization`
+                      )
+                    }
                   >
                     View
                   </button>
@@ -234,23 +318,44 @@ function HRDashboard({ user }) {
             <div className="col-md-6">
               <div className="card shadow-sm h-100">
                 <div className="card-body d-flex justify-content-between align-items-center">
-                  <div style={{
-                    backgroundColor: "#D7F5E4", padding: "10px",
-                    textAlign: "center",
-                    minWidth: "75px",
-                    minHeight: "75px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center"
-                  }}>
-                    <h4 className="text-success mb-0" style={{ fontSize: "40px" }}>{checkedInCount}</h4>
+                  <div
+                    style={{
+                      backgroundColor: "#D7F5E4",
+                      padding: "10px",
+                      textAlign: "center",
+                      minWidth: "75px",
+                      minHeight: "75px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <h4
+                      className="text-success mb-0"
+                      style={{ fontSize: "40px" }}
+                    >
+                      {checkedInCount}
+                    </h4>
                   </div>
-                  <p className="mb-0 fw-semibold" style={{ fontSize: "20px", color: "#3A5FBE" }}>
-                    <span style={{ marginLeft: "20px", display: "inline-block" }}>Today's </span><br /> Attendance</p>
+                  <p
+                    className="mb-0 fw-semibold"
+                    style={{ fontSize: "20px", color: "#3A5FBE" }}
+                  >
+                    <span
+                      style={{ marginLeft: "20px", display: "inline-block" }}
+                    >
+                      Today's{" "}
+                    </span>
+                    <br /> Attendance
+                  </p>
                   <button
                     className="btn btn-sm custom-outline-btn"
                     style={{ color: "#3A5FBE", borderColor: "#3A5FBE" }}
-                    onClick={() => navigate(`/dashboard/${role}/${username}/${id}/TodaysAttendanceDetails`)}
+                    onClick={() =>
+                      navigate(
+                        `/dashboard/${role}/${username}/${id}/TodaysAttendanceDetails`
+                      )
+                    }
                   >
                     View
                   </button>
@@ -271,12 +376,21 @@ function HRDashboard({ user }) {
         {/* Recent Employees */}
         <div className="col-md-4">
           <div className="card shadow-sm h-100">
-            <div className="card-header d-flex justify-content-between align-items-center" style={{ backgroundColor: "#fff" }}>
-              <h6 className="mb-0" style={{ color: "#3A5FBE" }}>Recent Employee Registration</h6>
+            <div
+              className="card-header d-flex justify-content-between align-items-center"
+              style={{ backgroundColor: "#fff" }}
+            >
+              <h6 className="mb-0" style={{ color: "#3A5FBE" }}>
+                Recent Employee Registration
+              </h6>
               <button
                 className="btn btn-sm custom-outline-btn"
                 style={{ color: "#3A5FBE", borderColor: "#3A5FBE" }}
-                onClick={() => navigate(`/dashboard/${role}/${username}/${id}/allemployeedetails`)}
+                onClick={() =>
+                  navigate(
+                    `/dashboard/${role}/${username}/${id}/allemployeedetails`
+                  )
+                }
               >
                 View All
               </button>
@@ -286,22 +400,60 @@ function HRDashboard({ user }) {
                 <table className="table table-hover mb-0">
                   <thead style={{ backgroundColor: "#fff" }}>
                     <tr>
-                      <th style={{ fontWeight: '600', fontSize: '14px', width: '130px' }}>Name</th>
-                      <th style={{ fontWeight: '600', fontSize: '14px' }}>Position</th>
-                      <th style={{ fontWeight: '600', fontSize: '14px' }}>Department</th>
-                      <th style={{ fontWeight: '600', fontSize: '14px', width: '130px' }}>DOJ</th>
+                      <th
+                        style={{
+                          fontWeight: "600",
+                          fontSize: "14px",
+                          width: "130px",
+                        }}
+                      >
+                        Name
+                      </th>
+                      <th style={{ fontWeight: "600", fontSize: "14px" }}>
+                        Position
+                      </th>
+                      <th style={{ fontWeight: "600", fontSize: "14px" }}>
+                        Department
+                      </th>
+                      <th
+                        style={{
+                          fontWeight: "600",
+                          fontSize: "14px",
+                          width: "130px",
+                        }}
+                      >
+                        DOJ
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {mergedEmployees
-                      .filter(emp => emp && emp.name && emp.designation && emp.department && emp.doj)
+                      .filter(
+                        (emp) =>
+                          emp &&
+                          emp.name &&
+                          emp.designation &&
+                          emp.department &&
+                          emp.doj
+                      )
                       .slice(0, 3)
-                      .map(emp => (
+                      .map((emp) => (
                         <tr key={emp._id}>
-                          <td className="text-capitalize" style={{ fontWeight: '400', fontSize: '14px' }}>{emp.name}</td>
-                          <td style={{ fontWeight: '400', fontSize: '14px' }}>{emp.designation}</td>
-                          <td style={{ fontWeight: '400', fontSize: '14px' }}>{emp.department}</td>
-                          <td style={{ fontWeight: '400', fontSize: '14px' }}>{new Date(emp.doj).toLocaleDateString("en-GB")}</td>
+                          <td
+                            className="text-capitalize"
+                            style={{ fontWeight: "400", fontSize: "14px" }}
+                          >
+                            {emp.name}
+                          </td>
+                          <td style={{ fontWeight: "400", fontSize: "14px" }}>
+                            {emp.designation}
+                          </td>
+                          <td style={{ fontWeight: "400", fontSize: "14px" }}>
+                            {emp.department}
+                          </td>
+                          <td style={{ fontWeight: "400", fontSize: "14px" }}>
+                            {new Date(emp.doj).toLocaleDateString("en-GB")}
+                          </td>
                         </tr>
                       ))}
                   </tbody>
@@ -313,13 +465,20 @@ function HRDashboard({ user }) {
 
         {/* Leave & Regularization */}
         <div className="col-md-4">
-          <div className="card shadow-sm h-100" >
-            <div className="card-header d-flex justify-content-between align-items-center" style={{ backgroundColor: "#fff" }}>
-              <h6 className="mb-0" style={{ color: "#3A5FBE" }}>Leave & Regularization Requests</h6>
+          <div className="card shadow-sm h-100">
+            <div
+              className="card-header d-flex justify-content-between align-items-center"
+              style={{ backgroundColor: "#fff" }}
+            >
+              <h6 className="mb-0" style={{ color: "#3A5FBE" }}>
+                Leave & Regularization Requests
+              </h6>
               <button
                 className="btn btn-sm custom-outline-btn"
                 style={{ color: "#3A5FBE", borderColor: "#3A5FBE" }}
-                onClick={() => navigate(`/dashboard/${role}/${username}/${id}/allRequest`)}
+                onClick={() =>
+                  navigate(`/dashboard/${role}/${username}/${id}/allRequest`)
+                }
               >
                 View All
               </button>
@@ -329,10 +488,25 @@ function HRDashboard({ user }) {
                 <table className="table table-hover mb-0">
                   <thead style={{ backgroundColor: "#fff" }}>
                     <tr>
-                      <th style={{ fontWeight: '600', fontSize: '14px' }}>Employee</th>
-                      <th style={{ fontWeight: '600', fontSize: '14px' }}>Type</th>
-                      <th style={{ width: "150px", whiteSpace: "nowrap", fontWeight: '600', fontSize: '14px' }}>Date</th>
-                      <th style={{ fontWeight: '600', fontSize: '14px' }}>Status</th>
+                      <th style={{ fontWeight: "600", fontSize: "14px" }}>
+                        Employee
+                      </th>
+                      <th style={{ fontWeight: "600", fontSize: "14px" }}>
+                        Type
+                      </th>
+                      <th
+                        style={{
+                          width: "150px",
+                          whiteSpace: "nowrap",
+                          fontWeight: "600",
+                          fontSize: "14px",
+                        }}
+                      >
+                        Date
+                      </th>
+                      <th style={{ fontWeight: "600", fontSize: "14px" }}>
+                        Status
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -345,14 +519,27 @@ function HRDashboard({ user }) {
 
                       const formatted =
                         type === "Leave"
-                          ? `${new Date(req.dateFrom).toLocaleDateString()} - ${new Date(req.dateTo).toLocaleDateString()}`
+                          ? `${new Date(
+                              req.dateFrom
+                            ).toLocaleDateString()} - ${new Date(
+                              req.dateTo
+                            ).toLocaleDateString()}`
                           : new Date(req.date).toLocaleDateString();
 
                       return (
                         <tr key={i}>
-                          <td className="text-capitalize" style={{ fontWeight: '400', fontSize: '14px' }}>{req.employee?.name || "N/A"}</td>
-                          <td style={{ fontWeight: '400', fontSize: '14px' }}>{type}</td>
-                          <td style={{ fontWeight: '400', fontSize: '14px' }}>{formatted}</td>
+                          <td
+                            className="text-capitalize"
+                            style={{ fontWeight: "400", fontSize: "14px" }}
+                          >
+                            {req.employee?.name || "N/A"}
+                          </td>
+                          <td style={{ fontWeight: "400", fontSize: "14px" }}>
+                            {type}
+                          </td>
+                          <td style={{ fontWeight: "400", fontSize: "14px" }}>
+                            {formatted}
+                          </td>
                           {/* <td style={{ fontWeight: '400', fontSize: '14px'}}>
                           <span
                             className={`badge ${status.toLowerCase() === "approved"
@@ -365,23 +552,23 @@ function HRDashboard({ user }) {
                             {status.charAt(0).toUpperCase()+status.slice(1).toLowerCase()}
                           </span>
                         </td> */}
-                          <td style={{ fontWeight: '400', fontSize: '14px' }}>
+                          <td style={{ fontWeight: "400", fontSize: "14px" }}>
                             <span
                               className="badge text-dark"
                               style={{
                                 backgroundColor:
                                   status?.toLowerCase() === "approved"
-                                    ? "#d1f2dd"     // green
+                                    ? "#d1f2dd" // green
                                     : status?.toLowerCase() === "rejected"
-                                      ? "#f8d7da"  // yellow
-                                      : "#FFE493", // pending or other
-                                fontWeight: "600"
+                                    ? "#f8d7da" // yellow
+                                    : "#FFE493", // pending or other
+                                fontWeight: "600",
                               }}
                             >
-                              {status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()}
+                              {status.charAt(0).toUpperCase() +
+                                status.slice(1).toLowerCase()}
                             </span>
                           </td>
-
                         </tr>
                       );
                     })}
@@ -465,8 +652,6 @@ function HRDashboard({ user }) {
           <EventCard />
         </div>
       </div>
-
-
     </div>
   );
 }

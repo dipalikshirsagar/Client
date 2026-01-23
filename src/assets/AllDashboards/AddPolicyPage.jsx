@@ -12,7 +12,6 @@ function AddPolicyPage() {
   const [hoverSave, setHoverSave] = useState(false);
   const [hoverCancel, setHoverCancel] = useState(false);
 
-
   const handleSave = async () => {
     if (!title || !description) {
       alert("Please fill all fields");
@@ -28,10 +27,7 @@ function AddPolicyPage() {
         formData.append("image", file); // optional
       }
 
-      await axios.post(
-        "https://server-backend-nu.vercel.app/policy/create",
-        formData
-      );
+      await axios.post("https://server-backend-nu.vercel.app/policy/create", formData);
 
       alert("Policy created successfully");
       navigate(-1);
@@ -40,8 +36,6 @@ function AddPolicyPage() {
       alert(error.response?.data?.message || "Failed to create policy");
     }
   };
-
-
 
   return (
     <div
@@ -77,7 +71,14 @@ function AddPolicyPage() {
             margin: "-24px -24px 20px -24px",
           }}
         >
-          <h3 style={{ color: "#ffffff", margin: 0, fontSize: "18px", fontWeight: "500", }}>
+          <h3
+            style={{
+              color: "#ffffff",
+              margin: 0,
+              fontSize: "18px",
+              fontWeight: "500",
+            }}
+          >
             Add New Policy
           </h3>
 
@@ -147,15 +148,18 @@ function AddPolicyPage() {
             border: "1px solid #d1d5db",
           }}
         />
-        <div className="char-count"
+        <div
+          className="char-count"
           style={{
             display: "flex",
             justifyContent: "flex-end",
             fontSize: "12px",
             color: "#6c757d",
             marginTop: "4px",
-          }}>
-          {description.length}/300</div>
+          }}
+        >
+          {description.length}/300
+        </div>
         <label
           style={{
             fontSize: "13px",
@@ -182,23 +186,13 @@ function AddPolicyPage() {
             gap: "10px",
           }}
         >
-          <button
-            className="custom-outline-btn"
-            onClick={() => navigate(-1)}
-
-          >
+          <button className="custom-outline-btn" onClick={() => navigate(-1)}>
             Cancel
           </button>
 
-          <button
-            className="custom-outline-btn"
-            onClick={handleSave}
-
-          >
+          <button className="custom-outline-btn" onClick={handleSave}>
             Save Policy
           </button>
-
-
         </div>
       </div>
     </div>
@@ -206,7 +200,3 @@ function AddPolicyPage() {
 }
 
 export default AddPolicyPage;
-
-
-
-

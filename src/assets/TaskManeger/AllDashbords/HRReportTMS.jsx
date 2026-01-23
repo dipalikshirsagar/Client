@@ -4,6 +4,7 @@ import AllProjectsTable from "./AllProjectsTable";
 import DelayedTasksTable from "./DelayedTasksTable";
 import UpcomingTasksTable from "./UpcomingTasksTable";
 import EmployeeTasksView from "./EmployeeTasksView";
+import axios from "axios";
 import {
   PieChart,
   Pie,
@@ -20,7 +21,7 @@ import {
 import "./ReportTMSGraph.css";
 function HRReportTMS() {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [showCardList, setShowCardList] = useState("allEmployees");
+  const [showCardList, setShowCardList] = useState(null);
 
   // State for API data
   const [employees, setEmployees] = useState([]);
@@ -35,7 +36,18 @@ function HRReportTMS() {
   const [projectRange, setProjectRange] = useState("all");
   const [allTasks, setAllTasks] = useState([]);
   const [selectedTaskMonth, setSelectedTaskMonth] = useState("all");
-
+  const [selectedDonutStatus, setSelectedDonutStatus] = useState(null);
+  const [donutPopupTasks, setDonutPopupTasks] = useState([]);
+  const [isTooltipActive, setIsTooltipActive] = useState(false);
+  const [showProjectPopup, setShowProjectPopup] = useState(false);
+  const [selectedProjectMonth, setSelectedProjectMonth] = useState(null);
+  const [linePopupProjects, setLinePopupProjects] = useState({
+    "In Progress": [],
+    Completed: [],
+    Delayed: [],
+    Cancelled: [],
+  });
+  const totalProjects = projects.length;
   const TASK_COLORS = {
     Completed: "#198754",
     Assigned: "#3A5FBE",
@@ -45,6 +57,18 @@ function HRReportTMS() {
     Cancelled: "#adb5bd",
     Delayed: "#dc3545",
   };
+
+  const PROJECT_STATUS_COLORS = {
+    "In Progress": "#0d6efd",
+    Completed: "#198754",
+    Delayed: "#dc3545",
+    Cancelled: "#6c757d",
+  };
+
+  const getProjectStatus = (project) =>
+    typeof project.status === "string"
+      ? project.status.toLowerCase()
+      : project.status?.name?.toLowerCase();
 
   const taskMonthOptions = useMemo(() => {
     const months = [];
@@ -58,7 +82,7 @@ function HRReportTMS() {
         label: d.toLocaleString("en-US", { month: "short", year: "numeric" }),
         value: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
           2,
-          "0"
+          "0",
         )}`,
       });
     }
@@ -88,7 +112,7 @@ function HRReportTMS() {
             if (isNaN(d)) return false;
 
             const taskMonth = `${d.getFullYear()}-${String(
-              d.getMonth() + 1
+              d.getMonth() + 1,
             ).padStart(2, "0")}`;
 
             return taskMonth === selectedTaskMonth;
@@ -107,9 +131,109 @@ function HRReportTMS() {
   }, [allTasks, selectedTaskMonth]);
 
   const totalTasks = useMemo(() => {
-    return allTasks.length;
-  }, [allTasks]);
+    return taskStatusChartData.reduce((sum, item) => sum + item.value, 0);
+  }, [taskStatusChartData]);
 
+  // shivani
+  const handleDonutClick = (statusName) => {
+    setSelectedDonutStatus(statusName);
+
+    const filtered = allTasks.filter((task) => {
+      // status match
+      const statusMatch =
+        task?.status?.name?.toLowerCase() === statusName.toLowerCase();
+
+      if (!statusMatch) return false;
+
+      // month filter
+      if (selectedTaskMonth === "all") return true;
+
+      const d = new Date(task.dateOfTaskAssignment);
+      if (isNaN(d)) return false;
+
+      const taskMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
+        2,
+        "0",
+      )}`;
+
+      return taskMonth === selectedTaskMonth;
+    });
+
+    setDonutPopupTasks(filtered);
+  };
+  const donutTasksByEmployee = useMemo(() => {
+    const map = {};
+
+    donutPopupTasks.forEach((task) => {
+      const empName = task?.assignedTo?.name || "Unassigned";
+
+      if (!map[empName]) map[empName] = [];
+
+      map[empName].push({
+        taskName: task.taskName,
+        taskType: task.typeOfTask,
+        assignDate: task.dateOfTaskAssignment,
+        dueDate: task.dateOfExpectedCompletion,
+      });
+    });
+
+    return map;
+  }, [donutPopupTasks]);
+
+  const filterProjectsByMonth = (monthLabel) => {
+    const [monthStr, yearStr] = monthLabel.split(" ");
+    const d = new Date(`${monthStr} 1, ${yearStr}`);
+
+    const month = d.getMonth();
+    const year = d.getFullYear();
+    const today = new Date();
+
+    const result = {
+      "In Progress": [],
+      Completed: [],
+      Delayed: [],
+      Cancelled: [],
+    };
+
+    projects.forEach((p) => {
+      const status = getProjectStatus(p);
+      const dueDate = p.dueDate ? new Date(p.dueDate) : null;
+      const startDate = p.startDate ? new Date(p.startDate) : null;
+
+      if (!dueDate) return;
+      if (dueDate.getMonth() !== month || dueDate.getFullYear() !== year)
+        return;
+
+      if (status === "completed") result.Completed.push(p);
+      else if (status === "cancelled") result.Cancelled.push(p);
+      else if (status === "delayed") {
+        result.Delayed.push(p);
+        result["In Progress"].push(p); //  delayed is part of in-progress
+      } else {
+        //  exclude upcoming
+        if (startDate && startDate > today) return;
+
+        //  active → in progress
+        result["In Progress"].push(p);
+      }
+    });
+
+    return result;
+  };
+
+  const formatDate = (dateString) =>
+    new Intl.DateTimeFormat("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }).format(new Date(dateString));
+
+  const STATUS_COLORS = {
+    "In Progress": "#0d6efd",
+    Completed: "#198754",
+    Delayed: "#dc3545",
+    Cancelled: "#6c757d",
+  };
   {
     /* 
   useEffect(() => {
@@ -146,7 +270,7 @@ function HRReportTMS() {
 
       const taskMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
         2,
-        "0"
+        "0",
       )}`;
 
       return taskMonth === selectedTaskMonth;
@@ -243,20 +367,11 @@ function HRReportTMS() {
   }
   const getLatestMonthDate = (projects) => {
     return projects.reduce((latest, p) => {
-      const status = p.status?.name?.toLowerCase();
+      const dueDate = p.dueDate ? new Date(p.dueDate) : null;
+      const startDate = p.startDate ? new Date(p.startDate) : null;
 
-      let dateStr = null;
-
-      if (status === "assigned") {
-        dateStr = p.startDate;
-      } else if (status === "completed" || status === "delayed") {
-        dateStr = p.dueDate;
-      }
-
-      if (!dateStr) return latest;
-
-      const date = new Date(dateStr);
-      if (isNaN(date)) return latest;
+      const date = dueDate || startDate;
+      if (!date || isNaN(date)) return latest;
 
       return !latest || date > latest ? date : latest;
     }, null);
@@ -291,13 +406,9 @@ function HRReportTMS() {
   const projectStatusLineData = useMemo(() => {
     if (!projects.length) return [];
 
-    const statusKeyMap = {
-      assigned: "Assigned",
-      completed: "Completed",
-      delayed: "Delayed",
-    };
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    // ✅ Generate months FIRST
     const baseMonths =
       projectRange === "all"
         ? getLastMonths(projects, 12)
@@ -305,37 +416,71 @@ function HRReportTMS() {
 
     const monthMap = {};
     baseMonths.forEach((m) => {
-      monthMap[m.key] = m;
+      monthMap[m.key] = {
+        ...m,
+        "In Progress": 0,
+        Completed: 0,
+        Delayed: 0,
+        Cancelled: 0,
+      };
     });
 
-    // ✅ Fill data
     projects.forEach((project) => {
-      const rawStatus = project.status?.name?.toLowerCase();
-      const statusName = statusKeyMap[rawStatus];
-      if (!statusName) return;
+      const status = getProjectStatus(project);
+      let dateForMonth = null;
 
-      let dateToUse = null;
-
-      if (statusName === "Assigned") {
-        dateToUse = project.startDate || project.createdAt;
+      if (status === "completed") {
+        dateForMonth = project.deliveryDate || project.dueDate;
       } else {
-        dateToUse = project.dueDate;
+        dateForMonth = project.dueDate || project.deliveryDate;
       }
 
-      if (!dateToUse) return;
+      const dueDate = dateForMonth ? new Date(dateForMonth) : null;
+      const startDate = project.startDate ? new Date(project.startDate) : null;
 
-      const d = new Date(dateToUse);
-      if (isNaN(d)) return;
+      if (!dueDate || isNaN(dueDate)) return;
 
-      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      dueDate.setHours(0, 0, 0, 0);
+      startDate?.setHours(0, 0, 0, 0);
+
+      const key = `${dueDate.getFullYear()}-${dueDate.getMonth()}`;
       if (!monthMap[key]) return;
 
-      monthMap[key][statusName]++;
+      //  Completed
+      if (status === "completed") {
+        monthMap[key].Completed++;
+        return;
+      }
+
+      //  Cancelled
+      if (status === "cancelled") {
+        monthMap[key].Cancelled++;
+        return;
+      }
+
+      //  Delayed → crossed due date
+      if (status === "delayed") {
+        monthMap[key].Delayed++;
+        monthMap[key]["In Progress"]++; // delayed is part of in-progress
+        return;
+      }
+
+      //  In Progress (same logic as popup)
+      if (status !== "completed" && status !== "cancelled") {
+        // exclude upcoming
+        if (startDate && startDate > today) return;
+
+        // delayed already handled above
+        if (status !== "delayed") {
+          monthMap[key]["In Progress"]++;
+        }
+      }
     });
 
     return Object.values(monthMap).sort((a, b) => a.sortDate - b.sortDate);
   }, [projects, projectRange]);
-
   // Fetch data from API
   useEffect(() => {
     const fetchData = async () => {
@@ -355,24 +500,44 @@ function HRReportTMS() {
           Authorization: `Bearer ${token}`,
         };
 
-        // Fetch all data using your existing APIs
+        // Fetch all data using your existing APIs change dip
         const [employeesRes, tasksRes, projectsRes] = await Promise.all([
-          fetch("https://server-backend-nu.vercel.app/getAllEmployees", { headers }),
-          fetch("https://server-backend-nu.vercel.app/task/getall", { headers }),
-          fetch("https://server-backend-nu.vercel.app/api/projects", { headers }),
+          axios.get("https://server-backend-nu.vercel.app/getAllEmployees", { headers }),
+          axios.get("https://server-backend-nu.vercel.app/task/getall", { headers }),
+          axios.get("https://server-backend-nu.vercel.app/api/projects", { headers }),
         ]);
 
-        if (!employeesRes.ok || !tasksRes.ok || !projectsRes.ok) {
-          throw new Error("Failed to fetch data from server");
-        }
+        // if (!employeesRes.ok || !tasksRes.ok || !projectsRes.ok) {
+        //   throw new Error("Failed to fetch data from server");
+        // }
 
-        const employeesData = await employeesRes.json();
-        const tasksData = await tasksRes.json();
+        const employeesData = employeesRes.data;
+        const tasksData = tasksRes.data;
         setAllTasks(tasksData);
-        const projectsData = await projectsRes.json();
+        const projectsData = projectsRes.data;
+        //dip code
+        // Filter to match getEmployeeCount logic:
+        // 1. Only non-deleted employees (isDeleted: false)
+        // 2. Only roles: hr, manager, employee, it_support
+        const allowedRoles = ["hr", "manager", "employee", "it_support"];
 
+        const filteredEmployees = employeesData.filter((emp) => {
+          // Check if not deleted
+          if (emp.isDeleted === true) {
+            return false;
+          }
+
+          // Check if role is in allowed list (case-insensitive)
+          const role = (emp.role || "").toLowerCase().trim();
+          return allowedRoles.includes(role);
+        });
+
+        // console.log("Total from API:", employeesData.length);
+        // console.log("Filtered employees (matching getEmployeeCount):", filteredEmployees.length);
+        //code end
         // Transform employee data to match your component structure
-        const formattedEmployees = employeesData.map((emp) => ({
+        const formattedEmployees = filteredEmployees.map((emp) => ({
+          //dip change
           id: emp._id,
           name: emp.name,
           role: emp.role,
@@ -399,7 +564,7 @@ function HRReportTMS() {
         const formattedProjects = projectsData.map((proj) => ({
           id: proj._id,
           name: proj.name,
-          status: proj.status?.name || "Unknown",
+          status: proj.status || "Unknown",
           managerId: proj.managers?.[0]?._id,
           managerName: proj.managers?.[0]?.name || "N/A",
           deliveryDate: proj.dueDate,
@@ -427,39 +592,53 @@ function HRReportTMS() {
     (p) =>
       p.status === "Active" ||
       p.status === "In Progress" ||
-      p.status === "Ongoing"
+      p.status === "Ongoing",
   ).length;
 
   // Fixed delayed tasks calculation
+  // const delayedTasks = tasks.filter((task) => {
+  //   // Check if dueDate exists and is valid
+  //   // if (!task.dueDate) return false;
+  //   // Normalize dates for comparison (remove time part)
+  //   const taskDueDate = new Date(task.dueDate).toISOString().slice(0, 10);
+
+  //   // Task is delayed if due date is before today
+  //   const isPastDue = taskDueDate < today;
+
+  //   // Check if task is NOT completed or cancelled
+  //   const statusLower = (task.status || "").toLowerCase();
+  //   const isNotCompleted =
+  //     statusLower !== "completed" &&
+  //     statusLower !== "cancelled" &&
+  //     statusLower !== "done" &&
+  //     statusLower !== "closed";
+
+  //   return isPastDue && isNotCompleted;
+  // });
+
+  //Dip
+  // Define today and tomorrow dip code
   const today = new Date().toISOString().slice(0, 10);
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowStr = tomorrow.toISOString().slice(0, 10);
+
+  // Delayed tasks - based on status
   const delayedTasks = tasks.filter((task) => {
-    // Check if dueDate exists and is valid
-    if (!task.dueDate) return false;
-
-    // Normalize dates for comparison (remove time part)
-    const taskDueDate = new Date(task.dueDate).toISOString().slice(0, 10);
-
-    // Task is delayed if due date is before today
-    const isPastDue = taskDueDate < today;
-
-    // Check if task is NOT completed or cancelled
-    const statusLower = (task.status || "").toLowerCase();
-    const isNotCompleted =
-      statusLower !== "completed" &&
-      statusLower !== "cancelled" &&
-      statusLower !== "done" &&
-      statusLower !== "closed";
-
-    return isPastDue && isNotCompleted;
+    const statusLower = (task.status || "").toLowerCase().trim();
+    return statusLower === "delayed";
   });
+  //Dip
 
   const nextWeek = new Date();
   nextWeek.setDate(nextWeek.getDate() + 7);
   const nextWeekStr = nextWeek.toISOString().slice(0, 10);
+
+  // Upcoming task
   const upcomingTasks = tasks.filter((t) => {
     if (!t.dueDate) return false;
     const taskDueDate = new Date(t.dueDate).toISOString().slice(0, 10);
-    return taskDueDate >= today && taskDueDate <= nextWeekStr;
+    return taskDueDate >= tomorrowStr && taskDueDate <= nextWeekStr; //dip chnage
   });
 
   // Loading state
@@ -507,11 +686,8 @@ function HRReportTMS() {
   }
 
   return (
-    <div className="container-fluid p-4" style={{ marginTop: "-25px" }}>
-      <h3
-        className="mb-4 fw-bold"
-        style={{ color: "#3A5FBE", fontSize: "25px" }}
-      >
+    <div className="container-fluid">
+      <h3 className="mb-3 " style={{ color: "#3A5FBE", fontSize: "25px" }}>
         Organization Reports
       </h3>
 
@@ -575,7 +751,7 @@ function HRReportTMS() {
                 className="mb-0  d-flex align-items-center justify-content-center"
                 style={{
                   fontSize: "32px",
-                  backgroundColor: "#D1ECF1",
+                  backgroundColor: "#FFB3B3",
                   minWidth: "70px",
                   minHeight: "70px",
                   color: "#3A5FBE",
@@ -616,7 +792,7 @@ function HRReportTMS() {
                 className="mb-0  d-flex align-items-center justify-content-center"
                 style={{
                   fontSize: "32px",
-                  backgroundColor: "#D1ECF1",
+                  backgroundColor: "#FFE493",
                   minWidth: "70px",
                   minHeight: "70px",
                   color: "#3A5FBE",
@@ -657,7 +833,7 @@ function HRReportTMS() {
                 className="mb-0  d-flex align-items-center justify-content-center"
                 style={{
                   fontSize: "32px",
-                  backgroundColor: "#D1ECF1",
+                  backgroundColor: "#D7F5E4",
                   minWidth: "70px",
                   minHeight: "70px",
                   color: "#3A5FBE",
@@ -671,7 +847,7 @@ function HRReportTMS() {
                   className="mb-0 fw-semibold"
                   style={{ color: "#3A5FBE", fontSize: "18px" }}
                 >
-                  Upcoming Tasks (Next 7 days)
+                  Upcoming Tasks
                 </div>
                 <small style={{ color: "#9e9e9e", fontSize: "12px" }}>
                   Click to view list
@@ -747,7 +923,7 @@ function HRReportTMS() {
                     {selectedTaskMonth === "all"
                       ? "All Months"
                       : taskMonthOptions.find(
-                          (m) => m.value === selectedTaskMonth
+                          (m) => m.value === selectedTaskMonth,
                         )?.label}
                   </button>
 
@@ -796,6 +972,13 @@ function HRReportTMS() {
                     paddingAngle={2}
                     label={renderCustomizedLabel}
                     labelLine={false}
+                    onMouseEnter={() => setIsTooltipActive(true)}
+                    onMouseLeave={() => setIsTooltipActive(false)}
+                    onClick={(data) => {
+                      setIsTooltipActive(false);
+                      handleDonutClick(data.name);
+                    }}
+                    isAnimationActive={false}
                   >
                     {taskStatusChartData.map((entry) => (
                       <Cell
@@ -836,6 +1019,8 @@ function HRReportTMS() {
                   <Tooltip
                     content={<TaskStatusTooltip />}
                     cursor={{ fill: "transparent" }}
+                    active={isTooltipActive}
+                    wrapperStyle={{ pointerEvents: "none" }}
                   />
                   <Legend
                     verticalAlign="bottom"
@@ -856,6 +1041,9 @@ function HRReportTMS() {
                 <h6 className="fw-semibold text-primary mb-0">
                   📈 Project Status Trend
                 </h6>
+                <span className="text-muted ms-2 fs-6">
+                  (Total Projects: {totalProjects})
+                </span>
                 <small className="text-muted">Month-wise overview</small>
 
                 <div className="dropdown">
@@ -873,8 +1061,8 @@ function HRReportTMS() {
                     {projectRange === "all"
                       ? "All"
                       : projectRange === "3"
-                      ? "Last 3 Months"
-                      : "Last 6 Months"}
+                        ? "Last 3 Months"
+                        : "Last 6 Months"}
                   </button>
 
                   <ul
@@ -910,34 +1098,53 @@ function HRReportTMS() {
               </div>
 
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={projectStatusLineData}>
+                <LineChart //change full linechart 15 jan------------------------------
+                  data={projectStatusLineData}
+                  onClick={(e) => {
+                    if (!e || !e.activeLabel) return;
+
+                    const filtered = filterProjectsByMonth(e.activeLabel);
+
+                    setSelectedProjectMonth(e.activeLabel);
+                    setLinePopupProjects(filtered);
+                  }}
+                >
                   <CartesianGrid stroke="#e9ecef" strokeDasharray="4 4" />
                   <XAxis dataKey="name" />
                   <YAxis allowDecimals={false} />
                   <Tooltip />
-                  <Legend iconType="circle" />
+                  <Legend
+                    iconType="circle"
+                    wrapperStyle={{ paddingTop: "25px" }}
+                  />
 
                   <Line
-                    dataKey="Assigned"
-                    stroke="#0d6efd"
+                    dataKey="In Progress"
+                    stroke={PROJECT_STATUS_COLORS["In Progress"]}
                     strokeWidth={3}
                     dot={{ r: 4 }}
                     activeDot={{ r: 6 }}
                   />
 
                   <Line
-                    type="monotone"
                     dataKey="Completed"
-                    stroke="#198754"
+                    stroke={PROJECT_STATUS_COLORS.Completed}
                     strokeWidth={3}
                     dot={{ r: 4 }}
                     activeDot={{ r: 6 }}
                   />
 
                   <Line
-                    type="monotone"
                     dataKey="Delayed"
-                    stroke="#dc3545"
+                    stroke={PROJECT_STATUS_COLORS.Delayed}
+                    strokeWidth={3}
+                    dot={{ r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+
+                  <Line
+                    dataKey="Cancelled"
+                    stroke={PROJECT_STATUS_COLORS.Cancelled}
                     strokeWidth={3}
                     dot={{ r: 4 }}
                     activeDot={{ r: 6 }}
@@ -948,6 +1155,219 @@ function HRReportTMS() {
           </div>
         </div>
       </div>
+
+      {/* Shivani */}
+      {selectedDonutStatus && (
+        <div
+          className="modal fade show"
+          style={{
+            display: "block",
+            position: "fixed",
+            inset: 0,
+            zIndex: 1050,
+            backgroundColor: "rgba(0,0,0,0.5)",
+          }}
+          onClick={() => setSelectedDonutStatus(null)}
+        >
+          <div
+            className="modal-dialog modal-lg modal-dialog-scrollable"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-content">
+              {/* HEADER */}
+              <div
+                className="modal-header text-white"
+                style={{ backgroundColor: "#3A5FBE" }}
+              >
+                <h5 className="modal-title">{selectedDonutStatus} Tasks</h5>
+                <button
+                  className="btn-close btn-close-white"
+                  onClick={() => setSelectedDonutStatus(null)}
+                />
+              </div>
+
+              {/* BODY */}
+              <div className="modal-body">
+                {Object.entries(donutTasksByEmployee).length > 0 ? (
+                  Object.entries(donutTasksByEmployee).map(
+                    ([empName, tasks]) => (
+                      <div key={empName} className="mb-4">
+                        {/* Employee Header */}
+                        <div
+                          className="mb-3 p-2 rounded"
+                          style={{
+                            backgroundColor: "#E8F0FE",
+                            color: "#3A5FBE",
+                            fontWeight: "600",
+                          }}
+                        >
+                          👤 {empName} ({tasks.length} Tasks)
+                        </div>
+
+                        {/* Task Cards */}
+                        <div className="row g-3">
+                          {tasks.map((task, index) => (
+                            <div key={index} className="col-12 col-md-6">
+                              <div
+                                className="border rounded p-3 h-100"
+                                style={{ backgroundColor: "#ffffff" }}
+                              >
+                                <div className="row mb-1">
+                                  <div className="col-4 fw-semibold">
+                                    Task Name
+                                  </div>
+                                  <div className="col-8">{task.taskName}</div>
+                                </div>
+
+                                <div className="row mb-1">
+                                  <div className="col-4 fw-semibold">
+                                    Task Type
+                                  </div>
+                                  <div className="col-8">
+                                    {task.taskType || "N/A"}
+                                  </div>
+                                </div>
+
+                                <div className="row mb-1">
+                                  <div className="col-4 fw-semibold">
+                                    Assign Date
+                                  </div>
+                                  <div className="col-8">
+                                    {formatDate(task.assignDate)}
+                                  </div>
+                                </div>
+
+                                <div className="row mb-0">
+                                  <div className="col-4 fw-semibold">
+                                    Due Date
+                                  </div>
+                                  <div className="col-8">
+                                    {formatDate(task.dueDate)}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ),
+                  )
+                ) : (
+                  <div className="text-center text-muted py-4">
+                    No tasks found
+                  </div>
+                )}
+              </div>
+
+              {/* FOOTER */}
+              <div className="modal-footer">
+                <button
+                  className="btn btn-sm custom-outline-btn"
+                  onClick={() => setSelectedDonutStatus(null)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedProjectMonth && (
+        <div
+          className="modal fade show"
+          style={{
+            display: "block",
+            position: "fixed",
+            inset: 0,
+            zIndex: 1050,
+            backgroundColor: "rgba(0,0,0,0.5)",
+          }}
+          onClick={() => setSelectedProjectMonth(null)}
+        >
+          <div
+            className="modal-dialog modal-lg modal-dialog-scrollable"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-content">
+              <div
+                className="modal-header text-white"
+                style={{ background: "#3A5FBE" }}
+              >
+                <h5 className="modal-title">
+                  Projects – {selectedProjectMonth}
+                </h5>
+                <button
+                  className="btn-close btn-close-white"
+                  onClick={() => setSelectedProjectMonth(null)}
+                />
+              </div>
+
+              <div className="modal-body">
+                {["In Progress", "Completed", "Delayed", "Cancelled"].map(
+                  (status) => (
+                    <div key={status} className="mb-4">
+                      <h6 style={{ color: STATUS_COLORS[status] }}>
+                        {status} ({linePopupProjects[status]?.length || 0})
+                      </h6>
+
+                      {linePopupProjects[status]?.length ? (
+                        linePopupProjects[status].map((p) => (
+                          <div key={p._id} className="border rounded p-2 mb-2">
+                            <div className="row mb-1">
+                              <div className="col-4 fw-semibold">
+                                Project Name
+                              </div>
+                              <div className="col-8">{p.name}</div>
+                            </div>
+
+                            <div className="row mb-1">
+                              <div className="col-4 fw-semibold">
+                                Assigned To
+                              </div>
+                              <div className="col-8">
+                                {p.managers?.map((m) => m.name).join(", ") ||
+                                  "N/A"}
+                              </div>
+                            </div>
+
+                            <div className="row mb-1">
+                              <div className="col-4 fw-semibold">
+                                Start Date
+                              </div>
+                              <div className="col-8">
+                                {p.startDate ? formatDate(p.startDate) : "—"}
+                              </div>
+                            </div>
+
+                            <div className="row mb-1">
+                              <div className="col-4 fw-semibold">Due Date</div>
+                              <div className="col-8">
+                                {p.dueDate ? formatDate(p.dueDate) : "—"}
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-muted">No projects</div>
+                      )}
+                    </div>
+                  ),
+                )}
+              </div>
+
+              <div className="modal-footer">
+                <button
+                  className="btn btn-sm custom-outline-btn"
+                  onClick={() => setSelectedProjectMonth(null)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="text-end mt-3">
         <button

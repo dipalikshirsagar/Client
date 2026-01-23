@@ -47,7 +47,6 @@
 //   }
 // };
 
-
 //   const getAddressFromCoords = async (lat, lng) => {
 //     try {
 //       const res = await fetch(
@@ -87,8 +86,6 @@
 //       }
 //     );
 //   };
-
-
 
 //   return (
 
@@ -150,7 +147,6 @@
 //             style={{ borderRadius: "6px", backgroundColor: "#3A5FBF" }} onClick={() => setShowModal(true)}>Edit</button>
 //           </div>
 
-
 // <style>{`
 //         .modal-body .btn:focus {
 //           outline: none;
@@ -185,7 +181,6 @@
 //           box-shadow: 0 0 0 3px rgba(58, 95, 190, 0.15);
 //         }
 //       `}</style>
-
 
 //           {showModal && (
 //             <div
@@ -283,7 +278,6 @@
 //             </div>
 //           )}
 
-
 //           <div className="row g-3">
 //             <div className="col-md-6">
 //               <label className="form-label text-secondary">Office Name:</label>
@@ -341,12 +335,6 @@
 
 // export default OfficeLocationSetup;
 
-
-
-
-
-
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
@@ -403,7 +391,6 @@ function OfficeLocationSetup() {
           lng: longitude,
           address,
           name: prev.name || "", // keep existing name editable
-
         }));
 
         alert("Current location set!");
@@ -447,10 +434,11 @@ function OfficeLocationSetup() {
               Set Office Location
             </h6>
 
-            <button 
-             className="btn btn-sm custom-outline-btn"
-            style={{  minWidth: 90 }}
-            onClick={openModal}>
+            <button
+              className="btn btn-sm custom-outline-btn"
+              style={{ minWidth: 90 }}
+              onClick={openModal}
+            >
               Edit
             </button>
           </div>
@@ -483,7 +471,10 @@ function OfficeLocationSetup() {
                   <div className="modal-body">
                     {/* Name */}
                     <div className="mb-3">
-                      <label className="form-label" style={{ color: "#007BFF" }}>
+                      <label
+                        className="form-label"
+                        style={{ color: "#007BFF" }}
+                      >
                         Office Name:
                       </label>
                       <input
@@ -496,13 +487,16 @@ function OfficeLocationSetup() {
                           })
                         }
                         className="form-control"
-                      // style={{ backgroundColor: "#E9F5FF" }}
+                        // style={{ backgroundColor: "#E9F5FF" }}
                       />
                     </div>
 
                     {/* Latitude */}
                     <div className="mb-3">
-                      <label className="form-label" style={{ color: "#007BFF" }}>
+                      <label
+                        className="form-label"
+                        style={{ color: "#007BFF" }}
+                      >
                         Latitude:
                       </label>
                       <input
@@ -515,13 +509,15 @@ function OfficeLocationSetup() {
                           })
                         }
                         className="form-control"
-
                       />
                     </div>
 
                     {/* Longitude */}
                     <div className="mb-3">
-                      <label className="form-label" style={{ color: "#007BFF" }}>
+                      <label
+                        className="form-label"
+                        style={{ color: "#007BFF" }}
+                      >
                         Longitude:
                       </label>
                       <input
@@ -534,13 +530,15 @@ function OfficeLocationSetup() {
                           })
                         }
                         className="form-control"
-
                       />
                     </div>
 
                     {/* Address */}
                     <div className="mb-3">
-                      <label className="form-label" style={{ color: "#007BFF" }}>
+                      <label
+                        className="form-label"
+                        style={{ color: "#007BFF" }}
+                      >
                         Address:
                       </label>
                       <input
@@ -553,29 +551,27 @@ function OfficeLocationSetup() {
                           })
                         }
                         className="form-control"
-
                       />
                     </div>
                   </div>
 
                   <div className="modal-footer">
-                    <button 
-                   className="btn btn-sm custom-outline-btn"
-           
-                    onClick={useCurrentLocation}>
+                    <button
+                      className="btn btn-sm custom-outline-btn"
+                      onClick={useCurrentLocation}
+                    >
                       Use Current Location
                     </button>
 
-                    <button 
-                     className="btn btn-sm custom-outline-btn"
-         
-                    onClick={handleSave}>
+                    <button
+                      className="btn btn-sm custom-outline-btn"
+                      onClick={handleSave}
+                    >
                       {loading ? "Saving..." : "Save changes"}
                     </button>
 
                     <button
                       className="btn btn-sm custom-outline-btn"
-          
                       onClick={() => setShowModal(false)}
                     >
                       Close
@@ -589,7 +585,9 @@ function OfficeLocationSetup() {
           {/* ✅ Readonly Display Section */}
           <div className="row g-3">
             <div className="col-md-6">
-              <label className="form-label "  style={{ color: "#3A5FBE" }}>Office Name:</label>
+              <label className="form-label " style={{ color: "#3A5FBE" }}>
+                Office Name:
+              </label>
               <input
                 value={location.name}
                 className="form-control bg-light border-0"
@@ -598,7 +596,9 @@ function OfficeLocationSetup() {
             </div>
 
             <div className="col-md-6">
-              <label className="form-label "  style={{ color: "#3A5FBE" }}>Longitude:</label>
+              <label className="form-label " style={{ color: "#3A5FBE" }}>
+                Longitude:
+              </label>
               <input
                 value={location.lng}
                 className="form-control bg-light border-0"
@@ -607,7 +607,9 @@ function OfficeLocationSetup() {
             </div>
 
             <div className="col-md-6">
-              <label className="form-label "  style={{ color: "#3A5FBE" }}>Latitude:</label>
+              <label className="form-label " style={{ color: "#3A5FBE" }}>
+                Latitude:
+              </label>
               <input
                 value={location.lat}
                 className="form-control bg-light border-0"
@@ -616,7 +618,9 @@ function OfficeLocationSetup() {
             </div>
 
             <div className="col-md-6">
-              <label className="form-label"  style={{ color: "#3A5FBE" }}>Address:</label>
+              <label className="form-label" style={{ color: "#3A5FBE" }}>
+                Address:
+              </label>
               <input
                 value={location.address}
                 className="form-control bg-light border-0"

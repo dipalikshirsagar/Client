@@ -26,33 +26,48 @@ function formatDate(date) {
 }
 
 function EmployeeTasksView({ selectedEmployee, allTasks, onBack }) {
-  const [statusFilter, setStatusFilter] = useState("All");
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
+  // const [statusFilter, setStatusFilter] = useState("All");
+  // const [fromDate, setFromDate] = useState("");
+  // const [toDate, setToDate] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [appliedSearchQuery, setAppliedSearchQuery] = useState("");
   const [taskPage, setTaskPage] = useState(1);
   const [taskRows, setTaskRows] = useState(5);
 
-  useEffect(
-    () => setTaskPage(1),
-    [selectedEmployee, statusFilter, fromDate, toDate]
-  );
+  useEffect(() => setTaskPage(1), [selectedEmployee, appliedSearchQuery]);
 
   const employeeTasks = useMemo(() => {
     let tasks = allTasks.filter((t) => t.employeeId === selectedEmployee.id);
 
-    if (statusFilter !== "All") {
-      tasks = tasks.filter((t) => t.status === statusFilter);
-    }
-    if (fromDate) {
-      tasks = tasks.filter((t) => t.dueDate >= fromDate);
-    }
-    if (toDate) {
-      tasks = tasks.filter((t) => t.dueDate <= toDate);
+    //   if (statusFilter !== "All") {
+    //     tasks = tasks.filter((t) => t.status === statusFilter);
+    //   }
+    //   if (fromDate) {
+    //     tasks = tasks.filter((t) => t.dueDate >= fromDate);
+    //   }
+    //   if (toDate) {
+    //     tasks = tasks.filter((t) => t.dueDate <= toDate);
+    //   }
+
+    //   return tasks;
+    // }, [allTasks, selectedEmployee, statusFilter, fromDate, toDate]);
+
+    // Apply search filter
+    if (appliedSearchQuery.trim() !== "") {
+      const query = appliedSearchQuery.toLowerCase();
+      tasks = tasks.filter(
+        (task) =>
+          task.title.toLowerCase().includes(query) ||
+          task.status.toLowerCase().includes(query) ||
+          task.project.toLowerCase().includes(query) ||
+          formatDate(task.dueDate).toLowerCase().includes(query),
+      );
     }
 
     return tasks;
-  }, [allTasks, selectedEmployee, statusFilter, fromDate, toDate]);
+  }, [allTasks, selectedEmployee, appliedSearchQuery]);
 
+  ////
   const paginatedEmployeeTasks = useMemo(() => {
     const start = (taskPage - 1) * taskRows;
     return employeeTasks.slice(start, start + taskRows);
@@ -68,10 +83,13 @@ function EmployeeTasksView({ selectedEmployee, allTasks, onBack }) {
   const isPrevDisabled = taskPage <= 1 || employeeTasks.length === 0;
   const isNextDisabled = taskPage >= totalPages || employeeTasks.length === 0;
 
+  function handleFilter() {
+    setAppliedSearchQuery(searchQuery);
+    setTaskPage(1);
+  }
   function handleReset() {
     setStatusFilter("All");
-    setFromDate("");
-    setToDate("");
+    setAppliedSearchQuery("");
     setTaskPage(1);
   }
 
@@ -106,70 +124,23 @@ function EmployeeTasksView({ selectedEmployee, allTasks, onBack }) {
       <div className="card shadow-sm border-0 mb-3">
         <div className="card-body p-3">
           <div className="d-flex align-items-center gap-3 flex-wrap">
-            {/* Status Filter */}
+            {/* Search Filter */}
             <div
               className="d-flex align-items-center gap-2"
-              style={{ minWidth: "200px" }}
+              style={{ minWidth: "300px" }}
             >
               <label
                 className="mb-0 fw-bold"
                 style={{ fontSize: 14, color: "#3A5FBE", whiteSpace: "nowrap" }}
               >
-                Status
-              </label>
-              <select
-                className="form-select form-select-sm"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                style={{ flex: 1 }}
-              >
-                <option value="All">All</option>
-                <option value="Completed">Completed</option>
-                <option value="Assignment Pending">Assignment Pending</option>
-                <option value="Assigned">Assigned</option>
-                <option value="Delayed">Delayed</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Hold">Hold</option>
-                <option value="Cancelled">Cancelled</option>
-              </select>
-            </div>
-
-            {/* From Date */}
-            <div
-              className="d-flex align-items-center gap-2"
-              style={{ minWidth: "200px" }}
-            >
-              <label
-                className="mb-0 fw-bold"
-                style={{ fontSize: 14, color: "#3A5FBE", whiteSpace: "nowrap" }}
-              >
-                From
+                Search
               </label>
               <input
-                type="date"
+                type="text"
                 className="form-control form-control-sm"
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-                style={{ flex: 1 }}
-              />
-            </div>
-
-            {/* To Date */}
-            <div
-              className="d-flex align-items-center gap-2"
-              style={{ minWidth: "200px" }}
-            >
-              <label
-                className="mb-0 fw-bold"
-                style={{ fontSize: 14, color: "#3A5FBE", whiteSpace: "nowrap" }}
-              >
-                To
-              </label>
-              <input
-                type="date"
-                className="form-control form-control-sm"
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
+                placeholder="Search by any field..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 style={{ flex: 1 }}
               />
             </div>
@@ -178,7 +149,7 @@ function EmployeeTasksView({ selectedEmployee, allTasks, onBack }) {
             <div className="d-flex gap-2 ms-auto">
               <button
                 className="btn btn-sm custom-outline-btn"
-                onClick={() => setTaskPage(1)}
+                onClick={handleFilter}
               >
                 Filter
               </button>
@@ -256,6 +227,7 @@ function EmployeeTasksView({ selectedEmployee, allTasks, onBack }) {
                           fontSize: "14px",
                           borderBottom: "1px solid #dee2e6",
                           color: "#212529",
+                          whiteSpace: "nowrap",
                         }}
                       >
                         {task.title}
@@ -265,6 +237,7 @@ function EmployeeTasksView({ selectedEmployee, allTasks, onBack }) {
                           padding: "12px",
                           fontSize: "14px",
                           borderBottom: "1px solid #dee2e6",
+                          whiteSpace: "nowrap",
                         }}
                       >
                         <span
@@ -286,6 +259,7 @@ function EmployeeTasksView({ selectedEmployee, allTasks, onBack }) {
                           fontSize: "14px",
                           borderBottom: "1px solid #dee2e6",
                           color: "#212529",
+                          whiteSpace: "nowrap",
                         }}
                       >
                         {task.project}
@@ -296,6 +270,7 @@ function EmployeeTasksView({ selectedEmployee, allTasks, onBack }) {
                           fontSize: "14px",
                           borderBottom: "1px solid #dee2e6",
                           color: "#212529",
+                          whiteSpace: "nowrap",
                         }}
                       >
                         {formatDate(task.dueDate)}

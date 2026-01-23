@@ -1,4 +1,3 @@
-
 // import React, { useEffect, useState } from "react";
 // import Calendar from "react-calendar";
 // import "react-calendar/dist/Calendar.css";
@@ -220,26 +219,12 @@
 //         <span><span className="legend-box holiday"></span> Holiday</span>
 //         {/* <span><span className="legend-box weekend"></span> Weekly Off</span> */}
 
-
 //       </div>
 //     </div>
 //   );
 // }
 
 // export default MyAttendanceCalendar;
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // jaicy  code
 
@@ -259,18 +244,22 @@ function MyAttendanceCalendar({ employeeId }) {
   const [regularizations, setRegularizations] = useState([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
-
   useEffect(() => {
     if (!employeeId) return; // ✅ Skip until defined
     const fetchData = async () => {
       try {
-        const [attRes, leaveRes, weeklyRes, holidayRes, regRes] = await Promise.all([
-          axios.get(` https://server-backend-nu.vercel.app/attendance/${employeeId}`),
-          axios.get(` https://server-backend-nu.vercel.app/leave/my/${employeeId}`),
-          axios.get(` https://server-backend-nu.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`),
-          axios.get(` https://server-backend-nu.vercel.app/getHolidays`),
-          axios.get(` https://server-backend-nu.vercel.app/attendance/regularization/my/${employeeId}`),
-        ]);
+        const [attRes, leaveRes, weeklyRes, holidayRes, regRes] =
+          await Promise.all([
+            axios.get(` https://server-backend-nu.vercel.app/attendance/${employeeId}`),
+            axios.get(` https://server-backend-nu.vercel.app/leave/my/${employeeId}`),
+            axios.get(
+              ` https://server-backend-nu.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`
+            ),
+            axios.get(` https://server-backend-nu.vercel.app/getHolidays`),
+            axios.get(
+              ` https://server-backend-nu.vercel.app/attendance/regularization/my/${employeeId}`
+            ),
+          ]);
         setWeeklyOff(weeklyRes.data.data?.saturdays || []);
         setHolidays(holidayRes.data || []);
         setLeaves(leaveRes.data);
@@ -302,7 +291,6 @@ function MyAttendanceCalendar({ employeeId }) {
             (att) => new Date(att.date).toDateString() === dateKey
           );
 
-
           const regDate = new Date(reg.date);
           const today = new Date();
           today.setHours(0, 0, 0, 0);
@@ -311,28 +299,38 @@ function MyAttendanceCalendar({ employeeId }) {
           const isToday = regDate.getTime() === today.getTime();
           const mergedRecord = {
             date: new Date(reg.date),
-            checkIn: mergedAttendance[existingIndex]?.checkIn || reg.regularizationRequest?.checkIn || null,
-            checkOut: mergedAttendance[existingIndex]?.checkOut || reg.regularizationRequest?.checkOut || null,
+            checkIn:
+              mergedAttendance[existingIndex]?.checkIn ||
+              reg.regularizationRequest?.checkIn ||
+              null,
+            checkOut:
+              mergedAttendance[existingIndex]?.checkOut ||
+              reg.regularizationRequest?.checkOut ||
+              null,
             mode: mergedAttendance[existingIndex]?.mode || reg.mode,
             regStatus: reg.regularizationRequest?.status,
             approvedByRole: reg.regularizationRequest?.approvedByRole,
             dayStatus:
-              isToday && mergedAttendance[existingIndex]?.checkIn && !mergedAttendance[existingIndex]?.checkOut
+              isToday &&
+              mergedAttendance[existingIndex]?.checkIn &&
+              !mergedAttendance[existingIndex]?.checkOut
                 ? "Working"
                 : reg.regularizationRequest?.status === "Approved"
-                  ? "Regularized"
-                  : "Absent",
+                ? "Regularized"
+                : "Absent",
           };
 
           if (existingIndex > -1) {
-            mergedAttendance[existingIndex] = { ...mergedAttendance[existingIndex], ...mergedRecord };
+            mergedAttendance[existingIndex] = {
+              ...mergedAttendance[existingIndex],
+              ...mergedRecord,
+            };
           } else {
             mergedAttendance.push(mergedRecord);
           }
         });
 
         setAttendance(mergedAttendance);
-
       } catch (err) {
         console.error("Error fetching data:", err);
       }
@@ -340,9 +338,13 @@ function MyAttendanceCalendar({ employeeId }) {
 
     fetchData();
   }, [employeeId]);
-  const getHoliday = (date) => holidays.find((h) => new Date(h.date).toDateString() === date.toDateString());
+  const getHoliday = (date) =>
+    holidays.find(
+      (h) => new Date(h.date).toDateString() === date.toDateString()
+    );
   const isHoliday = (date) => !!getHoliday(date);
-  const getWorkedHoursDecimal = (checkIn, checkOut) => (new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60);
+  const getWorkedHoursDecimal = (checkIn, checkOut) =>
+    (new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60);
 
   const getDayStatus = (record) => {
     const today = new Date();
@@ -353,7 +355,11 @@ function MyAttendanceCalendar({ employeeId }) {
 
     if (record.leaveRef) return record.dayStatus;
 
-    let hours = record.workingHours || (record.checkIn && record.checkOut ? getWorkedHoursDecimal(record.checkIn, record.checkOut) : 0);
+    let hours =
+      record.workingHours ||
+      (record.checkIn && record.checkOut
+        ? getWorkedHoursDecimal(record.checkIn, record.checkOut)
+        : 0);
 
     if (record.regStatus === "Approved") {
       if (hours >= 8) return "Regularized (Full Day)";
@@ -365,7 +371,12 @@ function MyAttendanceCalendar({ employeeId }) {
       if (record.checkIn && !record.checkOut) return "Working";
     }
 
-    if (recordDate.getTime() < today.getTime() && record.checkIn && !record.checkOut) return "Absent";
+    if (
+      recordDate.getTime() < today.getTime() &&
+      record.checkIn &&
+      !record.checkOut
+    )
+      return "Absent";
     if (!record.checkIn && !record.checkOut) return "Absent";
 
     if (hours >= 8) return "Full Day";
@@ -415,8 +426,6 @@ function MyAttendanceCalendar({ employeeId }) {
     return rec.dayStatus || "No record";
   };
 
-
-
   const tileClassName = ({ date, view }) => {
     if (view !== "month") return "";
 
@@ -426,9 +435,8 @@ function MyAttendanceCalendar({ employeeId }) {
       date.getMonth() === today.getMonth() &&
       date.getFullYear() === today.getFullYear();
 
-
     // support two common key formats in case your map uses ISO keys elsewhere
-    const key1 = date.toDateString();            // "Thu Nov 13 2025"
+    const key1 = date.toDateString(); // "Thu Nov 13 2025"
     const key2 = date.toISOString().slice(0, 10); // "2025-11-13"
     const rec = attendanceMap[key1] ?? attendanceMap[key2];
 
@@ -443,7 +451,12 @@ function MyAttendanceCalendar({ employeeId }) {
       const ds = rec.dayStatus || "";
       const reg = rec.regStatus || "";
 
-      if (ds === "Working" || ds === "Full Day" || ds.includes("Regularized") || reg === "Approved") {
+      if (
+        ds === "Working" ||
+        ds === "Full Day" ||
+        ds.includes("Regularized") ||
+        reg === "Approved"
+      ) {
         return "present-day";
       }
       if (ds === "Half Day" || ds.includes("Half")) return "halfday-day";
@@ -484,11 +497,10 @@ function MyAttendanceCalendar({ employeeId }) {
           left: 0,
           width: "100%",
           height: "100%",
-
         }}
       />
     );
-  }
+  };
 
   const tileDisabled = ({ date, view }) => {
     if (view !== "month") return false;
@@ -497,7 +509,7 @@ function MyAttendanceCalendar({ employeeId }) {
       date.getMonth() !== currentMonth.getMonth() ||
       date.getFullYear() !== currentMonth.getFullYear()
     );
-  }
+  };
 
   const internalStyles = `
   .calendar-container .react-calendar .react-calendar__navigation {
@@ -515,14 +527,20 @@ function MyAttendanceCalendar({ employeeId }) {
   }
 `;
 
-
   // --- Render UI ---
   return (
-    <div className="card shadow-sm mt-2  border-0" style={{ borderRadius: "12px", width: "100%", maxHeight: "auto" }}
+    <div
+      className="card shadow-sm mt-2  border-0"
+      style={{ borderRadius: "12px", width: "100%", maxHeight: "auto" }}
     >
-      <h4 className="text-center mt-3" style={{
-        color: "#3A5FBE", fontSize: "25px", margin: "0px"
-      }}>
+      <h4
+        className="text-center mt-3"
+        style={{
+          color: "#3A5FBE",
+          fontSize: "25px",
+          margin: "0px",
+        }}
+      >
         Attendance Calendar
       </h4>
 
@@ -541,27 +559,40 @@ function MyAttendanceCalendar({ employeeId }) {
           tileDisabled={tileDisabled}
         />
       </div>
-      <Tooltip id="calendar-tip" place="top" style={{
-        backgroundColor: "#3A5FBE",
-        color: "#fff",
-        padding: "8px 12px",
-        borderRadius: "6px",
-        fontSize: "14px",
-      }} />
+      <Tooltip
+        id="calendar-tip"
+        place="top"
+        style={{
+          backgroundColor: "#3A5FBE",
+          color: "#fff",
+          padding: "8px 12px",
+          borderRadius: "6px",
+          fontSize: "14px",
+        }}
+      />
 
       <div
         className="d-flex justify-content-center flex-wrap"
         style={{ gap: "12px", marginBottom: "15px" }}
       >
-        <span><span className="legend-box present"></span> Present</span>
-        <span><span className="legend-box leave"></span> Leave</span>
-        <span><span className="legend-box holiday"></span> Holidays</span>
-        <span><span className="legend-box halfday"></span> Half Day</span>
-        <span><span className="legend-box today"></span> Today</span>
+        <span>
+          <span className="legend-box present"></span> Present
+        </span>
+        <span>
+          <span className="legend-box leave"></span> Leave
+        </span>
+        <span>
+          <span className="legend-box holiday"></span> Holidays
+        </span>
+        <span>
+          <span className="legend-box halfday"></span> Half Day
+        </span>
+        <span>
+          <span className="legend-box today"></span> Today
+        </span>
       </div>
     </div>
   );
 }
 
 export default MyAttendanceCalendar;
-

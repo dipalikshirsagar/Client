@@ -41,7 +41,6 @@
 //     }
 //   };
 
-
 //   // //permanent delete
 //   // const handleDeleteEmployeepermanent = async (id) => {
 //   //   if (!window.confirm("⚠️ Are you sure you want to permanently delete this employee? This action cannot be undone.")) {
@@ -95,7 +94,6 @@
 //     alert("Server error while deleting employee.");
 //   }
 // };
-
 
 //   // Pagination states
 //   const [currentPage, setCurrentPage] = useState(1);
@@ -164,7 +162,6 @@
 //     }
 //   };
 
-
 //   // Pagination logic
 //   const indexOfLastItem = currentPage * itemsPerPage;
 //   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -174,7 +171,6 @@
 //   const handlePageChange = (page) => {
 //     if (page >= 1 && page <= totalPages) setCurrentPage(page);
 //   };
-
 
 // if (loading) {
 //   return (
@@ -196,7 +192,6 @@
 //   );
 // }
 
-
 //   if (error) return <p className="text-danger text-center mt-3">{error}</p>;
 
 //   // Render employee profile if viewEmployee is set
@@ -208,7 +203,6 @@
 //       />
 //     );
 //   }
-
 
 //   return (
 
@@ -274,7 +268,6 @@
 // >
 //   View
 // </NavLink>
-
 
 //                   {/* <button
 //                       className="btn btn-sm btn-primary"
@@ -415,20 +408,6 @@
 
 // export default AllEmployeeDetails;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
@@ -468,7 +447,7 @@ function AllEmployeeDetails() {
 
     const listToSearch = showOldEmployees ? oldEmployees : employees;
 
-    const filtered = listToSearch.filter(emp => {
+    const filtered = listToSearch.filter((emp) => {
       const id = emp.employeeId?.toString().toLowerCase() || "";
       const name = emp.name?.toLowerCase() || "";
       const email = emp.email?.toLowerCase() || "";
@@ -512,7 +491,8 @@ function AllEmployeeDetails() {
 
   // Soft delete
   const handleDeleteEmployee = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this employee?")) return;
+    if (!window.confirm("Are you sure you want to delete this employee?"))
+      return;
 
     try {
       const token = localStorage.getItem("accessToken");
@@ -543,9 +523,12 @@ function AllEmployeeDetails() {
 
     try {
       const token = localStorage.getItem("accessToken");
-      const res = await axios.delete(`https://server-backend-nu.vercel.app/deleteEmployee/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.delete(
+        `https://server-backend-nu.vercel.app/deleteEmployee/${id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       if (res.data.success) {
         setEmployees((prev) => prev.filter((emp) => emp._id !== id));
@@ -601,10 +584,9 @@ function AllEmployeeDetails() {
     fetchEmployees();
   }, []);
 
-
   // Assign Manager
   const handleAssignManagerClick = (emp) => {
-    console.log("hii", emp)
+    console.log("hii", emp);
     setSelectedEmployee(emp);
     setSelectedManagerId(emp.reportingManager?._id || "");
     const managers = employees.filter(
@@ -655,7 +637,10 @@ function AllEmployeeDetails() {
   const displayedList = filteredEmployees;
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentEmployees = displayedList.slice(indexOfFirstItem, indexOfLastItem);
+  const currentEmployees = displayedList.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
   const totalPages = Math.ceil(displayedList.length / itemsPerPage);
 
   const handlePageChange = (page) => {
@@ -664,8 +649,15 @@ function AllEmployeeDetails() {
 
   if (loading)
     return (
-      <div className="d-flex flex-column justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
-        <div className="spinner-grow" role="status" style={{ width: "4rem", height: "4rem", color: "#3A5FBE" }}>
+      <div
+        className="d-flex flex-column justify-content-center align-items-center"
+        style={{ minHeight: "100vh" }}
+      >
+        <div
+          className="spinner-grow"
+          role="status"
+          style={{ width: "4rem", height: "4rem", color: "#3A5FBE" }}
+        >
           <span className="visually-hidden">Loading...</span>
         </div>
         <p className="mt-3 fw-semibold" style={{ color: "#3A5FBE" }}>
@@ -678,7 +670,16 @@ function AllEmployeeDetails() {
 
   return (
     <div className="container p-4">
-      <h2 style={{ color: "#3A5FBE", fontSize: "25px", marginLeft: "15px", marginBottom: "40px" }}>All Employee Details</h2>
+      <h2
+        style={{
+          color: "#3A5FBE",
+          fontSize: "25px",
+          marginLeft: "15px",
+          marginBottom: "40px",
+        }}
+      >
+        All Employee Details
+      </h2>
 
       {/* {userRole === "admin" && <AddEmployee />} */}
 
@@ -695,11 +696,8 @@ function AllEmployeeDetails() {
         </button>
       </div> */}
 
-
-
       {userRole === "admin" && (
         <div className="d-flex justify-content-between align-items-center mb-3">
-
           {/* Add Employee Component (Button Inside) */}
           <AddEmployee />
 
@@ -711,19 +709,16 @@ function AllEmployeeDetails() {
           >
             {showOldEmployees ? "Show Active Employees" : "Show Old Employees"}
           </button>
-
         </div>
       )}
-
-
 
       <div
         className="filter-grid"
         style={{
-          background: '#fff',
+          background: "#fff",
           borderRadius: 8,
-          padding: '12px 16px',
-          border: '1px solid #e5e7eb',
+          padding: "12px 16px",
+          border: "1px solid #e5e7eb",
           marginBottom: 16,
         }}
       >
@@ -804,7 +799,7 @@ function AllEmployeeDetails() {
             onChange={(e) => setSearchName(e.target.value)}
             placeholder="Search by any field..."
             onKeyPress={(e) => {
-              if (e.key === 'Enter') {
+              if (e.key === "Enter") {
                 handleSearch();
               }
             }}
@@ -836,40 +831,176 @@ function AllEmployeeDetails() {
         </div>
       </div>
 
-
       <div className="table-responsive mt-2">
         <table className="table table-hover mb-0">
           <thead style={{ backgroundColor: "#f8f9fa" }}>
             <tr>
-              <th style={{ fontWeight: '600', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>ID</th>
-              <th style={{ fontWeight: '600', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Name</th>
-              <th style={{ fontWeight: '600', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Email</th>
-              <th style={{ fontWeight: '600', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Department</th>
-              <th style={{ fontWeight: '600', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }} >Position</th>
-              <th style={{ fontWeight: '600', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Date Of Joining</th>
-              <th style={{ fontWeight: '600', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Action</th>
+              <th
+                style={{
+                  fontWeight: "600",
+                  fontSize: "14px",
+                  color: "#6c757d",
+                  borderBottom: "2px solid #dee2e6",
+                  padding: "12px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                ID
+              </th>
+              <th
+                style={{
+                  fontWeight: "600",
+                  fontSize: "14px",
+                  color: "#6c757d",
+                  borderBottom: "2px solid #dee2e6",
+                  padding: "12px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Name
+              </th>
+              <th
+                style={{
+                  fontWeight: "600",
+                  fontSize: "14px",
+                  color: "#6c757d",
+                  borderBottom: "2px solid #dee2e6",
+                  padding: "12px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Email
+              </th>
+              <th
+                style={{
+                  fontWeight: "600",
+                  fontSize: "14px",
+                  color: "#6c757d",
+                  borderBottom: "2px solid #dee2e6",
+                  padding: "12px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Department
+              </th>
+              <th
+                style={{
+                  fontWeight: "600",
+                  fontSize: "14px",
+                  color: "#6c757d",
+                  borderBottom: "2px solid #dee2e6",
+                  padding: "12px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Position
+              </th>
+              <th
+                style={{
+                  fontWeight: "600",
+                  fontSize: "14px",
+                  color: "#6c757d",
+                  borderBottom: "2px solid #dee2e6",
+                  padding: "12px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Date Of Joining
+              </th>
+              <th
+                style={{
+                  fontWeight: "600",
+                  fontSize: "14px",
+                  color: "#6c757d",
+                  borderBottom: "2px solid #dee2e6",
+                  padding: "12px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Action
+              </th>
             </tr>
           </thead>
 
           <tbody>
             {currentEmployees.map((emp) => (
               <tr key={emp._id}>
-
-                <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>{emp.employeeId?.slice(0, 9)}</td>
-                <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>{emp.name}</td>
-                <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>{emp.email}</td>
-                <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>{emp.department || "N/A"}</td>
-                <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }} className="text-uppercase">{emp.role}</td>
-                <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>{new Date(emp.doj || emp.createdAt).toLocaleDateString('en-GB', {
-                  day: '2-digit',
-                  month: 'short',
-                  year: 'numeric',
-                })}</td>
+                <td
+                  style={{
+                    padding: "12px",
+                    verticalAlign: "middle",
+                    fontSize: "14px",
+                    borderBottom: "1px solid #dee2e6",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {emp.employeeId?.slice(0, 9)}
+                </td>
+                <td
+                  style={{
+                    padding: "12px",
+                    verticalAlign: "middle",
+                    fontSize: "14px",
+                    borderBottom: "1px solid #dee2e6",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {emp.name}
+                </td>
+                <td
+                  style={{
+                    padding: "12px",
+                    verticalAlign: "middle",
+                    fontSize: "14px",
+                    borderBottom: "1px solid #dee2e6",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {emp.email}
+                </td>
+                <td
+                  style={{
+                    padding: "12px",
+                    verticalAlign: "middle",
+                    fontSize: "14px",
+                    borderBottom: "1px solid #dee2e6",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {emp.department || "N/A"}
+                </td>
+                <td
+                  style={{
+                    padding: "12px",
+                    verticalAlign: "middle",
+                    fontSize: "14px",
+                    borderBottom: "1px solid #dee2e6",
+                    whiteSpace: "nowrap",
+                  }}
+                  className="text-uppercase"
+                >
+                  {emp.role}
+                </td>
+                <td
+                  style={{
+                    padding: "12px",
+                    verticalAlign: "middle",
+                    fontSize: "14px",
+                    borderBottom: "1px solid #dee2e6",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {new Date(emp.doj || emp.createdAt).toLocaleDateString(
+                    "en-GB",
+                    {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    }
+                  )}
+                </td>
 
                 <td style={{ display: "flex", gap: "5px" }}>
-
-
-
                   <NavLink
                     to={`/dashboard/${role}/${username}/${id}/employeeprofile/${emp._id}`}
                     className="btn btn-sm custom-outline-btn"
@@ -877,50 +1008,48 @@ function AllEmployeeDetails() {
                     View
                   </NavLink>
 
-
-
-
                   {!showOldEmployees && userRole === "admin" && (
                     <button
                       className="btn btn-sm btn-outline-success me-2"
                       style={{
                         whiteSpace: "nowrap",
-                        height: "31px",         // Same as Bootstrap btn-sm default
+                        height: "31px", // Same as Bootstrap btn-sm default
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                         //  backgroundColor: "#3A5FBE", color: "#fff"
-                      }} onClick={() => handleAssignManagerClick(emp)}
+                      }}
+                      onClick={() => handleAssignManagerClick(emp)}
                     >
                       Assign Manager
                     </button>
                   )}
 
-
-
-
                   {/* Hide delete buttons on Old Employee view */}
                   {!showOldEmployees && userRole === "admin" && (
-                    <button className="btn btn-sm btn-outline-danger" style={{
-                      whiteSpace: "nowrap",
-                      height: "31px",         // Same as Bootstrap btn-sm default
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center"
-                    }} onClick={() => handleDeleteEmployee(emp._id)}>
+                    <button
+                      className="btn btn-sm btn-outline-danger"
+                      style={{
+                        whiteSpace: "nowrap",
+                        height: "31px", // Same as Bootstrap btn-sm default
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                      onClick={() => handleDeleteEmployee(emp._id)}
+                    >
                       Move To Bin
                     </button>
                   )}
 
                   {showOldEmployees && userRole === "admin" && (
-                    <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteEmployeepermanent(emp._id)}>
+                    <button
+                      className="btn btn-sm btn-outline-danger"
+                      onClick={() => handleDeleteEmployeepermanent(emp._id)}
+                    >
                       Delete
                     </button>
                   )}
-
-
-
-
                 </td>
               </tr>
             ))}
@@ -932,7 +1061,9 @@ function AllEmployeeDetails() {
       <nav className="d-flex align-items-center justify-content-end mt-3 text-muted">
         <div className="d-flex align-items-center gap-3">
           <div className="d-flex align-items-center">
-            <span style={{ fontSize: "14px", marginRight: "8px" }}>Rows per page:</span>
+            <span style={{ fontSize: "14px", marginRight: "8px" }}>
+              Rows per page:
+            </span>
             <select
               className="form-select form-select-sm"
               style={{ width: "auto" }}
@@ -949,7 +1080,8 @@ function AllEmployeeDetails() {
           </div>
 
           <span style={{ fontSize: "14px" }}>
-            {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, displayedList.length)} of{" "}
+            {indexOfFirstItem + 1}-
+            {Math.min(indexOfLastItem, displayedList.length)} of{" "}
             {displayedList.length}
           </span>
 
@@ -972,21 +1104,23 @@ function AllEmployeeDetails() {
         </div>
       </nav>
 
-
-
-
-
-
-
-
       {/* Modal for assigning manager */}
 
-
       {showModal && (
-        <div className="modal d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+        <div
+          className="modal d-block"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
-              <div className="modal-header" style={{ backgroundColor: "#233986", borderColor: "#233986", color: "#fff" }}>
+              <div
+                className="modal-header"
+                style={{
+                  backgroundColor: "#233986",
+                  borderColor: "#233986",
+                  color: "#fff",
+                }}
+              >
                 <h5 className="modal-title">Assign Reporting Manager</h5>
                 <button
                   type="button"
@@ -997,7 +1131,9 @@ function AllEmployeeDetails() {
               <div className="modal-body">
                 {message && <div className="alert alert-info">{message}</div>}
                 <div className="mb-3">
-                  <label style={{ color: "#0d47a1", fontWeight: "bold" }}>Manager</label>
+                  <label style={{ color: "#0d47a1", fontWeight: "bold" }}>
+                    Manager
+                  </label>
                   <select
                     className="form-select mt-2"
                     value={selectedManagerId}
@@ -1012,12 +1148,26 @@ function AllEmployeeDetails() {
                   </select>
                 </div>
                 <div className="d-flex justify-content-end gap-2">
-                  <button className="btn btn-outline-secondary" onClick={() => setShowModal(false)}
-                    style={{ borderColor: "#233986", color: "#233986", fontWeight: "bold" }}>
+                  <button
+                    className="btn btn-outline-secondary"
+                    onClick={() => setShowModal(false)}
+                    style={{
+                      borderColor: "#233986",
+                      color: "#233986",
+                      fontWeight: "bold",
+                    }}
+                  >
                     Cancel
                   </button>
-                  <button className="btn btn-primary" onClick={handleUpdateManager}
-                    style={{ backgroundColor: "#233986", borderColor: "#233986", color: "#fff" }}>
+                  <button
+                    className="btn btn-primary"
+                    onClick={handleUpdateManager}
+                    style={{
+                      backgroundColor: "#233986",
+                      borderColor: "#233986",
+                      color: "#fff",
+                    }}
+                  >
                     Assign
                   </button>
                 </div>
@@ -1026,15 +1176,6 @@ function AllEmployeeDetails() {
           </div>
         </div>
       )}
-
-
-
-
-
-
-
-
-
 
       {/* Back Button */}
       <div className="text-end mt-3">
@@ -1051,4 +1192,3 @@ function AllEmployeeDetails() {
 }
 
 export default AllEmployeeDetails;
-

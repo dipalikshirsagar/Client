@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./EmployeeCareer.css";
-import axios from "axios"
-import TablePagination from './TablePagination'
-
+import axios from "axios";
+import TablePagination from "./TablePagination";
 
 const EmployeeCareer = ({ user }) => {
   const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
-  console.log("loggedInUser", user)
+  console.log("loggedInUser", user);
   const [activeTab, setActiveTab] = useState("Jobs");
   const [jobsPage, setJobsPage] = useState(0);
   const [appliedPage, setAppliedPage] = useState(0);
@@ -30,7 +29,6 @@ const EmployeeCareer = ({ user }) => {
   const [referralSuccess, setReferralSuccess] = useState(false);
   const [referredCandidates, setReferredCandidates] = useState([]);
   const [activeReferralTab, setActiveReferralTab] = useState("DESC");
-
 
   const [jobs, setJobs] = useState([]);
   const [appliedJob, setAppliedJob] = useState([]);
@@ -88,13 +86,12 @@ const EmployeeCareer = ({ user }) => {
       headers: { "Content-Type": "multipart/form-data" },
     });
 
-
-  console.log("appliedJob from ", appliedJob)
+  console.log("appliedJob from ", appliedJob);
   const formatDate = (dateString) =>
     new Intl.DateTimeFormat("en-GB", {
       day: "2-digit",
       month: "short",
-      year: "numeric"
+      year: "numeric",
     }).format(new Date(dateString));
   const getDaysAgo = (createdAt) => {
     if (!createdAt) return 9999;
@@ -107,87 +104,85 @@ const EmployeeCareer = ({ user }) => {
     return Math.floor((today - created) / (1000 * 60 * 60 * 24));
   };
 
-
-
   useEffect(() => {
     fetchJobs();
-    fetchAppliedJobs()
-    fetchRefferedJobs()
+    fetchAppliedJobs();
+    fetchRefferedJobs();
   }, []);
 
   const getStatusColor = (status) => {
     switch (status) {
       case "Applied":
         return {
-          backgroundColor: '#d1f2dd',
-          padding: '8px 16px',
-          borderRadius: '4px',
-          fontSize: '13px',
-          fontWeight: '500',
-          display: 'inline-block',
+          backgroundColor: "#d1f2dd",
+          padding: "8px 16px",
+          borderRadius: "4px",
+          fontSize: "13px",
+          fontWeight: "500",
+          display: "inline-block",
           width: "120px",
           textAlign: "center",
-          color: '#0f5132'
+          color: "#0f5132",
         };
       case "Shortlisted":
         return {
-          backgroundColor: '#d1e7ff',
-          padding: '7px 16px',
-          borderRadius: '4px',
-          fontSize: '13px',
-          fontWeight: '500',
-          display: 'inline-block',
+          backgroundColor: "#d1e7ff",
+          padding: "7px 16px",
+          borderRadius: "4px",
+          fontSize: "13px",
+          fontWeight: "500",
+          display: "inline-block",
           width: "120px",
           textAlign: "center",
-          color: '#0d6efd'
+          color: "#0d6efd",
         };
       case "Interview":
         return {
-          backgroundColor: '#FFE493',
-          padding: '8px 16px',
-          borderRadius: '4px',
-          fontSize: '13px',
-          fontWeight: '500',
-          display: 'inline-block',
+          backgroundColor: "#FFE493",
+          padding: "8px 16px",
+          borderRadius: "4px",
+          fontSize: "13px",
+          fontWeight: "500",
+          display: "inline-block",
           width: "120px",
           textAlign: "center",
-          color: '#664d03'
+          color: "#664d03",
         };
       case "Hired":
         return {
-          backgroundColor: '#f1dabfff',
-          padding: '8px 16px',
-          borderRadius: '4px',
-          fontSize: '13px',
-          fontWeight: '500',
-          display: 'inline-block',
+          backgroundColor: "#f1dabfff",
+          padding: "8px 16px",
+          borderRadius: "4px",
+          fontSize: "13px",
+          fontWeight: "500",
+          display: "inline-block",
           width: "120px",
           textAlign: "center",
-          color: '#e9700eff'
+          color: "#e9700eff",
         };
       case "Rejected":
         return {
-          backgroundColor: '#f8d7da',
-          padding: '8px 16px',
-          borderRadius: '4px',
-          fontSize: '13px',
-          fontWeight: '500',
-          display: 'inline-block',
+          backgroundColor: "#f8d7da",
+          padding: "8px 16px",
+          borderRadius: "4px",
+          fontSize: "13px",
+          fontWeight: "500",
+          display: "inline-block",
           width: "120px",
           textAlign: "center",
-          color: '#842029'
+          color: "#842029",
         };
       default:
         return {
-          backgroundColor: '#bfcfeeff',
-          padding: '8px 16px',
-          borderRadius: '4px',
-          fontSize: '13px',
-          fontWeight: '500',
-          display: 'inline-block',
+          backgroundColor: "#bfcfeeff",
+          padding: "8px 16px",
+          borderRadius: "4px",
+          fontSize: "13px",
+          fontWeight: "500",
+          display: "inline-block",
           width: "120px",
           textAlign: "center",
-          color: '#495057'
+          color: "#495057",
         };
     }
   };
@@ -201,20 +196,20 @@ const EmployeeCareer = ({ user }) => {
       marginLeft: "6px",
       boxShadow: "0 2px 4px rgba(0,0,0,0.08)",
       display: "inline-block",
-      lineHeight: "1"
+      lineHeight: "1",
     };
     switch (jobType) {
       case "inhouse":
         return {
           ...baseStyle,
-          backgroundColor: '#d1f2dd',
-          color: '#0f5132'
+          backgroundColor: "#d1f2dd",
+          color: "#0f5132",
         };
       case "referral":
         return {
           ...baseStyle,
-          backgroundColor: '#d1e7ff',
-          color: '#0d6efd'
+          backgroundColor: "#d1e7ff",
+          color: "#0d6efd",
         };
       default:
         return baseStyle;
@@ -232,7 +227,8 @@ const EmployeeCareer = ({ user }) => {
       (locationFilter === "All" || job.location === locationFilter) &&
       (workModeFilter === "All" || job.hiringType === workModeFilter) &&
       (departmentFilter === "All" || job.department === departmentFilter) &&
-      (postedFilter === "All" || getDaysAgo(job.createdAt) <= Number(postedFilter)) &&
+      (postedFilter === "All" ||
+        getDaysAgo(job.createdAt) <= Number(postedFilter)) &&
       job.jobTitle.toLowerCase().includes(searchText.toLowerCase())
     );
   });
@@ -254,8 +250,6 @@ const EmployeeCareer = ({ user }) => {
     referralPage * rowsPerPage + rowsPerPage
   );
 
-
-
   const resetJobFilters = () => {
     setSearchText("");
     setLocationFilter("All");
@@ -267,7 +261,17 @@ const EmployeeCareer = ({ user }) => {
 
   return (
     <div className="container-fluid mt-4">
-      <h2 style={{ color: "#3A5FBE", marginTop: "-30px", fontSize: "25px", marginLeft: "15px", marginBottom: "40px" }}>{activeTab}</h2>
+      <h2
+        style={{
+          color: "#3A5FBE",
+          marginTop: "-30px",
+          fontSize: "25px",
+          marginLeft: "15px",
+          marginBottom: "40px",
+        }}
+      >
+        {activeTab}
+      </h2>
 
       <div className="container-fluid pt-1 px-3">
         {/* ===== TOP TABS ===== */}
@@ -276,7 +280,9 @@ const EmployeeCareer = ({ user }) => {
             <li key={tab}>
               <button
                 type="button"
-                className={`career-tab-btn ${activeTab === tab ? "active" : ""}`}
+                className={`career-tab-btn ${
+                  activeTab === tab ? "active" : ""
+                }`}
                 onClick={() => setActiveTab(tab)}
               >
                 {tab}
@@ -291,10 +297,11 @@ const EmployeeCareer = ({ user }) => {
             <div className="card mb-5 mt-5 shadow-sm border-0">
               <div className="card-body">
                 <div className="row g-2 align-items-center">
-
                   {/* Search */}
                   <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
-                    <label htmlFor="leaveStatusFilter" className="filter-label">Job title</label>
+                    <label htmlFor="leaveStatusFilter" className="filter-label">
+                      Job title
+                    </label>
                     <input
                       type="text"
                       className="form-control form-control-sm"
@@ -303,7 +310,6 @@ const EmployeeCareer = ({ user }) => {
                       onChange={(e) => setSearchText(e.target.value)}
                     />
                   </div>
-
 
                   {/* Location */}
                   <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
@@ -337,7 +343,6 @@ const EmployeeCareer = ({ user }) => {
                     </select>
                   </div>
 
-
                   {/* Posted */}
                   <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
                     <label className=" filter-label">Posted</label>
@@ -352,7 +357,6 @@ const EmployeeCareer = ({ user }) => {
                       <option value="30">30 Days</option>
                     </select>
                   </div>
-
 
                   {/* Reset */}
                   <div className="col-md-1 text-end">
@@ -369,7 +373,6 @@ const EmployeeCareer = ({ user }) => {
 
             {/* filter code end*/}
 
-
             {/* Category */}
             <div className="d-flex gap-4 mb-3 px-2">
               {[
@@ -380,10 +383,11 @@ const EmployeeCareer = ({ user }) => {
                 <button
                   key={cat.value}
                   type="button"
-                  className={`btn fw-semibold ${jobCategoryView === cat.value
+                  className={`btn fw-semibold ${
+                    jobCategoryView === cat.value
                       ? "btn-primary"
                       : "btn-outline-secondary"
-                    }`}
+                  }`}
                   onClick={() => setJobCategoryView(cat.value)}
                 >
                   {cat.label}
@@ -400,49 +404,153 @@ const EmployeeCareer = ({ user }) => {
                   borderRadius: "8px",
                 }}
               >
-                <table className="table table-hover mb-0" style={{ borderCollapse: 'collapse' }}>
-                  <thead style={{ backgroundColor: '#f8f9fa' }}>
+                <table
+                  className="table table-hover mb-0"
+                  style={{ borderCollapse: "collapse" }}
+                >
+                  <thead style={{ backgroundColor: "#f8f9fa" }}>
                     <tr>
-
-                      <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Job ID</th>
-                      <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Job Title</th>
-                      <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Location</th>
-                      <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Posted</th>
-                      <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Action</th>
-
+                      <th
+                        style={{
+                          fontWeight: "500",
+                          fontSize: "14px",
+                          color: "#6c757d",
+                          borderBottom: "2px solid #dee2e6",
+                          padding: "12px",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        Job ID
+                      </th>
+                      <th
+                        style={{
+                          fontWeight: "500",
+                          fontSize: "14px",
+                          color: "#6c757d",
+                          borderBottom: "2px solid #dee2e6",
+                          padding: "12px",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        Job Title
+                      </th>
+                      <th
+                        style={{
+                          fontWeight: "500",
+                          fontSize: "14px",
+                          color: "#6c757d",
+                          borderBottom: "2px solid #dee2e6",
+                          padding: "12px",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        Location
+                      </th>
+                      <th
+                        style={{
+                          fontWeight: "500",
+                          fontSize: "14px",
+                          color: "#6c757d",
+                          borderBottom: "2px solid #dee2e6",
+                          padding: "12px",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        Posted
+                      </th>
+                      <th
+                        style={{
+                          fontWeight: "500",
+                          fontSize: "14px",
+                          color: "#6c757d",
+                          borderBottom: "2px solid #dee2e6",
+                          padding: "12px",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        Action
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {paginatedJobs.length === 0 ? (
                       <tr>
-                        <td colSpan="9" style={{ textAlign: 'center', padding: '20px', fontStyle: 'italic', color: '#888' }}>
+                        <td
+                          colSpan="9"
+                          style={{
+                            textAlign: "center",
+                            padding: "20px",
+                            fontStyle: "italic",
+                            color: "#888",
+                          }}
+                        >
                           No Job records available.
                         </td>
                       </tr>
                     ) : (
                       paginatedJobs.map((job) => (
                         <tr key={job._id}>
-                          <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                          <td
+                            style={{
+                              padding: "12px",
+                              verticalAlign: "middle",
+                              fontSize: "14px",
+                              borderBottom: "1px solid #dee2e6",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
                             {job._id?.slice(-4)}
                           </td>
-                          <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                          <td
+                            style={{
+                              padding: "12px",
+                              verticalAlign: "middle",
+                              fontSize: "14px",
+                              borderBottom: "1px solid #dee2e6",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
                             {job.jobTitle}{" "}
-                            {jobCategoryView === "ALL" &&
+                            {jobCategoryView === "ALL" && (
                               <span style={getJobTypeColor(job.jobType)}>
                                 {job.jobType}
                               </span>
-                            }
-                          </td >
+                            )}
+                          </td>
 
-                          <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                          <td
+                            style={{
+                              padding: "12px",
+                              verticalAlign: "middle",
+                              fontSize: "14px",
+                              borderBottom: "1px solid #dee2e6",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
                             {job.location}
                           </td>
-                          <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                          <td
+                            style={{
+                              padding: "12px",
+                              verticalAlign: "middle",
+                              fontSize: "14px",
+                              borderBottom: "1px solid #dee2e6",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
                             {getDaysAgo(job.createdAt) === 0
                               ? "Today"
                               : `${getDaysAgo(job.createdAt)} days ago`}
                           </td>
-                          <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                          <td
+                            style={{
+                              padding: "12px",
+                              verticalAlign: "middle",
+                              fontSize: "14px",
+                              borderBottom: "1px solid #dee2e6",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
                             <button
                               className="btn btn-sm btn-outline-primary"
                               onClick={() => {
@@ -474,8 +582,7 @@ const EmployeeCareer = ({ user }) => {
               totalCount={filteredJobs.length}
             />
           </>
-        )
-        }
+        )}
 
         {/* ===== Applied Tab ===== */}
         {activeTab === "Applied" && (
@@ -485,10 +592,54 @@ const EmployeeCareer = ({ user }) => {
                 <table className="table table-hover mb-0">
                   <thead className="table-light">
                     <tr>
-                      <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Job ID</th>
-                      <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Job Title</th>
-                      <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Applied On</th>
-                      <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Status</th>
+                      <th
+                        style={{
+                          fontWeight: "500",
+                          fontSize: "14px",
+                          color: "#6c757d",
+                          borderBottom: "2px solid #dee2e6",
+                          padding: "12px",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        Job ID
+                      </th>
+                      <th
+                        style={{
+                          fontWeight: "500",
+                          fontSize: "14px",
+                          color: "#6c757d",
+                          borderBottom: "2px solid #dee2e6",
+                          padding: "12px",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        Job Title
+                      </th>
+                      <th
+                        style={{
+                          fontWeight: "500",
+                          fontSize: "14px",
+                          color: "#6c757d",
+                          borderBottom: "2px solid #dee2e6",
+                          padding: "12px",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        Applied On
+                      </th>
+                      <th
+                        style={{
+                          fontWeight: "500",
+                          fontSize: "14px",
+                          color: "#6c757d",
+                          borderBottom: "2px solid #dee2e6",
+                          padding: "12px",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        Status
+                      </th>
                     </tr>
                   </thead>
 
@@ -502,10 +653,48 @@ const EmployeeCareer = ({ user }) => {
                     ) : (
                       paginatedApplied.map((app) => (
                         <tr key={app._id}>
-                          <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>{app?.job?._id.slice(-4)}</td>
-                          <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>{app.job?.jobTitle}</td>
-                          <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>{formatDate(app.createdAt) || "Self"}</td>
-                          <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                          <td
+                            style={{
+                              padding: "12px",
+                              verticalAlign: "middle",
+                              fontSize: "14px",
+                              borderBottom: "1px solid #dee2e6",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {app?.job?._id.slice(-4)}
+                          </td>
+                          <td
+                            style={{
+                              padding: "12px",
+                              verticalAlign: "middle",
+                              fontSize: "14px",
+                              borderBottom: "1px solid #dee2e6",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {app.job?.jobTitle}
+                          </td>
+                          <td
+                            style={{
+                              padding: "12px",
+                              verticalAlign: "middle",
+                              fontSize: "14px",
+                              borderBottom: "1px solid #dee2e6",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {formatDate(app.createdAt) || "Self"}
+                          </td>
+                          <td
+                            style={{
+                              padding: "12px",
+                              verticalAlign: "middle",
+                              fontSize: "14px",
+                              borderBottom: "1px solid #dee2e6",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
                             <span style={getStatusColor(app.status)}>
                               {app.status}
                             </span>
@@ -514,13 +703,11 @@ const EmployeeCareer = ({ user }) => {
                       ))
                     )}
                   </tbody>
-
                 </table>
               </div>
             </div>
           </>
         )}
-
 
         {/* ===== MY REFERRAL TAB ===== */}
         {activeTab === "My Referral" && (
@@ -530,11 +717,66 @@ const EmployeeCareer = ({ user }) => {
                 <table className="table table-hover mb-0">
                   <thead className="table-light">
                     <tr>
-                      <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Job ID</th>
-                      <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Candidate Name</th>
-                      <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Job Title</th>
-                      <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Referred On</th>
-                      <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Status</th>
+                      <th
+                        style={{
+                          fontWeight: "500",
+                          fontSize: "14px",
+                          color: "#6c757d",
+                          borderBottom: "2px solid #dee2e6",
+                          padding: "12px",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        Job ID
+                      </th>
+                      <th
+                        style={{
+                          fontWeight: "500",
+                          fontSize: "14px",
+                          color: "#6c757d",
+                          borderBottom: "2px solid #dee2e6",
+                          padding: "12px",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        Candidate Name
+                      </th>
+                      <th
+                        style={{
+                          fontWeight: "500",
+                          fontSize: "14px",
+                          color: "#6c757d",
+                          borderBottom: "2px solid #dee2e6",
+                          padding: "12px",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        Job Title
+                      </th>
+                      <th
+                        style={{
+                          fontWeight: "500",
+                          fontSize: "14px",
+                          color: "#6c757d",
+                          borderBottom: "2px solid #dee2e6",
+                          padding: "12px",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        Referred On
+                      </th>
+                      <th
+                        style={{
+                          fontWeight: "500",
+                          fontSize: "14px",
+                          color: "#6c757d",
+                          borderBottom: "2px solid #dee2e6",
+                          padding: "12px",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        Status
+                      </th>
                     </tr>
                   </thead>
 
@@ -542,11 +784,59 @@ const EmployeeCareer = ({ user }) => {
                     {paginatedReferrals.length > 0 ? (
                       paginatedReferrals.map((ref) => (
                         <tr key={ref._id}>
-                          <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>{ref?.job?._id?.slice(-4)} </td>
-                          <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>{ref?.candidate?.name}</td>
-                          <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>{ref?.job?.jobTitle}</td>
-                          <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>{formatDate(ref?.createdAt)}</td>
-                          <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                          <td
+                            style={{
+                              padding: "12px",
+                              verticalAlign: "middle",
+                              fontSize: "14px",
+                              borderBottom: "1px solid #dee2e6",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {ref?.job?._id?.slice(-4)}{" "}
+                          </td>
+                          <td
+                            style={{
+                              padding: "12px",
+                              verticalAlign: "middle",
+                              fontSize: "14px",
+                              borderBottom: "1px solid #dee2e6",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {ref?.candidate?.name}
+                          </td>
+                          <td
+                            style={{
+                              padding: "12px",
+                              verticalAlign: "middle",
+                              fontSize: "14px",
+                              borderBottom: "1px solid #dee2e6",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {ref?.job?.jobTitle}
+                          </td>
+                          <td
+                            style={{
+                              padding: "12px",
+                              verticalAlign: "middle",
+                              fontSize: "14px",
+                              borderBottom: "1px solid #dee2e6",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {formatDate(ref?.createdAt)}
+                          </td>
+                          <td
+                            style={{
+                              padding: "12px",
+                              verticalAlign: "middle",
+                              fontSize: "14px",
+                              borderBottom: "1px solid #dee2e6",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
                             <span style={getStatusColor(ref.status)}>
                               {ref.status}
                             </span>
@@ -562,7 +852,6 @@ const EmployeeCareer = ({ user }) => {
                     )}
                   </tbody>
                 </table>
-
               </div>
             </div>
           </>
@@ -570,7 +859,10 @@ const EmployeeCareer = ({ user }) => {
 
         {/* ===== View Modal ===== */}
         {showViewModal && selectedJob && (
-          <div className="modal fade show d-block" style={{ background: "#00000080" }}>
+          <div
+            className="modal fade show d-block"
+            style={{ background: "#00000080" }}
+          >
             <div className="modal-dialog modal-lg">
               <div className="modal-content">
                 <div className="modal-header">
@@ -584,15 +876,21 @@ const EmployeeCareer = ({ user }) => {
                   {/* Modal Tabs */}
                   <div className="d-flex gap-3 mb-3">
                     <button
-                      className={`btn btn-sm ${activeViewTab === "DESC" ? "btn-primary" : "btn-outline-primary"
-                        }`}
+                      className={`btn btn-sm ${
+                        activeViewTab === "DESC"
+                          ? "btn-primary"
+                          : "btn-outline-primary"
+                      }`}
                       onClick={() => setActiveViewTab("DESC")}
                     >
                       Job Description
                     </button>
                     <button
-                      className={`btn btn-sm ${activeViewTab === "APPLY" ? "btn-primary" : "btn-outline-primary"
-                        }`}
+                      className={`btn btn-sm ${
+                        activeViewTab === "APPLY"
+                          ? "btn-primary"
+                          : "btn-outline-primary"
+                      }`}
                       onClick={() => setActiveViewTab("APPLY")}
                     >
                       Application Form
@@ -600,8 +898,6 @@ const EmployeeCareer = ({ user }) => {
                   </div>
                   {activeViewTab === "DESC" && (
                     <div className="job-details-wrapper">
-
-
                       <div className="job-card">
                         <h6 className="job-card-title">Job Info</h6>
 
@@ -629,7 +925,8 @@ const EmployeeCareer = ({ user }) => {
                           <div>
                             <span className="label">Experience</span>
                             <p>
-                              {selectedJob.experience?.min} – {selectedJob.experience?.max} Years
+                              {selectedJob.experience?.min} –{" "}
+                              {selectedJob.experience?.max} Years
                             </p>
                           </div>
 
@@ -639,7 +936,6 @@ const EmployeeCareer = ({ user }) => {
                           </div>
                         </div>
                       </div>
-
 
                       <div className="job-card">
                         <h6 className="job-card-title">Job Details</h6>
@@ -652,42 +948,53 @@ const EmployeeCareer = ({ user }) => {
                             ))}
                           </ul>
 
-                          {selectedJob.otherSkills && selectedJob.otherSkills.length > 0 && (
-                            <>
-                              <h6 style={{ marginTop: "16px", color: "#3A5FBE" }}>
-                                Other Skills:
-                              </h6>
-                              <ul style={{ paddingLeft: "20px", marginTop: "6px" }}>
-                                {selectedJob.otherSkills.map((skill, index) => (
-                                  <li
-                                    key={index}
-                                    style={{
-                                      fontSize: "14px",
-                                      color: "#212529",
-                                      marginBottom: "4px"
-                                    }}
-                                  >
-                                    {skill}
-                                  </li>
-                                ))}
-                              </ul>
-
-                            </>
-                          )}
-
+                          {selectedJob.otherSkills &&
+                            selectedJob.otherSkills.length > 0 && (
+                              <>
+                                <h6
+                                  style={{
+                                    marginTop: "16px",
+                                    color: "#3A5FBE",
+                                  }}
+                                >
+                                  Other Skills:
+                                </h6>
+                                <ul
+                                  style={{
+                                    paddingLeft: "20px",
+                                    marginTop: "6px",
+                                  }}
+                                >
+                                  {selectedJob.otherSkills.map(
+                                    (skill, index) => (
+                                      <li
+                                        key={index}
+                                        style={{
+                                          fontSize: "14px",
+                                          color: "#212529",
+                                          marginBottom: "4px",
+                                        }}
+                                      >
+                                        {skill}
+                                      </li>
+                                    )
+                                  )}
+                                </ul>
+                              </>
+                            )}
                         </div>
 
                         <div className="job-section">
                           <b>Description:</b>
                           <div
                             className="job-desc"
-                            dangerouslySetInnerHTML={{ __html: selectedJob.jobDescription }}
+                            dangerouslySetInnerHTML={{
+                              __html: selectedJob.jobDescription,
+                            }}
                           />
                         </div>
                       </div>
-
                     </div>
-
                   )}
 
                   {/* Application Form */}
@@ -701,7 +1008,10 @@ const EmployeeCareer = ({ user }) => {
                         formData.append("job", selectedJob._id);
                         formData.append("applicantType", "inhouse");
                         formData.append("employee", user._id);
-                        formData.append("name", `${form.firstName.value}${form.middleName.value} ${form.lastName.value}`);
+                        formData.append(
+                          "name",
+                          `${form.firstName.value}${form.middleName.value} ${form.lastName.value}`
+                        );
                         formData.append("email", form.email.value);
                         formData.append("experience", form.experience.value);
                         formData.append("city", form.city.value);
@@ -714,43 +1024,131 @@ const EmployeeCareer = ({ user }) => {
                           await fetchAppliedJobs();
                           setShowViewModal(false);
                         } catch (err) {
-                          alert(err.response?.data?.message || "Application failed");
+                          alert(
+                            err.response?.data?.message || "Application failed"
+                          );
                         }
                       }}
                     >
                       <div className="mb-3 d-flex align-items-center">
-                        <label className="form-label me-2" style={{ minWidth: "150px" }}>First Name:</label>
-                        <input className="form-control" name="firstName" placeholder="Enter First Name" required />
+                        <label
+                          className="form-label me-2"
+                          style={{ minWidth: "150px" }}
+                        >
+                          First Name:
+                        </label>
+                        <input
+                          className="form-control"
+                          name="firstName"
+                          placeholder="Enter First Name"
+                          required
+                        />
                       </div>
                       <div className="mb-3 d-flex align-items-center">
-                        <label className="form-label me-2" style={{ minWidth: "150px" }}>Middle Name:</label>
-                        <input className="form-control" name="middleName" placeholder="Enter Middle Name" />
+                        <label
+                          className="form-label me-2"
+                          style={{ minWidth: "150px" }}
+                        >
+                          Middle Name:
+                        </label>
+                        <input
+                          className="form-control"
+                          name="middleName"
+                          placeholder="Enter Middle Name"
+                        />
                       </div>
                       <div className="mb-3 d-flex align-items-center">
-                        <label className="form-label me-2" style={{ minWidth: "150px" }}>Last Name:</label>
-                        <input className="form-control" name="lastName" placeholder="Enter Last Name" required />
+                        <label
+                          className="form-label me-2"
+                          style={{ minWidth: "150px" }}
+                        >
+                          Last Name:
+                        </label>
+                        <input
+                          className="form-control"
+                          name="lastName"
+                          placeholder="Enter Last Name"
+                          required
+                        />
                       </div>
                       <div className="mb-3 d-flex align-items-center">
-                        <label className="form-label me-2" style={{ minWidth: "150px" }}>Email ID:</label>
-                        <input className="form-control" name="email" type="email" placeholder="Enter Email" required />
+                        <label
+                          className="form-label me-2"
+                          style={{ minWidth: "150px" }}
+                        >
+                          Email ID:
+                        </label>
+                        <input
+                          className="form-control"
+                          name="email"
+                          type="email"
+                          placeholder="Enter Email"
+                          required
+                        />
                       </div>
                       <div className="mb-3 d-flex align-items-center">
-                        <label className="form-label me-2" style={{ minWidth: "150px" }}>Experience (Years):</label>
-                        <input className="form-control" name="experience" type="number" min="0" placeholder="Enter Experience" required />
+                        <label
+                          className="form-label me-2"
+                          style={{ minWidth: "150px" }}
+                        >
+                          Experience (Years):
+                        </label>
+                        <input
+                          className="form-control"
+                          name="experience"
+                          type="number"
+                          min="0"
+                          placeholder="Enter Experience"
+                          required
+                        />
                       </div>
                       <div className="mb-3 d-flex align-items-center">
-                        <label className="form-label me-2" style={{ minWidth: "150px" }}>Current City:</label>
-                        <input className="form-control" name="city" placeholder="Enter Current City" required />
+                        <label
+                          className="form-label me-2"
+                          style={{ minWidth: "150px" }}
+                        >
+                          Current City:
+                        </label>
+                        <input
+                          className="form-control"
+                          name="city"
+                          placeholder="Enter Current City"
+                          required
+                        />
                       </div>
                       <div className="mb-3 d-flex align-items-center">
-                        <label className="form-label me-2" style={{ minWidth: "150px" }}>Phone Number:</label>
-                        <input className="form-control" name="phone" type="tel" placeholder="Enter Phone Number" required />
+                        <label
+                          className="form-label me-2"
+                          style={{ minWidth: "150px" }}
+                        >
+                          Phone Number:
+                        </label>
+                        <input
+                          className="form-control"
+                          name="phone"
+                          type="tel"
+                          placeholder="Enter Phone Number"
+                          required
+                        />
                       </div>
                       <div className="mb-3 d-flex align-items-center">
-                        <label className="form-label me-2" style={{ minWidth: "150px" }}>Resume:</label>
-                        <input className="form-control" name="resume" type="file" accept=".doc,.docx,.pdf" required />
+                        <label
+                          className="form-label me-2"
+                          style={{ minWidth: "150px" }}
+                        >
+                          Resume:
+                        </label>
+                        <input
+                          className="form-control"
+                          name="resume"
+                          type="file"
+                          accept=".doc,.docx,.pdf"
+                          required
+                        />
                       </div>
-                      <button className="btn btn-primary w-100">Apply Job</button>
+                      <button className="btn btn-primary w-100">
+                        Apply Job
+                      </button>
                     </form>
                   )}
                 </div>
@@ -761,24 +1159,40 @@ const EmployeeCareer = ({ user }) => {
 
         {/* ===== Referral Modal (Like In-house Application Form) ===== */}
         {showReferralModal && selectedJob && (
-          <div className="modal fade show d-block" style={{ background: "#00000080" }}>
+          <div
+            className="modal fade show d-block"
+            style={{ background: "#00000080" }}
+          >
             <div className="modal-dialog modal-lg">
               <div className="modal-content">
                 <div className="modal-header">
-                  <h5 className="modal-title">Refer Candidate for {selectedJob.jobTitle}</h5>
-                  <button className="btn-close" onClick={() => setShowReferralModal(false)} />
+                  <h5 className="modal-title">
+                    Refer Candidate for {selectedJob.jobTitle}
+                  </h5>
+                  <button
+                    className="btn-close"
+                    onClick={() => setShowReferralModal(false)}
+                  />
                 </div>
                 <div className="modal-body">
                   {/* Modal Tabs */}
                   <div className="d-flex gap-3 mb-3">
                     <button
-                      className={`btn btn-sm ${activeReferralTab === "DESC" ? "btn-primary" : "btn-outline-primary"}`}
+                      className={`btn btn-sm ${
+                        activeReferralTab === "DESC"
+                          ? "btn-primary"
+                          : "btn-outline-primary"
+                      }`}
                       onClick={() => setActiveReferralTab("DESC")}
                     >
                       Job Description
                     </button>
                     <button
-                      className={`btn btn-sm ${activeReferralTab === "APPLY" ? "btn-primary" : "btn-outline-primary"}`}
+                      className={`btn btn-sm ${
+                        activeReferralTab === "APPLY"
+                          ? "btn-primary"
+                          : "btn-outline-primary"
+                      }`}
                       onClick={() => setActiveReferralTab("APPLY")}
                     >
                       Application Form
@@ -786,8 +1200,6 @@ const EmployeeCareer = ({ user }) => {
                   </div>
                   {activeReferralTab === "DESC" && (
                     <div className="job-details-wrapper">
-
-
                       <div className="job-card">
                         <h6 className="job-card-title">Job Info</h6>
 
@@ -815,7 +1227,8 @@ const EmployeeCareer = ({ user }) => {
                           <div>
                             <span className="label">Experience</span>
                             <p>
-                              {selectedJob.experience?.min} – {selectedJob.experience?.max} Years
+                              {selectedJob.experience?.min} –{" "}
+                              {selectedJob.experience?.max} Years
                             </p>
                           </div>
 
@@ -825,7 +1238,6 @@ const EmployeeCareer = ({ user }) => {
                           </div>
                         </div>
                       </div>
-
 
                       <div className="job-card">
                         <h6 className="job-card-title">Job Details</h6>
@@ -838,42 +1250,53 @@ const EmployeeCareer = ({ user }) => {
                             ))}
                           </ul>
 
-                          {selectedJob.otherSkills && selectedJob.otherSkills.length > 0 && (
-                            <>
-                              <h6 style={{ marginTop: "16px", color: "#3A5FBE" }}>
-                                Other Skills:
-                              </h6>
-                              <ul style={{ paddingLeft: "20px", marginTop: "6px" }}>
-                                {selectedJob.otherSkills.map((skill, index) => (
-                                  <li
-                                    key={index}
-                                    style={{
-                                      fontSize: "14px",
-                                      color: "#212529",
-                                      marginBottom: "4px"
-                                    }}
-                                  >
-                                    {skill}
-                                  </li>
-                                ))}
-                              </ul>
-
-                            </>
-                          )}
-
+                          {selectedJob.otherSkills &&
+                            selectedJob.otherSkills.length > 0 && (
+                              <>
+                                <h6
+                                  style={{
+                                    marginTop: "16px",
+                                    color: "#3A5FBE",
+                                  }}
+                                >
+                                  Other Skills:
+                                </h6>
+                                <ul
+                                  style={{
+                                    paddingLeft: "20px",
+                                    marginTop: "6px",
+                                  }}
+                                >
+                                  {selectedJob.otherSkills.map(
+                                    (skill, index) => (
+                                      <li
+                                        key={index}
+                                        style={{
+                                          fontSize: "14px",
+                                          color: "#212529",
+                                          marginBottom: "4px",
+                                        }}
+                                      >
+                                        {skill}
+                                      </li>
+                                    )
+                                  )}
+                                </ul>
+                              </>
+                            )}
                         </div>
 
                         <div className="job-section">
                           <b>Description:</b>
                           <div
                             className="job-desc"
-                            dangerouslySetInnerHTML={{ __html: selectedJob.jobDescription }}
+                            dangerouslySetInnerHTML={{
+                              __html: selectedJob.jobDescription,
+                            }}
                           />
                         </div>
                       </div>
-
                     </div>
-
                   )}
 
                   {/* Referral Application Form */}
@@ -886,8 +1309,11 @@ const EmployeeCareer = ({ user }) => {
                         const formData = new FormData();
                         formData.append("job", selectedJob._id);
                         formData.append("applicantType", "referral"); // or inhouse
-                        formData.append("referredBy", user._id);      // logged-in employee id
-                        formData.append("name", `${form.firstName.value} ${form.middleName.value} ${form.lastName.value}`);
+                        formData.append("referredBy", user._id); // logged-in employee id
+                        formData.append(
+                          "name",
+                          `${form.firstName.value} ${form.middleName.value} ${form.lastName.value}`
+                        );
                         formData.append("email", form.email.value);
                         formData.append("experience", form.experience.value);
                         formData.append("city", form.city.value);
@@ -898,79 +1324,177 @@ const EmployeeCareer = ({ user }) => {
                           email: form.email.value,
                           experience: form.experience.value,
                           city: form.city.value,
-                          phone: form.phone.value
-                        }
+                          phone: form.phone.value,
+                        };
                         try {
                           await createApplication(formData);
                           alert("Application submitted successfully!");
                           await fetchRefferedJobs();
-                          setReferredCandidates([...referredCandidates, candidate]);
+                          setReferredCandidates([
+                            ...referredCandidates,
+                            candidate,
+                          ]);
                           setReferralSuccess(true);
                           setShowViewModal(false);
                         } catch (err) {
-                          alert(err.response?.data?.message || "Application failed");
+                          alert(
+                            err.response?.data?.message || "Application failed"
+                          );
                         }
                       }}
                     >
                       {/* Candidate Info (Same as In-house Form) */}
                       <div className="mb-3 d-flex align-items-center">
-                        <label className="form-label me-2" style={{ minWidth: "150px" }}>First Name:</label>
-                        <input className="form-control" name="firstName" placeholder="Enter First Name" required />
+                        <label
+                          className="form-label me-2"
+                          style={{ minWidth: "150px" }}
+                        >
+                          First Name:
+                        </label>
+                        <input
+                          className="form-control"
+                          name="firstName"
+                          placeholder="Enter First Name"
+                          required
+                        />
                       </div>
                       <div className="mb-3 d-flex align-items-center">
-                        <label className="form-label me-2" style={{ minWidth: "150px" }}>Middle Name:</label>
-                        <input className="form-control" name="middleName" placeholder="Enter Middle Name" />
+                        <label
+                          className="form-label me-2"
+                          style={{ minWidth: "150px" }}
+                        >
+                          Middle Name:
+                        </label>
+                        <input
+                          className="form-control"
+                          name="middleName"
+                          placeholder="Enter Middle Name"
+                        />
                       </div>
                       <div className="mb-3 d-flex align-items-center">
-                        <label className="form-label me-2" style={{ minWidth: "150px" }}>Last Name:</label>
-                        <input className="form-control" name="lastName" placeholder="Enter Last Name" required />
+                        <label
+                          className="form-label me-2"
+                          style={{ minWidth: "150px" }}
+                        >
+                          Last Name:
+                        </label>
+                        <input
+                          className="form-control"
+                          name="lastName"
+                          placeholder="Enter Last Name"
+                          required
+                        />
                       </div>
                       <div className="mb-3 d-flex align-items-center">
-                        <label className="form-label me-2" style={{ minWidth: "150px" }}>Email ID:</label>
-                        <input className="form-control" name="email" type="email" placeholder="Enter Email" required />
+                        <label
+                          className="form-label me-2"
+                          style={{ minWidth: "150px" }}
+                        >
+                          Email ID:
+                        </label>
+                        <input
+                          className="form-control"
+                          name="email"
+                          type="email"
+                          placeholder="Enter Email"
+                          required
+                        />
                       </div>
                       <div className="mb-3 d-flex align-items-center">
-                        <label className="form-label me-2" style={{ minWidth: "150px" }}>Experience (Years):</label>
-                        <input className="form-control" name="experience" type="number" min="0" placeholder="Enter Experience" required />
+                        <label
+                          className="form-label me-2"
+                          style={{ minWidth: "150px" }}
+                        >
+                          Experience (Years):
+                        </label>
+                        <input
+                          className="form-control"
+                          name="experience"
+                          type="number"
+                          min="0"
+                          placeholder="Enter Experience"
+                          required
+                        />
                       </div>
                       <div className="mb-3 d-flex align-items-center">
-                        <label className="form-label me-2" style={{ minWidth: "150px" }}>Current City:</label>
-                        <input className="form-control" name="city" placeholder="Enter Current City" required />
+                        <label
+                          className="form-label me-2"
+                          style={{ minWidth: "150px" }}
+                        >
+                          Current City:
+                        </label>
+                        <input
+                          className="form-control"
+                          name="city"
+                          placeholder="Enter Current City"
+                          required
+                        />
                       </div>
                       <div className="mb-3 d-flex align-items-center">
-                        <label className="form-label me-2" style={{ minWidth: "150px" }}>Phone Number:</label>
-                        <input className="form-control" name="phone" type="tel" placeholder="Enter Phone Number" required />
+                        <label
+                          className="form-label me-2"
+                          style={{ minWidth: "150px" }}
+                        >
+                          Phone Number:
+                        </label>
+                        <input
+                          className="form-control"
+                          name="phone"
+                          type="tel"
+                          placeholder="Enter Phone Number"
+                          required
+                        />
                       </div>
                       <div className="mb-3 d-flex align-items-center">
-                        <label className="form-label me-2" style={{ minWidth: "150px" }}>Resume:</label>
-                        <input className="form-control" name="resume" type="file" accept=".doc,.docx,.pdf" required />
+                        <label
+                          className="form-label me-2"
+                          style={{ minWidth: "150px" }}
+                        >
+                          Resume:
+                        </label>
+                        <input
+                          className="form-control"
+                          name="resume"
+                          type="file"
+                          accept=".doc,.docx,.pdf"
+                          required
+                        />
                       </div>
 
-                      <button className="btn btn-primary w-100">Submit Referral</button>
+                      <button className="btn btn-primary w-100">
+                        Submit Referral
+                      </button>
                     </form>
                   )}
 
                   {referralSuccess && (
                     <div className="text-center">
-                      <h5 className="text-success mb-3">Referral submitted successfully!</h5>
-                      <button className="btn btn-outline-primary me-2" onClick={() => setReferralSuccess(false)}>
+                      <h5 className="text-success mb-3">
+                        Referral submitted successfully!
+                      </h5>
+                      <button
+                        className="btn btn-outline-primary me-2"
+                        onClick={() => setReferralSuccess(false)}
+                      >
                         Refer More Candidates
                       </button>
-                      <button className="btn btn-primary" onClick={() => alert(JSON.stringify(referredCandidates))}>
+                      <button
+                        className="btn btn-primary"
+                        onClick={() =>
+                          alert(JSON.stringify(referredCandidates))
+                        }
+                      >
                         View Applications
                       </button>
                     </div>
                   )}
-
                 </div>
               </div>
             </div>
           </div>
         )}
-
       </div>
     </div>
-
   );
 };
 

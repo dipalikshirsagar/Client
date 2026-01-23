@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { NavLink, useParams } from "react-router-dom";
 import {
   HouseDoorFill,
@@ -10,14 +10,14 @@ import {
   GearFill,
   TreeFill,
   ChatLeftTextFill,
-  BriefcaseFill
+  BriefcaseFill,
 } from "react-bootstrap-icons";
 import "./Sidebar.css";
 
 function Sidebar({ handleLogout }) {
   const { role, username, id } = useParams();
   const [isOpen, setIsOpen] = useState(false);
-
+  const sidebarRef = useRef(null);
   // Close sidebar when link is clicked (mobile)
   const handleLinkClick = () => {
     if (window.innerWidth <= 768) {
@@ -25,18 +25,45 @@ function Sidebar({ handleLogout }) {
     }
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        isOpen &&
+        sidebarRef.current &&
+        !sidebarRef.current.contains(event.target)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, [isOpen]);
+
   return (
     <>
       {/* Toggle button for small screens */}
       <button
         className="btn btn-primary d-md-none position-fixed m-2"
-        style={{ zIndex: 1100, backgroundColor: '#3A5FBE', borderColor: '#fcfcfcff' }}
+        style={{
+          zIndex: 1100,
+          backgroundColor: "#3A5FBE",
+          borderColor: "#fcfcfcff",
+        }}
         onClick={() => setIsOpen(!isOpen)}
       >
         ☰
       </button>
 
-      <div className={`sidebar text-white ${isOpen ? "open" : ""}`}>
+      <div
+        ref={sidebarRef}
+        className={`sidebar text-white ${isOpen ? "open" : ""}`}
+      >
         <ul className="nav flex-column text-center mt-4">
           {/* Dashboard */}
           <li className="nav-item ">
@@ -127,7 +154,12 @@ function Sidebar({ handleLogout }) {
               <TreeFill size={20} />
               {/* geetanjali code */}
               <h6 className="mt-1">
-                {role === "admin" || role === "ceo" || role === "coo" || role === "md" ? "Employee Leaves" : "Leaves"}
+                {role === "admin" ||
+                role === "ceo" ||
+                role === "coo" ||
+                role === "md"
+                  ? "Employee Leaves"
+                  : "Leaves"}
               </h6>
             </NavLink>
           </li>
@@ -158,14 +190,15 @@ function Sidebar({ handleLogout }) {
               <CalendarCheckFill size={20} />
               {/* <h6 className="mt-1">My Attendance</h6> */}
               <h6 className="mt-1">
-                {role === "admin" || role === "ceo" || role === "coo" || role === "md" ? "Employee Attendance" : "My Attendance"}
-
+                {role === "admin" ||
+                role === "ceo" ||
+                role === "coo" ||
+                role === "md"
+                  ? "Employee Attendance"
+                  : "My Attendance"}
               </h6>
-
             </NavLink>
           </li>
-
-
 
           {role === "manager" && (
             <li className="nav-item">
@@ -192,7 +225,10 @@ function Sidebar({ handleLogout }) {
               <CalendarCheckFill size={20} />
               {/* geetanjali code */}
               <h6 className="mt-1">
-                {role === "admin" || role === "ceo" || role === "coo" || role === "md"
+                {role === "admin" ||
+                role === "ceo" ||
+                role === "coo" ||
+                role === "md"
                   ? "Employee Regularization"
                   : "Regularization"}
               </h6>
@@ -213,7 +249,6 @@ function Sidebar({ handleLogout }) {
               <h6 className="mt-1">Events & Holidays</h6>
             </NavLink>
           </li>
-
 
           <li className="nav-item ">
             <NavLink
@@ -239,9 +274,6 @@ function Sidebar({ handleLogout }) {
             </NavLink>
           </li>
 
-
-
-
           {/* Holidays */}
           {/* <li className="nav-item ">
             <NavLink
@@ -264,7 +296,7 @@ function Sidebar({ handleLogout }) {
             </NavLink>
           </li> */}
           {/* jayashree */}
-          {role === "employee" && (
+          {(role === "employee" || role === "IT_Support") && (
             <li className="nav-item">
               <NavLink
                 to={`/dashboard/${role}/${username}/${id}/teams`}
@@ -278,8 +310,28 @@ function Sidebar({ handleLogout }) {
             </li>
           )}
 
+          {role === "IT_Support" && (
+            <li className="nav-item">
+              <NavLink
+                to={`/dashboard/${role}/${username}/${id}/ITSupportDashboard`}
+                className={({ isActive }) =>
+                  `nav-link text-white d-flex flex-column align-items-center ${
+                    isActive ? "active" : ""
+                  }`
+                }
+                onClick={handleLinkClick}
+              >
+                <FileEarmarkTextFill size={20} />
+                <h6 className="mt-1 mb-0">IT Support</h6>
+              </NavLink>
+            </li>
+          )}
 
-          {(role === "hr" || role === "admin" || role === "ceo" || role === "coo" || role === "md") && (
+          {(role === "hr" ||
+            role === "admin" ||
+            role === "ceo" ||
+            role === "coo" ||
+            role === "md") && (
             <li className="nav-item">
               <NavLink
                 to={`/dashboard/${role}/${username}/${id}/hr-policy`}
@@ -293,8 +345,7 @@ function Sidebar({ handleLogout }) {
             </li>
           )}
 
-
-          {(role === "hr" || role === "admin") && (
+{(role === "hr" ) && (
             <li className="nav-item">
               <NavLink
                 to={`/dashboard/${role}/${username}/${id}/feedback`}
@@ -307,6 +358,23 @@ function Sidebar({ handleLogout }) {
               </NavLink>
             </li>
           )}
+
+
+        {(role === "admin" ) && (
+            <li className="nav-item">
+              <NavLink
+                to={`/dashboard/${role}/${username}/${id}/feedback`}
+                className="nav-link d-flex flex-column align-items-center"
+              >
+                <ChatLeftTextFill size={20} />
+                <h6 className="mt-1">
+                  Feedback
+                </h6>
+              </NavLink>
+            </li>
+          )}
+
+
           {(role === "employee" || role === "manager") && (
             <li className="nav-item">
               <NavLink
@@ -320,6 +388,7 @@ function Sidebar({ handleLogout }) {
               </NavLink>
             </li>
           )}
+
 
           {/* Settings */}
           <li className="nav-item ">
@@ -347,7 +416,7 @@ function Sidebar({ handleLogout }) {
             </li>
           )}
 
-          {role === "employee" && (
+          {(role === "employee" || role === "IT_Support") && (
             <li className="nav-item">
               <NavLink
                 to={`/dashboard/${role}/${username}/${id}/interviews`}
@@ -359,7 +428,7 @@ function Sidebar({ handleLogout }) {
             </li>
           )}
 
-          {(role === "manager") && (
+          {role === "manager" && (
             <li className="nav-item">
               <NavLink
                 to={`/dashboard/${role}/${username}/${id}/manager/interviews`}
@@ -372,9 +441,8 @@ function Sidebar({ handleLogout }) {
           )}
         </ul>
 
-
         {/* //Added by Rushikesh */}
-        {role === "employee" && (
+        {(role === "employee" || role === "IT_Support") && (
           <li className="nav-item">
             <NavLink
               to={`/dashboard/${role}/${username}/${id}/employee-policy`}
@@ -393,7 +461,8 @@ function Sidebar({ handleLogout }) {
             <NavLink
               to={`/dashboard/${role}/${username}/${id}/resignation`}
               className={({ isActive }) =>
-                `nav-link d-flex flex-column align-items-center ${isActive ? "text-primary" : "text-dark"
+                `nav-link d-flex flex-column align-items-center ${
+                  isActive ? "text-primary" : "text-dark"
                 }`
               }
             >
@@ -403,7 +472,7 @@ function Sidebar({ handleLogout }) {
           </li>
         )}
 
-        {role === "employee" && (
+        {(role === "employee" || role === "IT_Support") && (
           <li className="nav-item">
             <NavLink
               to={`/dashboard/${role}/${username}/${id}/employee-resignation`}
@@ -413,6 +482,20 @@ function Sidebar({ handleLogout }) {
               <i className="bi bi-box-arrow-right fs-5"></i>
 
               <h6 className="mt-1">My Resignation</h6>
+            </NavLink>
+          </li>
+        )}
+
+        {role === "manager" && (
+          <li className="nav-item">
+            <NavLink
+              to={`/dashboard/${role}/${username}/${id}/Manager-Resignation`}
+              className="nav-link d-flex flex-column align-items-center"
+            >
+              {/* Bootstrap box-arrow-right icon */}
+              <i className="bi bi-box-arrow-right fs-5"></i>
+
+              <h6 className="mt-1">Resignation</h6>
             </NavLink>
           </li>
         )}
@@ -432,7 +515,6 @@ function Sidebar({ handleLogout }) {
             </NavLink>
           </li>
         )}
-
       </div>
     </>
   );

@@ -22,18 +22,16 @@ function AdminAddLeaveBalance() {
   const [dateToFilter, setDateToFilter] = useState("");
   const [filteredLeaves, setFilteredLeaves] = useState(leaves); // Initial render = all leaves
 
-
-  //adesh code 
+  //adesh code
   const [selectedLeave, setSelectedLeave] = useState(null);
 
-  // dipali code 
+  // dipali code
   //NEW CODE
-useEffect(() => {
-  axios
-    .get("https://server-backend-nu.vercel.app/leaves")
-    .then((res) => {
-
-      const now = new Date();
+  useEffect(() => {
+    axios
+      .get("https://server-backend-nu.vercel.app/leaves")
+      .then((res) => {
+        const now = new Date();
 
         const filteredByDate = res.data.filter((l) => {
           const appliedDate = new Date(l.appliedAt);
@@ -45,24 +43,22 @@ useEffect(() => {
           return monthsDiff < 3;
         });
 
+        const sortedLeaves = filteredByDate.sort(
+          (a, b) => new Date(b.appliedAt) - new Date(a.appliedAt)
+        );
 
-      const sortedLeaves = filteredByDate.sort(
-        (a, b) => new Date(b.appliedAt) - new Date(a.appliedAt)
-      );
+        setLeaves(sortedLeaves);
+        setFilteredLeaves(sortedLeaves);
 
-      setLeaves(sortedLeaves);
-      setFilteredLeaves(sortedLeaves);
-
-      setPendingRequests(
-        filteredByDate.filter((l) => l.status === "pending").length
-      );
-    })
-    .catch((err) => console.error("Leaves fetch error:", err))
-    .finally(() => setLoadingLeaves(false));
-}, []);
+        setPendingRequests(
+          filteredByDate.filter((l) => l.status === "pending").length
+        );
+      })
+      .catch((err) => console.error("Leaves fetch error:", err))
+      .finally(() => setLoadingLeaves(false));
+  }, []);
 
   // new code filter
-
 
   // 🔹 Fetch logged-in admin user
   useEffect(() => {
@@ -84,7 +80,7 @@ useEffect(() => {
       .then((res) => {
         const sortedLeaves = res.data.sort(
           (a, b) => new Date(b.appliedAt) - new Date(a.appliedAt)
-        )
+        );
         setLeaves(sortedLeaves);
 
         const pending = res.data.filter((l) => l.status === "pending").length;
@@ -118,40 +114,33 @@ useEffect(() => {
   // };
 
   const updateStatus = async (leaveId, status) => {
-  if (!user?._id) return;
+    if (!user?._id) return;
 
-  try {
-    await axios.put(`https://server-backend-nu.vercel.app/leave/${leaveId}/status`, {
-      status,
-      userId: user._id,
-      role: "admin",
-    });
+    try {
+      await axios.put(`https://server-backend-nu.vercel.app/leave/${leaveId}/status`, {
+        status,
+        userId: user._id,
+        role: "admin",
+      });
 
-    // 🔥 Update leaves list instantly
-    const updatedLeaves = leaves.map((l) =>
-      l._id === leaveId ? { ...l, status } : l
-    );
+      // 🔥 Update leaves list instantly
+      const updatedLeaves = leaves.map((l) =>
+        l._id === leaveId ? { ...l, status } : l
+      );
 
-    setLeaves(updatedLeaves);
+      setLeaves(updatedLeaves);
 
-    // 🔥 VERY IMPORTANT — update filteredLeaves also
-    setFilteredLeaves((prev) =>
-      prev.map((l) => (l._id === leaveId ? { ...l, status } : l))
-    );
+      // 🔥 VERY IMPORTANT — update filteredLeaves also
+      setFilteredLeaves((prev) =>
+        prev.map((l) => (l._id === leaveId ? { ...l, status } : l))
+      );
 
-    // update pending count
-    setPendingRequests((prev) =>
-      status !== "pending" ? prev - 1 : prev
-    );
-
-  } catch (err) {
-    console.error("Error updating status:", err);
-  }
-};
-
-
-
-
+      // update pending count
+      setPendingRequests((prev) => (status !== "pending" ? prev - 1 : prev));
+    } catch (err) {
+      console.error("Error updating status:", err);
+    }
+  };
 
   // const grantYearly = async () => {
   //   try {
@@ -168,11 +157,12 @@ useEffect(() => {
   //   }
   // };
 
-
   const [data, setData] = useState([]);
   const fetchYearlySettings = async () => {
     try {
-      const res = await axios.get("https://server-backend-nu.vercel.app/leave/yearly-settings");
+      const res = await axios.get(
+        "https://server-backend-nu.vercel.app/leave/yearly-settings"
+      );
       setData(res.data);
     } catch (err) {
       console.error("Error fetching yearly settings:", err);
@@ -182,8 +172,6 @@ useEffect(() => {
   useEffect(() => {
     fetchYearlySettings();
   }, []);
-
-
 
   const grantYearly = async () => {
     try {
@@ -197,7 +185,7 @@ useEffect(() => {
       // ✅ Close modal box automatically
       setShowModal(false);
       //refresh
-      fetchYearlySettings()
+      fetchYearlySettings();
       // Update message in state too (if needed for UI)
       setMessage(res.data.message + " for " + res.data.count + " employees");
 
@@ -215,15 +203,17 @@ useEffect(() => {
     }
   };
 
-
   const grantMonthly = async () => {
     try {
-      const res = await axios.post("https://server-backend-nu.vercel.app/leave/grant-monthly", {
-        sl,
-        cl,
-      });
+      const res = await axios.post(
+        "https://server-backend-nu.vercel.app/leave/grant-monthly",
+        {
+          sl,
+          cl,
+        }
+      );
       setMessage(res.data.message + " for " + res.data.count + " employees");
-      alert(res.data.message + " for " + res.data.count + " employees")
+      alert(res.data.message + " for " + res.data.count + " employees");
       // 🔁 Refresh balance from backend
       await fetchLeaveBalance();
     } catch (err) {
@@ -231,13 +221,10 @@ useEffect(() => {
     }
   };
 
-
   const fetchLeaveBalance = async () => {
     try {
       const res = await axios.get("https://server-backend-nu.vercel.app/leave/balance");
-      console.log("data", res.data
-
-      )
+      console.log("data", res.data);
       // if (res.data) {
       //   setSl(res.data.sl);
       //   setCl(res.data.cl);
@@ -248,7 +235,6 @@ useEffect(() => {
       console.error("Error fetching leave balance:", err);
     }
   };
-
 
   useEffect(() => {
     fetchLeaveBalance();
@@ -282,7 +268,9 @@ useEffect(() => {
   };
 
   const HandleDelete = async (leaveId) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this leave?");
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this leave?"
+    );
     if (!confirmDelete) return;
 
     try {
@@ -298,7 +286,6 @@ useEffect(() => {
     }
   };
 
-
   //   const resetAllLeaves = async () => {
   //   if (!window.confirm("⚠️ Are you sure you want to reset ALL employees' leave balances to zero?")) {
   //     return;
@@ -313,7 +300,7 @@ useEffect(() => {
   //   }
   // };
 
-  console.log("currentLeaves", currentLeaves)
+  console.log("currentLeaves", currentLeaves);
 
   const resetYearlySettings = async () => {
     if (
@@ -334,9 +321,6 @@ useEffect(() => {
     }
   };
 
-
-
-
   // dipali code
   //NEW CODE
   const applyFilters = () => {
@@ -345,13 +329,21 @@ useEffect(() => {
       const matchesStatus = statusFilter === "All" || l.status === statusFilter;
       // name filter
       const employeeName = l.employee?.name || "";
-      const matchesName = employeeName.toLowerCase().includes(employeeNameFilter.toLowerCase());
+      const matchesName = employeeName
+        .toLowerCase()
+        .includes(employeeNameFilter.toLowerCase());
       // date filter
       const leaveFromDate = new Date(l.dateFrom);
-      const fromDateFilterDate = dateFromFilter ? new Date(dateFromFilter) : null;
+      const fromDateFilterDate = dateFromFilter
+        ? new Date(dateFromFilter)
+        : null;
       const toDateFilterDate = dateToFilter ? new Date(dateToFilter) : null;
-      const matchesDateFrom = fromDateFilterDate ? leaveFromDate >= fromDateFilterDate : true;
-      const matchesDateTo = toDateFilterDate ? leaveFromDate <= toDateFilterDate : true;
+      const matchesDateFrom = fromDateFilterDate
+        ? leaveFromDate >= fromDateFilterDate
+        : true;
+      const matchesDateTo = toDateFilterDate
+        ? leaveFromDate <= toDateFilterDate
+        : true;
       return matchesStatus && matchesName && matchesDateFrom && matchesDateTo;
     });
 
@@ -361,23 +353,41 @@ useEffect(() => {
 
   return (
     <div className="container-fluid">
-      <h3 className="mb-4 fw-bold" style={{ color: "#3A5FBE", fontSize: "25px" }}>Leaves</h3>
+      <h3
+        className="mb-4 fw-bold"
+        style={{ color: "#3A5FBE", fontSize: "25px" }}
+      >
+        Leaves
+      </h3>
 
       {/* Summary Cards */}
       <div className="row mb-4">
         <div className="col-md-4 mb-3">
           <div className="card shadow-sm border-0">
-            <div className="card-body d-flex align-items-center" style={{ gap: "20px" }}>
-              <h4 className="mb-0" style={{ fontSize: "40px", backgroundColor: "#D7F5E4", padding: "10px",
+            <div
+              className="card-body d-flex align-items-center"
+              style={{ gap: "20px" }}
+            >
+              <h4
+                className="mb-0"
+                style={{
+                  fontSize: "40px",
+                  backgroundColor: "#D7F5E4",
+                  padding: "10px",
                   textAlign: "center",
                   minWidth: "75px",
                   minHeight: "75px",
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "center", }}>
+                  justifyContent: "center",
+                }}
+              >
                 {approvedLeaves}
               </h4>
-              <p className="mb-0 fw-semibold" style={{ fontSize: "20px", color: "#3A5FBE" }}>
+              <p
+                className="mb-0 fw-semibold"
+                style={{ fontSize: "20px", color: "#3A5FBE" }}
+              >
                 Accepted Leave Requests
               </p>
             </div>
@@ -386,17 +396,30 @@ useEffect(() => {
 
         <div className="col-md-4 mb-3">
           <div className="card shadow-sm border-0">
-            <div className="card-body d-flex align-items-center" style={{ gap: "20px" }}>
-              <h4 className="mb-0" style={{ fontSize: "40px", backgroundColor: "#F8D7DA",padding: "10px",
+            <div
+              className="card-body d-flex align-items-center"
+              style={{ gap: "20px" }}
+            >
+              <h4
+                className="mb-0"
+                style={{
+                  fontSize: "40px",
+                  backgroundColor: "#F8D7DA",
+                  padding: "10px",
                   textAlign: "center",
                   minWidth: "75px",
                   minHeight: "75px",
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "center", }}>
+                  justifyContent: "center",
+                }}
+              >
                 {rejectedLeaves}
               </h4>
-              <p className="mb-0 fw-semibold" style={{ fontSize: "20px", color: "#3A5FBE" }}>
+              <p
+                className="mb-0 fw-semibold"
+                style={{ fontSize: "20px", color: "#3A5FBE" }}
+              >
                 Rejected Leave Requests
               </p>
             </div>
@@ -418,17 +441,30 @@ useEffect(() => {
 
         <div className="col-md-4 mb-3">
           <div className="card shadow-sm border-0">
-            <div className="card-body d-flex align-items-center" style={{ gap: "20px" }}>
-              <h4 className="mb-0" style={{ fontSize: "40px", backgroundColor: "#FFE493", padding: "10px",
+            <div
+              className="card-body d-flex align-items-center"
+              style={{ gap: "20px" }}
+            >
+              <h4
+                className="mb-0"
+                style={{
+                  fontSize: "40px",
+                  backgroundColor: "#FFE493",
+                  padding: "10px",
                   textAlign: "center",
                   minWidth: "75px",
                   minHeight: "75px",
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "center", }}>
+                  justifyContent: "center",
+                }}
+              >
                 {pendingLeaves}
               </h4>
-              <p className="mb-0 fw-semibold" style={{ fontSize: "20px", color: "#3A5FBE" }}>
+              <p
+                className="mb-0 fw-semibold"
+                style={{ fontSize: "20px", color: "#3A5FBE" }}
+              >
                 Pending Leave Requests
               </p>
             </div>
@@ -530,7 +566,6 @@ useEffect(() => {
         )} */}
       </>
 
-
       {/* <div className="card shadow-sm p-3 mt-4">
       <h5 className="text-center">Yearly Leave Settings</h5>
       <table className="table table-bordered mt-3 text-center">
@@ -564,21 +599,6 @@ useEffect(() => {
       </table>
     </div> */}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
       {/* dipali code */}
       {/* New Filter Code */}
       <div className="card mt-4 shadow-sm border-0">
@@ -591,16 +611,24 @@ useEffect(() => {
             }}
           >
             {/* Status Filter */}
-                       <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1  ms-2">
-              <label htmlFor="statusFilter" className="fw-bold mb-0 text-start text-md-end" 
-              style={{ width: "55px", fontSize: "16px", color: "#3A5FBE", marginRight: "4px" }}>
+            <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1  ms-2">
+              <label
+                htmlFor="statusFilter"
+                className="fw-bold mb-0 text-start text-md-end"
+                style={{
+                  width: "55px",
+                  fontSize: "16px",
+                  color: "#3A5FBE",
+                  marginRight: "4px",
+                }}
+              >
                 Status
               </label>
               <select
                 id="statusFilter"
                 className="form-select"
                 value={statusFilter}
-                onChange={e => {
+                onChange={(e) => {
                   setStatusFilter(e.target.value);
                   setCurrentPage(1);
                 }}
@@ -614,17 +642,24 @@ useEffect(() => {
 
             {/* Name Filter */}
             <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1  ms-2">
-              <label htmlFor="employeeNameFilter" className="fw-bold mb-0 text-start text-md-end" 
-              style={{ width: "50px", fontSize: "16px", color: "#3A5FBE",marginRight: "8px"}}>
+              <label
+                htmlFor="employeeNameFilter"
+                className="fw-bold mb-0 text-start text-md-end"
+                style={{
+                  width: "50px",
+                  fontSize: "16px",
+                  color: "#3A5FBE",
+                  marginRight: "8px",
+                }}
+              >
                 Name
               </label>
               <input
                 id="employeeNameFilter"
                 type="text"
                 className="form-control"
-
                 value={employeeNameFilter}
-                onChange={e => {
+                onChange={(e) => {
                   setEmployeeNameFilter(e.target.value);
                   setCurrentPage(1);
                 }}
@@ -634,42 +669,55 @@ useEffect(() => {
 
             {/* From Date Filter */}
             <div className="col-12 col-md-auto d-flex align-items-center mb-1 ms-2">
-              <label htmlFor="dateFromFilter" className="fw-bold mb-0 text-start text-md-end" 
-              style={{  fontSize: "16px", color: "#3A5FBE", width: "50px" ,minWidth:"50px" ,marginRight: "8px"}}>
+              <label
+                htmlFor="dateFromFilter"
+                className="fw-bold mb-0 text-start text-md-end"
+                style={{
+                  fontSize: "16px",
+                  color: "#3A5FBE",
+                  width: "50px",
+                  minWidth: "50px",
+                  marginRight: "8px",
+                }}
+              >
                 From
               </label>
               <input
                 type="date"
                 id="dateFromFilter"
                 value={dateFromFilter}
-                onChange={e => setDateFromFilter(e.target.value)}
+                onChange={(e) => setDateFromFilter(e.target.value)}
                 placeholder="dd-mm-yyyy"
                 className="form-control"
-
-                onFocus={e => (e.target.type = 'date')}
-                onBlur={e => (e.target.type = 'text')}
+                onFocus={(e) => (e.target.type = "date")}
+                onBlur={(e) => (e.target.type = "text")}
               />
             </div>
 
-            
-
-       
-
             <div className="col-12 col-md-auto d-flex align-items-center mb-1 ms-2">
-              <label htmlFor="dateToFilter" className="fw-bold mb-0 text-start text-md-end " 
-              style={{  fontSize: "16px", color: "#3A5FBE", width: "50px" ,minWidth:"50px" ,marginRight: "8px", textAlign: "right" }}>
+              <label
+                htmlFor="dateToFilter"
+                className="fw-bold mb-0 text-start text-md-end "
+                style={{
+                  fontSize: "16px",
+                  color: "#3A5FBE",
+                  width: "50px",
+                  minWidth: "50px",
+                  marginRight: "8px",
+                  textAlign: "right",
+                }}
+              >
                 To
               </label>
               <input
                 type="date"
                 id="dateToFilter"
                 value={dateToFilter}
-                onChange={e => setDateToFilter(e.target.value)}
+                onChange={(e) => setDateToFilter(e.target.value)}
                 placeholder="dd-mm-yyyy"
                 className="form-control"
-
-                onFocus={e => (e.target.type = 'date')}
-                onBlur={e => (e.target.type = 'text')}
+                onFocus={(e) => (e.target.type = "date")}
+                onBlur={(e) => (e.target.type = "text")}
               />
             </div>
             {/* Filter and Reset buttons */}
@@ -718,9 +766,10 @@ useEffect(() => {
             >
               <span className="visually-hidden">Loading...</span>
             </div>
-            <p className="mt-3 fw-semibold" style={{ color: "#3A5FBE" }}>Loading ...</p>
+            <p className="mt-3 fw-semibold" style={{ color: "#3A5FBE" }}>
+              Loading ...
+            </p>
           </div>
-
         ) : leaves.length === 0 ? (
           <p>No leave applications found.</p>
         ) : (
@@ -729,143 +778,380 @@ useEffect(() => {
               <table className="table table-hover align-middle mb-0 bg-white">
                 <thead style={{ backgroundColor: "#ffffffff" }}>
                   <tr>
-
-                    <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>ID</th>
-                    <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Employee</th>
-                    <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Apply Date</th>
-                    <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Type</th>
-                    <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>From</th>
-                    <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>To</th>
-                    <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Duration</th>
-                    <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap', maxWidth: '220px', wordBreak: 'break-word' }}>Reason</th>
-                    <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Status</th>
-                    <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }} >Action</th>
+                    <th
+                      style={{
+                        fontWeight: "500",
+                        fontSize: "14px",
+                        color: "#6c757d",
+                        borderBottom: "2px solid #dee2e6",
+                        padding: "12px",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      ID
+                    </th>
+                    <th
+                      style={{
+                        fontWeight: "500",
+                        fontSize: "14px",
+                        color: "#6c757d",
+                        borderBottom: "2px solid #dee2e6",
+                        padding: "12px",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Employee
+                    </th>
+                    <th
+                      style={{
+                        fontWeight: "500",
+                        fontSize: "14px",
+                        color: "#6c757d",
+                        borderBottom: "2px solid #dee2e6",
+                        padding: "12px",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Apply Date
+                    </th>
+                    <th
+                      style={{
+                        fontWeight: "500",
+                        fontSize: "14px",
+                        color: "#6c757d",
+                        borderBottom: "2px solid #dee2e6",
+                        padding: "12px",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Type
+                    </th>
+                    <th
+                      style={{
+                        fontWeight: "500",
+                        fontSize: "14px",
+                        color: "#6c757d",
+                        borderBottom: "2px solid #dee2e6",
+                        padding: "12px",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      From
+                    </th>
+                    <th
+                      style={{
+                        fontWeight: "500",
+                        fontSize: "14px",
+                        color: "#6c757d",
+                        borderBottom: "2px solid #dee2e6",
+                        padding: "12px",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      To
+                    </th>
+                    <th
+                      style={{
+                        fontWeight: "500",
+                        fontSize: "14px",
+                        color: "#6c757d",
+                        borderBottom: "2px solid #dee2e6",
+                        padding: "12px",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Duration
+                    </th>
+                    <th
+                      style={{
+                        fontWeight: "500",
+                        fontSize: "14px",
+                        color: "#6c757d",
+                        borderBottom: "2px solid #dee2e6",
+                        padding: "12px",
+                        whiteSpace: "nowrap",
+                        maxWidth: "220px",
+                        wordBreak: "break-word",
+                      }}
+                    >
+                      Reason
+                    </th>
+                    <th
+                      style={{
+                        fontWeight: "500",
+                        fontSize: "14px",
+                        color: "#6c757d",
+                        borderBottom: "2px solid #dee2e6",
+                        padding: "12px",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Status
+                    </th>
+                    <th
+                      style={{
+                        fontWeight: "500",
+                        fontSize: "14px",
+                        color: "#6c757d",
+                        borderBottom: "2px solid #dee2e6",
+                        padding: "12px",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Action
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {/* NEW: Show message when no results */}
                   {currentLeaves.length === 0 ? (
                     <tr>
-                      <td colSpan="7" className="text-center py-4" style={{ color: "#6c757d" }}>
+                      <td
+                        colSpan="7"
+                        className="text-center py-4"
+                        style={{ color: "#6c757d" }}
+                      >
                         No leave requests found with status "{statusFilter}"
                       </td>
                     </tr>
                   ) : (
                     currentLeaves.map((l) => (
-                      <tr key={l._id} onClick={() => setSelectedLeave(l)}  style={{ cursor: "pointer" }}>
-                        <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>{l.employee?.employeeId}</td>
-                        <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>{l.employee?.name}</td>
+                      <tr
+                        key={l._id}
+                        onClick={() => setSelectedLeave(l)}
+                        style={{ cursor: "pointer" }}
+                      >
                         <td
                           style={{
-                            padding: '12px',
-                            verticalAlign: 'middle',
-                            fontSize: '14px',
-                            borderBottom: '1px solid #dee2e6',
-                            whiteSpace: 'nowrap',
+                            padding: "12px",
+                            verticalAlign: "middle",
+                            fontSize: "14px",
+                            borderBottom: "1px solid #dee2e6",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {l.employee?.employeeId}
+                        </td>
+                        <td
+                          style={{
+                            padding: "12px",
+                            verticalAlign: "middle",
+                            fontSize: "14px",
+                            borderBottom: "1px solid #dee2e6",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {l.employee?.name}
+                        </td>
+                        <td
+                          style={{
+                            padding: "12px",
+                            verticalAlign: "middle",
+                            fontSize: "14px",
+                            borderBottom: "1px solid #dee2e6",
+                            whiteSpace: "nowrap",
                           }}
                         >
                           {l.appliedAt
-                            ? new Date(l.appliedAt).toLocaleDateString("en-GB", {
-                              day: '2-digit',
-                              month: "short",
-                              year: "numeric",
-                            })
+                            ? new Date(l.appliedAt).toLocaleDateString(
+                                "en-GB",
+                                {
+                                  day: "2-digit",
+                                  month: "short",
+                                  year: "numeric",
+                                }
+                              )
                             : "-"}
                         </td>
-                        <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>{l.leaveType}</td>
-                        <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                        <td
+                          style={{
+                            padding: "12px",
+                            verticalAlign: "middle",
+                            fontSize: "14px",
+                            borderBottom: "1px solid #dee2e6",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {l.leaveType}
+                        </td>
+                        <td
+                          style={{
+                            padding: "12px",
+                            verticalAlign: "middle",
+                            fontSize: "14px",
+                            borderBottom: "1px solid #dee2e6",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
                           {new Date(l.dateFrom).toLocaleDateString("en-GB", {
                             day: "2-digit",
                             month: "short",
                             year: "numeric",
                           })}
                         </td>
-                        <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                        <td
+                          style={{
+                            padding: "12px",
+                            verticalAlign: "middle",
+                            fontSize: "14px",
+                            borderBottom: "1px solid #dee2e6",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
                           {new Date(l.dateTo).toLocaleDateString("en-GB", {
                             day: "2-digit",
                             month: "short",
                             year: "numeric",
                           })}
                         </td>
-                        <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>{calculateDays(l.dateFrom, l.dateTo)}</td>
-                        <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', maxWidth: '220px', wordBreak: 'break-word', overflow: 'auto' }}>{l.reason}</td>
-                        <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                        <td
+                          style={{
+                            padding: "12px",
+                            verticalAlign: "middle",
+                            fontSize: "14px",
+                            borderBottom: "1px solid #dee2e6",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {calculateDays(l.dateFrom, l.dateTo)}
+                        </td>
+                        <td
+                          style={{
+                            padding: "12px",
+                            verticalAlign: "middle",
+                            fontSize: "14px",
+                            borderBottom: "1px solid #dee2e6",
+                            whiteSpace: "nowrap",
+                            maxWidth: "220px",
+                            wordBreak: "break-word",
+                            overflow: "auto",
+                          }}
+                        >
+                          {l.reason}
+                        </td>
+                        <td
+                          style={{
+                            padding: "12px",
+                            verticalAlign: "middle",
+                            fontSize: "14px",
+                            borderBottom: "1px solid #dee2e6",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
                           {l.status === "approved" ? (
-                            <span style={{ backgroundColor: '#d1f2dd', padding: '8px 16px', borderRadius: '4px', fontSize: '13px', fontWeight: '500', display: 'inline-block', width: "100px", textAlign: "center" }}>Approved</span>
+                            <span
+                              style={{
+                                backgroundColor: "#d1f2dd",
+                                padding: "8px 16px",
+                                borderRadius: "4px",
+                                fontSize: "13px",
+                                fontWeight: "500",
+                                display: "inline-block",
+                                width: "100px",
+                                textAlign: "center",
+                              }}
+                            >
+                              Approved
+                            </span>
                           ) : l.status === "rejected" ? (
-                            <span style={{ backgroundColor: '#f8d7da', padding: '8px 16px', borderRadius: '4px', fontSize: '13px', fontWeight: '500', display: 'inline-block', width: "100px", textAlign: "center" }}>Rejected</span>
+                            <span
+                              style={{
+                                backgroundColor: "#f8d7da",
+                                padding: "8px 16px",
+                                borderRadius: "4px",
+                                fontSize: "13px",
+                                fontWeight: "500",
+                                display: "inline-block",
+                                width: "100px",
+                                textAlign: "center",
+                              }}
+                            >
+                              Rejected
+                            </span>
                           ) : (
-                            <span style={{ backgroundColor: '#FFE493', padding: '8px 16px', borderRadius: '4px', fontSize: '13px', fontWeight: '500', display: 'inline-block', width: "100px", textAlign: "center" }}>Pending</span>
+                            <span
+                              style={{
+                                backgroundColor: "#FFE493",
+                                padding: "8px 16px",
+                                borderRadius: "4px",
+                                fontSize: "13px",
+                                fontWeight: "500",
+                                display: "inline-block",
+                                width: "100px",
+                                textAlign: "center",
+                              }}
+                            >
+                              Pending
+                            </span>
                           )}
                         </td>
-                        <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
-                         {l.status === "pending" ? (
-                          <>
-                            <button
-                              className="btn btn-sm btn-outline-success me-2"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                updateStatus(l._id, "approved");
-                              }}
-                            >
-                              Approve
-                            </button>
+                        <td
+                          style={{
+                            padding: "12px",
+                            verticalAlign: "middle",
+                            fontSize: "14px",
+                            borderBottom: "1px solid #dee2e6",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {l.status === "pending" ? (
+                            <>
+                              <button
+                                className="btn btn-sm btn-outline-success me-2"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  updateStatus(l._id, "approved");
+                                }}
+                              >
+                                Approve
+                              </button>
 
-                            <button
-                              className="btn btn-sm btn-outline-danger me-2"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                updateStatus(l._id, "rejected");
-                              }}
-                            >
-                              Reject
-                            </button>
+                              <button
+                                className="btn btn-sm btn-outline-danger me-2"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  updateStatus(l._id, "rejected");
+                                }}
+                              >
+                                Reject
+                              </button>
 
-                            <button
-                              className="btn btn-sm btn-outline-danger"
-                              onClick={(e) => {
-                                e.stopPropagation();   
-                                HandleDelete(l._id);
-                              }}
-                            >
-                              Delete
-                            </button>
-                          </>
+                              <button
+                                className="btn btn-sm btn-outline-danger"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  HandleDelete(l._id);
+                                }}
+                              >
+                                Delete
+                              </button>
+                            </>
                           ) : (
                             <span className="text-muted">-</span>
                           )}
                         </td>
                       </tr>
-                    )))}
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
-
-
-
           </div>
         )}
       </>
 
-
-
-
-
-
-
-
-
-
-{selectedLeave && (
+      {selectedLeave && (
         <div
           className="modal fade show"
           style={{ display: "block", background: "rgba(0,0,0,0.5)" }}
         >
           <div className="modal-dialog modal-lg">
             <div className="modal-content">
-
               {/* Header */}
-              <div className="modal-header text-white" style={{ backgroundColor: "#3A5FBE" }}>
+              <div
+                className="modal-header text-white"
+                style={{ backgroundColor: "#3A5FBE" }}
+              >
                 <h5 className="modal-title mb-0">Leave Request Details</h5>
                 <button
                   type="button"
@@ -877,7 +1163,6 @@ useEffect(() => {
               {/* Body */}
               <div className="modal-body">
                 <div className="container-fluid">
-
                   <div className="row mb-2">
                     <div className="col-sm-3 fw-semibold">Employee ID</div>
                     <div className="col-sm-9">
@@ -896,49 +1181,54 @@ useEffect(() => {
                     <div className="col-sm-3 fw-semibold">Apply Date</div>
                     <div className="col-sm-9">
                       {selectedLeave.appliedAt
-                            ? new Date(selectedLeave.appliedAt).toLocaleDateString("en-GB", {
-                              day: '2-digit',
+                        ? new Date(selectedLeave.appliedAt).toLocaleDateString(
+                            "en-GB",
+                            {
+                              day: "2-digit",
                               month: "short",
                               year: "numeric",
-                            })
-                            : "-"}
+                            }
+                          )
+                        : "-"}
                     </div>
                   </div>
 
                   <div className="row mb-2">
                     <div className="col-sm-3 fw-semibold">Leave Type</div>
-                    <div className="col-sm-9">
-                      {selectedLeave.leaveType}
-                    </div>
+                    <div className="col-sm-9">{selectedLeave.leaveType}</div>
                   </div>
 
                   <div className="row mb-2">
                     <div className="col-sm-3 fw-semibold">Date From</div>
                     <div className="col-sm-9">
-                      {new Date(selectedLeave.dateFrom).toLocaleDateString("en-GB", {
-                       day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      })}
+                      {new Date(selectedLeave.dateFrom).toLocaleDateString(
+                        "en-GB",
+                        {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        }
+                      )}
                     </div>
                   </div>
 
                   <div className="row mb-2">
                     <div className="col-sm-3 fw-semibold">Date To</div>
                     <div className="col-sm-9">
-                      {new Date(selectedLeave.dateTo).toLocaleDateString("en-GB", {
-                       day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      })}
+                      {new Date(selectedLeave.dateTo).toLocaleDateString(
+                        "en-GB",
+                        {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        }
+                      )}
                     </div>
                   </div>
 
                   <div className="row mb-2">
                     <div className="col-sm-3 fw-semibold">Duration</div>
-                    <div className="col-sm-9">
-                      {selectedLeave.duration}
-                    </div>
+                    <div className="col-sm-9">{selectedLeave.duration}</div>
                   </div>
 
                   <div className="row mb-2">
@@ -963,15 +1253,14 @@ useEffect(() => {
                           (selectedLeave.status === "approved"
                             ? "bg-success"
                             : selectedLeave.status === "rejected"
-                              ? "bg-danger"
-                              : "bg-warning text-dark")
+                            ? "bg-danger"
+                            : "bg-warning text-dark")
                         }
                       >
                         {selectedLeave.status}
                       </span>
                     </div>
                   </div>
-
                 </div>
               </div>
 
@@ -981,14 +1270,18 @@ useEffect(() => {
                   <>
                     <button
                       className="btn btn-outline-success"
-                      onClick={() => updateStatus(selectedLeave._id, "approved")}
+                      onClick={() =>
+                        updateStatus(selectedLeave._id, "approved")
+                      }
                     >
                       Approve
                     </button>
 
                     <button
                       className="btn btn-outline-danger"
-                      onClick={() => updateStatus(selectedLeave._id, "rejected")}
+                      onClick={() =>
+                        updateStatus(selectedLeave._id, "rejected")
+                      }
                     >
                       Reject
                     </button>
@@ -997,7 +1290,7 @@ useEffect(() => {
                       className="btn b btn-outline-danger"
                       onClick={(e) => {
                         HandleDelete(selectedLeave._id);
-                         setSelectedLeave(null); 
+                        setSelectedLeave(null);
                       }}
                     >
                       Delete
@@ -1012,28 +1305,19 @@ useEffect(() => {
                   Close
                 </button>
               </div>
-
             </div>
           </div>
         </div>
       )}
-
-
-
-
-
-
-
-
-
-
 
       {/* 🔹 Modern Pagination Section */}
       <nav className="d-flex align-items-center justify-content-end mt-3 text-muted p-3">
         <div className="d-flex align-items-center gap-3">
           {/* Rows per page */}
           <div className="d-flex align-items-center">
-            <span style={{ fontSize: "14px", marginRight: "8px" }}>Rows per page:</span>
+            <span style={{ fontSize: "14px", marginRight: "8px" }}>
+              Rows per page:
+            </span>
             <select
               className="form-select form-select-sm"
               style={{ width: "auto", fontSize: "14px" }}
@@ -1053,11 +1337,15 @@ useEffect(() => {
           {/* New Page range */}
           <span style={{ fontSize: "14px", marginLeft: "16px" }}>
             {filteredLeaves.length === 0 ? 0 : indexOfFirstItem + 1}-
-            {Math.min(indexOfLastItem, filteredLeaves.length)} of {filteredLeaves.length}
+            {Math.min(indexOfLastItem, filteredLeaves.length)} of{" "}
+            {filteredLeaves.length}
           </span>
 
           {/* Navigation arrows */}
-          <div className="d-flex align-items-center" style={{ marginLeft: "16px" }}>
+          <div
+            className="d-flex align-items-center"
+            style={{ marginLeft: "16px" }}
+          >
             <button
               className="btn btn-sm border-0"
               onClick={() => handlePageChange(currentPage - 1)}
@@ -1078,7 +1366,6 @@ useEffect(() => {
         </div>
       </nav>
 
-
       <div className="text-end">
         <button
           className="btn btn-sm custom-outline-btn"
@@ -1088,17 +1375,6 @@ useEffect(() => {
           Back
         </button>
       </div>
-
-
-
-
-
-
-
-
-
-
-
     </div>
   );
 }

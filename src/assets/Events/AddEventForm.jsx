@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import axios from "axios";
 import "./AddEvent.css";
@@ -64,13 +63,12 @@ function AddEventForm({ onAdd }) {
     <>
       {/* Button to open modal */}
       <button
-          className="btn btn-sm custom-outline-btn"
-            style={{  minWidth: 90 }}
+        className="btn btn-sm custom-outline-btn"
+        style={{ minWidth: 90 }}
         onClick={() => setShowModal(true)}
       >
         Add Event
       </button>
-
 
       {/* Modal */}
       {showModal && (
@@ -105,7 +103,9 @@ function AddEventForm({ onAdd }) {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                     />
-                    {errors.name && <small className="text-danger">{errors.name}</small>}
+                    {errors.name && (
+                      <small className="text-danger">{errors.name}</small>
+                    )}
                     <div className="char-count">{name.length}/50</div>
                   </div>
 
@@ -121,7 +121,9 @@ function AddEventForm({ onAdd }) {
                       onChange={(e) => setDate(e.target.value)}
                       min={minDate}
                     />
-                    {errors.date && <small className="text-danger">{errors.date}</small>}
+                    {errors.date && (
+                      <small className="text-danger">{errors.date}</small>
+                    )}
                   </div>
 
                   {error && <p className="text-danger">{error}</p>}
@@ -132,14 +134,14 @@ function AddEventForm({ onAdd }) {
                       type="button"
                       // className="btn"
                       // style={{ borderColor: "#3A5FBE", color: "#3A5FBE" }}
-  className="btn btn-sm custom-outline-btn"
-            style={{  minWidth: 90 }}
+                      className="btn btn-sm custom-outline-btn"
+                      style={{ minWidth: 90 }}
                       onClick={() => setShowModal(false)}
                     >
                       Cancel
                     </button>
                     <button
-                    className="btn btn-sm custom-outline-btn"
+                      className="btn btn-sm custom-outline-btn"
                       type="submit"
                       disabled={loading}
                     >

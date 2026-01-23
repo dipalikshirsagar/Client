@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
@@ -58,12 +57,24 @@ const TodaysCheckinCheckoutCount = ({ employeeId }) => {
 
       {attendance ? (
         <div>
-          <p>Check-in: {attendance.checkIn ? new Date(attendance.checkIn).toLocaleTimeString() : "--"}</p>
-          <p>Check-out: {attendance.checkOut ? new Date(attendance.checkOut).toLocaleTimeString() : "--"}</p>
+          <p>
+            Check-in:{" "}
+            {attendance.checkIn
+              ? new Date(attendance.checkIn).toLocaleTimeString()
+              : "--"}
+          </p>
+          <p>
+            Check-out:{" "}
+            {attendance.checkOut
+              ? new Date(attendance.checkOut).toLocaleTimeString()
+              : "--"}
+          </p>
           <p>Status: {attendance.dayStatus || "Pending"}</p>
           <p>
             Worked Hours:{" "}
-            {attendance.workingHours ? attendance.workingHours.toFixed(2) + " hrs" : "--"}
+            {attendance.workingHours
+              ? attendance.workingHours.toFixed(2) + " hrs"
+              : "--"}
           </p>
         </div>
       ) : (

@@ -1,10 +1,9 @@
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import { Calendar3, ChevronLeft, ChevronRight } from "react-bootstrap-icons";
 
-function HolidaysCard({ }) {
+function HolidaysCard({}) {
   const [holidays, setHolidays] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -58,8 +57,10 @@ function HolidaysCard({ }) {
     >
       <span className="visually-hidden">Loading...</span>
     </div>
-    <p className="mt-3 fw-semibold" style={{ color: "#3A5FBE" }}>Loading ...</p>
-  </div>
+    <p className="mt-3 fw-semibold" style={{ color: "#3A5FBE" }}>
+      Loading ...
+    </p>
+  </div>;
 
   if (error) return <p className="text-danger">{error}</p>;
   // if (holidays.length === 0) return <p>No upcoming holidays</p>;
@@ -69,10 +70,11 @@ function HolidaysCard({ }) {
     return (
       <div className="card shadow-sm h-100 border-0 bg-white">
         <div className="card-header d-flex justify-content-center align-items-center">
-          <h2 style={{ color: "#3A5FBE", fontSize: "20px", marginLeft: "15px" }}>
+          <h2
+            style={{ color: "#3A5FBE", fontSize: "20px", marginLeft: "15px" }}
+          >
             Upcoming Holidays
           </h2>
-
         </div>
 
         <div className="card-body text-center">
@@ -98,13 +100,29 @@ function HolidaysCard({ }) {
   };
 
   return (
-    <div className="card shadow-sm h-100 border-0" style={{ borderRadius: "10px" }}>
-      <div className="card-header d-flex justify-content-between align-items-center" style={{ backgroundColor: "#fff", borderRadius: "12px 12px 0 0" }}>
-        <button className="btn btn-link p-0" style={{ color: "#3A5FBE" }} onClick={handlePrev}>
+    <div
+      className="card shadow-sm h-100 border-0"
+      style={{ borderRadius: "10px" }}
+    >
+      <div
+        className="card-header d-flex justify-content-between align-items-center"
+        style={{ backgroundColor: "#fff", borderRadius: "12px 12px 0 0" }}
+      >
+        <button
+          className="btn btn-link p-0"
+          style={{ color: "#3A5FBE" }}
+          onClick={handlePrev}
+        >
           <ChevronLeft size={20} />
         </button>
-        <span className="fw-semibold" style={{ color: "#3A5FBE" }}>Upcoming Holidays</span>
-        <button className="btn btn-link p-0" style={{ color: "#3A5FBE" }} onClick={handleNext}>
+        <span className="fw-semibold" style={{ color: "#3A5FBE" }}>
+          Upcoming Holidays
+        </span>
+        <button
+          className="btn btn-link p-0"
+          style={{ color: "#3A5FBE" }}
+          onClick={handleNext}
+        >
           <ChevronRight size={20} />
         </button>
       </div>
@@ -114,8 +132,8 @@ function HolidaysCard({ }) {
         <p className="mb-0 fw-semibold" style={{ color: "#3A5FBE" }}>
           {holiday.name
             ? holiday.name
-              .toLowerCase()
-              .replace(/\b\w/g, (char) => char.toUpperCase())
+                .toLowerCase()
+                .replace(/\b\w/g, (char) => char.toUpperCase())
             : ""}
         </p>
         <small className="text-muted">
@@ -154,9 +172,12 @@ function HolidaysCard({ }) {
             //   justifyContent: "center",
             // }}
             onClick={() =>
-              navigate(`/dashboard/${role}/${username}/${id}/AllEventsandHolidays`, {
-                state: { holidays },
-              })
+              navigate(
+                `/dashboard/${role}/${username}/${id}/AllEventsandHolidays`,
+                {
+                  state: { holidays },
+                }
+              )
             }
           >
             View All Holidays

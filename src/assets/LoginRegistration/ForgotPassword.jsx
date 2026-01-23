@@ -83,7 +83,8 @@ function ForgotPassword() {
 
           <h1 className="login-subtitle">Welcome Back!</h1>
           <span style={{ color: "#3a5fbf" }}>
-            Keep your account secure by setting a strong Password.<br />
+            Keep your account secure by setting a strong Password.
+            <br />
             Make sure it’s unique and safe
           </span>
 
@@ -91,8 +92,7 @@ function ForgotPassword() {
 
           <form onSubmit={handleSubmit}>
             {/* New Password */}
-            <div className="input-group" 
-            style={{ position: "relative" }}>
+            <div className="input-group" style={{ position: "relative" }}>
               <label>Enter New Password</label>
               <input
                 type={showPassword ? "text" : "password"}
@@ -101,14 +101,15 @@ function ForgotPassword() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$"
-                title="Password must contain at least one uppercase letter, one lowercase letter, one number, one special character, and be at least 8 characters long" style={{ width: "100%", paddingRight: "40px" }}
+                title="Password must contain at least one uppercase letter, one lowercase letter, one number, one special character, and be at least 8 characters long"
+                style={{ width: "100%", paddingRight: "40px" }}
               />
               <span
                 onClick={() => setShowPassword(!showPassword)}
                 style={{
                   position: "absolute",
                   right: "10px",
-                  top: "70%",              // perfectly centers the icon
+                  top: "70%", // perfectly centers the icon
                   transform: "translateY(-50%)",
                   cursor: "pointer",
                   display: "flex",
@@ -139,7 +140,7 @@ function ForgotPassword() {
                 style={{
                   position: "absolute",
                   right: "10px",
-                  top: "70%",              // perfectly centers the icon
+                  top: "70%", // perfectly centers the icon
                   transform: "translateY(-50%)",
                   cursor: "pointer",
                   display: "flex",

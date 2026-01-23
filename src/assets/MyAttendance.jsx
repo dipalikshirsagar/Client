@@ -5,8 +5,8 @@ import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./MyAttendance.css";
 import { useNavigate, useParams } from "react-router-dom";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSquareCheck } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faSquareCheck } from "@fortawesome/free-solid-svg-icons";
 
 function MyAttendance({ employeeId }) {
   const [attendance, setAttendance] = useState([]);
@@ -19,7 +19,12 @@ function MyAttendance({ employeeId }) {
   const [showModal, setShowModal] = useState(false);
   const [manager, setManager] = useState(null);
   const [activeStartDate, setActiveStartDate] = useState(new Date());
-  const [summary, setSummary] = useState({ leave: 0, present: 0, regularized: 0, holidays: 0 });
+  const [summary, setSummary] = useState({
+    leave: 0,
+    present: 0,
+    regularized: 0,
+    holidays: 0,
+  });
   const [date, setDate] = useState("");
   const [message, setMessage] = useState("");
   const [checkIn, setCheckIn] = useState("");
@@ -32,22 +37,21 @@ function MyAttendance({ employeeId }) {
     localStorage.setItem("workMode", workMode);
   }, [workMode]);
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const { role, username, id } = useParams();
-
 
   // Whenever workMode changes, save it
   // useEffect(() => {
   //   localStorage.setItem("workMode", workMode);
   // }, [workMode]);
 
-
-
   // Fetch manager info
   useEffect(() => {
     if (selectedRecord?.leaveRef?.reportingManager) {
       axios
-        .get(` https://server-backend-nu.vercel.app/users/${selectedRecord.leaveRef.reportingManager}`)
+        .get(
+          ` https://server-backend-nu.vercel.app/users/${selectedRecord.leaveRef.reportingManager}`
+        )
         .then((res) => setManager(res.data))
         .catch((err) => console.error("Error fetching manager:", err));
     }
@@ -57,13 +61,18 @@ function MyAttendance({ employeeId }) {
     if (!employeeId) return; // ✅ Skip until defined
     const fetchData = async () => {
       try {
-        const [attRes, leaveRes, weeklyRes, holidayRes, regRes] = await Promise.all([
-          axios.get(` https://server-backend-nu.vercel.app/attendance/${employeeId}`),
-          axios.get(` https://server-backend-nu.vercel.app/leave/my/${employeeId}`),
-          axios.get(` https://server-backend-nu.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`),
-          axios.get(` https://server-backend-nu.vercel.app/getHolidays`),
-          axios.get(` https://server-backend-nu.vercel.app/attendance/regularization/my/${employeeId}`),
-        ]);
+        const [attRes, leaveRes, weeklyRes, holidayRes, regRes] =
+          await Promise.all([
+            axios.get(` https://server-backend-nu.vercel.app/attendance/${employeeId}`),
+            axios.get(` https://server-backend-nu.vercel.app/leave/my/${employeeId}`),
+            axios.get(
+              ` https://server-backend-nu.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`
+            ),
+            axios.get(` https://server-backend-nu.vercel.app/getHolidays`),
+            axios.get(
+              ` https://server-backend-nu.vercel.app/attendance/regularization/my/${employeeId}`
+            ),
+          ]);
 
         setWeeklyOff(weeklyRes.data.data?.saturdays || []);
         setHolidays(holidayRes.data || []);
@@ -96,7 +105,6 @@ function MyAttendance({ employeeId }) {
             (att) => new Date(att.date).toDateString() === dateKey
           );
 
-
           const regDate = new Date(reg.date);
           const today = new Date();
           today.setHours(0, 0, 0, 0);
@@ -105,8 +113,14 @@ function MyAttendance({ employeeId }) {
           const isToday = regDate.getTime() === today.getTime();
           const mergedRecord = {
             date: new Date(reg.date),
-            checkIn: mergedAttendance[existingIndex]?.checkIn || reg.regularizationRequest?.checkIn || null,
-            checkOut: mergedAttendance[existingIndex]?.checkOut || reg.regularizationRequest?.checkOut || null,
+            checkIn:
+              mergedAttendance[existingIndex]?.checkIn ||
+              reg.regularizationRequest?.checkIn ||
+              null,
+            checkOut:
+              mergedAttendance[existingIndex]?.checkOut ||
+              reg.regularizationRequest?.checkOut ||
+              null,
             mode: mergedAttendance[existingIndex]?.mode || reg.mode,
             regStatus: reg.regularizationRequest?.status,
             approvedByRole: reg.regularizationRequest?.approvedByRole,
@@ -115,15 +129,20 @@ function MyAttendance({ employeeId }) {
             //     ? "Regularized"
             //     : "Pending Regularization",
             dayStatus:
-              isToday && mergedAttendance[existingIndex]?.checkIn && !mergedAttendance[existingIndex]?.checkOut
+              isToday &&
+              mergedAttendance[existingIndex]?.checkIn &&
+              !mergedAttendance[existingIndex]?.checkOut
                 ? "Working"
                 : reg.regularizationRequest?.status === "Approved"
-                  ? "Regularized"
-                  : "Absent",
+                ? "Regularized"
+                : "Absent",
           };
 
           if (existingIndex > -1) {
-            mergedAttendance[existingIndex] = { ...mergedAttendance[existingIndex], ...mergedRecord };
+            mergedAttendance[existingIndex] = {
+              ...mergedAttendance[existingIndex],
+              ...mergedRecord,
+            };
           } else {
             mergedAttendance.push(mergedRecord);
           }
@@ -139,7 +158,6 @@ function MyAttendance({ employeeId }) {
           ) || null
         );
         setDate(today.toISOString().split("T")[0]);
-
       } catch (err) {
         console.error("Error fetching data:", err);
       }
@@ -147,7 +165,6 @@ function MyAttendance({ employeeId }) {
 
     fetchData();
   }, [employeeId]);
-
 
   // Utilities
   const isNthSaturday = (date) => {
@@ -159,14 +176,21 @@ function MyAttendance({ employeeId }) {
     }
     return weeklyOff.includes(count);
   };
-  console.log("week off", weeklyOff)
+  console.log("week off", weeklyOff);
 
-  const getHoliday = (date) => holidays.find((h) => new Date(h.date).toDateString() === date.toDateString());
+  const getHoliday = (date) =>
+    holidays.find(
+      (h) => new Date(h.date).toDateString() === date.toDateString()
+    );
   const isHoliday = (date) => !!getHoliday(date);
 
   const isMonthLocked = (date) => {
     const now = new Date();
-    return date.getFullYear() < now.getFullYear() || (date.getFullYear() === now.getFullYear() && date.getMonth() < now.getMonth());
+    return (
+      date.getFullYear() < now.getFullYear() ||
+      (date.getFullYear() === now.getFullYear() &&
+        date.getMonth() < now.getMonth())
+    );
   };
 
   const calculateWorkedHours = (checkIn, checkOut) => {
@@ -178,7 +202,8 @@ function MyAttendance({ employeeId }) {
     return `${hours}h ${minutes}m`;
   };
 
-  const getWorkedHoursDecimal = (checkIn, checkOut) => (new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60);
+  const getWorkedHoursDecimal = (checkIn, checkOut) =>
+    (new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60);
 
   // Updated getDayStatus using workingHours if available
   const getDayStatus = (record) => {
@@ -190,7 +215,11 @@ function MyAttendance({ employeeId }) {
 
     if (record.leaveRef) return record.dayStatus;
 
-    let hours = record.workingHours || (record.checkIn && record.checkOut ? getWorkedHoursDecimal(record.checkIn, record.checkOut) : 0);
+    let hours =
+      record.workingHours ||
+      (record.checkIn && record.checkOut
+        ? getWorkedHoursDecimal(record.checkIn, record.checkOut)
+        : 0);
 
     if (record.regStatus === "Approved") {
       if (hours >= 8) return "Regularized (Full Day)";
@@ -205,7 +234,12 @@ function MyAttendance({ employeeId }) {
       if (record.checkIn && !record.checkOut) return "Working";
     }
 
-    if (recordDate.getTime() < today.getTime() && record.checkIn && !record.checkOut) return "Absent";
+    if (
+      recordDate.getTime() < today.getTime() &&
+      record.checkIn &&
+      !record.checkOut
+    )
+      return "Absent";
     if (!record.checkIn && !record.checkOut) return "Absent";
 
     if (hours >= 8) return "Full Day";
@@ -293,7 +327,6 @@ function MyAttendance({ employeeId }) {
   //   setDate(date.toISOString().split("T")[0]);
   // };
 
-
   //adesh code
   // const tileClassName = ({ date, view }) => {
   //   if (view !== "month") return "";
@@ -303,7 +336,6 @@ function MyAttendance({ employeeId }) {
   //     date.getDate() === today.getDate() &&
   //     date.getMonth() === today.getMonth() &&
   //     date.getFullYear() === today.getFullYear();
-
 
   //   // support two common key formats in case your map uses ISO keys elsewhere
   //   const key1 = date.toDateString();            // "Thu Nov 13 2025"
@@ -343,7 +375,6 @@ function MyAttendance({ employeeId }) {
   // };
 
   //new code
-
 
   const tileClassName = ({ date, view }) => {
     if (view !== "month") return "";
@@ -395,8 +426,6 @@ function MyAttendance({ employeeId }) {
     return "";
   };
 
-
-
   ///
   const handleDateClick = (date) => {
     setSelectedDate(date);
@@ -407,9 +436,11 @@ function MyAttendance({ employeeId }) {
 
     // 🪄 Log details in console safely
     console.log("📅 Selected Date:", date.toDateString());
-    console.log("🧾 Day Record:", record ? record : "No record found for this date");
+    console.log(
+      "🧾 Day Record:",
+      record ? record : "No record found for this date"
+    );
   };
-
 
   const handleOpenModal = () => setShowModal(true);
   const handleCloseModal = () => setShowModal(false);
@@ -464,8 +495,7 @@ function MyAttendance({ employeeId }) {
       const from = new Date(leave.dateFrom);
       const to = new Date(leave.dateTo);
 
-      const duration =
-        leave.duration === "half" ? 0.5 : 1;
+      const duration = leave.duration === "half" ? 0.5 : 1;
 
       while (from <= to) {
         const dateKey = from.toDateString();
@@ -499,7 +529,8 @@ function MyAttendance({ employeeId }) {
 
       // ✅ Calculate working hours
       if (rec?.checkIn && rec?.checkOut) {
-        const hours = (new Date(rec.checkOut) - new Date(rec.checkIn)) / (1000 * 60 * 60);
+        const hours =
+          (new Date(rec.checkOut) - new Date(rec.checkIn)) / (1000 * 60 * 60);
         if (hours >= 8) dayPresent = 1;
         else if (hours >= 4) dayPresent = 0.5;
       }
@@ -530,9 +561,6 @@ function MyAttendance({ employeeId }) {
       holidays: holidayCount,
     });
   }, [attendance, leaves, holidays, activeStartDate]);
-
-
-
 
   // --- Regularization ---
   const handleRegularizationSubmit = async (e) => {
@@ -565,7 +593,9 @@ function MyAttendance({ employeeId }) {
           (selectedRecord?.checkIn ? formatTime(selectedRecord.checkIn) : null),
         requestedCheckOut:
           checkOut ||
-          (selectedRecord?.checkOut ? formatTime(selectedRecord.checkOut) : null),
+          (selectedRecord?.checkOut
+            ? formatTime(selectedRecord.checkOut)
+            : null),
       };
 
       console.log("Submitting payload:", payload);
@@ -591,7 +621,7 @@ function MyAttendance({ employeeId }) {
     if (!dateStr) return null; // return null if empty, undefined, null
 
     const d = new Date(dateStr);
-    if (isNaN(d)) return null;  // invalid date → return null
+    if (isNaN(d)) return null; // invalid date → return null
 
     d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
     return d.toISOString().split("T")[0];
@@ -621,7 +651,7 @@ function MyAttendance({ employeeId }) {
     try {
       const today = toLocalDate(new Date());
       const res = await authAxios.get(`/leave/my/${employeeId}`);
-      console.log("leave check", res.data)
+      console.log("leave check", res.data);
       const todayApplied = res.data.find((leave) => {
         const from = toLocalDate(leave.dateFrom);
         const to = toLocalDate(leave.dateTo);
@@ -635,10 +665,8 @@ function MyAttendance({ employeeId }) {
         );
       });
 
-
       console.log("test leave checkin", todayApplied);
       return todayApplied || null;
-
     } catch (err) {
       console.log("Error fetching leave", err);
       return null;
@@ -650,19 +678,25 @@ function MyAttendance({ employeeId }) {
 
     const today = new Date().toDateString();
     const todayRecord = attendance.find(
-      rec => new Date(rec.date).toDateString() === today
+      (rec) => new Date(rec.date).toDateString() === today
     );
 
     // If already checked in
     if (todayRecord?.checkIn) {
-      const time = new Date(todayRecord.checkIn).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true });
+      const time = new Date(todayRecord.checkIn).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
       return alert(`Already checked in today at ${time}`);
     }
 
     // Check Leave
     const todayLeaveData = await fetchTodayLeaveDirect();
     if (todayLeaveData) {
-      return alert("❗ You have applied for leave today. Check-in is not allowed.");
+      return alert(
+        "❗ You have applied for leave today. Check-in is not allowed."
+      );
     }
 
     if (!navigator.geolocation) return alert("Geolocation not supported");
@@ -733,9 +767,7 @@ function MyAttendance({ employeeId }) {
     }
   };
 
-
-
-  //Break Shivani 
+  //Break Shivani
   const [breakData, setBreakData] = useState([]);
   const [todayBreak, setTodayBreak] = useState(null);
 
@@ -783,16 +815,24 @@ function MyAttendance({ employeeId }) {
       isNthSaturday(selectedDate));
 
   return (
-    <div className="container-fluid pt-1 px-3" style={{ marginTop: "-25px", backgroundColor: "#f5f7fb" }}>
+    <div
+      className="container-fluid pt-1 px-3"
+      style={{ marginTop: "-25px", backgroundColor: "#f5f7fb" }}
+    >
       <div className="row g-3">
         <div className="col-md-8 mb-3 ">
           {/* Calender card start */}
           <div className="card p-3 mt-3 shadow-sm p-4 border-10 d-flex justify-content-center">
-            <h2 className="text-center" style={{ color: "#3A5FBE", fontSize: "20px" }}>
+            <h2
+              className="text-center"
+              style={{ color: "#3A5FBE", fontSize: "20px" }}
+            >
               My Attendance
             </h2>
-            <hr style={{ width: "100%", margin: "10px 0", opacity: "0.2" }}></hr>
-            <div className="d-flex justify-content-center mb-3" >
+            <hr
+              style={{ width: "100%", margin: "10px 0", opacity: "0.2" }}
+            ></hr>
+            <div className="d-flex justify-content-center mb-3">
               <Calendar
                 onClickDay={handleDateClick}
                 tileClassName={tileClassName}
@@ -800,7 +840,6 @@ function MyAttendance({ employeeId }) {
                 onActiveStartDateChange={({ activeStartDate }) =>
                   setActiveStartDate(activeStartDate)
                 }
-
               />
             </div>
 
@@ -812,14 +851,26 @@ function MyAttendance({ employeeId }) {
                     </div>
                     <div className="badge bg-danger p-2">Holidays: {summary.holidays}</div>
                 </div> */}
-            <div className="d-flex justify-content-center mt-1 flex-wrap" style={{ gap: "35px" }}>
-              <span><span className="legend-box present"></span> Present</span>
-              <span><span className="legend-box leave"></span> Leave</span>
-              <span><span className="legend-box holiday"></span> Holidays</span>
-              <span><span className="legend-box halfday"></span> Half Day</span>
-              <span><span className="legend-box today"></span> Today</span>
+            <div
+              className="d-flex justify-content-center mt-1 flex-wrap"
+              style={{ gap: "35px" }}
+            >
+              <span>
+                <span className="legend-box present"></span> Present
+              </span>
+              <span>
+                <span className="legend-box leave"></span> Leave
+              </span>
+              <span>
+                <span className="legend-box holiday"></span> Holidays
+              </span>
+              <span>
+                <span className="legend-box halfday"></span> Half Day
+              </span>
+              <span>
+                <span className="legend-box today"></span> Today
+              </span>
             </div>
-
           </div>
           {/* Calender card End */}
         </div>
@@ -827,8 +878,20 @@ function MyAttendance({ employeeId }) {
         {/* Today Attendance Section Start */}
         <div className="col-md-4">
           <div className="card p-4 mt-3 shadow-sm  border-10 mb-3">
-            <h2 style={{ fontSize: "20px", color: "#3A5FBE", fontWeight: "600", marginBottom: "10px", textAlign: "center" }}>Today's Attendance</h2>
-            <hr style={{ width: "100%", margin: "10px 0", opacity: "0.2" }}></hr>
+            <h2
+              style={{
+                fontSize: "20px",
+                color: "#3A5FBE",
+                fontWeight: "600",
+                marginBottom: "10px",
+                textAlign: "center",
+              }}
+            >
+              Today's Attendance
+            </h2>
+            <hr
+              style={{ width: "100%", margin: "10px 0", opacity: "0.2" }}
+            ></hr>
 
             {/* 🔹 Always show today's check-in record only */}
             {/* {(() => {
@@ -839,7 +902,8 @@ function MyAttendance({ employeeId }) {
             {(() => {
               const today = new Date();
               const todayRecord = attendance.find(
-                (rec) => new Date(rec.date).toDateString() === today.toDateString()
+                (rec) =>
+                  new Date(rec.date).toDateString() === today.toDateString()
               );
               return (
                 <div className="attendance-details">
@@ -847,80 +911,78 @@ function MyAttendance({ employeeId }) {
                     <>
                       {todayRecord?.checkIn ? (
                         <p className="mb-2 text-success">
-                          <FontAwesomeIcon icon={faSquareCheck} style={{ marginRight: '8px' }} />
-                          <strong style={{ color: '#28a745', fontWeight: '600' }}>
+                          <FontAwesomeIcon
+                            icon={faSquareCheck}
+                            style={{ marginRight: "8px" }}
+                          />
+                          <strong
+                            style={{ color: "#28a745", fontWeight: "600" }}
+                          >
                             Checked in at
                           </strong>{" "}
-                          {new Date(todayRecord.checkIn).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: true,
-                          })}
+                          {new Date(todayRecord.checkIn).toLocaleTimeString(
+                            [],
+                            {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: true,
+                            }
+                          )}
                         </p>
                       ) : (
-                        <p className="mb-2" style={{ color: '#dc3545', fontWeight: '600' }}>
+                        <p
+                          className="mb-2"
+                          style={{ color: "#dc3545", fontWeight: "600" }}
+                        >
                           Not Checked In
                         </p>
                       )}
 
                       {/* Checkout timing */}
                       {todayRecord?.checkOut && (
-                        <p className="mb-2 text-danger" style={{ fontSize: '16px' }}>
-                          <FontAwesomeIcon icon={faSquareCheck} style={{ marginRight: '8px' }} />
-                          <strong style={{ color: '#dc3545', fontWeight: '600' }}>
+                        <p
+                          className="mb-2 text-danger"
+                          style={{ fontSize: "16px" }}
+                        >
+                          <FontAwesomeIcon
+                            icon={faSquareCheck}
+                            style={{ marginRight: "8px" }}
+                          />
+                          <strong
+                            style={{ color: "#dc3545", fontWeight: "600" }}
+                          >
                             Checked out at
                           </strong>{" "}
-                          {new Date(todayRecord.checkOut).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: true,
-                          })}
+                          {new Date(todayRecord.checkOut).toLocaleTimeString(
+                            [],
+                            {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: true,
+                            }
+                          )}
                         </p>
                       )}
                       {/* Checkout timing end */}
-
-
-
-
-
-
-
-
-
-
-
 
                       {todayRecord?.checkIn && todayRecord?.checkOut && (
                         <>
                           {/* <hr style={{ width: "100%", margin: "5px 0", opacity: "0.2" }} /> */}
                           <p style={{ color: "#3A5FBE" }}>
                             <strong>Total Hours:</strong>{" "}
-                            {calculateWorkedHours(todayRecord.checkIn, todayRecord.checkOut)}
+                            {calculateWorkedHours(
+                              todayRecord.checkIn,
+                              todayRecord.checkOut
+                            )}
                           </p>
                         </>
                       )}
                     </>
                   ) : (
-                    <p style={{ color: '#dc3545', fontWeight: '600' }}>
+                    <p style={{ color: "#dc3545", fontWeight: "600" }}>
                       No record available for today
                     </p>
                   )}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
                   {/* ============  Harshada added WFO / WFH UI Section =============*/}
 
@@ -952,7 +1014,7 @@ function MyAttendance({ employeeId }) {
                         type="checkbox"
                         checked={workMode === "WFO"}
                         onChange={() => setWorkMode("WFO")}
-                      // onChange={(e) => setWorkMode(e.target.value)}
+                        // onChange={(e) => setWorkMode(e.target.value)}
                       />
                       <label className="form-check-label ms-2">WFO</label>
                     </div>
@@ -962,7 +1024,7 @@ function MyAttendance({ employeeId }) {
                         type="checkbox"
                         checked={workMode === "WFH"}
                         onChange={() => setWorkMode("WFH")}
-                      // onChange={(e) => setWorkMode(e.target.value)}
+                        // onChange={(e) => setWorkMode(e.target.value)}
                       />
                       <label className="form-check-label ms-2">WFH</label>
                     </div>
@@ -971,9 +1033,13 @@ function MyAttendance({ employeeId }) {
                   {/* ============ Harshada added =============*/}
                   {/* <hr style={{ width: "100%", margin: "10px 0", opacity: "0.2" }}></hr> */}
 
-                  <div style={{ display: "flex", gap: "15px", marginTop: "10px" }}>
+                  <div
+                    style={{ display: "flex", gap: "15px", marginTop: "10px" }}
+                  >
                     <button
-                      className={`btn px-4 ${todayRecord?.checkIn ? "btn-secondary" : "btn-success"}`}
+                      className={`btn px-4 ${
+                        todayRecord?.checkIn ? "btn-secondary" : "btn-success"
+                      }`}
                       onClick={handleCheckIn}
                       disabled={!!todayRecord?.checkIn}
                     >
@@ -983,24 +1049,16 @@ function MyAttendance({ employeeId }) {
                     <button
                       className="btn btn-danger px-4"
                       onClick={handleCheckOut}
-                      disabled={!todayRecord?.checkIn || !!todayRecord?.checkOut}
+                      disabled={
+                        !todayRecord?.checkIn || !!todayRecord?.checkOut
+                      }
                     >
                       Check-Out
                     </button>
                   </div>
-
-
-
-
                 </div>
               );
             })()}
-
-
-
-
-
-
           </div>
 
           {/* Today Attendance Section End */}
@@ -1008,21 +1066,44 @@ function MyAttendance({ employeeId }) {
           {/* <div className="col-md-4"> */}
           <div className="card p-4 mt-3  shadow-sm  border-10  ">
             {selectedDate && (
-              <div className="attendance-details " style={{ marginLeft: "18px" }}>
-                <h2 style={{ textAlign: "center", color: "#3A5FBE", fontSize: "20px", fontWeight: "600", marginBottom: "15px" }}>{selectedDate.toDateString()}</h2>
-                <hr style={{ width: "100%", margin: "10px 0", opacity: "0.2" }}></hr>
-                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              <div
+                className="attendance-details "
+                style={{ marginLeft: "18px" }}
+              >
+                <h2
+                  style={{
+                    textAlign: "center",
+                    color: "#3A5FBE",
+                    fontSize: "20px",
+                    fontWeight: "600",
+                    marginBottom: "15px",
+                  }}
+                >
+                  {selectedDate.toDateString()}
+                </h2>
+                <hr
+                  style={{ width: "100%", margin: "10px 0", opacity: "0.2" }}
+                ></hr>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "10px",
+                  }}
+                >
                   {selectedRecord?.leaveRef ? (
                     <div
                       className={
-                        selectedRecord.leaveRef.status === "approved"
-                          ? ""
-                          : ""
+                        selectedRecord.leaveRef.status === "approved" ? "" : ""
                       }
                     >
                       <p style={{ fontSize: "14px", marginBottom: "20px" }}>
-                        <strong style={{ marginleft: "18px" }} >Leave Type:</strong>{" "}
-                        <span style={{ marginLeft: "8px" }}>{selectedRecord.leaveRef.leaveType}</span>
+                        <strong style={{ marginleft: "18px" }}>
+                          Leave Type:
+                        </strong>{" "}
+                        <span style={{ marginLeft: "8px" }}>
+                          {selectedRecord.leaveRef.leaveType}
+                        </span>
                       </p>
                       {/* <p>
                         <strong >Reason:</strong> {selectedRecord.leaveRef.reason}
@@ -1047,24 +1128,30 @@ function MyAttendance({ employeeId }) {
                         {selectedRecord.leaveRef.status === "approved"
                           ? "Approved"
                           : selectedRecord.leaveRef.status === "pending"
-                            ? "Pending"
-                            : selectedRecord.leaveRef.status === "rejected"
-                              ? "Rejected"
-                              : "N/A"}
+                          ? "Pending"
+                          : selectedRecord.leaveRef.status === "rejected"
+                          ? "Rejected"
+                          : "N/A"}
                       </p>
 
                       <p style={{ fontSize: "14px", marginBottom: "20px" }}>
-                        <strong style={{ marginRight: "8px" }}>Approver Name:</strong>
+                        <strong style={{ marginRight: "8px" }}>
+                          Approver Name:
+                        </strong>
                         {selectedRecord.leaveRef.status === "approved"
-                          ? (manager?.fullName || manager?.name || "Not Assigned")
+                          ? manager?.fullName || manager?.name || "Not Assigned"
                           : "Waiting for Approval"}
                       </p>
                       <p style={{ fontSize: "14px", marginBottom: "20px" }}>
-                        <strong style={{ marginRight: "8px" }}>Duration:</strong>
+                        <strong style={{ marginRight: "8px" }}>
+                          Duration:
+                        </strong>
                         {Math.ceil(
-                          (new Date(selectedRecord.leaveRef.dateTo) - new Date(selectedRecord.leaveRef.dateFrom)) /
-                          (1000 * 60 * 60 * 24)
-                        ) + 1} Day
+                          (new Date(selectedRecord.leaveRef.dateTo) -
+                            new Date(selectedRecord.leaveRef.dateFrom)) /
+                            (1000 * 60 * 60 * 24)
+                        ) + 1}
+                         Day
                       </p>
                       {/* <p>
                         <strong>Duration:</strong>{" "}
@@ -1114,26 +1201,25 @@ function MyAttendance({ employeeId }) {
                           <p style={{ fontSize: "14px", marginBottom: "20px" }}>
                             <strong>Check-in:</strong>{" "}
                             {selectedRecord?.checkIn
-                              ? new Date(selectedRecord.checkIn).toLocaleTimeString(
-                                [],
-                                {
+                              ? new Date(
+                                  selectedRecord.checkIn
+                                ).toLocaleTimeString([], {
                                   hour: "2-digit",
                                   minute: "2-digit",
                                   hour12: true,
-                                }
-                              )
+                                })
                               : "N/A"}
                           </p>
                           <p style={{ fontSize: "14px", marginBottom: "20px" }}>
                             <strong>Check-out:</strong>{" "}
                             {selectedRecord?.checkOut
                               ? new Date(
-                                selectedRecord.checkOut
-                              ).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                hour12: true,
-                              })
+                                  selectedRecord.checkOut
+                                ).toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  hour12: true,
+                                })
                               : "N/A"}
                           </p>
                           {/* {selectedRecord?.checkIn && selectedRecord?.checkOut && (
@@ -1145,12 +1231,10 @@ function MyAttendance({ employeeId }) {
                               )}
                             </p>
                           )} */}
-
                         </>
                       )}
                     </>
                   )}
-
 
                   {!isHolidayOrWeeklyOff && (
                     <>
@@ -1165,7 +1249,7 @@ function MyAttendance({ employeeId }) {
                         style={{
                           maxHeight: "130px",
                           overflowY: "auto",
-                          paddingRight: "6px"
+                          paddingRight: "6px",
                         }}
                       >
                         {todayBreak ? (
@@ -1179,31 +1263,64 @@ function MyAttendance({ employeeId }) {
                                   className="border rounded p-2 mb-2"
                                   style={{ background: "#f8f9fa" }}
                                 >
-                                  <p className="mb-1" style={{ fontSize: "14px", marginBottom: "20px" }}>
+                                  <p
+                                    className="mb-1"
+                                    style={{
+                                      fontSize: "14px",
+                                      marginBottom: "20px",
+                                    }}
+                                  >
                                     <strong>Type:</strong> {brk.type}
                                   </p>
 
                                   {brk.type === "Other" && (
-                                    <p className="mb-1" style={{ fontSize: "14px", marginBottom: "20px" }}>
+                                    <p
+                                      className="mb-1"
+                                      style={{
+                                        fontSize: "14px",
+                                        marginBottom: "20px",
+                                      }}
+                                    >
                                       <strong>Reason:</strong>{" "}
                                       {brk.reason?.trim() ? brk.reason : "N/A"}
                                     </p>
                                   )}
 
-
-                                  <p className="mb-1" style={{ fontSize: "14px", marginBottom: "20px" }}>
+                                  <p
+                                    className="mb-1"
+                                    style={{
+                                      fontSize: "14px",
+                                      marginBottom: "20px",
+                                    }}
+                                  >
                                     <strong>Start:</strong>{" "}
-                                    {new Date(brk.startTime).toLocaleTimeString()}
+                                    {new Date(
+                                      brk.startTime
+                                    ).toLocaleTimeString()}
                                   </p>
 
-                                  <p className="mb-1" style={{ fontSize: "14px", marginBottom: "20px" }}>
+                                  <p
+                                    className="mb-1"
+                                    style={{
+                                      fontSize: "14px",
+                                      marginBottom: "20px",
+                                    }}
+                                  >
                                     <strong>End:</strong>{" "}
                                     {brk.endTime
-                                      ? new Date(brk.endTime).toLocaleTimeString()
+                                      ? new Date(
+                                          brk.endTime
+                                        ).toLocaleTimeString()
                                       : "In Progress"}
                                   </p>
 
-                                  <p className="mb-0" style={{ fontSize: "14px", marginBottom: "20px" }}>
+                                  <p
+                                    className="mb-0"
+                                    style={{
+                                      fontSize: "14px",
+                                      marginBottom: "20px",
+                                    }}
+                                  >
                                     <strong>Duration:</strong>{" "}
                                     {brk.durationSeconds
                                       ? formatSeconds(brk.durationSeconds)
@@ -1214,7 +1331,9 @@ function MyAttendance({ employeeId }) {
                             )}
                           </>
                         ) : (
-                          <p className="text-muted">No break record for this date</p>
+                          <p className="text-muted">
+                            No break record for this date
+                          </p>
                         )}
                       </div>
 
@@ -1233,16 +1352,9 @@ function MyAttendance({ employeeId }) {
           </div>
           {/* </div> */}
 
-
-
-
-
           {/* Apply Regularization btn Start */}
 
-          {shouldShowRegularizationButton(
-            selectedRecord,
-            selectedDate
-          ) &&
+          {shouldShowRegularizationButton(selectedRecord, selectedDate) &&
             !isMonthLocked(selectedDate) &&
             selectedDate.getDay() !== 0 &&
             !isNthSaturday(selectedDate) &&
@@ -1251,11 +1363,12 @@ function MyAttendance({ employeeId }) {
               <div className="card p-4 mt-3 shadow-sm h border-10  ">
                 <button
                   className="btn btn-sm custom-outline-btn p-2"
-
                   onClick={() =>
-                    navigate(`/dashboard/${role}/${username}/${id}/regularization`, { replace: true })
+                    navigate(
+                      `/dashboard/${role}/${username}/${id}/regularization`,
+                      { replace: true }
+                    )
                   }
-
                 >
                   Apply Regularization
                 </button>
@@ -1264,59 +1377,56 @@ function MyAttendance({ employeeId }) {
 
           {/* Apply Regularization btn End */}
         </div>
-
       </div>
 
+      {showModal && (
+        <div
+          className="modal fade show d-block"
+          tabIndex="-1"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content shadow-lg">
+              <div className="modal-header bg-primary text-white">
+                <h5 className="modal-title">Apply Regularization</h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setShowModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body px-3">
+                {message && <p className="mt-2">{message}</p>}
+                {date && (
+                  <div className="mb-3">
+                    <strong>Selected Date:</strong>{" "}
+                    {new Date(date + "T00:00").toDateString()}
+                  </div>
+                )}
 
-      {
-        showModal && (
-          <div
-            className="modal fade show d-block"
-            tabIndex="-1"
-            style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-          >
-            <div className="modal-dialog modal-dialog-centered">
-              <div className="modal-content shadow-lg">
-                <div className="modal-header bg-primary text-white">
-                  <h5 className="modal-title">Apply Regularization</h5>
-                  <button
-                    type="button"
-                    className="btn-close btn-close-white"
-                    onClick={() => setShowModal(false)}
-                  ></button>
-                </div>
-                <div className="modal-body px-3">
-                  {message && <p className="mt-2">{message}</p>}
-                  {date && (
-                    <div className="mb-3">
-                      <strong>Selected Date:</strong>{" "}
-                      {new Date(date + "T00:00").toDateString()}
-                    </div>
-                  )}
+                <form onSubmit={handleRegularizationSubmit}>
+                  {/* Date */}
+                  <div className="mb-2">
+                    <label className="form-label">Date</label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      required
+                    />
+                  </div>
 
-                  <form onSubmit={handleRegularizationSubmit}>
-                    {/* Date */}
-                    <div className="mb-2">
-                      <label className="form-label">Date</label>
-                      <input
-                        type="date"
-                        className="form-control"
-                        value={date}
-                        onChange={(e) => setDate(e.target.value)}
-                        required
-                      />
-                    </div>
-
-                    {/* Requested Check-In */}
-                    <div className="mb-2">
-                      <label className="form-label">Requested Check-In</label>
-                      <input
-                        type="time"
-                        className="form-control"
-                        value={
-                          checkIn ||
-                          (selectedRecord?.checkIn
-                            ? new Date(selectedRecord.checkIn).toLocaleTimeString(
+                  {/* Requested Check-In */}
+                  <div className="mb-2">
+                    <label className="form-label">Requested Check-In</label>
+                    <input
+                      type="time"
+                      className="form-control"
+                      value={
+                        checkIn ||
+                        (selectedRecord?.checkIn
+                          ? new Date(selectedRecord.checkIn).toLocaleTimeString(
                               [],
                               {
                                 hour: "2-digit",
@@ -1324,60 +1434,57 @@ function MyAttendance({ employeeId }) {
                                 hour12: false,
                               }
                             )
-                            : "")
-                        }
-                        onChange={(e) => setCheckIn(e.target.value)}
-                        required
-                      />
-                      {selectedRecord?.checkIn && (
-                        <small className="text-muted">
-                          Existing Check-In Time (will be applied)
-                        </small>
-                      )}
-                    </div>
+                          : "")
+                      }
+                      onChange={(e) => setCheckIn(e.target.value)}
+                      required
+                    />
+                    {selectedRecord?.checkIn && (
+                      <small className="text-muted">
+                        Existing Check-In Time (will be applied)
+                      </small>
+                    )}
+                  </div>
 
-                    {/* Requested Check-Out */}
-                    <div className="mb-2">
-                      <label className="form-label">Requested Check-Out</label>
-                      <input
-                        type="time"
-                        className="form-control"
-                        value={
-                          checkOut ||
-                          (selectedRecord?.checkOut
-                            ? new Date(
+                  {/* Requested Check-Out */}
+                  <div className="mb-2">
+                    <label className="form-label">Requested Check-Out</label>
+                    <input
+                      type="time"
+                      className="form-control"
+                      value={
+                        checkOut ||
+                        (selectedRecord?.checkOut
+                          ? new Date(
                               selectedRecord.checkOut
                             ).toLocaleTimeString([], {
                               hour: "2-digit",
                               minute: "2-digit",
                               hour12: false,
                             })
-                            : "")
-                        }
-                        onChange={(e) => setCheckOut(e.target.value)}
-                        required
-                      />
-                      {selectedRecord?.checkOut && (
-                        <small className="text-muted">
-                          Existing Check-Out Time (will be applied)
-                        </small>
-                      )}
-                    </div>
+                          : "")
+                      }
+                      onChange={(e) => setCheckOut(e.target.value)}
+                      required
+                    />
+                    {selectedRecord?.checkOut && (
+                      <small className="text-muted">
+                        Existing Check-Out Time (will be applied)
+                      </small>
+                    )}
+                  </div>
 
-                    <button type="submit" className="btn btn-primary mt-3 w-100">
-                      Submit Request
-                    </button>
-                  </form>
-                </div>
+                  <button type="submit" className="btn btn-primary mt-3 w-100">
+                    Submit Request
+                  </button>
+                </form>
               </div>
             </div>
           </div>
-        )
-      }
-
-    </div >
+        </div>
+      )}
+    </div>
   );
-
 }
 
 export default MyAttendance;

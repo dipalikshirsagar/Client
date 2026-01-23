@@ -1,13 +1,10 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import AddHolidayForm from "../Holidays/AddHolidaysForms";
 import AddEventForm from "./AddEventForm";
-import './EventAndHolidays.css'
+import "./EventAndHolidays.css";
 import AddAnnouncements from "./AddAnnouncements";
-
-
 
 function EventsAndHolidaysDashboard() {
   const [holidayList, setHolidayList] = useState([]);
@@ -32,9 +29,6 @@ function EventsAndHolidaysDashboard() {
     return eventDate >= today;
   });
 
-
-
-
   //aditya
 
   const [showAnnouncementModal, setShowAnnouncementModal] = useState(false);
@@ -42,9 +36,8 @@ function EventsAndHolidaysDashboard() {
 
   // Add Announcement handler
   const handleAddAnnouncement = (newAnnouncement) => {
-    setAnnouncementsList(prev => [newAnnouncement, ...prev]);
+    setAnnouncementsList((prev) => [newAnnouncement, ...prev]);
   };
-
 
   useEffect(() => {
     const fetchAnnouncements = async () => {
@@ -52,7 +45,9 @@ function EventsAndHolidaysDashboard() {
         const token = localStorage.getItem("accessToken");
         const res = await axios.get("https://server-backend-nu.vercel.app/announcements/");
         console.log("Announcements response:", res.data); // 👀 check shape
-        const sortedAnnouncements = res.data.data.sort((a, b) => new Date(a.date) - new Date(b.date));
+        const sortedAnnouncements = res.data.data.sort(
+          (a, b) => new Date(a.date) - new Date(b.date)
+        );
         console.log("Sorted Announcements:", sortedAnnouncements);
         setAnnouncementsList(sortedAnnouncements);
       } catch (err) {
@@ -63,7 +58,6 @@ function EventsAndHolidaysDashboard() {
     fetchAnnouncements();
   }, []);
 
-
   // gitanjali
   useEffect(() => {
     const fetchHolidays = async () => {
@@ -71,9 +65,10 @@ function EventsAndHolidaysDashboard() {
         const res = await axios.get("https://server-backend-nu.vercel.app/getHolidays");
 
         // Sort by date and store all holidays
-        const sorted = res.data.sort((a, b) => new Date(a.date) - new Date(b.date));
+        const sorted = res.data.sort(
+          (a, b) => new Date(a.date) - new Date(b.date)
+        );
         setHolidayList(sorted);
-
       } catch (err) {
         console.error("Failed to fetch holidays:", err.response || err.message);
       }
@@ -83,7 +78,8 @@ function EventsAndHolidaysDashboard() {
   }, []);
 
   const handleDeleteHoliday = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this holiday?")) return;
+    if (!window.confirm("Are you sure you want to delete this holiday?"))
+      return;
 
     try {
       const token = localStorage.getItem("accessToken");
@@ -97,18 +93,22 @@ function EventsAndHolidaysDashboard() {
     }
   };
 
-
   // ------------------ EVENTS ------------------
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
         const token = localStorage.getItem("accessToken");
-        const res = await axios.get("https://server-backend-nu.vercel.app/events-for-employee", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await axios.get(
+          "https://server-backend-nu.vercel.app/events-for-employee",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         console.log("Events response:", res.data); // 👀 check shape
-        const sortedEvents = res.data.sort((a, b) => new Date(a.date) - new Date(b.date));
+        const sortedEvents = res.data.sort(
+          (a, b) => new Date(a.date) - new Date(b.date)
+        );
         setEventsList(sortedEvents);
       } catch (err) {
         console.error("Failed to fetch events:", err.response || err.message);
@@ -118,9 +118,8 @@ function EventsAndHolidaysDashboard() {
     fetchEvents();
   }, []);
 
-
   const handleDeleteEvent = async (id) => {
-    console.log(id)
+    console.log(id);
     if (!window.confirm("Are you sure you want to delete this event?")) return;
 
     try {
@@ -133,7 +132,7 @@ function EventsAndHolidaysDashboard() {
       console.error("Failed to delete event:", err.response || err.message);
       alert("Failed to delete event.");
     }
-  }
+  };
 
   const handleAddEvent = (newEvent) => {
     console.log("🧩 New event received in handleAddEvent:", newEvent);
@@ -151,12 +150,9 @@ function EventsAndHolidaysDashboard() {
     });
   };
 
-
-
   return (
     <div className="container events-holidays-container">
       <div className="row" style={{ marginTop: "-40px" }}>
-
         {/* ------------------ EVENTS ------------------ */}
         <div className="col-md-4 mb-4">
           <div className="section-header">
@@ -171,22 +167,29 @@ function EventsAndHolidaysDashboard() {
           ) : (
             <div className="scrollable-list">
               {upcomingEvents.map((event, idx) => (
-                <div key={idx} className="card shadow-sm border-0 event-holiday-card">
+                <div
+                  key={idx}
+                  className="card shadow-sm border-0 event-holiday-card"
+                >
                   <div className="card-body">
                     <h6 className="card-title">{event.type}</h6>
                     <hr className="card-divider" />
                     <i
-                      className={`event-icon me-2 fs-4 ${event.type === "Birthday"
+                      className={`event-icon me-2 fs-4 ${
+                        event.type === "Birthday"
                           ? "bi bi-gift"
                           : event.type === "Team Outing"
-                            ? "bi bi-geo-alt"
-                            : "bi bi-calendar-event"
-                        }`}
+                          ? "bi bi-geo-alt"
+                          : "bi bi-calendar-event"
+                      }`}
                     ></i>
 
                     <div className="card-content-center">
                       <div>
-                        <div className="event-name" style={{ textTransform: "capitalize" }}>
+                        <div
+                          className="event-name"
+                          style={{ textTransform: "capitalize" }}
+                        >
                           {event.name}
                         </div>
                         <div className="event-details">
@@ -224,7 +227,10 @@ function EventsAndHolidaysDashboard() {
           {holidayList.length > 0 ? (
             <div className="scrollable-list">
               {upcomingHolidays.map((h) => (
-                <div key={h._id} className="card shadow-sm border-0 event-holiday-card">
+                <div
+                  key={h._id}
+                  className="card shadow-sm border-0 event-holiday-card"
+                >
                   <div className="card-body">
                     <h6 className="card-title">Holiday</h6>
                     <hr className="card-divider" />
@@ -232,7 +238,10 @@ function EventsAndHolidaysDashboard() {
 
                     <div className="card-content-center">
                       <div>
-                        <div className="holiday-name" style={{ textTransform: "capitalize" }}>
+                        <div
+                          className="holiday-name"
+                          style={{ textTransform: "capitalize" }}
+                        >
                           {h.name}
                         </div>
                         <div className="holiday-details">
@@ -267,7 +276,6 @@ function EventsAndHolidaysDashboard() {
         {/* ------------------ ANNOUNCEMENTS ------------------ */}
         <div className="col-md-4 mb-4">
           <div className="section-header">
-
             <h5 className="section-title">Announcements</h5>
             {isAdmin && <AddAnnouncements onAdd={handleAddAnnouncement} />}
           </div>
@@ -278,24 +286,35 @@ function EventsAndHolidaysDashboard() {
           ) : (
             <div className="scrollable-list">
               {announcementsList.map((announcement, idx) => (
-                <div key={idx} className="card shadow-sm border-0 event-holiday-card">
+                <div
+                  key={idx}
+                  className="card shadow-sm border-0 event-holiday-card"
+                >
                   <div className="card-body">
                     <h6 className="card-title">{announcement.name}</h6>
                     <hr className="card-divider" />
                     <img
                       src={announcement.image}
                       alt={announcement.name}
-                      style={{ width: "60px", height: "60px", objectFit: "cover" }}
+                      style={{
+                        width: "60px",
+                        height: "60px",
+                        objectFit: "cover",
+                      }}
                     />
-
 
                     <div className="card-content-center">
                       <div>
-                        <div className="event-name" style={{ textTransform: "capitalize" }}>
+                        <div
+                          className="event-name"
+                          style={{ textTransform: "capitalize" }}
+                        >
                           {announcement.name}
                         </div>
                         <div className="event-details">
-                          {new Date(announcement.publishDate).toLocaleDateString("en-CA", {
+                          {new Date(
+                            announcement.publishDate
+                          ).toLocaleDateString("en-CA", {
                             month: "short",
                             day: "numeric",
                             weekday: "short",
@@ -322,7 +341,6 @@ function EventsAndHolidaysDashboard() {
       No announcements available
     </div> */}
         </div>
-
       </div>
 
       {/* BACK BUTTON */}
@@ -336,9 +354,6 @@ function EventsAndHolidaysDashboard() {
         </button>
       </div>
     </div>
-
-
-
   );
 }
 

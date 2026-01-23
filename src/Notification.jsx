@@ -13,7 +13,7 @@ function Notification({ userId }) {
 
     try {
       const res = await axios.get(
-       ` https://server-backend-nu.vercel.app/notifications/${userId}`
+        ` https://server-backend-nu.vercel.app/notifications/${userId}`,
       );
 
       // Filter last 15 days notifications
@@ -31,7 +31,6 @@ function Notification({ userId }) {
     }
   }, [userId]);
 
-
   const handleNotificationClick = async (n) => {
     try {
       // Mark as read in backend
@@ -40,8 +39,8 @@ function Notification({ userId }) {
       // Update state locally for instant UI feedback
       setNotifications((prev) =>
         prev.map((item) =>
-          item._id === n._id ? { ...item, isRead: true } : item
-        )
+          item._id === n._id ? { ...item, isRead: true } : item,
+        ),
       );
     } catch (err) {
       console.error("Failed to mark notification as read", err);
@@ -64,7 +63,49 @@ function Notification({ userId }) {
       navigate(`/dashboard/${role}/${username}/${id}/AllEventsandHolidays`);
     } else if (n.type === "Attendance") {
       navigate(`/dashboard/${role}/${username}/${id}/employee`);
-    } else {
+    } else if (n.type === "Ticket") {
+      if ( role === "IT_Support") {
+        navigate(`/dashboard/${role}/${username}/${id}/ITSupportDashboard`);
+      } else {
+        navigate(`/dashboard/${role}/${username}/${id}/settings`);
+      }
+    } 
+    // rutuja code start
+    else if (n.type === "Event" || n.type === "Holiday" || n.type === "Announcements" || n.type === "Announcement") {  //added by rutuja
+      navigate(`/dashboard/${role}/${username}/${id}/AllEventsandHolidays`);
+    } else if (n.type === "Attendance") {
+      navigate(`/dashboard/${role}/${username}/${id}/employee`);
+    } 
+    
+    //Feedback 
+    else if (n.type === "Feedback" || n.type === "Feedback Viewed"){
+      if(role === "employee" || role === "manager"){
+        navigate(`/dashboard/${role}/${username}/${id}/employee-feedback`);
+      }else{
+        navigate(`/dashboard/${role}/${username}/${id}/feedback`);
+      }
+    }  
+    // resignation
+    else if(n.type === "Resignation"){
+      if(role === "employee"){
+        navigate(`/dashboard/${role}/${username}/${id}/employee-resignation`);
+      }else if(role === "hr" || role === "admin"){
+        navigate(`/dashboard/${role}/${username}/${id}/resignation`);
+      }else if(role === "manager"){
+        navigate(`/dashboard/${role}/${username}/${id}/Manager-Resignation`)
+      }
+    }
+
+    else if (n.type === "Interview"){
+      if(role === "employee"){
+        navigate(`/dashboard/${role}/${username}/${id}/interviews`);
+      }else{
+        navigate(`/dashboard/${role}/${username}/${id}/schedule-interview`);
+      }
+    }  
+    // rutuja code end 
+    
+    else {
       navigate("/");
     }
   };
@@ -157,11 +198,17 @@ function Notification({ userId }) {
 
   return (
     <div className="dropdown">
-      <button
-        className="btn position-relative"
+      <button //-------------------------------------------add full button
+        className="btn position-relative focus-ring"
         type="button"
         data-bs-toggle="dropdown"
         aria-expanded="false"
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            e.currentTarget.click();
+          }
+        }}
       >
         <i className="bi bi-bell fs-5 text-secondary"></i>
         {unreadCount > 0 && (
@@ -199,6 +246,14 @@ function Notification({ userId }) {
                 <div className="d-flex justify-content-between align-items-start">
                   <div className="flex-grow-1">
                     <strong>{n.type}</strong>: {n.message}
+                    {/* ✅ Ticket Notification Extra Info */}
+                    {n.type === "Ticket" && n.ticketRef && (
+                      <div>
+                        <small className="text-muted">
+                          Ticket ID: <strong>{n.ticketRef.ticketId}</strong>
+                        </small>
+                      </div>
+                    )}
                     {n.approverName && (
                       <span>
                         {" "}
@@ -234,15 +289,15 @@ function Notification({ userId }) {
         {/* Footer */}
         <div className="notification-footer">
           <button
-    //         className="btn btn-sm"
-    //         style={{
-		// backgroundColor: "#3A5FBE",
-		// color: "white",
-		// padding: "10px 32px",
-		// borderRadius: "4px",
-		// }}
-      style={{ minWidth: 90 }}
-           className="btn btn-sm custom-outline-btn"
+            //         className="btn btn-sm"
+            //         style={{
+            // backgroundColor: "#3A5FBE",
+            // color: "white",
+            // padding: "10px 32px",
+            // borderRadius: "4px",
+            // }}
+            style={{ minWidth: 90 }}
+            className="btn btn-sm custom-outline-btn"
             onClick={() =>
               document.querySelector('[data-bs-toggle="dropdown"]').click()
             }

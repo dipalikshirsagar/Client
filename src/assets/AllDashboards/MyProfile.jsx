@@ -12,7 +12,9 @@ function MyProfile({ user }) {
   const handleRemoveImage = async (e) => {
     e?.preventDefault?.();
 
-    const ok = window.confirm("Are you sure you want to remove the profile image?");
+    const ok = window.confirm(
+      "Are you sure you want to remove the profile image?"
+    );
     if (!ok) return;
 
     try {
@@ -35,8 +37,6 @@ function MyProfile({ user }) {
     }
   };
 
-
-
   // Fetch profile safely
   useEffect(() => {
     if (!user?._id) {
@@ -47,7 +47,9 @@ function MyProfile({ user }) {
 
     const fetchProfile = async () => {
       try {
-        const res = await axios.get(`https://server-backend-nu.vercel.app/employees/${user._id}`);
+        const res = await axios.get(
+          `https://server-backend-nu.vercel.app/employees/${user._id}`
+        );
         setProfile(res.data);
         setFormData({
           ...res.data,
@@ -100,7 +102,10 @@ function MyProfile({ user }) {
     } else if (name.startsWith("permanentAddress.")) {
       setFormData((prev) => ({
         ...prev,
-        permanentAddress: { ...prev.permanentAddress, [name.split(".")[1]]: value },
+        permanentAddress: {
+          ...prev.permanentAddress,
+          [name.split(".")[1]]: value,
+        },
       }));
     } else if (name.startsWith("bankDetails.")) {
       setFormData((prev) => ({
@@ -124,7 +129,10 @@ function MyProfile({ user }) {
     const currentZip = formData.currentAddress?.zip || "";
     const permanentZip = formData.permanentAddress?.zip || "";
 
-    if ((currentZip && !/^\d{6}$/.test(currentZip)) || (permanentZip && !/^\d{6}$/.test(permanentZip))) {
+    if (
+      (currentZip && !/^\d{6}$/.test(currentZip)) ||
+      (permanentZip && !/^\d{6}$/.test(permanentZip))
+    ) {
       alert("ZIP code must be exactly 6 digits.");
       return;
     }
@@ -133,10 +141,18 @@ function MyProfile({ user }) {
       const data = new FormData();
 
       Object.keys(formData).forEach((key) => {
-        if (["currentAddress", "permanentAddress", "bankDetails"].includes(key)) {
+        if (
+          ["currentAddress", "permanentAddress", "bankDetails"].includes(key)
+        ) {
           data.append(key, JSON.stringify(formData[key]));
         } else if (
-          ["image", "panCardPdf", "aadharCardPdf", "appointmentLetter", "passbookPdf"].includes(key)
+          [
+            "image",
+            "panCardPdf",
+            "aadharCardPdf",
+            "appointmentLetter",
+            "passbookPdf",
+          ].includes(key)
         ) {
           if (formData[key] instanceof File) data.append(key, formData[key]);
         } else if (formData[key] !== undefined && formData[key] !== null) {
@@ -152,7 +168,9 @@ function MyProfile({ user }) {
       setIsEditing(false);
 
       // Refresh profile
-      const updated = await axios.get(`https://server-backend-nu.vercel.app/employees/${user._id}`);
+      const updated = await axios.get(
+        `https://server-backend-nu.vercel.app/employees/${user._id}`
+      );
       setProfile(updated.data);
     } catch (err) {
       console.error(err);
@@ -164,7 +182,11 @@ function MyProfile({ user }) {
     if (!file) return "Not uploaded";
     if (file instanceof File) return file.name;
     return (
-      <a href={`https://server-backend-nu.vercel.app/uploads/${file}`} target="_blank" rel="noreferrer">
+      <a
+        href={`https://server-backend-nu.vercel.app/uploads/${file}`}
+        target="_blank"
+        rel="noreferrer"
+      >
         View PDF
       </a>
     );
@@ -193,9 +215,7 @@ function MyProfile({ user }) {
   // ❌ Show error message
   if (error)
     return (
-      <div className="text-danger text-center mt-5 fw-semibold">
-        {error}
-      </div>
+      <div className="text-danger text-center mt-5 fw-semibold">{error}</div>
     );
 
   // 🌀 Spinner if no profile found
@@ -216,8 +236,6 @@ function MyProfile({ user }) {
       </div>
     );
 
-
-
   const formatLabel = (label) => {
     const specialCases = {
       dob: "Date Of Birth",
@@ -230,7 +248,7 @@ function MyProfile({ user }) {
       casualLeaveBalance: "Casual Leave Balance",
       sickLeaveBalance: "Sick Leave Balance",
       probationMonths: "Probation Period",
-      ifsc: "IFSC"
+      ifsc: "IFSC",
     };
 
     if (specialCases[label]) return specialCases[label];
@@ -243,45 +261,50 @@ function MyProfile({ user }) {
       .replace(/\b\w/g, (c) => c.toUpperCase());
   };
 
+  const getFileType = (file) => {
+    if (!file) return null;
 
- const getFileType = (file) => {
-  if (!file) return null;
+    if (file instanceof File) {
+      const mime = file.type.toLowerCase();
+      const name = file.name.toLowerCase();
 
-  if (file instanceof File) {
-    const mime = file.type.toLowerCase();
-    const name = file.name.toLowerCase();
+      if (mime === "application/pdf" || name.endsWith(".pdf")) return "pdf";
+      if (mime.startsWith("image/")) return "image";
+      return "other";
+    }
 
-    if (mime === "application/pdf" || name.endsWith(".pdf")) return "pdf";
-    if (mime.startsWith("image/")) return "image";
-    return "other";
-  }
+    if (typeof file === "string") {
+      const clean = file.toLowerCase();
 
-  if (typeof file === "string") {
-    const clean = file.toLowerCase();
+      // Detect Cloudinary RAW PDF
+      if (clean.includes("/raw/upload/")) return "pdf";
 
-    // Detect Cloudinary RAW PDF
-    if (clean.includes("/raw/upload/")) return "pdf";
+      if (clean.endsWith(".pdf")) return "pdf";
+      if (/\.(jpg|jpeg|png|gif|webp)$/.test(clean)) return "image";
+      return "other";
+    }
 
-    if (clean.endsWith(".pdf")) return "pdf";
-    if (/\.(jpg|jpeg|png|gif|webp)$/.test(clean)) return "image";
-    return "other";
-  }
+    return null;
+  };
 
-  return null;
-};
-
-
-console.log("formdata",formData)
+  console.log("formdata", formData);
 
   return (
-    <div className="container-fluid p-3 p-md-4 p-2" style={{ backgroundColor: "#f8f9fa", minHeight: "100vh" }}>
-      <div className="card shadow-sm border-0 rounded" style={{ maxWidth: "1200px", margin: "0 auto" }}>
+    <div
+      className="container-fluid p-3 p-md-4 p-2"
+      style={{ backgroundColor: "#f8f9fa", minHeight: "100vh" }}
+    >
+      <div
+        className="card shadow-sm border-0 rounded"
+        style={{ maxWidth: "1200px", margin: "0 auto" }}
+      >
         {/* Header: Image + Name + Buttons */}
         <div className="d-flex  flex-md-row  align-items-center justify-content-between p-2 p-md-3 gap-3">
           <div className="d-flex  flex-md-row align-items-center gap-2 gap-md-3 w-100 w-md-auto">
-
             <div className="d-flex flex-column align-items-center text-center">
-              <label className="form-label fw-semibold text-primary mb-2">Profile Image</label>
+              <label className="form-label fw-semibold text-primary mb-2">
+                Profile Image
+              </label>
 
               {/* Show image first */}
               {formData.image instanceof File ? (
@@ -299,9 +322,11 @@ console.log("formdata",formData)
               ) : profile.image ? (
                 <>
                   <img
-                    src={profile.image?.startsWith("http")
-                      ? profile.image
-                      : `https://server-backend-nu.vercel.app/image/${profile.image}`}
+                    src={
+                      profile.image?.startsWith("http")
+                        ? profile.image
+                        : `https://server-backend-nu.vercel.app/image/${profile.image}`
+                    }
                     alt="Profile"
                     style={{
                       width: "100px",
@@ -311,7 +336,6 @@ console.log("formdata",formData)
                       marginBottom: "5px",
                     }}
                   />
-
                 </>
               ) : (
                 <img
@@ -337,14 +361,17 @@ console.log("formdata",formData)
                     onChange={handleChange}
                     className="form-control form-control-sm bg-light border-0 mt-2"
                     style={{ maxWidth: "250px" }}
-
                   />
 
                   {/* Show selected file name or message */}
                   {formData.image instanceof File ? (
-                    <p className="text-muted small mb-0 mt-1">Selected: {formData.image.name}</p>
+                    <p className="text-muted small mb-0 mt-1">
+                      Selected: {formData.image.name}
+                    </p>
                   ) : (
-                    <p className="text-muted small mb-0 mt-1">No image selected</p>
+                    <p className="text-muted small mb-0 mt-1">
+                      No image selected
+                    </p>
                   )}
 
                   <div style={{ marginTop: 8 }}>
@@ -361,28 +388,33 @@ console.log("formdata",formData)
               )}
             </div>
 
-            <h4 className="mb-0" style={{ textTransform: "capitalize" }}>{profile.name}</h4>
+            <h4 className="mb-0" style={{ textTransform: "capitalize" }}>
+              {profile.name}
+            </h4>
           </div>
 
           <div className="d-flex gap-2">
             {!isEditing ? (
-              <button 
-              className="btn btn-sm custom-outline-btn"
-            style={{  minWidth: 90 }}
-              onClick={() => setIsEditing(true)}>
+              <button
+                className="btn btn-sm custom-outline-btn"
+                style={{ minWidth: 90 }}
+                onClick={() => setIsEditing(true)}
+              >
                 Edit
               </button>
             ) : (
               <>
-                <button 
-               className="btn btn-sm custom-outline-btn"
-            style={{  minWidth: 90 }}
-                 onClick={handleSave}
-                >                  Save
+                <button
+                  className="btn btn-sm custom-outline-btn"
+                  style={{ minWidth: 90 }}
+                  onClick={handleSave}
+                >
+                  {" "}
+                  Save
                 </button>
                 <button
                   className="btn btn-sm custom-outline-btn"
-            style={{  minWidth: 90 }}
+                  style={{ minWidth: 90 }}
                   onClick={() => {
                     setFormData(profile);
                     setIsEditing(false);
@@ -399,7 +431,6 @@ console.log("formdata",formData)
           {/* Personal Details */}
           <h6 className="fw-bold text-primary mb-3">Personal Details</h6>
 
-
           <div className="row g-3">
             {[
               "employeeId",
@@ -410,7 +441,7 @@ console.log("formdata",formData)
               "maritalStatus",
               "role",
               "designation",
-             "department", 
+              "department",
               "salary",
             ].map((field) => {
               // ✅ Converts "employeeId" -> "Employee ID", "maritalStatus" -> "Marital Status"
@@ -432,27 +463,28 @@ console.log("formdata",formData)
                       name={field}
                       value={formData[field] || ""}
                       onChange={handleChange}
-                      className={`form-control border-0 ${[
-                        "employeeId",
-                        "name",
-                        "email",
-                        "gender",
+                      className={`form-control border-0 ${
+                        [
+                          "employeeId",
+                          "name",
+                          "email",
+                          "gender",
                           "role",
-                        "designation",
-                       "department",
-                        "salary",
-                        "maritalStatus",
-                      ].includes(field)
-                        ? "bg-secondary-subtle text-muted"
-                        : "bg-light"
-                        }`}
+                          "designation",
+                          "department",
+                          "salary",
+                          "maritalStatus",
+                        ].includes(field)
+                          ? "bg-secondary-subtle text-muted"
+                          : "bg-light"
+                      }`}
                       placeholder={formatLabel(field)}
                       readOnly={[
                         "employeeId",
                         "name",
                         "email",
                         "gender",
-                         "role",
+                        "role",
                         "designation",
                         "department",
                         "salary",
@@ -464,7 +496,8 @@ console.log("formdata",formData)
                       className="form-control bg-light border-0"
                       // style={{ textTransform: "capitalize" }}
                       style={{
-                        textTransform: field === "email" ? "none" : "capitalize", // ✅ don't capitalize email
+                        textTransform:
+                          field === "email" ? "none" : "capitalize", // ✅ don't capitalize email
                       }}
                     >
                       {profile[field] || "-"}
@@ -490,10 +523,11 @@ console.log("formdata",formData)
                     value={formData[field] ? formData[field].split("T")[0] : ""}
                     onChange={handleChange}
                     //className="form-control bg-light border-0"
-                    className={`form-control border-0 ${["dob", "doj"].includes(field)
-                      ? "bg-secondary-subtle text-muted"
-                      : "bg-light"
-                      }`}
+                    className={`form-control border-0 ${
+                      ["dob", "doj"].includes(field)
+                        ? "bg-secondary-subtle text-muted"
+                        : "bg-light"
+                    }`}
                     readOnly={["dob", "doj"].includes(field)}
                   />
                 ) : profile[field] ? (
@@ -512,7 +546,9 @@ console.log("formdata",formData)
           <div className="row g-3">
             {["street", "city", "state", "zip"].map((field) => (
               <div key={field} className="col-md-6">
-                <label className="form-label text-primary">{field.charAt(0).toUpperCase() + field.slice(1)}:</label>
+                <label className="form-label text-primary">
+                  {field.charAt(0).toUpperCase() + field.slice(1)}:
+                </label>
                 {isEditing ? (
                   <input
                     type="text"
@@ -522,7 +558,10 @@ console.log("formdata",formData)
                     className="form-control bg-light border-0"
                   />
                 ) : (
-                  <div className="form-control bg-light border-0" style={{ textTransform: "capitalize" }}>
+                  <div
+                    className="form-control bg-light border-0"
+                    style={{ textTransform: "capitalize" }}
+                  >
                     {profile.currentAddress?.[field] || "-"}
                   </div>
                 )}
@@ -535,7 +574,9 @@ console.log("formdata",formData)
           <div className="row g-3">
             {["street", "city", "state", "zip"].map((field) => (
               <div key={field} className="col-md-6">
-                <label className="form-label text-primary">{field.charAt(0).toUpperCase() + field.slice(1)}:</label>
+                <label className="form-label text-primary">
+                  {field.charAt(0).toUpperCase() + field.slice(1)}:
+                </label>
                 {isEditing ? (
                   <input
                     type="text"
@@ -543,14 +584,18 @@ console.log("formdata",formData)
                     value={formData.permanentAddress?.[field] || ""}
                     onChange={handleChange}
                     // className="form-control bg-light border-0"
-                    className={`form-control border-0 ${["street", "city", "state", "zip"].includes(field)
-                      ? "bg-secondary-subtle text-muted"
-                      : "bg-light"
-                      }`}
+                    className={`form-control border-0 ${
+                      ["street", "city", "state", "zip"].includes(field)
+                        ? "bg-secondary-subtle text-muted"
+                        : "bg-light"
+                    }`}
                     readOnly
                   />
                 ) : (
-                  <div className="form-control bg-light border-0" style={{ textTransform: "capitalize" }}>
+                  <div
+                    className="form-control bg-light border-0"
+                    style={{ textTransform: "capitalize" }}
+                  >
                     {profile.permanentAddress?.[field] || "-"}
                   </div>
                 )}
@@ -563,7 +608,9 @@ console.log("formdata",formData)
           <div className="row g-3">
             {["bankName", "accountNumber", "ifsc"].map((field) => (
               <div key={field} className="col-md-6">
-                <label className="form-label text-primary">{formatLabel(field)}:</label>
+                <label className="form-label text-primary">
+                  {formatLabel(field)}:
+                </label>
                 {isEditing ? (
                   <input
                     type="text"
@@ -575,160 +622,168 @@ console.log("formdata",formData)
                     readOnly
                   />
                 ) : (
-                  <div className="form-control bg-light border-0">{profile.bankDetails?.[field] || "-"}</div>
+                  <div className="form-control bg-light border-0">
+                    {profile.bankDetails?.[field] || "-"}
+                  </div>
                 )}
               </div>
             ))}
-
-
           </div>
 
-{/* PF & UAN Details */}
-<h6 className="fw-bold text-primary mt-4">PF & UAN Details</h6>
+          {/* PF & UAN Details */}
+          <h6 className="fw-bold text-primary mt-4">PF & UAN Details</h6>
 
-<div className="row g-3">
+          <div className="row g-3">
+            {/* UAN Number */}
+            <div className="col-md-6">
+              <label className="form-label text-primary">UAN Number:</label>
 
-  {/* UAN Number */}
-  <div className="col-md-6">
-    <label className="form-label text-primary">UAN Number:</label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  name="uanNumber"
+                  value={formData.uanNumber || ""}
+                  onChange={handleChange}
+                  className="form-control bg-secondary-subtle text-muted border-0"
+                  readOnly
+                />
+              ) : (
+                <div className="form-control bg-light border-0">
+                  {profile.uanNumber || "-"}
+                </div>
+              )}
+            </div>
 
-    {isEditing ? (
-      <input
-        type="text"
-        name="uanNumber"
-        value={formData.uanNumber || ""}
-        onChange={handleChange}
-       className="form-control bg-secondary-subtle text-muted border-0"
-        readOnly
-      />
-    ) : (
-      <div className="form-control bg-light border-0">
-        {profile.uanNumber || "-"}
-      </div>
-    )}
-  </div>
+            {/* PF Number */}
+            <div className="col-md-6">
+              <label className="form-label text-primary">PF Number:</label>
 
+              {isEditing ? (
+                <input
+                  type="text"
+                  name="pfNumber"
+                  value={formData.pfNumber || ""}
+                  onChange={handleChange}
+                  className="form-control bg-secondary-subtle text-muted border-0"
+                  readOnly
+                />
+              ) : (
+                <div className="form-control bg-light border-0">
+                  {profile.pfNumber || "-"}
+                </div>
+              )}
+            </div>
+          </div>
 
-  {/* PF Number */}
-  <div className="col-md-6">
-    <label className="form-label text-primary">PF Number:</label>
+          <h6 className="fw-bold text-primary mt-4">Documents</h6>
 
-    {isEditing ? (
-      <input
-        type="text"
-        name="pfNumber"
-        value={formData.pfNumber || ""}
-        onChange={handleChange}
-        className="form-control bg-secondary-subtle text-muted border-0"
-        readOnly
-      />
-    ) : (
-      <div className="form-control bg-light border-0">
-        {profile.pfNumber || "-"}
-      </div>
-    )}
-  </div>
+          <div className="d-flex gap-4 flex-wrap">
+            {[
+              { field: "aadharCardPdf", label: "Aadhar Card" },
+              { field: "panCardPdf", label: "PAN Card" },
+              { field: "appointmentLetter", label: "Appointment Letter" },
+            ].map(({ field, label }) => {
+              const file = profile[field];
+              const fileType = getFileType(file);
 
+              const href = file
+                ? file.startsWith("http")
+                  ? file
+                  : `https://res.cloudinary.com/dfvumzr0q/raw/upload/${file}`
+                : null;
 
-</div>
+              return (
+                <div key={field} className="d-flex flex-column">
+                  <label className="form-label text-primary">{label}</label>
 
+                  {isEditing ? (
+                    <input
+                      type="file"
+                      name={field}
+                      accept=".jpg,.jpeg,.png,application/pdf"
+                      onChange={handleChange}
+                    />
+                  ) : !file ? (
+                    "-"
+                  ) : (
+                    <a href={href} target="_blank" rel="noopener noreferrer">
+                      {fileType === "pdf" && (
+                        <img
+                          src="/pdfimg.png"
+                          style={{ width: "50px" }}
+                          alt="PDF"
+                        />
+                      )}
 
+                      {fileType === "image" && (
+                        <img
+                          src="/jpgimg.jpeg"
+                          style={{ width: "50px" }}
+                          alt="Image"
+                        />
+                      )}
+                    </a>
+                  )}
+                </div>
+              );
+            })}
 
-<h6 className="fw-bold text-primary mt-4">Documents</h6>
+            {/* Bank Passbook */}
+            <div className="d-flex flex-column">
+              <label className="form-label text-primary">Bank Passbook</label>
 
-<div className="d-flex gap-4 flex-wrap">
+              {isEditing ? (
+                <input
+                  type="file"
+                  name="passbookPdf"
+                  accept=".jpg,.jpeg,.png,application/pdf"
+                  onChange={handleChange}
+                />
+              ) : profile.bankDetails?.passbookPdf ? (
+                (() => {
+                  const file = profile.bankDetails.passbookPdf;
+                  const fileType = getFileType(file);
 
-  {[
-    { field: "aadharCardPdf", label: "Aadhar Card" },
-    { field: "panCardPdf", label: "PAN Card" },
-    { field: "appointmentLetter", label: "Appointment Letter" },
-  ].map(({ field, label }) => {
-    const file = profile[field];
-    const fileType = getFileType(file);
+                  const href = file.startsWith("http")
+                    ? file
+                    : `https://res.cloudinary.com/dfvumzr0q/raw/upload/${file}`;
 
-    const href = file
-      ? file.startsWith("http")
-        ? file
-        : `https://res.cloudinary.com/dfvumzr0q/raw/upload/${file}`
-      : null;
-
-    return (
-      <div key={field} className="d-flex flex-column">
-        <label className="form-label text-primary">{label}</label>
-
-        {isEditing ? (
-          <input
-            type="file"
-            name={field}
-            accept=".jpg,.jpeg,.png,application/pdf"
-            onChange={handleChange}
-          />
-        ) : !file ? (
-          "-"
-        ) : (
-          <a href={href} target="_blank" rel="noopener noreferrer">
-            {fileType === "pdf" && (
-              <img src="/pdfimg.png" style={{ width: "50px" }} alt="PDF" />
-            )}
-
-            {fileType === "image" && (
-              <img src="/jpgimg.jpeg" style={{ width: "50px" }} alt="Image" />
-            )}
-          </a>
-        )}
-      </div>
-    );
-  })}
-
-  {/* Bank Passbook */}
-  <div className="d-flex flex-column">
-    <label className="form-label text-primary">Bank Passbook</label>
-
-    {isEditing ? (
-      <input
-        type="file"
-        name="passbookPdf"
-        accept=".jpg,.jpeg,.png,application/pdf"
-        onChange={handleChange}
-      />
-    ) : profile.bankDetails?.passbookPdf ? (
-      (() => {
-        const file = profile.bankDetails.passbookPdf;
-        const fileType = getFileType(file);
-
-        const href = file.startsWith("http")
-          ? file
-          : `https://res.cloudinary.com/dfvumzr0q/raw/upload/${file}`;
-
-        return (
-          <a href={href} target="_blank">   {/* rel="noopener noreferrer"*/}
-            {fileType === "pdf" && (
-              <img src="/pdfimg.png" style={{ width: "50px" }} alt="PDF" />
-            )}
-
-            {fileType === "image" && (
-              <img src="/jpgimg.jpeg" style={{ width: "50px" }} alt="Image" />
-            )}
-          </a>
-        );
-      })()
-    ) : (
-      "-"
-    )}
-  </div>
-</div>
-
-
-
-
-
-
-           
+                  return (
+                    <a href={href} target="_blank">
+                      {" "}
+                      {/* rel="noopener noreferrer"*/}
+                      {fileType === "pdf" && (
+                        <img
+                          src="/pdfimg.png"
+                          style={{ width: "50px" }}
+                          alt="PDF"
+                        />
+                      )}
+                      {fileType === "image" && (
+                        <img
+                          src="/jpgimg.jpeg"
+                          style={{ width: "50px" }}
+                          alt="Image"
+                        />
+                      )}
+                    </a>
+                  );
+                })()
+              ) : (
+                "-"
+              )}
+            </div>
+          </div>
 
           {/* Leaves & Salary */}
           <h6 className="fw-bold text-primary mt-4">Leaves & Salary</h6>
           <div className="row g-3">
-            {["casualLeaveBalance", "sickLeaveBalance", "salary", "probationMonths"].map((field) => (
+            {[
+              "casualLeaveBalance",
+              "sickLeaveBalance",
+              "salary",
+              "probationMonths",
+            ].map((field) => (
               <div key={field} className="col-md-6">
                 <label className="form-label text-primary">
                   {/* {field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, " $1")} */}
@@ -741,14 +796,27 @@ console.log("formdata",formData)
                     value={formData[field] || ""}
                     onChange={handleChange}
                     // className="form-control bg-light border-0"
-                    className={`form-control border-0 ${["casualLeaveBalance", "sickLeaveBalance", "salary", "probationMonths"].includes(field)
-                      ? "bg-secondary-subtle text-muted"
-                      : "bg-light"
-                      }`}
-                    readOnly={["casualLeaveBalance", "sickLeaveBalance", "salary", "probationMonths"].includes(field)}
+                    className={`form-control border-0 ${
+                      [
+                        "casualLeaveBalance",
+                        "sickLeaveBalance",
+                        "salary",
+                        "probationMonths",
+                      ].includes(field)
+                        ? "bg-secondary-subtle text-muted"
+                        : "bg-light"
+                    }`}
+                    readOnly={[
+                      "casualLeaveBalance",
+                      "sickLeaveBalance",
+                      "salary",
+                      "probationMonths",
+                    ].includes(field)}
                   />
                 ) : (
-                  <div className="form-control bg-light border-0">{profile[field] ?? "-"}</div>
+                  <div className="form-control bg-light border-0">
+                    {profile[field] ?? "-"}
+                  </div>
                 )}
               </div>
             ))}
@@ -757,14 +825,13 @@ console.log("formdata",formData)
       </div>
       <div className="text-end mt-3">
         <button
-         className="btn btn-sm custom-outline-btn"
-            style={{  minWidth: 90 }}
+          className="btn btn-sm custom-outline-btn"
+          style={{ minWidth: 90 }}
           onClick={() => window.history.go(-1)}
         >
           Back
         </button>
       </div>
-
     </div>
   );
 }

@@ -65,34 +65,50 @@ const EventCard = () => {
     >
       <span className="visually-hidden">Loading...</span>
     </div>
-    <p className="mt-3 fw-semibold" style={{ color: "#3A5FBE" }}>Loading ...</p>
-  </div>
+    <p className="mt-3 fw-semibold" style={{ color: "#3A5FBE" }}>
+      Loading ...
+    </p>
+  </div>;
 
   if (error) return <p className="text-danger">{error}</p>;
   if (events.length === 0) return <p>No upcoming events.</p>;
 
   const currentEvent = events[currentIndex];
 
-
-
-
   return (
-
-    <div className="card shadow-sm h-100 border-0 " style={{ borderRadius: "10px" }} >
-      <div className="card-header d-flex justify-content-between align-items-center " style={{ backgroundColor: "#fff", borderRadius: "12px 12px 0 0" }}>
+    <div
+      className="card shadow-sm h-100 border-0 "
+      style={{ borderRadius: "10px" }}
+    >
+      <div
+        className="card-header d-flex justify-content-between align-items-center "
+        style={{ backgroundColor: "#fff", borderRadius: "12px 12px 0 0" }}
+      >
         <button
-          className="btn btn-link p-0" style={{ color: "#3A5FBE", fontSize: "20px" }}
+          className="btn btn-link p-0"
+          style={{ color: "#3A5FBE", fontSize: "20px" }}
           onClick={() =>
-            setCurrentIndex(prev => (prev === 0 ? events.length - 1 : prev - 1))
+            setCurrentIndex((prev) =>
+              prev === 0 ? events.length - 1 : prev - 1
+            )
           }
         >
           <ChevronLeft size={20} />
         </button>
-        <span className="fw-semibold" style={{ color: "#3A5FBE", fontSize: "20px" }}> Upcoming Events </span>
+        <span
+          className="fw-semibold"
+          style={{ color: "#3A5FBE", fontSize: "20px" }}
+        >
+          {" "}
+          Upcoming Events{" "}
+        </span>
         <button
-          className="btn btn-link p-0" style={{ color: "#3A5FBE" }}
+          className="btn btn-link p-0"
+          style={{ color: "#3A5FBE" }}
           onClick={() =>
-            setCurrentIndex(prev => (prev === events.length - 1 ? 0 : prev + 1))
+            setCurrentIndex((prev) =>
+              prev === events.length - 1 ? 0 : prev + 1
+            )
           }
         >
           <ChevronRight size={20} />
@@ -118,7 +134,6 @@ const EventCard = () => {
             year: "numeric",
           })}
         </small>
-
 
         <div className="mt-3 ">
           <style>
@@ -147,16 +162,18 @@ const EventCard = () => {
             //   justifyContent: "center",
             // }}
             onClick={() =>
-              navigate(`/dashboard/${role}/${username}/${id}/AllEventsandHolidays`, {
-                state: { events },
-              })
+              navigate(
+                `/dashboard/${role}/${username}/${id}/AllEventsandHolidays`,
+                {
+                  state: { events },
+                }
+              )
             }
           >
             View All Events
           </button>
         </div>
       </div>
-
     </div>
   );
 };

@@ -44,11 +44,15 @@ function EmployeeCheckInOut({ employeeId }) {
       <h6 className="fw-bold">Today's Attendance</h6>
       <p>
         <strong>Check-In:</strong>{" "}
-        {attendance?.checkIn ? new Date(attendance.checkIn).toLocaleTimeString() : "-"}
+        {attendance?.checkIn
+          ? new Date(attendance.checkIn).toLocaleTimeString()
+          : "-"}
       </p>
       <p>
         <strong>Check-Out:</strong>{" "}
-        {attendance?.checkOut ? new Date(attendance.checkOut).toLocaleTimeString() : "-"}
+        {attendance?.checkOut
+          ? new Date(attendance.checkOut).toLocaleTimeString()
+          : "-"}
       </p>
 
       {!attendance?.checkIn && (

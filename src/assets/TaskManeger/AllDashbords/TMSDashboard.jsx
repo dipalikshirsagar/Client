@@ -32,6 +32,9 @@ import "./TMSDashboard.css";
 import HRReportTMS from "./HRReportTMS";
 import MyProfile from "../../AllDashboards/MyProfile";
 import AdminAllEmployeeTMS from "./AdminAllEmployeeTMS";
+import AdminTasklog from "../TaskLogs/AdminTasklog";
+import ManagerTasklog from "../TaskLogs/ManagerTasklog";
+import EmployeeTasklog from "../TaskLogs/EmployeeTasklog";
 
 function TMSDashboard() {
   const { role } = useParams();
@@ -45,7 +48,7 @@ function TMSDashboard() {
   const [loading, setLoading] = useState(true);
   //
   const [activeTab, setActiveTab] = useState(
-    location.pathname.includes("/tms-dashboard") ? "TMS" : "EMS"
+    location.pathname.includes("/tms-dashboard") ? "TMS" : "EMS",
   );
 
   // Rutuja
@@ -68,7 +71,7 @@ function TMSDashboard() {
         !cleanPath.endsWith(
           `/tms-dashboard/${user?.role}/${user?.username || user?.name}/${
             user?._id
-          }`
+          }`,
         )
       ) {
         setLastTMSRoute(cleanPath);
@@ -264,7 +267,7 @@ function TMSDashboard() {
                   role === "md" ? (
                     <AdminProjectTMS />
                   ) : role === "manager" ? (
-                    <MangerProjectTMS />
+                    <MangerProjectTMS user={user} />
                   ) : (
                     <EmployeeProjectTMS employeeId={user?._id} />
                   )
@@ -293,9 +296,8 @@ function TMSDashboard() {
                   role === "admin" ||
                   role === "ceo" ||
                   role === "coo" ||
-                  role === "md" ? (
-                    <AdminReportTMS />
-                  ) : role === "hr" ? (
+                  role === "md" ||
+                  role === "hr" ? (
                     <HRReportTMS />
                   ) : role === "manager" ? (
                     <MangerReportTMS user={user} />
@@ -318,6 +320,19 @@ function TMSDashboard() {
               />
 
               <Route path="employee" element={<AdminAllEmployeeTMS />} />
+
+              <Route
+                path="tasklogs"
+                element={
+                  role === "admin" || role === "hr" || role === "ceo" ? (
+                    <AdminTasklog />
+                  ) : role === "manager" ? (
+                    <ManagerTasklog user={user} />
+                  ) : (
+                    <EmployeeTasklog user={user} />
+                  )
+                }
+              />
             </Routes>
           </div>
         </div>

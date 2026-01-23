@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
@@ -10,7 +9,9 @@ function AdminWeeklyOffSetup() {
   useEffect(() => {
     const fetchWeeklyOff = async () => {
       try {
-        const res = await axios.get(` https://server-backend-nu.vercel.app/admin/weeklyoff/${year}`);
+        const res = await axios.get(
+          ` https://server-backend-nu.vercel.app/admin/weeklyoff/${year}`
+        );
         setSaturdays(res.data?.data?.saturdays || []);
       } catch (err) {
         console.error("Error fetching weekly off:", err);
@@ -28,7 +29,10 @@ function AdminWeeklyOffSetup() {
 
   const saveWeeklyOff = async () => {
     try {
-      await axios.post(" https://server-backend-nu.vercel.app/admin/weeklyoff", { year, saturdays });
+      await axios.post(" https://server-backend-nu.vercel.app/admin/weeklyoff", {
+        year,
+        saturdays,
+      });
       alert("✅ Weekly off updated successfully!");
     } catch (err) {
       console.error("Error saving weekly off:", err);
@@ -40,31 +44,36 @@ function AdminWeeklyOffSetup() {
     <div style={{ padding: "20px" }}>
       <div className="card shadow-sm border-0">
         <div className="card-body">
-          <h5 className="mb-3"               style={{ color: "#3A5FBE", fontSize:"20px",cursor: "pointer" }}
->Set Weekly Off </h5> 
+          <h5
+            className="mb-3"
+            style={{ color: "#3A5FBE", fontSize: "20px", cursor: "pointer" }}
+          >
+            Set Weekly Off{" "}
+          </h5>
 
           <div className="d-flex flex-wrap gap-4 mb-3">
-            {["First", "Second", "Third", "Fourth", "Fifth"].map((label, index) => {
-              const weekNum = index + 1;
-              return (
-                <div key={weekNum}>
-                  <input
-                    type="checkbox"
-                    checked={saturdays.includes(weekNum)}
-                    onChange={() => toggleSaturday(weekNum)}
-                    id={`sat-${weekNum}`}
-                
-                  />{" "}
-                  <label htmlFor={`sat-${weekNum}`}>{label} Saturday</label>
-                </div>
-              );
-            })}
+            {["First", "Second", "Third", "Fourth", "Fifth"].map(
+              (label, index) => {
+                const weekNum = index + 1;
+                return (
+                  <div key={weekNum}>
+                    <input
+                      type="checkbox"
+                      checked={saturdays.includes(weekNum)}
+                      onChange={() => toggleSaturday(weekNum)}
+                      id={`sat-${weekNum}`}
+                    />{" "}
+                    <label htmlFor={`sat-${weekNum}`}>{label} Saturday</label>
+                  </div>
+                );
+              }
+            )}
           </div>
 
           <button
             onClick={saveWeeklyOff}
-           className="btn btn-sm custom-outline-btn"
-            style={{  minWidth: 90 }}
+            className="btn btn-sm custom-outline-btn"
+            style={{ minWidth: 90 }}
           >
             Save
           </button>

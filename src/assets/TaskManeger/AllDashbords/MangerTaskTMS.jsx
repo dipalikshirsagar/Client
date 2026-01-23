@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 import axios from "axios";
 function isWeeklyOff(date, weeklyOffs = { saturdays: [], sundayOff: true }) {
   const day = date.getDay(); // 0 = Sunday, 6 = Saturday
@@ -88,7 +90,7 @@ const MangerTaskTMS = ({ role }) => {
       if (task.dateOfExpectedCompletion) {
         formData.append(
           "dateOfExpectedCompletion",
-          task.dateOfExpectedCompletion
+          task.dateOfExpectedCompletion,
         );
       }
 
@@ -143,10 +145,10 @@ const MangerTaskTMS = ({ role }) => {
     } catch (error) {
       console.error(
         "Error updating task:",
-        error.response?.data || error.message
+        error.response?.data || error.message,
       );
       alert(
-        "Update failed: " + (error.response?.data?.message || error.message)
+        "Update failed: " + (error.response?.data?.message || error.message),
       );
     }
   };
@@ -167,7 +169,7 @@ const MangerTaskTMS = ({ role }) => {
       const container = ref.current;
 
       const focusable = container.querySelectorAll(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
       );
 
       if (focusable.length > 0) focusable[0].focus();
@@ -239,7 +241,7 @@ const MangerTaskTMS = ({ role }) => {
         const timer = activeTimers[taskId];
         if (timer) {
           const elapsedSeconds = Math.floor(
-            (now - new Date(timer.startTime)) / 1000
+            (now - new Date(timer.startTime)) / 1000,
           );
           const newSeconds = timer.totalSeconds + elapsedSeconds;
 
@@ -264,7 +266,7 @@ const MangerTaskTMS = ({ role }) => {
     setCommentLoading(true);
     try {
       const response = await axios.get(
-        `https://server-backend-nu.vercel.app/task/${taskId}/comments`
+        `https://server-backend-nu.vercel.app/task/${taskId}/comments`,
       );
       setTaskComments(response.data.comments || []);
     } catch (error) {
@@ -302,7 +304,7 @@ const MangerTaskTMS = ({ role }) => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (res.data.success) {
@@ -458,7 +460,7 @@ const MangerTaskTMS = ({ role }) => {
         "https://server-backend-nu.vercel.app/api/projects",
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
 
       const allProjects = projectsRes.data || [];
@@ -466,7 +468,7 @@ const MangerTaskTMS = ({ role }) => {
 
       if (selectedProject && selectedProject._id) {
         const empRes = await axios.get(
-          `https://server-backend-nu.vercel.app/projects/employees/${selectedProject._id}`
+          `https://server-backend-nu.vercel.app/projects/employees/${selectedProject._id}`,
         );
 
         if (empRes.data.success) {
@@ -504,7 +506,39 @@ const MangerTaskTMS = ({ role }) => {
     const file = e.target.files[0];
     setDocumentFile(file || null);
   }
+  useEffect(() => {
+    const preventScroll = (e) => {
+      e.preventDefault();
+    };
 
+    if (commentModalTask) {
+      // Lock scroll
+      document.body.style.overflow = "hidden";
+      document.body.style.position = "fixed";
+      document.body.style.width = "100%";
+
+      // Block wheel & touch scroll
+      window.addEventListener("wheel", preventScroll, { passive: false });
+      window.addEventListener("touchmove", preventScroll, { passive: false });
+    } else {
+      // Unlock scroll
+      document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.width = "";
+
+      window.removeEventListener("wheel", preventScroll);
+      window.removeEventListener("touchmove", preventScroll);
+    }
+
+    // Cleanup
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.width = "";
+      window.removeEventListener("wheel", preventScroll);
+      window.removeEventListener("touchmove", preventScroll);
+    };
+  }, [commentModalTask]);
   // Fetch AddTask Required Details
   useEffect(() => {
     const fetchAddTaskRequiredDetails = async () => {
@@ -514,20 +548,20 @@ const MangerTaskTMS = ({ role }) => {
         const res = await axios.get("https://server-backend-nu.vercel.app/getAllDepartments");
         const user = await fetchUser();
         const empRes = await axios.get(
-          `https://server-backend-nu.vercel.app/employees/manager/${user._id}`
+          `https://server-backend-nu.vercel.app/employees/manager/${user._id}`,
         );
         const taskTypeRes = await axios.get(
-          `https://server-backend-nu.vercel.app/api/task-types/unique-names`
+          `https://server-backend-nu.vercel.app/api/task-types/unique-names`,
         );
         const projectRes = await axios.get(
-          `https://server-backend-nu.vercel.app/api/projects/unique-names/${user._id}`
+          `https://server-backend-nu.vercel.app/api/projects/unique-names/${user._id}`,
         );
         const departments = res.data.departments;
         const employeesNames = empRes.data.employees;
         const taskTypeNames = taskTypeRes.data.taskTypes;
         const projectNames = projectRes.data.projects;
         const normalizedDepartments = departments.map((d) =>
-          normalizeDepartment(d)
+          normalizeDepartment(d),
         );
         const uniqueDepartments = [...new Set(normalizedDepartments)];
         setProject(projectNames);
@@ -553,7 +587,18 @@ const MangerTaskTMS = ({ role }) => {
   const validateTaskForm = () => {
     const errors = {};
 
-    if (!newTask.taskName?.trim()) errors.taskName = "Task name is required";
+    if (!newTask.taskName?.trim()) {
+      errors.taskName = "Task name is required";
+    } else {
+      const { available, message } = checkTaskName(
+        newTask.taskName,
+        newTask._id,
+      );
+
+      if (!available) {
+        errors.taskName = message;
+      }
+    }
 
     if (!newTask.projectName) errors.projectName = "Project is required";
 
@@ -619,7 +664,7 @@ const MangerTaskTMS = ({ role }) => {
     const fetchWeeklyOffs = async () => {
       try {
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`
+          `https://server-backend-nu.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`,
         );
 
         const weeklyData = res.data?.data || {};
@@ -674,14 +719,14 @@ const MangerTaskTMS = ({ role }) => {
 
       // Fetch employee leave
       const leaveRes = await axios.get(
-        `https://server-backend-nu.vercel.app/leave/manager/${user._id}`
+        `https://server-backend-nu.vercel.app/leave/manager/${user._id}`,
       );
 
       const leaves = leaveRes.data.data || [];
 
       // Filter leaves for selected employee
       const employeeLeaves = leaves.filter(
-        (leave) => leave.employee?._id === newTask.assignedTo
+        (leave) => leave.employee?._id === newTask.assignedTo,
       );
 
       // ------ Assignment Date Validations ------
@@ -815,7 +860,7 @@ const MangerTaskTMS = ({ role }) => {
       });
 
       alert(
-        editTaskId ? "Task updated successfully" : "Task created successfully"
+        editTaskId ? "Task updated successfully" : "Task created successfully",
       );
     } catch (error) {
       console.error("Submit failed:", error.response?.data || error.message);
@@ -954,7 +999,7 @@ const MangerTaskTMS = ({ role }) => {
   const totalPages = Math.ceil(filteredTasks.length / itemsPerPage);
   const indexOfLastItem = Math.min(
     currentPage * itemsPerPage,
-    filteredTasks.length
+    filteredTasks.length,
   );
   const indexOfFirstItem = (currentPage - 1) * itemsPerPage;
   const currentTasks = filteredTasks.slice(indexOfFirstItem, indexOfLastItem);
@@ -1017,41 +1062,96 @@ const MangerTaskTMS = ({ role }) => {
   oneMonthLater.setMonth(oneMonthLater.getMonth() + 1);
   const maxDate = oneMonthLater.toISOString().split("T")[0];
 
+  //gitanjali
+  const handleDownloadExcel = () => {
+    if (filteredTasks.length === 0) {
+      alert("No data available to download");
+      return;
+    }
+
+    const excelData = filteredTasks.map((task, index) => ({
+      "Sr No": index + 1,
+      "Task Name": task.taskName || "-",
+      Project: task.projectName || "-",
+      "Assigned To": task.assignedTo?.name || "-",
+      Department: task.department || "-",
+      "Task Type": task.typeOfTask || "-",
+      "Assigned Date": task.dateOfTaskAssignment
+        ? new Date(task.dateOfTaskAssignment).toLocaleDateString("en-GB")
+        : "-",
+      "Due Date": task.dateOfExpectedCompletion
+        ? new Date(task.dateOfExpectedCompletion).toLocaleDateString("en-GB")
+        : "-",
+      "Progress (%)": task.progressPercentage ?? 0,
+      Status: task.status?.name || "-",
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Manager Tasks");
+
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+
+    const data = new Blob([excelBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    const fileName = `Manager_Tasks_${assignDateFromFilter || "ALL"}_to_${
+      assignDateToFilter || "ALL"
+    }.xlsx`;
+
+    saveAs(data, fileName);
+  };
+
   return (
     <div className="container-fluid ">
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h2 style={{ color: "#3A5FBE", fontSize: "25px" }}>Tasks</h2>
-
-        {/* ✅ Add Task only for Manager */}
-        {userRole === "manager" && (
+        <div className="d-flex gap-2">
+          {/* Download Excel Button */}
           <button
+            type="button"
             className="btn btn-sm custom-outline-btn"
-            onClick={() => {
-              setEditTaskId(null); // ✅ RESET edit mode
-              setNewTask({
-                // ✅ CLEAR form
-                projectName: "",
-                title: "",
-                description: "",
-                status: "To Do",
-                assignDate: "",
-                deadline: "",
-                assignTime: "",
-                dueTime: "",
-                expectedDate: "",
-                department: "",
-                taskType: "",
-                progress: 0,
-                employee: "",
-                document: null,
-              });
-              setProjectEmployees([]);
-              setShowAddTask(true);
-            }}
+            onClick={handleDownloadExcel}
           >
-            + Add Task
+            Download Excel
           </button>
-        )}
+
+          {/* ✅ Add Task only for Manager */}
+          {userRole === "manager" && (
+            <button
+              className="btn btn-sm custom-outline-btn"
+              onClick={() => {
+                setEditTaskId(null); // ✅ RESET edit mode
+                setNewTask({
+                  // ✅ CLEAR form
+                  projectName: "",
+                  title: "",
+                  description: "",
+                  status: "To Do",
+                  assignDate: "",
+                  deadline: "",
+                  assignTime: "",
+                  dueTime: "",
+                  expectedDate: "",
+                  department: "",
+                  taskType: "",
+                  progress: 0,
+                  employee: "",
+                  document: null,
+                });
+                setProjectEmployees([]);
+                setShowAddTask(true);
+              }}
+            >
+              + Add Task
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Stat Cards */}
@@ -1288,14 +1388,14 @@ const MangerTaskTMS = ({ role }) => {
                               day: "2-digit",
                               month: "short",
                               year: "numeric",
-                            }
+                            },
                           )
                         : "-"}
                     </td>
                     <td style={tdStyle}>
                       {t.dateOfExpectedCompletion
                         ? new Date(
-                            t.dateOfExpectedCompletion
+                            t.dateOfExpectedCompletion,
                           ).toLocaleDateString("en-GB", {
                             day: "2-digit",
                             month: "short",
@@ -1312,7 +1412,7 @@ const MangerTaskTMS = ({ role }) => {
                             {formatTimeClock(
                               timerSeconds[t._id] ||
                                 t.timeTracking.totalSeconds ||
-                                0
+                                0,
                             )}
                           </span>
                         </div>
@@ -1428,6 +1528,7 @@ const MangerTaskTMS = ({ role }) => {
                       setShowAddTask(false);
                       setProjectEmployees([]);
                       resetTaskForm();
+                      checkTaskName();
                     }}
                     // ----------------------------
                   />
@@ -1467,15 +1568,14 @@ const MangerTaskTMS = ({ role }) => {
                         }}
                       />
 
-                      {taskErrors.taskName &&
-                        taskErrors.taskName === "Task name already exists." && (
-                          <small className="text-danger">
-                            {taskErrors.taskName}
-                          </small>
-                        )}
+                      {taskErrors.taskName && (
+                        <small className="text-danger">
+                          {taskErrors.taskName}
+                        </small>
+                      )}
 
                       {editTaskId &&
-                        newTask.taskName &&
+                        newTask.taskName?.trim() &&
                         !taskErrors.taskName && (
                           <small className="text-muted">
                             Editing existing task
@@ -1709,7 +1809,8 @@ const MangerTaskTMS = ({ role }) => {
                         {!newTask.assignedTo || newTask.assignedTo.trim() === ""
                           ? uniqueStatus
                               .filter(
-                                (status) => status.name === "Assignment Pending"
+                                (status) =>
+                                  status.name === "Assignment Pending",
                               )
 
                               .map((status) => (
@@ -1985,11 +2086,12 @@ const MangerTaskTMS = ({ role }) => {
             position: "fixed",
             inset: 0,
             zIndex: 1050,
+            overflow: "hidden",
           }}
         >
           <div
-            className="modal-dialog modal-dialog-scrollable"
-            style={{ maxWidth: "650px", width: "95%", marginTop: "200px" }}
+            className="modal-dialog "
+            style={{ maxWidth: "650px", width: "95%", marginTop: "120px" }}
           >
             <div className="modal-content">
               {/* HEADER */}
@@ -2011,7 +2113,10 @@ const MangerTaskTMS = ({ role }) => {
               </div>
 
               {/* BODY */}
-              <div className="modal-body">
+              <div
+                className="modal-body"
+                style={{ maxHeight: "60vh", overflowY: "auto" }} //added by harshada
+              >
                 <div className="container-fluid">
                   {/* start**------------------------------------------------------------------------------------------- */}
                   {/* Task Name */}
@@ -2034,15 +2139,15 @@ const MangerTaskTMS = ({ role }) => {
                               });
 
                               const otherTasks = allTasks.filter(
-                                (t) => t._id !== selectedTask._id
+                                (t) => t._id !== selectedTask._id,
                               );
                               const otherTaskNames = otherTasks.map((t) =>
-                                t.taskName?.trim().toLowerCase()
+                                t.taskName?.trim().toLowerCase(),
                               );
 
                               if (
                                 otherTaskNames.includes(
-                                  value.trim().toLowerCase()
+                                  value.trim().toLowerCase(),
                                 )
                               ) {
                                 alert("Task name already exists!");
@@ -2156,7 +2261,7 @@ const MangerTaskTMS = ({ role }) => {
                             setSelectedTask({
                               ...selectedTask,
                               assignedTo: projectEmployees.find(
-                                (emp) => emp._id === e.target.value
+                                (emp) => emp._id === e.target.value,
                               ),
                             })
                           }
@@ -2214,7 +2319,7 @@ const MangerTaskTMS = ({ role }) => {
                       {popupMode === "view" ? (
                         selectedTask.dateOfTaskAssignment ? (
                           new Date(
-                            selectedTask.dateOfTaskAssignment
+                            selectedTask.dateOfTaskAssignment,
                           ).toLocaleDateString("en-GB")
                         ) : (
                           "-"
@@ -2225,7 +2330,7 @@ const MangerTaskTMS = ({ role }) => {
                           className="form-control"
                           value={selectedTask.dateOfTaskAssignment?.slice(
                             0,
-                            10
+                            10,
                           )}
                           onChange={(e) =>
                             setSelectedTask({
@@ -2245,7 +2350,7 @@ const MangerTaskTMS = ({ role }) => {
                       {popupMode === "view" ? (
                         selectedTask.dateOfExpectedCompletion ? (
                           new Date(
-                            selectedTask.dateOfExpectedCompletion
+                            selectedTask.dateOfExpectedCompletion,
                           ).toLocaleDateString("en-GB")
                         ) : (
                           "-"
@@ -2256,7 +2361,7 @@ const MangerTaskTMS = ({ role }) => {
                           className="form-control"
                           value={selectedTask.dateOfExpectedCompletion?.slice(
                             0,
-                            10
+                            10,
                           )}
                           onChange={(e) =>
                             setSelectedTask({
@@ -2287,7 +2392,7 @@ const MangerTaskTMS = ({ role }) => {
                           value={selectedTask.status?._id || ""}
                           onChange={(e) => {
                             const selectedStatus = uniqueStatus.find(
-                              (s) => s._id === e.target.value
+                              (s) => s._id === e.target.value,
                             );
                             setSelectedTask({
                               ...selectedTask,
@@ -2305,7 +2410,7 @@ const MangerTaskTMS = ({ role }) => {
                             ? uniqueStatus
                                 .filter(
                                   (status) =>
-                                    status.name === "Assignment Pending"
+                                    status.name === "Assignment Pending",
                                 )
                                 .map((s) => (
                                   <option key={s._id} value={s._id}>
@@ -2342,7 +2447,7 @@ const MangerTaskTMS = ({ role }) => {
                               {formatTimeClock(
                                 timerSeconds[selectedTask._id] ||
                                   selectedTask.timeTracking.totalSeconds ||
-                                  0
+                                  0,
                               )}
                             </span>
                           </div>
@@ -2360,7 +2465,8 @@ const MangerTaskTMS = ({ role }) => {
                   <div className="row mb-2">
                     <div className="col-5 col-sm-3 fw-semibold">Progress</div>
                     <div className="col-7 col-sm-9">
-                      {popupMode === "view" ? (
+                      {popupMode === "view" ||
+                      selectedTask.status?.name === "Assigned" ? (
                         `${selectedTask.progressPercentage || 0}%`
                       ) : (
                         <input
@@ -2368,6 +2474,10 @@ const MangerTaskTMS = ({ role }) => {
                           className="form-control"
                           min="0"
                           max="100"
+                          disabled={
+                            selectedTask.status?.name === "Assigned" ||
+                            selectedTask.status?.name === "Assignment Pending"
+                          }
                           value={selectedTask.progressPercentage || ""}
                           onChange={(e) =>
                             setSelectedTask({
@@ -2433,7 +2543,7 @@ const MangerTaskTMS = ({ role }) => {
                                   <small className="text-muted">
                                     {comment.createdAt
                                       ? new Date(
-                                          comment.createdAt
+                                          comment.createdAt,
                                         ).toLocaleDateString("en-GB")
                                       : ""}
                                   </small>

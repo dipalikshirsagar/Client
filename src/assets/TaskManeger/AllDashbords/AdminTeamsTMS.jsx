@@ -1,16 +1,15 @@
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 
 const AdminTeamsTMS = () => {
   const [allTeams, setAllTeams] = useState([]);
   const [filteredTeams, setFilteredTeams] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const initialTaskStats = [
-    { title: "Total Teams", count: 6 },
-    { title: "Total Managers", count: 20 },
-    { title: "Total Employees", count: 70 },
-    { title: "Total Departments", count: 6 },
+    { title: "Total Teams", color: "#D1ECF1", count: 0 },
+    { title: "Total Managers", color: "#FFB3B3", count: 0 },
+    { title: "Total Employees", color: "#FFE493", count: 0 },
+    { title: "Total Departments", color: "#D7F5E4", count: 0 },
   ];
   const [taskStats, setTaskStats] = useState(initialTaskStats);
   // Pagination states
@@ -29,37 +28,69 @@ const AdminTeamsTMS = () => {
 
     return value.trim();
   };
+
+  const popupRef = useRef(null);
+  useEffect(() => {
+    if (selectedTeam && popupRef.current) {
+      popupRef.current.focus();
+    }
+  }, [selectedTeam]);
+
+  const trapFocus = (e) => {
+    if (!popupRef.current) return;
+
+    const focusableElements = popupRef.current.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+
+    const first = focusableElements[0];
+    const last = focusableElements[focusableElements.length - 1];
+
+    if (e.key === "Tab") {
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+  };
   const fetchDashboardStats = async () => {
     try {
       const token = localStorage.getItem("accessToken");
 
-      const [
-        teamsRes,
-        managersRes,
-        employeesRes,
-        departmentsRes
-      ] = await Promise.all([
-        axios.get("https://server-backend-nu.vercel.app/api/teams"),
-        axios.get("https://server-backend-nu.vercel.app/managers", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        axios.get("https://server-backend-nu.vercel.app/getAllEmployees", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        axios.get("https://server-backend-nu.vercel.app/getAllDepartments"),
-      ]);
-      const normalizedDepartments = departmentsRes.data.departments.map(d => normalizeDepartment(d))
-      const uniqueDepartments = [...new Set(normalizedDepartments)]
+      const [teamsRes, managersRes, employeesRes, departmentsRes] =
+        await Promise.all([
+          axios.get("https://server-backend-nu.vercel.app/api/teams"),
+          axios.get("https://server-backend-nu.vercel.app/managers", {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get("https://server-backend-nu.vercel.app/getEmployeeCount", {}),
+          axios.get("https://server-backend-nu.vercel.app/getAllDepartments"),
+        ]);
+      const normalizedDepartments = departmentsRes.data.departments.map((d) =>
+        normalizeDepartment(d),
+      );
+      const uniqueDepartments = [...new Set(normalizedDepartments)];
       const totalTeams = teamsRes.data?.data?.length || 0;
       const totalManagers = managersRes.data?.length || 0;
-      const totalEmployees = employeesRes.data?.length || 0;
+      const totalEmployees = employeesRes.data?.totalEmployees || 0;
       const totalDepartments = uniqueDepartments?.length || 0;
 
       setTaskStats([
         { title: "Total Teams", count: totalTeams, color: "#D1ECF1" },
         { title: "Total Managers", count: totalManagers, color: "#FFB3B3" },
         { title: "Total Employees", count: totalEmployees, color: "#FFE493" },
-        { title: "Total Departments", count: totalDepartments, color: "#D7F5E4" },
+        {
+          title: "Total Departments",
+          count: totalDepartments,
+          color: "#D7F5E4",
+        },
       ]);
     } catch (error) {
       console.error("Error fetching dashboard stats", error);
@@ -73,9 +104,7 @@ const AdminTeamsTMS = () => {
     } catch (error) {
       const errData = error.response?.data || {};
       console.error("ERROR FETCHING Teams:", errData);
-      alert(
-        JSON.stringify(errData, null, 2) || "Failed to load tasks"
-      );
+      alert(JSON.stringify(errData, null, 2) || "Failed to load tasks");
     }
   };
 
@@ -89,16 +118,16 @@ const AdminTeamsTMS = () => {
   }, [allTeams]);
   // ---------- Stat Cards Data ----------
 
-
-  console.log("all teams from use effect", allTeams)
+  console.log("all teams from use effect", allTeams);
 
   const applyFilters = () => {
     const query = searchQuery.toLowerCase().trim();
-    const temp = allTeams.filter(team =>
-      (team.name || '').toLowerCase().includes(query) ||
-      (team.teamLead || '').toLowerCase().includes(query) ||
-      (team.department || '').toLowerCase().includes(query) ||
-      ((team.assignToProject?.length || 0).toString().includes(query))
+    const temp = allTeams.filter(
+      (team) =>
+        (team.name || "").toLowerCase().includes(query) ||
+        (team.teamLead || "").toLowerCase().includes(query) ||
+        (team.department || "").toLowerCase().includes(query) ||
+        (team.assignToProject?.length || 0).toString().includes(query),
     );
     setFilteredTeams(temp);
   };
@@ -114,10 +143,10 @@ const AdminTeamsTMS = () => {
 
   //     ]);
   //   };
-  //  
+  //
 
   const resetFilters = () => {
-    setSearchQuery('');
+    setSearchQuery("");
     setFilteredTeams([...allTeams]);
     setTaskStats(initialTaskStats);
     setCurrentPage(1);
@@ -129,15 +158,18 @@ const AdminTeamsTMS = () => {
   };
 
   const handleSearchKeyPress = (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       applyFilters();
     }
   };
-  console.log("filtered teams", filteredTeams)
-  console.log("filtered teams", filteredTeams)
+  console.log("filtered teams", filteredTeams);
+  console.log("filtered teams", filteredTeams);
   // Pagination logic
   const totalPages = Math.ceil(filteredTeams.length / itemsPerPage);
-  const indexOfLastItem = Math.min(currentPage * itemsPerPage, filteredTeams.length);
+  const indexOfLastItem = Math.min(
+    currentPage * itemsPerPage,
+    filteredTeams.length,
+  );
   const indexOfFirstItem = (currentPage - 1) * itemsPerPage;
   const currentTeams = filteredTeams.slice(indexOfFirstItem, indexOfLastItem);
 
@@ -155,16 +187,16 @@ const AdminTeamsTMS = () => {
   const handleRowClick = (team) => {
     setSelectedTeam(team);
   };
-  console.log("current teams", currentTeams)
+  console.log("current teams", currentTeams);
 
   return (
-    <div className="container-fluid" >
-
-      <h2 style={{ color: "#3A5FBE", fontSize: "25px"}}>Teams</h2>
-
+    <div className="container-fluid">
+      <h2 className="mb-3" style={{ color: "#3A5FBE", fontSize: "25px" }}>
+        Teams
+      </h2>
 
       {/* Stat Cards */}
-      <div className="row  mb-4">
+      <div className="row  mb-4 g-3">
         {taskStats.map((task, i) => (
           <div className="col-12 col-md-3" key={i}>
             <div
@@ -189,7 +221,6 @@ const AdminTeamsTMS = () => {
                     alignItems: "center",
                     justifyContent: "center",
                     color: "#3A5FBE",
-                    
                   }}
                 >
                   {task.count}
@@ -225,15 +256,20 @@ const AdminTeamsTMS = () => {
             style={{ justifyContent: "space-between" }}
           >
             <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
-              <label htmlFor="searchQuery" className="fw-bold mb-0" style={{ fontSize: "16px", color: "#3A5FBE", width: "60px" }}>Search</label>
+              <label
+                htmlFor="searchQuery"
+                className="fw-bold mb-0"
+                style={{ fontSize: "16px", color: "#3A5FBE", width: "60px" }}
+              >
+                Search
+              </label>
               <input
                 id="searchQuery"
                 type="text"
                 className="form-control"
                 placeholder="Search by any field..."
-                
                 value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={(e) => {
                   if (e.key === "Enter") applyFilters();
                 }}
@@ -271,16 +307,64 @@ const AdminTeamsTMS = () => {
           <table className="table table-hover mb-0">
             <thead style={{ backgroundColor: "#ffffffff" }}>
               <tr>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Team Name</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Project Name</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Total Members</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Department</th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Team Name
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Project Name
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Total Members
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Department
+                </th>
               </tr>
             </thead>
             <tbody>
               {currentTeams.length === 0 ? (
                 <tr>
-                  <td colSpan="4" className="text-center py-4" style={{ color: "#212529" }}>
+                  <td
+                    colSpan="4"
+                    className="text-center py-4"
+                    style={{ color: "#212529" }}
+                  >
                     No teams found.
                   </td>
                 </tr>
@@ -291,17 +375,59 @@ const AdminTeamsTMS = () => {
                     onClick={() => handleRowClick(team)}
                     style={{ cursor: "pointer" }}
                   >
-                    <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', color: "#212529" }}>
-                      <h6 className="mb-0 fw-normal">{team?.name || '-'}</h6>
+                    <td
+                      style={{
+                        padding: "12px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                        color: "#212529",
+                      }}
+                    >
+                      <h6 className="mb-0 fw-normal">{team?.name || "-"}</h6>
                     </td>
-                    <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', color: "#212529" }}>
-                      <span className="fw-normal">{team?.project?.name || 'N/A'}</span>
+                    <td
+                      style={{
+                        padding: "12px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                        color: "#212529",
+                      }}
+                    >
+                      <span className="fw-normal">
+                        {team?.project?.name || "N/A"}
+                      </span>
                     </td>
-                    <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', color: "#212529" }}>
-                      <span className="fw-normal">{team?.assignToProject?.length || 0}</span>
+                    <td
+                      style={{
+                        padding: "12px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                        color: "#212529",
+                      }}
+                    >
+                      <span className="fw-normal">
+                        {team?.assignToProject?.length || 0}
+                      </span>
                     </td>
-                    <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', color: "#212529" }}>
-                      <span className="fw-normal">{team?.department || '-'}</span>
+                    <td
+                      style={{
+                        padding: "12px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                        color: "#212529",
+                      }}
+                    >
+                      <span className="fw-normal">
+                        {team?.department || "-"}
+                      </span>
                     </td>
                   </tr>
                 ))
@@ -315,7 +441,11 @@ const AdminTeamsTMS = () => {
       <nav className="d-flex align-items-center justify-content-end mt-3 text-muted">
         <div className="d-flex align-items-center gap-3">
           <div className="d-flex align-items-center">
-            <span style={{ fontSize: "14px", marginRight: "8px", color: "#212529" }}>Rows per page:</span>
+            <span
+              style={{ fontSize: "14px", marginRight: "8px", color: "#212529" }}
+            >
+              Rows per page:
+            </span>
             <select
               className="form-select form-select-sm"
               style={{ width: "auto", fontSize: "14px" }}
@@ -331,15 +461,22 @@ const AdminTeamsTMS = () => {
             </select>
           </div>
 
-          <span style={{ fontSize: "14px", marginLeft: "16px", color: "#212529" }}>
+          <span
+            style={{ fontSize: "14px", marginLeft: "16px", color: "#212529" }}
+          >
             {filteredTeams.length === 0
               ? "0–0 of 0"
-              : `${indexOfFirstItem + 1}-${indexOfLastItem} of ${filteredTeams.length}`}
+              : `${indexOfFirstItem + 1}-${indexOfLastItem} of ${
+                  filteredTeams.length
+                }`}
           </span>
 
-          <div className="d-flex align-items-center" style={{ marginLeft: "16px" }}>
+          <div
+            className="d-flex align-items-center"
+            style={{ marginLeft: "16px" }}
+          >
             <button
-              className="btn btn-sm border-0"
+              className="btn btn-sm focus-ring "
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
               style={{ fontSize: "18px", padding: "2px 8px", color: "#212529" }}
@@ -347,7 +484,7 @@ const AdminTeamsTMS = () => {
               ‹
             </button>
             <button
-              className="btn btn-sm border-0"
+              className="btn btn-sm focus-ring "
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
               style={{ fontSize: "18px", padding: "2px 8px", color: "#212529" }}
@@ -361,6 +498,10 @@ const AdminTeamsTMS = () => {
       {/* Team Detail Modal */}
       {selectedTeam && (
         <div
+          ref={popupRef}
+          tabIndex="-1"
+          autoFocus
+          onKeyDown={trapFocus}
           className="modal fade show"
           style={{
             display: "flex",
@@ -373,10 +514,15 @@ const AdminTeamsTMS = () => {
           }}
           onClick={() => setSelectedTeam(null)}
         >
-          <div className="modal-dialog modal-dialog-scrollable"
-            style={{ maxWidth: "650px", width: "95%", marginTop: "200px" }}>
+          <div
+            className="modal-dialog "
+            style={{ maxWidth: "650px", width: "95%", marginTop: "120px" }}
+          >
             <div className="modal-content">
-              <div className="modal-header text-white" style={{ backgroundColor: "#3A5FBE" }}>
+              <div
+                className="modal-header text-white"
+                style={{ backgroundColor: "#3A5FBE" }}
+              >
                 <h5 className="modal-title mb-0">Team Details</h5>
                 <button
                   type="button"
@@ -388,22 +534,62 @@ const AdminTeamsTMS = () => {
               <div className="modal-body">
                 <div className="container-fluid">
                   <div className="row mb-2">
-                    <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>Team Name</div>
-                    <div className="col-7 col-sm-9" style={{ color: "#212529" }}>{selectedTeam?.name || ""}</div>
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Team Name
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {selectedTeam?.name || ""}
+                    </div>
                   </div>
 
                   <div className="row mb-2">
-                    <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>Project Name</div>
-                    <div className="col-7 col-sm-9" style={{ color: "#212529" }}>{selectedTeam?.project?.name || 'N/A'}</div>
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Project Name
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {selectedTeam?.project?.name || "N/A"}
+                    </div>
                   </div>
                   <div className="row mb-2">
-                    <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>Total Members</div>
-                    <div className="col-7 col-sm-9" style={{ color: "#212529" }}>{selectedTeam?.assignToProject?.length || 0}</div>
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Total Members
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {selectedTeam?.assignToProject?.length || 0}
+                    </div>
                   </div>
 
                   <div className="row mb-2">
-                    <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>Department</div>
-                    <div className="col-7 col-sm-9" style={{ color: "#212529" }}>{selectedTeam?.department || ""}</div>
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Department
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {selectedTeam?.department || ""}
+                    </div>
                   </div>
                 </div>
               </div>

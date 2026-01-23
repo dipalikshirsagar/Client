@@ -42,12 +42,11 @@ function Login() {
     return Object.keys(newErrors).length === 0;
   };
 
-
-
   // 🔍 Track network status
   useEffect(() => {
     const handleOnline = () => setErrorMessage("");
-    const handleOffline = () => setErrorMessage("⚠️ Network connection lost. Attempting to reconnect...");
+    const handleOffline = () =>
+      setErrorMessage("⚠️ Network connection lost. Attempting to reconnect...");
 
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
@@ -59,9 +58,6 @@ function Login() {
     };
   }, []);
 
-
-
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -72,22 +68,19 @@ function Login() {
     //   return;
     // }
 
-
     if (!validate()) return;
 
     try {
-      const response = await axios.post(
-        "https://server-backend-nu.vercel.app/login",
-        { email, password }
-      );
+      const response = await axios.post("https://server-backend-nu.vercel.app/login", {
+        email,
+        password,
+      });
 
       if (response.data.success) {
         // Save tokens
         localStorage.setItem("accessToken", response.data.accessToken);
         localStorage.setItem("refreshToken", response.data.refreshToken);
         localStorage.setItem("role", response.data.role);
-
-
 
         localStorage.setItem(
           "activeUser",
@@ -139,27 +132,33 @@ function Login() {
       //   setErrorMessage(err.response?.data?.error || "Server error");
       // }
       // }
-
     } catch (err) {
       console.error("❌ Login error:", err);
 
       // No connection or server unreachable
       if (err.code === "ERR_NETWORK" || !navigator.onLine) {
-        setErrorMessage("⚠️ Network connection lost. Attempting to reconnect...");
+        setErrorMessage(
+          "⚠️ Network connection lost. Attempting to reconnect..."
+        );
         return;
       }
 
       // Server responded with an error
       if (err.response) {
         const status = err.response.status;
-        const serverMsg = err.response.data?.message || err.response.data?.error;
+        const serverMsg =
+          err.response.data?.message || err.response.data?.error;
 
         if (status === 500) {
           setErrorMessage(
-            `Server Error (500): ${serverMsg || "Internal Server Error. Please try again later."}`
+            `Server Error (500): ${
+              serverMsg || "Internal Server Error. Please try again later."
+            }`
           );
         } else if (status === 400 || status === 401) {
-          setErrorMessage(serverMsg || "Invalid credentials. Please try again.");
+          setErrorMessage(
+            serverMsg || "Invalid credentials. Please try again."
+          );
         } else {
           setErrorMessage(serverMsg || `Unexpected error: ${status}`);
         }
@@ -168,7 +167,6 @@ function Login() {
         setErrorMessage(`Unexpected error: ${err.message}`);
       }
     }
-
   };
 
   return (

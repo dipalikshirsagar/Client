@@ -65,13 +65,10 @@ function AdminTypeOfStatus() {
     try {
       setLoading(true);
 
-      await axios.put(
-        `https://server-backend-nu.vercel.app/taskstatus/update/${editId}`,
-        {
-          name: newName.trim(),
-          description: newDesc?.trim() || "",
-        }
-      );
+      await axios.put(`https://server-backend-nu.vercel.app/taskstatus/update/${editId}`, {
+        name: newName.trim(),
+        description: newDesc?.trim() || "",
+      });
 
       // Reset & close modal
       setShowModal(false);
@@ -82,30 +79,21 @@ function AdminTypeOfStatus() {
 
       fetchStatuses();
     } catch (error) {
-      alert(
-        error?.response?.data?.message ||
-        "Failed to update status"
-      );
+      alert(error?.response?.data?.message || "Failed to update status");
     } finally {
       setLoading(false);
     }
   };
 
-
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this status?")) return;
 
     try {
-      await axios.delete(
-        `https://server-backend-nu.vercel.app/taskstatus/delete/${id}`
-      );
+      await axios.delete(`https://server-backend-nu.vercel.app/taskstatus/delete/${id}`);
 
       fetchStatuses(); // refresh list
     } catch (error) {
-      alert(
-        error?.response?.data?.message ||
-        "Failed to delete status"
-      );
+      alert(error?.response?.data?.message || "Failed to delete status");
     }
   };
 
@@ -170,49 +158,56 @@ function AdminTypeOfStatus() {
           className="btn btn-primary btn-sm"
           style={{ backgroundColor: "#3A5FBE" }}
           onClick={() => {
-            setIsEditMode(false);   // 🔑 switch to create mode
-            setEditId(null);        // clear edit id
-            setNewName("");         // clear name field
-            setNewDesc("");         // clear description
-            setShowModal(true);     // open modal
+            setIsEditMode(false); // 🔑 switch to create mode
+            setEditId(null); // clear edit id
+            setNewName(""); // clear name field
+            setNewDesc(""); // clear description
+            setShowModal(true); // open modal
           }}
         >
           + New status
         </button>
-
       </div>
 
       {/* Table */}
-      <div className="card shadow-sm border-0 mt-3" >
+      <div className="card shadow-sm border-0 mt-3">
         <div className="table-responsive">
           <table className="table table-hover align-middle mb-0 bg-white">
             <thead style={{ backgroundColor: "#ffffffff" }}>
               <tr>
-                <th style={{
-                  fontWeight: "500",
-                  fontSize: "14px",
-                  color: "#6c757d",
-                  borderBottom: "2px solid #dee2e6",
-                  padding: "12px",
-                  whiteSpace: "nowrap",
-                  maxWidth: "220px",
-                }}>Name</th>
-                <th style={{
-                  fontWeight: "500",
-                  fontSize: "14px",
-                  color: "#6c757d",
-                  borderBottom: "2px solid #dee2e6",
-                  padding: "12px",
-                  whiteSpace: "nowrap",
-                  maxWidth: "220px",
-                }}>Description</th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                    maxWidth: "220px",
+                  }}
+                >
+                  Name
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                    maxWidth: "220px",
+                  }}
+                >
+                  Description
+                </th>
                 <th style={{ width: "140px" }}>Action</th>
               </tr>
             </thead>
             <tbody>
               {paginatedStatuses.map((s) => (
                 <tr key={s._id}>
-                  <td style={{ fontWeight: 500 }} >{s.name}</td>
+                  <td style={{ fontWeight: 500 }}>{s.name}</td>
                   <td className="text-muted" style={{ fontSize: "14px" }}>
                     {s.description || "-"}
                   </td>
@@ -252,15 +247,15 @@ function AdminTypeOfStatus() {
             </tbody>
           </table>
         </div>
-
-
       </div>
       {/* Pagination start */}
       <nav className="d-flex align-items-center justify-content-end mt-3 text-muted">
         <div className="d-flex align-items-center gap-3">
           {/* Rows per page */}
           <div className="d-flex align-items-center">
-            <span style={{ fontSize: "14px", marginRight: "8px", color: "#212529" }}>
+            <span
+              style={{ fontSize: "14px", marginRight: "8px", color: "#212529" }}
+            >
               Rows per page:
             </span>
 
@@ -280,14 +275,22 @@ function AdminTypeOfStatus() {
           </div>
 
           {/* Range display */}
-          <span style={{ fontSize: "14px", marginLeft: "16px", color: "#212529" }}>
+          <span
+            style={{ fontSize: "14px", marginLeft: "16px", color: "#212529" }}
+          >
             {totalItems === 0
               ? "0-0 of 0"
-              : `${indexOfFirstItem + 1}-${Math.min(indexOfLastItem, totalItems)} of ${totalItems}`}
+              : `${indexOfFirstItem + 1}-${Math.min(
+                  indexOfLastItem,
+                  totalItems
+                )} of ${totalItems}`}
           </span>
 
           {/* Arrows */}
-          <div className="d-flex align-items-center" style={{ marginLeft: "16px" }}>
+          <div
+            className="d-flex align-items-center"
+            style={{ marginLeft: "16px" }}
+          >
             <button
               className="btn btn-sm border-0"
               type="button"
@@ -310,7 +313,10 @@ function AdminTypeOfStatus() {
               style={{
                 fontSize: "18px",
                 padding: "2px 8px",
-                color: page === totalPages || totalItems === 0 ? "#c0c4cc" : "#212529",
+                color:
+                  page === totalPages || totalItems === 0
+                    ? "#c0c4cc"
+                    : "#212529",
               }}
             >
               ›
@@ -361,7 +367,6 @@ function AdminTypeOfStatus() {
           </button>
         </div>
       </form> */}
-
 
       {/* Modal */}
       {showModal && (
@@ -419,7 +424,6 @@ function AdminTypeOfStatus() {
                       setNewName(e.target.value);
                       setErrors({ ...errors, name: "" });
                     }}
-
                   />
                   {errors.name && (
                     <small className="text-danger">{errors.name}</small>
@@ -437,50 +441,41 @@ function AdminTypeOfStatus() {
                       setNewDesc(e.target.value);
                       setErrors({ ...errors, desc: "" });
                     }}
-
                   />
-                   {errors.desc && (
+                  {errors.desc && (
                     <small className="text-danger">{errors.desc}</small>
                   )}
-                  <div className="char-count"
+                  <div
+                    className="char-count"
                     style={{
                       display: "flex",
                       justifyContent: "flex-end",
                       fontSize: "12px",
                       color: "#6c757d",
                       marginTop: "4px",
-                    }}>
-                    {newDesc.length}/200</div>
-                 
+                    }}
+                  >
+                    {newDesc.length}/200
+                  </div>
                 </div>
 
                 <div className="custom-modal-footer">
                   <button
                     type="button"
                     className="btn  custom-outline-btn"
-                      onClick={() => {
-    setShowModal(false);
-    resetStatusForm(); 
-  }}
+                    onClick={() => {
+                      setShowModal(false);
+                      resetStatusForm();
+                    }}
                   >
                     Cancel
                   </button>
 
-                  <button
-                    type="submit"
-                    className="btn  custom-outline-btn"
-
-
-                  >
-                    {loading
-                      ? "Saving..."
-                      : isEditMode
-                        ? "Update"
-                        : "Create"}
+                  <button type="submit" className="btn  custom-outline-btn">
+                    {loading ? "Saving..." : isEditMode ? "Update" : "Create"}
                   </button>
                 </div>
               </form>
-
             </div>
           </div>
         </div>
@@ -496,8 +491,6 @@ function AdminTypeOfStatus() {
         </button>
       </div>
     </div>
-
-
   );
 }
 

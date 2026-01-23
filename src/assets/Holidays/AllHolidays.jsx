@@ -26,19 +26,22 @@ function AllHolidays() {
 
   // Delete Holiday
   const handleDeleteHoliday = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this holiday?")) return;
+    if (!window.confirm("Are you sure you want to delete this holiday?"))
+      return;
 
     try {
       const token = localStorage.getItem("accessToken");
-      await axios.delete(
-        `https://server-backend-nu.vercel.app/holidays/${id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await axios.delete(`https://server-backend-nu.vercel.app/holidays/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       // Remove from UI
       setHolidayList((prev) => prev.filter((h) => h._id !== id));
     } catch (err) {
-      console.error("❌ Failed to delete holiday:", err.response || err.message);
+      console.error(
+        "❌ Failed to delete holiday:",
+        err.response || err.message
+      );
       alert("Failed to delete holiday.");
     }
   };
@@ -81,7 +84,7 @@ function AllHolidays() {
         </div>
       ) : (
         <div className="alert alert-info">
-          No holidays found for {currentYear}.  
+          No holidays found for {currentYear}.
           {isAdmin && " Please add holidays for this year."}
         </div>
       )}

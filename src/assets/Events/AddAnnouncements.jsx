@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-
 function AddAnnouncements({ onAdd }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -98,6 +97,7 @@ function AddAnnouncements({ onAdd }) {
       const newAnnouncement = response.data?.announcement || response.data;
       if (onAdd && newAnnouncement) onAdd(newAnnouncement);
 
+      alert("Announcement added successfully!");
       setName("");
       setDescription("");
       setPublishDate("");
@@ -140,7 +140,7 @@ function AddAnnouncements({ onAdd }) {
           <div
             style={{
               width: "90%",
-              maxWidth: "900px",   // 👈 LARGE WIDTH
+              maxWidth: "900px", // 👈 LARGE WIDTH
               maxHeight: "90vh",
               background: "#fff",
               borderRadius: "10px",
@@ -157,8 +157,8 @@ function AddAnnouncements({ onAdd }) {
                 alignItems: "center",
                 background: "#3A5FBE",
                 color: "#fff",
-                fontWeight: 800,          // 👈 Added font weight
-                fontSize: "16px",         // (optional) better visibility
+                fontWeight: 800, // 👈 Added font weight
+                fontSize: "16px", // (optional) better visibility
               }}
             >
               <span style={{ fontSize: "20px", fontWeight: "bold" }}>
@@ -187,7 +187,7 @@ function AddAnnouncements({ onAdd }) {
             <div
               style={{
                 padding: "16px",
-                overflowY: "auto",  // 👈 SCROLL ENABLED
+                overflowY: "auto", // 👈 SCROLL ENABLED
                 flex: 1,
               }}
             >
@@ -202,7 +202,9 @@ function AddAnnouncements({ onAdd }) {
                     onChange={(e) => setName(e.target.value)}
                   />
                   <div className="char-count">{name.length}/50</div>
-                  {errors.name && <small className="text-danger">{errors.name}</small>}
+                  {errors.name && (
+                    <small className="text-danger">{errors.name}</small>
+                  )}
                 </div>
 
                 {/* Description */}
@@ -247,7 +249,9 @@ function AddAnnouncements({ onAdd }) {
                     onChange={(e) => setExpiryDate(e.target.value)}
                   />
                   {errors.expirationDate && (
-                    <small className="text-danger">{errors.expirationDate}</small>
+                    <small className="text-danger">
+                      {errors.expirationDate}
+                    </small>
                   )}
                 </div>
 

@@ -17,45 +17,45 @@ function EmployeeMyRegularization({ employeeId, refreshKey }) {
   const [dateToFilter, setDateToFilter] = useState("");
   const [filteredRequests, setFilteredRequests] = useState([]);
 
-
-
-  // dipali code 
+  // dipali code
   const [selectedRequest, setSelectedRequest] = useState(null);
 
-
   useEffect(() => {
-const fetchRequests = async () => {
+    const fetchRequests = async () => {
       try {
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/attendance/regularization/my/${employeeId}`
+          `https://server-backend-nu.vercel.app/attendance/regularization/my/${employeeId}`,
         );
         // ✅ Sort newest first (based on createdAt or request date)
-       // 🔒 STRICT last 3 months (rolling window)
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+        // 🔒 STRICT last 3 months (rolling window)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
-            const threeMonthsAgo = new Date(today);
-            threeMonthsAgo.setMonth(today.getMonth() - 3);
+        const threeMonthsAgo = new Date(today);
+        threeMonthsAgo.setMonth(today.getMonth() - 3);
 
-            // ✅ FILTER BY DATE FIRST
-            const lastThreeMonthsData = res.data.filter((req) => {
-              const recordDate = new Date(
-                req.regularizationRequest?.requestedAt || req.createdAt || req.date
-              );
-              recordDate.setHours(0, 0, 0, 0);
+        // ✅ FILTER BY DATE FIRST
+        const lastThreeMonthsData = res.data.filter((req) => {
+          const recordDate = new Date(
+            req.regularizationRequest?.requestedAt || req.createdAt || req.date,
+          );
+          recordDate.setHours(0, 0, 0, 0);
 
-              return recordDate >= threeMonthsAgo && recordDate <= today;
-            });
+          return recordDate >= threeMonthsAgo && recordDate <= today;
+        });
 
-            // ✅ SORT NEWEST FIRST
-            const sortedData = lastThreeMonthsData.sort(
-              (a, b) =>
-                new Date(b.regularizationRequest?.requestedAt || b.createdAt || b.date) -
-                new Date(a.regularizationRequest?.requestedAt || a.createdAt || a.date)
-            );
+        // ✅ SORT NEWEST FIRST
+        const sortedData = lastThreeMonthsData.sort(
+          (a, b) =>
+            new Date(
+              b.regularizationRequest?.requestedAt || b.createdAt || b.date,
+            ) -
+            new Date(
+              a.regularizationRequest?.requestedAt || a.createdAt || a.date,
+            ),
+        );
 
-            setRequests(sortedData);
-
+        setRequests(sortedData);
 
         //setRequests(res.data);
       } catch (err) {
@@ -72,18 +72,23 @@ const fetchRequests = async () => {
   // dipali code
   useEffect(() => {
     const sorted = requests
-      .filter(req =>
-        ["Pending", "Rejected", "Approved"].includes(req?.regularizationRequest?.status)
+      .filter((req) =>
+        ["Pending", "Rejected", "Approved"].includes(
+          req?.regularizationRequest?.status,
+        ),
       )
       .sort(
         (a, b) =>
-          new Date(b.regularizationRequest?.requestedAt || b.createdAt || b.date) -
-          new Date(a.regularizationRequest?.requestedAt || a.createdAt || a.date)
+          new Date(
+            b.regularizationRequest?.requestedAt || b.createdAt || b.date,
+          ) -
+          new Date(
+            a.regularizationRequest?.requestedAt || a.createdAt || a.date,
+          ),
       );
 
     setFilteredRequests(sorted);
   }, [requests]);
-
 
   const formatToIST = (utcDateString) => {
     const date = new Date(utcDateString);
@@ -95,20 +100,20 @@ const fetchRequests = async () => {
     });
   };
 
-
-
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this request?")) return;
+    if (!window.confirm("Are you sure you want to delete this request?"))
+      return;
 
     try {
-      await axios.delete(` https://server-backend-nu.vercel.app/attendance/regularization/${id}`);
+      await axios.delete(
+        ` https://server-backend-nu.vercel.app/attendance/regularization/${id}`,
+      );
       setRequests(requests.filter((req) => req._id !== id));
     } catch (err) {
       console.error("Delete failed", err);
       alert("Failed to delete request.");
     }
   };
-
 
   // // 🔹 Filter only valid regularizations
   // const filteredRequests = requests.filter(
@@ -131,8 +136,6 @@ const fetchRequests = async () => {
   //       )
   //   );
 
-
-
   // 🔹 Pagination logic
   // const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
   // const indexOfLastItem = Math.min(currentPage * itemsPerPage, filteredRequests.length);
@@ -141,9 +144,15 @@ const fetchRequests = async () => {
 
   // dipali code
   const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
-  const indexOfLastItem = Math.min(currentPage * itemsPerPage, filteredRequests.length);
+  const indexOfLastItem = Math.min(
+    currentPage * itemsPerPage,
+    filteredRequests.length,
+  );
   const indexOfFirstItem = (currentPage - 1) * itemsPerPage;
-  const currentRequests = filteredRequests.slice(indexOfFirstItem, indexOfLastItem);
+  const currentRequests = filteredRequests.slice(
+    indexOfFirstItem,
+    indexOfLastItem,
+  );
 
   // Prevent invalid page after filtering
   useEffect(() => {
@@ -157,7 +166,7 @@ const fetchRequests = async () => {
     setCurrentPage(pageNumber);
   };
 
-  console.log("currentRequests", currentRequests)
+  console.log("currentRequests", currentRequests);
   // if (loading) return <p>Loading...</p>;
 
   if (loading) {
@@ -170,7 +179,7 @@ const fetchRequests = async () => {
           width: "100%",
           position: "absolute",
           top: 0,
-          left: 0
+          left: 0,
         }}
       >
         <div
@@ -190,38 +199,44 @@ const fetchRequests = async () => {
   if (error) return <p className="text-danger">{error}</p>;
   // if (filteredRequests.length === 0) return <p>No regularization requests found.</p>;
 
-
-
   const applyFilters = () => {
-    let temp = requests.filter(
-      req => ["Pending", "Rejected", "Approved"].includes(req.regularizationRequest?.status)
+    let temp = requests.filter((req) =>
+      ["Pending", "Rejected", "Approved"].includes(
+        req.regularizationRequest?.status,
+      ),
     );
 
     if (statusFilter !== "All") {
       temp = temp.filter(
-        req =>
-          (req.regularizationRequest?.status || "").toLowerCase() === statusFilter.toLowerCase()
+        (req) =>
+          (req.regularizationRequest?.status || "").toLowerCase() ===
+          statusFilter.toLowerCase(),
       );
     }
 
     if (dateFromFilter) {
-      temp = temp.filter(req => new Date(req.date) >= new Date(dateFromFilter));
+      temp = temp.filter(
+        (req) => new Date(req.date) >= new Date(dateFromFilter),
+      );
     }
     if (dateToFilter) {
-      temp = temp.filter(req => new Date(req.date) <= new Date(dateToFilter));
+      temp = temp.filter((req) => new Date(req.date) <= new Date(dateToFilter));
     }
 
     setFilteredRequests(
       temp.sort(
         (a, b) =>
-          new Date(b.regularizationRequest?.requestedAt || b.createdAt || b.date) -
-          new Date(a.regularizationRequest?.requestedAt || a.createdAt || a.date)
-      )
+          new Date(
+            b.regularizationRequest?.requestedAt || b.createdAt || b.date,
+          ) -
+          new Date(
+            a.regularizationRequest?.requestedAt || a.createdAt || a.date,
+          ),
+      ),
     );
 
     setCurrentPage(1);
   };
-
 
   // Reset button restores original data
   const resetFilters = () => {
@@ -230,16 +245,21 @@ const fetchRequests = async () => {
     setDateToFilter("");
     setFilteredRequests(
       requests
-        .filter(req =>
-          ["Pending", "Rejected", "Approved"].includes(req.regularizationRequest?.status)
+        .filter((req) =>
+          ["Pending", "Rejected", "Approved"].includes(
+            req.regularizationRequest?.status,
+          ),
         )
         .sort(
           (a, b) =>
-            new Date(b.regularizationRequest?.requestedAt || b.createdAt || b.date) -
-            new Date(a.regularizationRequest?.requestedAt || a.createdAt || a.date)
-        )
+            new Date(
+              b.regularizationRequest?.requestedAt || b.createdAt || b.date,
+            ) -
+            new Date(
+              a.regularizationRequest?.requestedAt || a.createdAt || a.date,
+            ),
+        ),
     );
-
 
     setCurrentPage(1);
   };
@@ -291,7 +311,7 @@ const fetchRequests = async () => {
     }
     `}
             </style> */}
-            {/* <div className="col-12 col-md-auto d-flex align-items-center mb-1 ms-2">
+      {/* <div className="col-12 col-md-auto d-flex align-items-center mb-1 ms-2">
               <label htmlFor="dateFromFilter" className="fw-bold mb-0 text-start text-md-end" style={{ fontSize: "16px", color: "#3A5FBE", width: "50px", minWidth: "50px", marginRight: "8px" }}>From</label>
               <input
                 id="dateFromFilter"
@@ -316,27 +336,32 @@ const fetchRequests = async () => {
             </div>
           </form>
         </div>
-      </div> */} 
+      </div> */}
 
-
-             <div className="card mb-4 shadow-sm border-0 mt-2">
+      <div className="card mb-4 shadow-sm border-0 mt-2">
         <div className="card-body">
           <form
             className="row g-2 align-items-center"
-            onSubmit={e => {
+            onSubmit={(e) => {
               e.preventDefault();
               applyFilters();
             }}
             style={{ justifyContent: "space-between" }}
           >
             <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1 ms-2">
-              <label htmlFor="statusFilter" className="fw-bold mb-0 text-start text-md-end" style={{ fontSize: "16px", color: "#3A5FBE"}}>Status</label>
+              <label
+                htmlFor="statusFilter"
+                className="fw-bold mb-0 text-start text-md-end"
+                style={{ fontSize: "16px", color: "#3A5FBE" }}
+              >
+                Status
+              </label>
               <select
                 id="statusFilter"
                 className="form-select"
                 style={{ minWidth: 100 }}
                 value={statusFilter}
-                onChange={e => setStatusFilter(e.target.value)}
+                onChange={(e) => setStatusFilter(e.target.value)}
               >
                 <option value="All">All</option>
                 <option value="Pending">Pending</option>
@@ -345,40 +370,66 @@ const fetchRequests = async () => {
               </select>
             </div>
             <div className="col-12 col-md-auto d-flex align-items-center mb-1 ms-2">
-              <label htmlFor="dateFromFilter" className="fw-bold mb-0 text-start text-md-end" style={{ fontSize: "16px", color: "#3A5FBE", width: "50px" ,minWidth:"50px" ,marginRight: "8px"}}>From</label>
+              <label
+                htmlFor="dateFromFilter"
+                className="fw-bold mb-0 text-start text-md-end"
+                style={{
+                  fontSize: "16px",
+                  color: "#3A5FBE",
+                  width: "50px",
+                  minWidth: "50px",
+                  marginRight: "8px",
+                }}
+              >
+                From
+              </label>
               <input
                 id="dateFromFilter"
                 type="date"
                 className="form-control"
                 value={dateFromFilter}
-                onChange={e => setDateFromFilter(e.target.value)}
-                style={{ minWidth: "140px"}}
+                onChange={(e) => setDateFromFilter(e.target.value)}
+                style={{ minWidth: "140px" }}
               />
-            </div> 
+            </div>
             <div className="col-12 col-md-auto d-flex align-items-center mb-1 ms-2">
-              <label htmlFor="dateToFilter" className="fw-bold mb-0 text-start text-md-end" 
-              style={{width: "50px" , fontSize: "16px", color: "#3A5FBE", minWidth:"50px",marginRight: "8px"}}>To</label>
+              <label
+                htmlFor="dateToFilter"
+                className="fw-bold mb-0 text-start text-md-end"
+                style={{
+                  width: "50px",
+                  fontSize: "16px",
+                  color: "#3A5FBE",
+                  minWidth: "50px",
+                  marginRight: "8px",
+                }}
+              >
+                To
+              </label>
               <input
                 id="dateToFilter"
                 type="date"
                 className="form-control"
                 value={dateToFilter}
-                onChange={e => setDateToFilter(e.target.value)}
+                onChange={(e) => setDateToFilter(e.target.value)}
                 style={{ minWidth: "140px" }}
               />
-            </div>   
+            </div>
 
             <div className="col-auto ms-auto d-flex gap-2">
-              <button type="submit"
+              <button
+                type="submit"
                 style={{ minWidth: 90 }}
                 className="btn btn-sm custom-outline-btn"
               >
                 Filter
               </button>
-              <button type="button"
+              <button
+                type="button"
                 style={{ minWidth: 90 }}
                 className="btn btn-sm custom-outline-btn"
-                onClick={resetFilters}>
+                onClick={resetFilters}
+              >
                 Reset
               </button>
             </div>
@@ -386,66 +437,264 @@ const fetchRequests = async () => {
         </div>
       </div>
 
-
-
       <div className="card shadow-sm border-0">
         <div className="table-responsive bg-white">
           <table className="table table-hover mb-0">
             <thead style={{ backgroundColor: "#ffffffff" }}>
-              <tr >
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Date</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Apply Date</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Check-In</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Check-Out</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Mode</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Reason</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Status</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Action</th>
+              <tr>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Date
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Apply Date
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Check-In
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Check-Out
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Mode
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Reason
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Status
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Action
+                </th>
               </tr>
             </thead>
             <tbody>
               {currentRequests.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="text-center py-4" style={{ color: "#6c757d" }}>
+                  <td
+                    colSpan="6"
+                    className="text-center py-4"
+                    style={{ color: "#6c757d" }}
+                  >
                     No regularization requests found.
                   </td>
                 </tr>
               ) : (
                 currentRequests.map((req, index) => {
-                  const checkInTime = req.checkIn || req?.regularizationRequest?.checkIn;
-                  const checkOutTime = req.checkOut || req?.regularizationRequest?.checkOut;
+                  const checkInTime =
+                    req.checkIn || req?.regularizationRequest?.checkIn;
+                  const checkOutTime =
+                    req.checkOut || req?.regularizationRequest?.checkOut;
 
                   return (
-                    <tr key={req._id || index} onClick={() => setSelectedRequest(req)} style={{ cursor: "pointer" }}>
-                      <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                    <tr
+                      key={req._id || index}
+                      onClick={() => setSelectedRequest(req)}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <td
+                        style={{
+                          padding: "12px",
+                          verticalAlign: "middle",
+                          fontSize: "14px",
+                          borderBottom: "1px solid #dee2e6",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
                         {new Date(req.date).toLocaleDateString("en-GB", {
                           day: "2-digit",
                           month: "short",
                           year: "numeric",
                         })}
                       </td>
-                      <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
-                        {new Date(req.regularizationRequest.requestedAt).toLocaleDateString("en-GB", {
+                      <td
+                        style={{
+                          padding: "12px",
+                          verticalAlign: "middle",
+                          fontSize: "14px",
+                          borderBottom: "1px solid #dee2e6",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {new Date(
+                          req.regularizationRequest.requestedAt,
+                        ).toLocaleDateString("en-GB", {
                           day: "2-digit",
                           month: "short",
                           year: "numeric",
                         })}
                       </td>
-                      <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>{formatToIST(checkInTime)}</td>
-                      <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>{formatToIST(checkOutTime)}</td>
-                      <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>{req.mode?.trim().toLowerCase() === "office" ? "WFO" : req.mode}</td>
-                      <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>{req?.regularizationRequest?.reason || "—"}</td>
-                      <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                      <td
+                        style={{
+                          padding: "12px",
+                          verticalAlign: "middle",
+                          fontSize: "14px",
+                          borderBottom: "1px solid #dee2e6",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {formatToIST(checkInTime)}
+                      </td>
+                      <td
+                        style={{
+                          padding: "12px",
+                          verticalAlign: "middle",
+                          fontSize: "14px",
+                          borderBottom: "1px solid #dee2e6",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {formatToIST(checkOutTime)}
+                      </td>
+                      <td
+                        style={{
+                          padding: "12px",
+                          verticalAlign: "middle",
+                          fontSize: "14px",
+                          borderBottom: "1px solid #dee2e6",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {req.mode?.trim().toLowerCase() === "office"
+                          ? "WFO"
+                          : req.mode}
+                      </td>
+                      <td
+                        style={{
+                          padding: "12px",
+                          verticalAlign: "middle",
+                          fontSize: "14px",
+                          borderBottom: "1px solid #dee2e6",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {req?.regularizationRequest?.reason || "—"}
+                      </td>
+                      <td
+                        style={{
+                          padding: "12px",
+                          verticalAlign: "middle",
+                          fontSize: "14px",
+                          borderBottom: "1px solid #dee2e6",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
                         {req?.regularizationRequest?.status === "Approved" ? (
-                          <span style={{ backgroundColor: '#d1f2dd', padding: '8px 16px', borderRadius: '4px', fontSize: '13px', fontWeight: '500', display: 'inline-block', width: "100px", textAlign: "center" }}>
+                          <span
+                            style={{
+                              backgroundColor: "#d1f2dd",
+                              padding: "8px 16px",
+                              borderRadius: "4px",
+                              fontSize: "13px",
+                              fontWeight: "500",
+                              display: "inline-block",
+                              width: "100px",
+                              textAlign: "center",
+                            }}
+                          >
                             Approved
                           </span>
-                        ) : req?.regularizationRequest?.status === "Rejected" ? (
-                          <span style={{ backgroundColor: '#f8d7da', padding: '8px 16px', borderRadius: '4px', fontSize: '13px', fontWeight: '500', display: 'inline-block', width: "100px", textAlign: "center" }}>
+                        ) : req?.regularizationRequest?.status ===
+                          "Rejected" ? (
+                          <span
+                            style={{
+                              backgroundColor: "#f8d7da",
+                              padding: "8px 16px",
+                              borderRadius: "4px",
+                              fontSize: "13px",
+                              fontWeight: "500",
+                              display: "inline-block",
+                              width: "100px",
+                              textAlign: "center",
+                            }}
+                          >
                             Rejected
                           </span>
                         ) : req?.regularizationRequest?.status === "Pending" ? (
-                          <span style={{ backgroundColor: '#FFE493', padding: '8px 16px', borderRadius: '4px', fontSize: '13px', fontWeight: '500', display: 'inline-block', width: "100px", textAlign: "center" }}>
+                          <span
+                            style={{
+                              backgroundColor: "#FFE493",
+                              padding: "8px 16px",
+                              borderRadius: "4px",
+                              fontSize: "13px",
+                              fontWeight: "500",
+                              display: "inline-block",
+                              width: "100px",
+                              textAlign: "center",
+                            }}
+                          >
                             Pending
                           </span>
                         ) : (
@@ -482,30 +731,29 @@ const fetchRequests = async () => {
                         }}
                       >
                         {(req?.regularizationRequest?.status === "Pending" ||
-                          req?.regularizationRequest?.status === "Rejected") && (
-                            <button
-                              // className="btn btn-sm btn-outline"
-                              // style={{ color: "#3A5FBE", borderColor: "#3A5FBE" }}
-                              className="btn btn-outline-danger btn-sm"
-
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDelete(req._id);
-                              }}
-                            >
-                              Delete
-                            </button>
-                          )}
+                          req?.regularizationRequest?.status ===
+                            "Rejected") && (
+                          <button
+                            // className="btn btn-sm btn-outline"
+                            // style={{ color: "#3A5FBE", borderColor: "#3A5FBE" }}
+                            className="btn btn-outline-danger btn-sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(req._id);
+                            }}
+                          >
+                            Delete
+                          </button>
+                        )}
                       </td>
-
                     </tr>
                   );
-                }))}
+                })
+              )}
             </tbody>
           </table>
         </div>
       </div>
-
 
       {/* MODAL code */}
       {selectedRequest && (
@@ -521,13 +769,19 @@ const fetchRequests = async () => {
             zIndex: 1050,
           }}
         >
-          <div className="modal-dialog modal-dialog-scrollable"
-            style={{ maxWidth: "650px", width: "95%", marginTop: "200px", }}>
+          <div
+            className="modal-dialog"
+            style={{ maxWidth: "650px", width: "95%", marginTop: "120px" }}
+          >
             <div className="modal-content">
-
               {/* Header */}
-              <div className="modal-header text-white" style={{ backgroundColor: "#3A5FBE" }}>
-                <h5 className="modal-title mb-0">Regularization Request Details</h5>
+              <div
+                className="modal-header text-white"
+                style={{ backgroundColor: "#3A5FBE" }}
+              >
+                <h5 className="modal-title mb-0">
+                  Regularization Request Details
+                </h5>
                 <button
                   type="button"
                   className="btn-close btn-close-white"
@@ -541,7 +795,23 @@ const fetchRequests = async () => {
                   <div className="row mb-2">
                     <div className="col-5 col-sm-3 fw-semibold">Date</div>
                     <div className="col-7 col-sm-9">
-                      {new Date(selectedRequest.date).toLocaleDateString("en-GB", {
+                      {new Date(selectedRequest.date).toLocaleDateString(
+                        "en-GB",
+                        {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        },
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="row mb-2">
+                    <div className="col-5 col-sm-3 fw-semibold">Apply Date</div>
+                    <div className="col-7 col-sm-9">
+                      {new Date(
+                        selectedRequest.regularizationRequest.requestedAt,
+                      ).toLocaleDateString("en-GB", {
                         day: "2-digit",
                         month: "short",
                         year: "numeric",
@@ -550,23 +820,11 @@ const fetchRequests = async () => {
                   </div>
 
                   <div className="row mb-2">
-                    <div className="col-5 col-sm-3 fw-semibold">Apply Date</div>
-                    <div className="col-7 col-sm-9">
-                      {new Date(selectedRequest.regularizationRequest.requestedAt)
-                        .toLocaleDateString("en-GB", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                    </div>
-                  </div>
-
-                  <div className="row mb-2">
                     <div className="col-5 col-sm-3 fw-semibold">Check-In</div>
                     <div className="col-7 col-sm-9">
                       {formatToIST(
                         selectedRequest.checkIn ||
-                        selectedRequest?.regularizationRequest?.checkIn
+                          selectedRequest?.regularizationRequest?.checkIn,
                       )}
                     </div>
                   </div>
@@ -576,7 +834,7 @@ const fetchRequests = async () => {
                     <div className="col-7 col-sm-9">
                       {formatToIST(
                         selectedRequest.checkOut ||
-                        selectedRequest?.regularizationRequest?.checkOut
+                          selectedRequest?.regularizationRequest?.checkOut,
                       )}
                     </div>
                   </div>
@@ -610,36 +868,39 @@ const fetchRequests = async () => {
                       <span
                         className={
                           "badge text-capitalize " +
-                          (selectedRequest?.regularizationRequest?.status === "Approved"
+                          (selectedRequest?.regularizationRequest?.status ===
+                          "Approved"
                             ? "bg-success"
-                            : selectedRequest?.regularizationRequest?.status === "Rejected"
+                            : selectedRequest?.regularizationRequest?.status ===
+                                "Rejected"
                               ? "bg-danger"
                               : "bg-warning text-dark")
                         }
                       >
-                        {selectedRequest?.regularizationRequest?.status || "N/A"}
+                        {selectedRequest?.regularizationRequest?.status ||
+                          "N/A"}
                       </span>
                     </div>
                   </div>
-
-
                 </div>
               </div>
 
               {/* Footer */}
               <div className="modal-footer border-0 pt-0">
-                {(selectedRequest?.regularizationRequest?.status === "Pending" ||
-                  selectedRequest?.regularizationRequest?.status === "Rejected") && (
-                    <button
-                      className="btn btn-outline-danger me-2"
-                      onClick={() => {
-                        handleDelete(selectedRequest._id);
-                        setSelectedRequest(null);
-                      }}
-                    >
-                      Delete
-                    </button>
-                  )}
+                {(selectedRequest?.regularizationRequest?.status ===
+                  "Pending" ||
+                  selectedRequest?.regularizationRequest?.status ===
+                    "Rejected") && (
+                  <button
+                    className="btn btn-outline-danger me-2"
+                    onClick={() => {
+                      handleDelete(selectedRequest._id);
+                      setSelectedRequest(null);
+                    }}
+                  >
+                    Delete
+                  </button>
+                )}
                 <button
                   className="btn  custom-outline-btn"
                   onClick={() => setSelectedRequest(null)}
@@ -659,7 +920,9 @@ const fetchRequests = async () => {
         <div className="d-flex align-items-center gap-3">
           {/* Rows per page */}
           <div className="d-flex align-items-center">
-            <span style={{ fontSize: "14px", marginRight: "8px" }}>Rows per page:</span>
+            <span style={{ fontSize: "14px", marginRight: "8px" }}>
+              Rows per page:
+            </span>
             <select
               className="form-select form-select-sm"
               style={{ width: "auto", fontSize: "14px" }}
@@ -680,11 +943,16 @@ const fetchRequests = async () => {
           <span style={{ fontSize: "14px", marginLeft: "16px" }}>
             {filteredRequests.length === 0
               ? "0–0 of 0"
-              : `${indexOfFirstItem + 1}-${indexOfLastItem} of ${filteredRequests.length}`}
+              : `${indexOfFirstItem + 1}-${indexOfLastItem} of ${
+                  filteredRequests.length
+                }`}
           </span>
 
           {/* Arrows */}
-          <div className="d-flex align-items-center" style={{ marginLeft: "16px" }}>
+          <div
+            className="d-flex align-items-center"
+            style={{ marginLeft: "16px" }}
+          >
             <button
               className="btn btn-sm border-0"
               onClick={() => handlePageChange(currentPage - 1)}
@@ -714,9 +982,7 @@ const fetchRequests = async () => {
           Back
         </button>
       </div>
-
     </>
-
   );
 }
 

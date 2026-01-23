@@ -1,10 +1,3 @@
-
-
-
-
-
-
-
 // import React, { useEffect, useState } from "react";
 // import axios from "axios";
 // import "../Events/VisualDiary.css";
@@ -201,14 +194,10 @@ const VisualDiary = () => {
                     <div
                       key={item._id}
                       className="section-item"
-                      onClick={() =>
-                        setPopupItem({ ...item, type, fileUrl })
-                      }
+                      onClick={() => setPopupItem({ ...item, type, fileUrl })}
                     >
                       {/* HIGHLIGHTED TITLE (TOP) */}
-                      <div className="highlighted-title">
-                        {item.title}
-                      </div>
+                      <div className="highlighted-title">{item.title}</div>
 
                       <div className="item-divider"></div>
 
@@ -235,7 +224,6 @@ const VisualDiary = () => {
                         />
                       )}
 
-
                       {(type === "raw" || type === "pdf") && (
                         <div className="icon-box">📄</div>
                       )}
@@ -251,14 +239,8 @@ const VisualDiary = () => {
       {/* POPUP */}
       {popupItem && (
         <div className="popup-overlay" onClick={() => setPopupItem(null)}>
-          <div
-            className="popup-content"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <span
-              className="popup-close"
-              onClick={() => setPopupItem(null)}
-            >
+          <div className="popup-content" onClick={(e) => e.stopPropagation()}>
+            <span className="popup-close" onClick={() => setPopupItem(null)}>
               ×
             </span>
 
@@ -273,14 +255,13 @@ const VisualDiary = () => {
               <video src={popupItem.fileUrl} controls autoPlay />
             )}
 
-            {(popupItem.type === "raw" ||
-              popupItem.type === "pdf") && (
-                <iframe
-                  src={popupItem.fileUrl}
-                  title={popupItem.title}
-                  frameBorder="0"
-                ></iframe>
-              )}
+            {(popupItem.type === "raw" || popupItem.type === "pdf") && (
+              <iframe
+                src={popupItem.fileUrl}
+                title={popupItem.title}
+                frameBorder="0"
+              ></iframe>
+            )}
           </div>
         </div>
       )}

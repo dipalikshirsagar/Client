@@ -13,7 +13,7 @@ function TodaysEmployeeDetails() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
 
-  // NEW: Status filter state 
+  // NEW: Status filter state
   const [statusFilter, setStatusFilter] = useState("All");
   const [employeeNameFilter, setEmployeeNameFilter] = useState("");
   const [filteredEmployees, setFilteredEmployees] = useState([]);
@@ -22,7 +22,6 @@ function TodaysEmployeeDetails() {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [employeeBreaks, setEmployeeBreaks] = useState([]);
   const [breakLoading, setBreakLoading] = useState(false);
-
 
   const openEmployeePopup = async (emp) => {
     try {
@@ -56,15 +55,12 @@ function TodaysEmployeeDetails() {
     }
   };
 
-
-
   const closeModal = () => {
     setShowModal(false);
     setSelectedEmployee(null);
   };
   const getCompletedBreaks = (breaks = []) =>
     breaks.filter((b) => b.startTime && b.endTime);
-
 
   const getBreakDurationInMinutes = (start, end) => {
     if (!start || !end) return 0;
@@ -106,9 +102,7 @@ function TodaysEmployeeDetails() {
     const totalSeconds = getCompletedBreaks(breaks).reduce((total, brk) => {
       return (
         total +
-        Math.floor(
-          (new Date(brk.endTime) - new Date(brk.startTime)) / 1000
-        )
+        Math.floor((new Date(brk.endTime) - new Date(brk.startTime)) / 1000)
       );
     }, 0);
 
@@ -124,13 +118,12 @@ function TodaysEmployeeDetails() {
     return result.join(" ");
   };
 
-
   // ✅ Summary counts
   const [summary, setSummary] = useState({
     present: 0,
     absent: 0,
     lateCheckIn: 0,
-  })
+  });
 
   useEffect(() => {
     const fetchAttendance = async () => {
@@ -208,7 +201,6 @@ function TodaysEmployeeDetails() {
   //   }
   // };
 
-
   const getStatus = (checkIn, checkOut, workingHours) => {
     if (!checkIn && !checkOut) return "Absent";
     if (checkIn && !checkOut) return "Working";
@@ -217,19 +209,24 @@ function TodaysEmployeeDetails() {
     return "Absent";
   };
 
-  if (loading) return <div
-    className="d-flex flex-column justify-content-center align-items-center"
-    style={{ minHeight: "100vh" }}
-  >
-    <div
-      className="spinner-grow"
-      role="status"
-      style={{ width: "4rem", height: "4rem", color: "#3A5FBE" }}
-    >
-      <span className="visually-hidden">Loading...</span>
-    </div>
-    <p className="mt-3 fw-semibold" style={{ color: "#3A5FBE" }}>Loading ...</p>
-  </div>;
+  if (loading)
+    return (
+      <div
+        className="d-flex flex-column justify-content-center align-items-center"
+        style={{ minHeight: "100vh" }}
+      >
+        <div
+          className="spinner-grow"
+          role="status"
+          style={{ width: "4rem", height: "4rem", color: "#3A5FBE" }}
+        >
+          <span className="visually-hidden">Loading...</span>
+        </div>
+        <p className="mt-3 fw-semibold" style={{ color: "#3A5FBE" }}>
+          Loading ...
+        </p>
+      </div>
+    );
 
   if (error) return <p className="text-danger">{error}</p>;
   if (!attendanceData?.employees?.length)
@@ -247,7 +244,7 @@ function TodaysEmployeeDetails() {
   //   }
   // };
 
-  // dipali code 
+  // dipali code
   // NEW: Filter employees by status
   const applyFilters = () => {
     const employeesList = attendanceData?.employees || [];
@@ -267,7 +264,9 @@ function TodaysEmployeeDetails() {
             const hours = dt.getHours();
             const minutes = dt.getMinutes();
             return (
-              (status === "Present" || status === "Half Day" || status === "Working") &&
+              (status === "Present" ||
+                status === "Half Day" ||
+                status === "Working") &&
               (hours > 10 || (hours === 10 && minutes > 0))
             );
           }
@@ -292,8 +291,10 @@ function TodaysEmployeeDetails() {
   const totalPages = Math.ceil(filteredEmployees.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentEmployees = filteredEmployees.slice(indexOfFirstItem, indexOfLastItem);
-
+  const currentEmployees = filteredEmployees.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
@@ -301,19 +302,29 @@ function TodaysEmployeeDetails() {
     }
   };
 
-  console.log("currentEmployees", currentEmployees)
-
-
+  console.log("currentEmployees", currentEmployees);
 
   return (
     <div className="container-fluid">
-      <h2 style={{ color: "#3A5FBE", fontSize: "25px", marginLeft: "15px", marginBottom: "30px" }}>Today's Attendance Details</h2>
+      <h2
+        style={{
+          color: "#3A5FBE",
+          fontSize: "25px",
+          marginLeft: "15px",
+          marginBottom: "30px",
+        }}
+      >
+        Today's Attendance Details
+      </h2>
 
       {/* ✅ Summary Cards */}
       <div className="row mb-4">
         <div className="col-md-4 mb-3">
           <div className="card shadow-sm h-100 border-0">
-            <div className="card-body d-flex align-items-center" style={{ gap: "20px" }}>
+            <div
+              className="card-body d-flex align-items-center"
+              style={{ gap: "20px" }}
+            >
               <h4
                 className="mb-0"
                 style={{
@@ -321,16 +332,19 @@ function TodaysEmployeeDetails() {
                   backgroundColor: "#D7F5E4",
                   padding: "10px",
                   textAlign: "center",
-                  minWidth: "75px",      // Fixed minimum width
-                  minHeight: "75px",     // Fixed minimum height
-                  display: "flex",       // Center content
-                  alignItems: "center",  // Center vertically
+                  minWidth: "75px", // Fixed minimum width
+                  minHeight: "75px", // Fixed minimum height
+                  display: "flex", // Center content
+                  alignItems: "center", // Center vertically
                   justifyContent: "center", // Center horizontally
                 }}
               >
                 {summary.present}
               </h4>
-              <p className="mb-0 fw-semibold" style={{ fontSize: "20px", color: "#3A5FBE" }}>
+              <p
+                className="mb-0 fw-semibold"
+                style={{ fontSize: "20px", color: "#3A5FBE" }}
+              >
                 Total Present Employees
               </p>
             </div>
@@ -339,7 +353,10 @@ function TodaysEmployeeDetails() {
 
         <div className="col-md-4 mb-3">
           <div className="card shadow-sm h-100 border-0">
-            <div className="card-body d-flex  align-items-center" style={{ gap: "20px" }}>
+            <div
+              className="card-body d-flex  align-items-center"
+              style={{ gap: "20px" }}
+            >
               <h4
                 className="mb-0"
                 style={{
@@ -347,16 +364,19 @@ function TodaysEmployeeDetails() {
                   backgroundColor: "#F8D7DA",
                   padding: "10px",
                   textAlign: "center",
-                  minWidth: "75px",      // Fixed minimum width
-                  minHeight: "75px",     // Fixed minimum height
-                  display: "flex",       // Center content
-                  alignItems: "center",  // Center vertically
+                  minWidth: "75px", // Fixed minimum width
+                  minHeight: "75px", // Fixed minimum height
+                  display: "flex", // Center content
+                  alignItems: "center", // Center vertically
                   justifyContent: "center", // Center horizontally
                 }}
               >
                 {summary.absent}
               </h4>
-              <p className="mb-0 fw-semibold" style={{ fontSize: "20px", color: "#3A5FBE" }}>
+              <p
+                className="mb-0 fw-semibold"
+                style={{ fontSize: "20px", color: "#3A5FBE" }}
+              >
                 Total Absent Employees
               </p>
             </div>
@@ -365,7 +385,10 @@ function TodaysEmployeeDetails() {
 
         <div className="col-md-4 mb-3">
           <div className="card shadow-sm h-100 border-0">
-            <div className="card-body d-flex align-items-center" style={{ gap: "20px" }}>
+            <div
+              className="card-body d-flex align-items-center"
+              style={{ gap: "20px" }}
+            >
               <h4
                 className="mb-0"
                 style={{
@@ -373,16 +396,19 @@ function TodaysEmployeeDetails() {
                   backgroundColor: "#FFE493",
                   padding: "10px",
                   textAlign: "center",
-                  minWidth: "75px",      // Fixed minimum width
-                  minHeight: "75px",     // Fixed minimum height
-                  display: "flex",       // Center content
-                  alignItems: "center",  // Center vertically
+                  minWidth: "75px", // Fixed minimum width
+                  minHeight: "75px", // Fixed minimum height
+                  display: "flex", // Center content
+                  alignItems: "center", // Center vertically
                   justifyContent: "center", // Center horizontally
                 }}
               >
                 {summary.lateCheckIn}
               </h4>
-              <p className="mb-0 fw-semibold" style={{ fontSize: "20px", color: "#3A5FBE" }}>
+              <p
+                className="mb-0 fw-semibold"
+                style={{ fontSize: "20px", color: "#3A5FBE" }}
+              >
                 Late Check-In
               </p>
             </div>
@@ -390,26 +416,30 @@ function TodaysEmployeeDetails() {
         </div>
       </div>
 
-
-
       {/* dipali code */}
       <div className="card mb-4 shadow-sm border-0">
         <div className="card-body">
           <form
             className="row g-2 align-items-center"
-            onSubmit={e => {
+            onSubmit={(e) => {
               e.preventDefault();
               applyFilters();
             }}
           >
             {/* Status Filter */}
             <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1 ms-2">
-              <label htmlFor="statusFilter" className="fw-bold mb-0 text-start text-md-end" style={{ width: "55px", fontSize: "16px", color: "#3A5FBE" }}>Status</label>
+              <label
+                htmlFor="statusFilter"
+                className="fw-bold mb-0 text-start text-md-end"
+                style={{ width: "55px", fontSize: "16px", color: "#3A5FBE" }}
+              >
+                Status
+              </label>
               <select
                 id="statusFilter"
                 className="form-select"
                 value={statusFilter}
-                onChange={e => setStatusFilter(e.target.value)} // no auto-filter on change
+                onChange={(e) => setStatusFilter(e.target.value)} // no auto-filter on change
               >
                 <option value="All">All</option>
                 <option value="Present">Present</option>
@@ -418,31 +448,43 @@ function TodaysEmployeeDetails() {
                 <option value="Absent">Absent</option>
                 <option value="Late Check-In">Late Check-In</option>
               </select>
-
             </div>
 
             {/* Name Filter */}
             <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1 ms-2">
-              <label htmlFor="employeeNameFilter" className="fw-bold mb-0 text-start text-md-end" style={{ width: "50px", fontSize: "16px", color: "#3A5FBE", marginRight: "2px" }}>Name</label>
+              <label
+                htmlFor="employeeNameFilter"
+                className="fw-bold mb-0 text-start text-md-end"
+                style={{
+                  width: "50px",
+                  fontSize: "16px",
+                  color: "#3A5FBE",
+                  marginRight: "2px",
+                }}
+              >
+                Name
+              </label>
               <input
                 id="employeeNameFilter"
                 type="text"
                 className="form-control"
                 value={employeeNameFilter}
-                onChange={e => setEmployeeNameFilter(e.target.value)}
+                onChange={(e) => setEmployeeNameFilter(e.target.value)}
                 placeholder="Employee name"
               />
             </div>
 
-            <>
-            </>
+            <></>
 
             {/* Filter and Reset Buttons */}
             <div className="col-12 col-md-auto ms-md-auto d-flex gap-2 mb-1 justify-content-end">
-              <button type="submit"
+              <button
+                type="submit"
                 className="btn btn-sm custom-outline-btn"
                 style={{ minWidth: 90 }}
-              >Filter</button>
+              >
+                Filter
+              </button>
               <button
                 type="button"
                 className="btn btn-sm custom-outline-btn"
@@ -453,7 +495,6 @@ function TodaysEmployeeDetails() {
                   setCurrentPage(1);
                   setFilteredEmployees(attendanceData.employees || []);
                 }}
-
               >
                 Reset
               </button>
@@ -467,18 +508,89 @@ function TodaysEmployeeDetails() {
         <table className="table table-hover mb-0 bg-white">
           <thead style={{ backgroundColor: "#ffffffff" }}>
             <tr>
-              <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Name</th>
-              <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }} >Check-In Time</th>
-              <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }} >Check-Out Time</th>
-              <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }} >Total Hours</th>
-              <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }} >Status</th>
-              <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }} >Actions</th>
+              <th
+                style={{
+                  fontWeight: "500",
+                  fontSize: "14px",
+                  color: "#6c757d",
+                  borderBottom: "2px solid #dee2e6",
+                  padding: "12px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Name
+              </th>
+              <th
+                style={{
+                  fontWeight: "500",
+                  fontSize: "14px",
+                  color: "#6c757d",
+                  borderBottom: "2px solid #dee2e6",
+                  padding: "12px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Check-In Time
+              </th>
+              <th
+                style={{
+                  fontWeight: "500",
+                  fontSize: "14px",
+                  color: "#6c757d",
+                  borderBottom: "2px solid #dee2e6",
+                  padding: "12px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Check-Out Time
+              </th>
+              <th
+                style={{
+                  fontWeight: "500",
+                  fontSize: "14px",
+                  color: "#6c757d",
+                  borderBottom: "2px solid #dee2e6",
+                  padding: "12px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Total Hours
+              </th>
+              <th
+                style={{
+                  fontWeight: "500",
+                  fontSize: "14px",
+                  color: "#6c757d",
+                  borderBottom: "2px solid #dee2e6",
+                  padding: "12px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Status
+              </th>
+              <th
+                style={{
+                  fontWeight: "500",
+                  fontSize: "14px",
+                  color: "#6c757d",
+                  borderBottom: "2px solid #dee2e6",
+                  padding: "12px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
-            {currentEmployees.length === 0 ? ( /* NEW: Show message when no results */
+            {currentEmployees.length ===
+            0 /* NEW: Show message when no results */ ? (
               <tr>
-                <td colSpan="6" className="text-center py-4" style={{ color: "#6c757d" }}>
+                <td
+                  colSpan="6"
+                  className="text-center py-4"
+                  style={{ color: "#6c757d" }}
+                >
                   No employees found with status "{statusFilter}"
                 </td>
               </tr>
@@ -490,17 +602,17 @@ function TodaysEmployeeDetails() {
                 const status = getStatus(checkIn, checkOut, workingHours);
                 const badgeStyle = {
                   base: {
-                    display: 'inline-block',
-                    padding: '6px 12px',
+                    display: "inline-block",
+                    padding: "6px 12px",
                     fontWeight: 400,
-                    fontSize: '14px',
+                    fontSize: "14px",
                     width: 112,
                     textAlign: "center",
                   },
-                  Present: { background: '#d1f7df' }, // soft green
-                  'Half Day': { background: '#fff3cd' }, // soft yellow
-                  Working: { background: '#cff4fc' }, // soft cyan
-                  Absent: { background: '#f8d7da' }, // soft red
+                  Present: { background: "#d1f7df" }, // soft green
+                  "Half Day": { background: "#fff3cd" }, // soft yellow
+                  Working: { background: "#cff4fc" }, // soft cyan
+                  Absent: { background: "#f8d7da" }, // soft red
                 };
 
                 return (
@@ -509,33 +621,94 @@ function TodaysEmployeeDetails() {
                     style={{ cursor: "pointer" }}
                     onClick={() => openEmployeePopup(emp)}
                   >
-                    <td style={{ padding: "12px", fontSize: '14px', fontWeight: 400, color: '#212529', whiteSpace: 'nowrap', textTransform: 'capitalize', borderTop: '1px solid #e9ecef' }}>{emp.name}</td>
-                    <td style={{ padding: '12px', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                    <td
+                      style={{
+                        padding: "12px",
+                        fontSize: "14px",
+                        fontWeight: 400,
+                        color: "#212529",
+                        whiteSpace: "nowrap",
+                        textTransform: "capitalize",
+                        borderTop: "1px solid #e9ecef",
+                      }}
+                    >
+                      {emp.name}
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {checkIn
-                        ? new Date(checkIn).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                        ? new Date(checkIn).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
                         : "-"}
                     </td>
-                    <td style={{ padding: '12px', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                    <td
+                      style={{
+                        padding: "12px",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {checkOut
-                        ? new Date(checkOut).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                        ? new Date(checkOut).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
                         : "-"}
                     </td>
-                    <td style={{ padding: '12px', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>{workingHours > 0 ? `${workingHours} hrs` : "-"}</td>
-                    <td style={{ padding: '12px', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                    <td
+                      style={{
+                        padding: "12px",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {workingHours > 0 ? `${workingHours} hrs` : "-"}
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       <span
-                        style={{ ...badgeStyle.base, ...(badgeStyle[status] || {}) }}
+                        style={{
+                          ...badgeStyle.base,
+                          ...(badgeStyle[status] || {}),
+                        }}
                       >
                         {status}
                       </span>
                     </td>
-                    <td style={{ padding: '12px', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                    <td
+                      style={{
+                        padding: "12px",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       <button
                         className="btn btn-sm custom-outline-btn"
                         style={{ minWidth: 90 }}
                         onClick={() =>
-                          navigate(`/dashboard/${role}/${username}/${id}/employeeattendance/${emp._id}`, {
-                            state: { employee: emp },
-                          })
+                          navigate(
+                            `/dashboard/${role}/${username}/${id}/employeeattendance/${emp._id}`,
+                            {
+                              state: { employee: emp },
+                            }
+                          )
                         }
                       >
                         View Attendance
@@ -543,7 +716,8 @@ function TodaysEmployeeDetails() {
                     </td>
                   </tr>
                 );
-              }))}
+              })
+            )}
           </tbody>
         </table>
       </div>
@@ -551,7 +725,9 @@ function TodaysEmployeeDetails() {
       <nav className="d-flex align-items-center justify-content-end mt-3 text-muted">
         <div className="d-flex align-items-center gap-3">
           <div className="d-flex align-items-center">
-            <span style={{ fontSize: "14px", marginRight: "8px" }}>Rows per page:</span>
+            <span style={{ fontSize: "14px", marginRight: "8px" }}>
+              Rows per page:
+            </span>
             <select
               className="form-select form-select-sm"
               style={{ width: "auto", fontSize: "14px" }}
@@ -568,10 +744,15 @@ function TodaysEmployeeDetails() {
           </div>
 
           <span style={{ fontSize: "14px", marginLeft: "16px" }}>
-            {filteredEmployees.length > 0 ? indexOfFirstItem + 1 : 0}-{Math.min(indexOfLastItem, filteredEmployees.length)} of {filteredEmployees.length} {/* New change */}
+            {filteredEmployees.length > 0 ? indexOfFirstItem + 1 : 0}-
+            {Math.min(indexOfLastItem, filteredEmployees.length)} of{" "}
+            {filteredEmployees.length} {/* New change */}
           </span>
 
-          <div className="d-flex align-items-center" style={{ marginLeft: "16px" }}>
+          <div
+            className="d-flex align-items-center"
+            style={{ marginLeft: "16px" }}
+          >
             <button
               className="btn btn-sm border-0"
               onClick={() => handlePageChange(currentPage - 1)}
@@ -599,7 +780,6 @@ function TodaysEmployeeDetails() {
         </button>
       </div>
 
-
       {showModal && selectedEmployee && (
         <div
           className="modal fade show"
@@ -607,7 +787,6 @@ function TodaysEmployeeDetails() {
         >
           <div className="modal-dialog modal-lg modal-dialog-centered">
             <div className="modal-content">
-
               {/* 🔹 Header */}
               <div
                 className="modal-header text-white"
@@ -627,11 +806,9 @@ function TodaysEmployeeDetails() {
                 className="modal-body"
                 style={{ maxHeight: "70vh", overflowY: "auto" }}
               >
-
                 {/* 🔹 Body */}
                 <div className="modal-body">
                   <div className="container-fluid">
-
                     <div className="row mb-3">
                       <div className="col-sm-3 fw-semibold">Name</div>
                       <div className="col-sm-9">
@@ -643,7 +820,9 @@ function TodaysEmployeeDetails() {
                       <div className="col-sm-3 fw-semibold">Check-In</div>
                       <div className="col-sm-9">
                         {selectedEmployee.checkInTime
-                          ? new Date(selectedEmployee.checkInTime).toLocaleTimeString()
+                          ? new Date(
+                              selectedEmployee.checkInTime
+                            ).toLocaleTimeString()
                           : "-"}
                       </div>
                     </div>
@@ -652,7 +831,9 @@ function TodaysEmployeeDetails() {
                       <div className="col-sm-3 fw-semibold">Check-Out</div>
                       <div className="col-sm-9">
                         {selectedEmployee.checkOutTime
-                          ? new Date(selectedEmployee.checkOutTime).toLocaleTimeString()
+                          ? new Date(
+                              selectedEmployee.checkOutTime
+                            ).toLocaleTimeString()
                           : "-"}
                       </div>
                     </div>
@@ -663,7 +844,8 @@ function TodaysEmployeeDetails() {
                         {calculateWorkingHours(
                           selectedEmployee.checkInTime,
                           selectedEmployee.checkOutTime
-                        )} hrs
+                        )}{" "}
+                        hrs
                       </div>
                     </div>
 
@@ -683,15 +865,15 @@ function TodaysEmployeeDetails() {
                             ) === "Present"
                               ? "bg-success"
                               : getStatus(
-                                selectedEmployee.checkInTime,
-                                selectedEmployee.checkOutTime,
-                                calculateWorkingHours(
                                   selectedEmployee.checkInTime,
-                                  selectedEmployee.checkOutTime
-                                )
-                              ) === "Half Day"
-                                ? "bg-warning text-dark"
-                                : getStatus(
+                                  selectedEmployee.checkOutTime,
+                                  calculateWorkingHours(
+                                    selectedEmployee.checkInTime,
+                                    selectedEmployee.checkOutTime
+                                  )
+                                ) === "Half Day"
+                              ? "bg-warning text-dark"
+                              : getStatus(
                                   selectedEmployee.checkInTime,
                                   selectedEmployee.checkOutTime,
                                   calculateWorkingHours(
@@ -699,8 +881,8 @@ function TodaysEmployeeDetails() {
                                     selectedEmployee.checkOutTime
                                   )
                                 ) === "Working"
-                                  ? "bg-info text-dark"
-                                  : "bg-danger")
+                              ? "bg-info text-dark"
+                              : "bg-danger")
                           }
                         >
                           {getStatus(
@@ -776,7 +958,6 @@ function TodaysEmployeeDetails() {
                               {formatDurationHMS(brk.startTime, brk.endTime)}
                             </div>
                           </div>
-
                         </div>
                       ))
                     )}
@@ -786,10 +967,8 @@ function TodaysEmployeeDetails() {
                       <span className="fw-semibold">Total Break Time: </span>
                       <span style={{ color: "#3A5FBE", fontWeight: 600 }}>
                         {getTotalBreakDurationHMS(employeeBreaks)}
-
                       </span>
                     </div>
-
                   </div>
                 </div>
 
@@ -803,7 +982,6 @@ function TodaysEmployeeDetails() {
                   </button>
                 </div>
               </div>
-
             </div>
           </div>
         </div>

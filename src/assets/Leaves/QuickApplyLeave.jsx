@@ -22,9 +22,6 @@ function QuickApplyLeave({ user }) {
   const [manager, setManager] = useState(null);
   const [weeklyOffs, setWeeklyOffs] = useState([]);
 
-
-
-
   useEffect(() => {
     const fetchWeeklyOffs = async () => {
       try {
@@ -39,7 +36,10 @@ function QuickApplyLeave({ user }) {
 
         // ✅ Store in state
         setWeeklyOffs({ saturdays: saturdayOffs, sundayOff });
-        console.log("✅ Weekly offs fetched:", { saturdays: saturdayOffs, sundayOff });
+        console.log("✅ Weekly offs fetched:", {
+          saturdays: saturdayOffs,
+          sundayOff,
+        });
       } catch (err) {
         console.error("❌ Error fetching weekly offs:", err);
         setWeeklyOffs({ saturdays: [], sundayOff: true }); // fallback: all Sundays off
@@ -93,7 +93,7 @@ function QuickApplyLeave({ user }) {
     probationEnd.setMonth(probationEnd.getMonth() + user.probationMonths);
 
     if (now < probationEnd) {
-      setForm(prev => ({ ...prev, leaveType: "LWP" }));
+      setForm((prev) => ({ ...prev, leaveType: "LWP" }));
       setAvailableLeaveTypes(["LWP"]);
     } else {
       setAvailableLeaveTypes(["SL", "CL", "LWP"]);
@@ -135,7 +135,6 @@ function QuickApplyLeave({ user }) {
   //   }
   // };
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -160,7 +159,9 @@ function QuickApplyLeave({ user }) {
     }
 
     if (toDate < fromDate) {
-      setMessage("⚠️ Invalid date range: 'To Date' cannot precede 'From Date'.");
+      setMessage(
+        "⚠️ Invalid date range: 'To Date' cannot precede 'From Date'."
+      );
       return;
     }
 
@@ -204,7 +205,11 @@ function QuickApplyLeave({ user }) {
       if (day === 6 && Array.isArray(weeklyOffs.saturdays)) {
         const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
         let saturdayCount = 0;
-        for (let temp = new Date(firstDay); temp <= date; temp.setDate(temp.getDate() + 1)) {
+        for (
+          let temp = new Date(firstDay);
+          temp <= date;
+          temp.setDate(temp.getDate() + 1)
+        ) {
           if (temp.getDay() === 6) saturdayCount++;
         }
 
@@ -216,7 +221,6 @@ function QuickApplyLeave({ user }) {
     }
 
     try {
-
       // ✅ 1️⃣ Fetch existing leaves of employee
       const existingLeavesRes = await axios.get(
         `https://server-backend-nu.vercel.app/leave/my/${user._id}`
@@ -236,21 +240,21 @@ function QuickApplyLeave({ user }) {
 
         // overlap check
         return (
-          (fromDate <= leaveTo && toDate >= leaveFrom) &&
+          fromDate <= leaveTo &&
+          toDate >= leaveFrom &&
           leave.status !== "rejected" // ignore rejected
         );
       });
 
       if (isOverlapping) {
-        setMessage("⚠️ You already applied for leave on one or more of these dates.");
-        alert("⚠️ You already applied for leave on one or more of these dates.");
+        setMessage(
+          "⚠️ You already applied for leave on one or more of these dates."
+        );
+        alert(
+          "⚠️ You already applied for leave on one or more of these dates."
+        );
         return;
       }
-
-
-
-
-
 
       await axios.post("https://server-backend-nu.vercel.app/leave/apply", {
         employeeId: user._id,
@@ -276,8 +280,6 @@ function QuickApplyLeave({ user }) {
         reason: "",
       });
       setShowModal(false);
-
-
     } catch (err) {
       setMessage(err.response?.data?.error || "Error applying leave");
     }
@@ -288,7 +290,6 @@ function QuickApplyLeave({ user }) {
   const futureDate = new Date();
   futureDate.setMonth(futureDate.getMonth() + 2);
   const maxDate = futureDate.toISOString().split("T")[0];
-
 
   const [daysCount, setDaysCount] = useState(0); // 👈 New state
 
@@ -311,10 +312,10 @@ function QuickApplyLeave({ user }) {
   }, [form.dateFrom, form.dateTo]);
 
   return (
-
-
     <div className="card shadow-sm h-100 border-0">
-      <h4 className="ms-4 mt-3" style={{ color: "#3A5FBE", fontSize: "25px" }}>Apply for Leave</h4>
+      <h4 className="ms-4 mt-3" style={{ color: "#3A5FBE", fontSize: "25px" }}>
+        Apply for Leave
+      </h4>
       <hr style={{ width: "100%", margin: "5px 0", opacity: "0.2" }}></hr>
       <div className="ms-4">
         {/* Quick Select */}
@@ -342,30 +343,42 @@ function QuickApplyLeave({ user }) {
             className="form-control"
             min={minDate}
             max={maxDate}
-
           />
         </div>
 
-        <button 
-        // className="btn" 
-        // style={{ float: "right", marginRight: "25px",backgroundColor: "#3A5FBE", color: "white" }} 
-        // className="btn btn-sm btn-outline mb-2"
-           style={{  color: "#3A5FBE", borderColor: "#3A5FBE" ,float: "right", marginRight: "25px" }}
-        className="btn btn-sm custom-outline-btn mb-2"
-                    
-       onClick={handleApplyClick}>
+        <button
+          // className="btn"
+          // style={{ float: "right", marginRight: "25px",backgroundColor: "#3A5FBE", color: "white" }}
+          // className="btn btn-sm btn-outline mb-2"
+          style={{
+            color: "#3A5FBE",
+            borderColor: "#3A5FBE",
+            float: "right",
+            marginRight: "25px",
+          }}
+          className="btn btn-sm custom-outline-btn mb-2"
+          onClick={handleApplyClick}
+        >
           Apply
         </button>
       </div>
 
       {/* Modal */}
       {showModal && (
-        <div className="modal d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-
-          <div className="modal-dialog" style={{ maxWidth: "600px", marginTop: "50px" }}>
+        <div
+          className="modal d-block"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
+          <div
+            className="modal-dialog"
+            style={{ maxWidth: "600px", marginTop: "50px" }}
+          >
             <div className="modal-content">
-              <div className="modal-header text-white" style={{ backgroundColor: "#3A5FBE" }}>
-                <h5 className="modal-title" >Apply Leave</h5>
+              <div
+                className="modal-header text-white"
+                style={{ backgroundColor: "#3A5FBE" }}
+              >
+                <h5 className="modal-title">Apply Leave</h5>
                 <button
                   type="button"
                   className="btn-close btn-close-white"
@@ -375,7 +388,6 @@ function QuickApplyLeave({ user }) {
               <div className="modal-body">
                 {message && <div className="alert alert-danger">{message}</div>}
                 <form onSubmit={handleSubmit}>
-
                   {/* Leave Type */}
                   <div
                     className="mb-3 d-flex align-items-center"
@@ -497,11 +509,20 @@ function QuickApplyLeave({ user }) {
                     </div>
                   </div>
 
-
-
                   {/* Half Day */}
-                  <div className="mb-3 d-flex align-items-center" style={{ gap: "18px" }}>
-                    <label style={{ fontWeight: "500", fontSize: "14px", color: "#495057" }}>Half day:</label>
+                  <div
+                    className="mb-3 d-flex align-items-center"
+                    style={{ gap: "18px" }}
+                  >
+                    <label
+                      style={{
+                        fontWeight: "500",
+                        fontSize: "14px",
+                        color: "#495057",
+                      }}
+                    >
+                      Half day:
+                    </label>
                     <div className="form-check">
                       <input
                         disabled
@@ -509,20 +530,49 @@ function QuickApplyLeave({ user }) {
                         name="duration"
                         className="form-check-input"
                         checked={form.duration === "half"}
-                        onChange={(e) => setForm(prev => ({ ...prev, duration: e.target.checked ? "half" : "full" }))}
-                        style={{ width: "18px", height: "18px", cursor: "pointer", accentColor: "#2E4A8B" }}
+                        onChange={(e) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            duration: e.target.checked ? "half" : "full",
+                          }))
+                        }
+                        style={{
+                          width: "18px",
+                          height: "18px",
+                          cursor: "pointer",
+                          accentColor: "#2E4A8B",
+                        }}
                       />
                     </div>
                   </div>
 
-                  <div className="mb-3 d-flex align-items-center" style={{ gap: "18px" }}>
+                  <div
+                    className="mb-3 d-flex align-items-center"
+                    style={{ gap: "18px" }}
+                  >
                     {/* Dates */}
 
-                    <div className="mb-3  d-flex align-items-center" >
-                      <label style={{ fontWeight: "500", fontSize: "14px", color: "#495057" }}>Select Date:</label>
+                    <div className="mb-3  d-flex align-items-center">
+                      <label
+                        style={{
+                          fontWeight: "500",
+                          fontSize: "14px",
+                          color: "#495057",
+                        }}
+                      >
+                        Select Date:
+                      </label>
                       <div className="row">
                         <div className="col-md-4">
-                          <label style={{ fontSize: "12px", color: "#6c757d", marginBottom: "6px" }}>From</label>
+                          <label
+                            style={{
+                              fontSize: "12px",
+                              color: "#6c757d",
+                              marginBottom: "6px",
+                            }}
+                          >
+                            From
+                          </label>
                           <input
                             type="date"
                             name="dateFrom"
@@ -530,13 +580,26 @@ function QuickApplyLeave({ user }) {
                             onChange={handleChange}
                             className="form-control"
                             required
-                            style={{ fontSize: "14px", padding: "8px 12px", border: "1px solid #ced4da", borderRadius: "4px" }}
+                            style={{
+                              fontSize: "14px",
+                              padding: "8px 12px",
+                              border: "1px solid #ced4da",
+                              borderRadius: "4px",
+                            }}
                             min={minDate}
                             max={maxDate}
                           />
                         </div>
                         <div className="col-md-4">
-                          <label style={{ fontSize: "12px", color: "#6c757d", marginBottom: "6px" }}>To</label>
+                          <label
+                            style={{
+                              fontSize: "12px",
+                              color: "#6c757d",
+                              marginBottom: "6px",
+                            }}
+                          >
+                            To
+                          </label>
                           <input
                             type="date"
                             name="dateTo"
@@ -544,7 +607,12 @@ function QuickApplyLeave({ user }) {
                             onChange={handleChange}
                             className="form-control"
                             required
-                            style={{ fontSize: "14px", padding: "8px 12px", border: "1px solid #ced4da", borderRadius: "4px" }}
+                            style={{
+                              fontSize: "14px",
+                              padding: "8px 12px",
+                              border: "1px solid #ced4da",
+                              borderRadius: "4px",
+                            }}
                             min={minDate}
                             max={maxDate}
                           />
@@ -552,13 +620,27 @@ function QuickApplyLeave({ user }) {
 
                         {/* No of Days */}
                         <div className="col-md-4">
-                          <label style={{ fontSize: "12px", color: "#6c757d", marginBottom: "6px" }}>No of Days</label>
+                          <label
+                            style={{
+                              fontSize: "12px",
+                              color: "#6c757d",
+                              marginBottom: "6px",
+                            }}
+                          >
+                            No of Days
+                          </label>
                           <input
                             type="text"
                             value={daysCount}
                             className="form-control"
                             readOnly
-                            style={{ fontSize: "14px", padding: "8px 12px", border: "1px solid #ced4da", borderRadius: "4px", backgroundColor: "#f8f9fa" }}
+                            style={{
+                              fontSize: "14px",
+                              padding: "8px 12px",
+                              border: "1px solid #ced4da",
+                              borderRadius: "4px",
+                              backgroundColor: "#f8f9fa",
+                            }}
                           />
                         </div>
                       </div>
@@ -567,24 +649,49 @@ function QuickApplyLeave({ user }) {
 
                   {/* Duration */}
 
-
                   {/* Apply to section */}
-                  <div className="mb-3  d-flex align-items-center" style={{ gap: "18px" }}>
-                    <label style={{ fontWeight: "500", fontSize: "14px", color: "#495057", marginBottom: "8px" }}>Apply to:</label>
-                    <input type="text" className="form-control"
+                  <div
+                    className="mb-3  d-flex align-items-center"
+                    style={{ gap: "18px" }}
+                  >
+                    <label
+                      style={{
+                        fontWeight: "500",
+                        fontSize: "14px",
+                        color: "#495057",
+                        marginBottom: "8px",
+                      }}
+                    >
+                      Apply to:
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
                       value={
                         manager
-                          ? `${manager.role.charAt(0).toUpperCase() + manager.role.slice(1)} (${manager.name})`
-                          : 'No manager assigned'
+                          ? `${
+                              manager.role.charAt(0).toUpperCase() +
+                              manager.role.slice(1)
+                            } (${manager.name})`
+                          : "No manager assigned"
                       }
                       style={{
-                        fontSize: "14px", padding: "8px 12px", border: "1px solid #ced4da", borderRadius: "4px", maxWidth: "250px",
-                        backgroundColor: "#f8f9fa", textTransform: "capitalize"
-                      }} />
+                        fontSize: "14px",
+                        padding: "8px 12px",
+                        border: "1px solid #ced4da",
+                        borderRadius: "4px",
+                        maxWidth: "250px",
+                        backgroundColor: "#f8f9fa",
+                        textTransform: "capitalize",
+                      }}
+                    />
                   </div>
 
                   {/* Reason */}
-                  <div className="mb-3  d-flex align-items-center" style={{ gap: "18px" }}>
+                  <div
+                    className="mb-3  d-flex align-items-center"
+                    style={{ gap: "18px" }}
+                  >
                     <label>Reason</label>
                     <textarea
                       name="reason"
@@ -601,18 +708,28 @@ function QuickApplyLeave({ user }) {
                       type="button"
                       // className="btn"
                       // style={{ backgroundColor: "transparent", color: "#3A5FBE", border: "1px solid #3A5FBE", padding: "10px 28px", fontSize: "14px", fontWeight: "500", borderRadius: "4px" }}
-                      
-           className="btn btn-sm custom-outline-btn"
-                                style={{  padding: "10px 32px", fontSize: "14px", fontWeight: "500", borderRadius: "4px" }} 
 
+                      className="btn btn-sm custom-outline-btn"
+                      style={{
+                        padding: "10px 32px",
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        borderRadius: "4px",
+                      }}
                       onClick={() => setShowModal(false)}
                     >
                       Cancel
                     </button>
-                    <button type="submit"
-                       style={{  padding: "10px 32px", fontSize: "14px", fontWeight: "500", borderRadius: "4px" }} 
-
-           className="btn btn-sm custom-outline-btn"                       >
+                    <button
+                      type="submit"
+                      style={{
+                        padding: "10px 32px",
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        borderRadius: "4px",
+                      }}
+                      className="btn btn-sm custom-outline-btn"
+                    >
                       Apply
                     </button>
                   </div>

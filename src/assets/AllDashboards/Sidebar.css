@@ -127,18 +127,17 @@
 @media (max-width: 768px) {
   .sidebar {
     transform: translateX(-100%);
-    top: 56px; /* Start below top tab bar */
-    height: calc(100vh - 56px); /* Full height minus top bar */
-    padding-top: 60px; /* Add space for hamburger button */
+    top: 56px;                     /* below header / hamburger */
+    height: calc(100vh - 56px);    /* remaining height */
+    padding-top: 60px;                /* IMPORTANT */
   }
-  
+
   .sidebar.open {
     transform: translateX(0);
   }
-  
-  /* Adjust nav padding on mobile */
+
   .sidebar .nav {
-    padding-top: 0; 
+    padding-top: 16px;             /* small breathing space */
   }
 }
 

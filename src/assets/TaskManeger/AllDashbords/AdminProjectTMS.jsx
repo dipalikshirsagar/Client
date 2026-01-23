@@ -1,36 +1,21 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 const API_URL = "https://server-backend-nu.vercel.app/api/projects";
 
 function AdminProjectTMS() {
-  const [cardCounts, setCardCounts] = useState({
-    total: 0,
-    ongoing: 0,
-    completed: 0,
-    delayed: 0,
-  });
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
-
-  const [statusList, setStatusList] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
   const [popupMode, setPopupMode] = useState("");
   const [projectData, setProjectData] = useState([]);
-  const [selectedIndex, setSelectedIndex] = useState(null);
   const [managerList, setManagerList] = useState([]);
   const [showManagerDropdown, setShowManagerDropdown] = useState(false);
-
-  const [commentModalProject, setCommentModalProject] = useState(null);
-  const [newComment, setNewComment] = useState("");
-  const [projectComments, setProjectComments] = useState([]);
-  const [commentLoading, setCommentLoading] = useState(false);
-
+  const [openStatusId, setOpenStatusId] = useState(null);
   const [errors, setErrors] = useState({});
-  const [holidays, setHolidays] = useState([]);
   const [weeklyOffs, setWeeklyOffs] = useState({
     saturdays: [],
     sundayOff: true,
@@ -51,56 +36,11 @@ function AdminProjectTMS() {
     priority: "P1",
   });
 
-  const popupRef = useRef(null);
-  useEffect(() => {
-    if (showPopup && popupRef.current) {
-      popupRef.current.focus();
-    }
-  }, [showPopup]);
-
-  const trapFocus = (e) => {
-    if (!popupRef.current) return;
-
-    const focusableElements = popupRef.current.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-
-    const first = focusableElements[0];
-    const last = focusableElements[focusableElements.length - 1];
-
-    if (e.key === "Tab") {
-      if (e.shiftKey) {
-        if (document.activeElement === first) {
-          e.preventDefault();
-          last.focus();
-        }
-      } else {
-        if (document.activeElement === last) {
-          e.preventDefault();
-          first.focus();
-        }
-      }
-    }
-  };
-
-  const managerRef = useRef(null);
-  useEffect(() => {
-    const handleOutsideClick = (e) => {
-      if (
-        showManagerDropdown &&
-        managerRef.current &&
-        !managerRef.current.contains(e.target)
-      ) {
-        setShowManagerDropdown(false); // close dropdown
-      }
-    };
-
-    document.addEventListener("mousedown", handleOutsideClick);
-
-    return () => {
-      document.removeEventListener("mousedown", handleOutsideClick);
-    };
-  }, [showManagerDropdown]);
+  //added by harshada
+  const [commentModalProject, setCommentModalProject] = useState(null);
+  const [newComment, setNewComment] = useState("");
+  const [projectComments, setProjectComments] = useState([]);
+  const [commentLoading, setCommentLoading] = useState(false);
 
   useEffect(() => {
     fetchProjects();
@@ -124,7 +64,7 @@ function AdminProjectTMS() {
     const fetchWeeklyOffs = async () => {
       try {
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`
+          `https://server-backend-nu.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`,
         );
 
         const weeklyData = res.data?.data || {};
@@ -142,31 +82,6 @@ function AdminProjectTMS() {
     fetchWeeklyOffs();
   }, []);
 
-  const fetchStatuses = async () => {
-    try {
-      const uniqueRes = await axios.get("https://server-backend-nu.vercel.app/unique");
-      setStatusList(uniqueRes.data.data || []);
-    } catch (error) {
-      console.error("Error to fetch Status:", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchStatuses();
-  }, []);
-
-  const createStatuses = statusList.filter(
-    (s) => s.name.toLowerCase() !== "cancelled"
-  );
-
-  const getStatusName = (statusId) => {
-    if (!statusId) return "—";
-    const status = statusList.find(
-      (s) => s._id === statusId || s.id === statusId
-    );
-    return status ? status.name : "—";
-  };
-
   // -------------------------------------------------------------
 
   const fetchProjects = async () => {
@@ -178,32 +93,36 @@ function AdminProjectTMS() {
       alert("Cannot fetch projects from backend");
     }
   };
+
   useEffect(() => {
     const total = projectData.length;
 
-    const today = new Date();
+    const cancelled = projectData.filter(
+      (p) => p.status === "Cancelled",
+    ).length;
 
-    const ongoing = projectData.filter((p) => {
-      const start = p.startDate ? new Date(p.startDate) : null;
-      const due = p.dueDate ? new Date(p.dueDate) : null;
-
-      return start && due && start <= today && due >= today;
-    }).length;
+    const ontrack = projectData.filter((p) => p.status === "On Track").length;
 
     const completed = projectData.filter(
-      (p) => p.status?.name === "Completed"
+      (p) => p.status === "Completed",
     ).length;
 
-    const delayed = projectData.filter(
-      (p) => p.status?.name === "Delayed"
+    const delayed = projectData.filter((p) => p.status === "Delayed").length;
+
+    const upcomingProject = projectData.filter(
+      (p) => p.status === "Upcoming Project",
     ).length;
 
-    setCardCounts({
-      total,
-      ongoing,
-      completed,
-      delayed,
-    });
+    const inProgress = projectData.filter(
+      (p) => p.status === "In Progress",
+    ).length;
+
+    // setCardCounts({
+    //   total,
+    //   ongoing,
+    //   completed,
+    //   delayed,
+    // });
   }, [projectData]);
 
   useEffect(() => {
@@ -245,7 +164,6 @@ function AdminProjectTMS() {
     });
   };
 
-  ////
   const openCreatePopup = () => {
     setPopupMode("create");
     setForm({
@@ -257,11 +175,38 @@ function AdminProjectTMS() {
       startDate: "",
       endDate: "",
       due: "",
-      status: "",
       priority: "P1",
     });
     setShowPopup(true);
   };
+
+  //update status manually(Completed/cancelled)
+  async function handleStatusChange(projectId, newStatus) {
+    try {
+      let apiUrl;
+      // Change API for specific statuses
+      if (newStatus === "Completed") {
+        apiUrl = `https://server-backend-nu.vercel.app/api/projects/${projectId}/complete`;
+      } else if (newStatus === "Cancelled") {
+        apiUrl = `https://server-backend-nu.vercel.app/api/projects/${projectId}/cancel`;
+      }
+
+      await axios.put(apiUrl, { status: newStatus });
+
+      // Update state locally
+      setProjectData((prev) =>
+        prev.map((item) =>
+          item._id === projectId ? { ...item, status: newStatus } : item,
+        ),
+      );
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update status");
+    }
+
+    // Close any status popup
+    setOpenStatusId(null);
+  }
 
   const validateForm = () => {
     const newErrors = {};
@@ -288,7 +233,7 @@ function AdminProjectTMS() {
       }
     }
 
-    if (!form.status) newErrors.status = "Status is required";
+    // if (!form.status) newErrors.status = "Status is required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -297,17 +242,6 @@ function AdminProjectTMS() {
   const resetProjectForm = () => {
     setErrors({});
     setPopupMode("create");
-  };
-
-  const formatDate = (date) => date;
-
-  const isWeeklyOff = (date) => {
-    const day = new Date(date).getDay();
-
-    if (day === 0 && weeklyOffs.sundayOff) return true;
-    if (day === 6 && weeklyOffs.saturdays.includes(date)) return true;
-
-    return false;
   };
 
   const handleCreateSubmit = async (e) => {
@@ -325,21 +259,19 @@ function AdminProjectTMS() {
       { label: "Due Date", value: form.due },
     ];
 
-    for (let field of dateFields) {
-      if (!field.value) continue;
+    // for (let field of dateFields) {
+    //   if (!field.value) continue;
 
-      if (isWeeklyOff(field.value)) {
-        alert(
-          `${field.label} falls on a Weekly Off. Please select another date.`
-        );
-        return;
-      }
+    //   if (isWeeklyOff(field.value)) {
+    //     alert(`${field.label} falls on a Weekly Off. Please select another date.`);
+    //     return;
+    //   }
 
-      if (isHoliday(field.value)) {
-        alert(`${field.label} falls on a Holiday. Please select another date.`);
-        return;
-      }
-    }
+    //   if (isHoliday(field.value)) {
+    //     alert(`${field.label} falls on a Holiday. Please select another date.`);
+    //     return;
+    //   }
+    // }
 
     const payload = {
       name: form.project,
@@ -367,10 +299,11 @@ function AdminProjectTMS() {
     }
   };
 
-  const openRowPopup = async (item, idx) => {
-    setSelectedIndex(idx);
+  const openRowPopup = (item, idx) => {
     setSelectedProjectId(item._id);
     setPopupMode("view");
+    fetchProjectComments(item._id); //added by harshada
+
     const managerIds = extractManagerIds(item.managers);
     const uniqueManagerIds = [...new Set(managerIds)];
     setForm({
@@ -382,102 +315,75 @@ function AdminProjectTMS() {
       startDate: item.startDate?.slice(0, 10),
       endDate: item.endDate?.slice(0, 10),
       due: item.dueDate?.slice(0, 10),
-      status: item.status?._id || item.status || "",
+      status: item.status || "",
       priority: item.priority,
     });
+    // console.log("form",form)  get empty
     setShowPopup(true);
-
-    try {
-      const response = await axios.get(
-        `https://server-backend-nu.vercel.app/project/${item._id}/comments`
-      );
-      setProjectComments(response.data.comments || []);
-    } catch (error) {
-      console.error("Error fetching project comments:", error);
-      setProjectComments([]);
-    }
   };
-
-  //Added by Rutuja for project comments
-  const fetchProjectComments = async (projectId) => {
-    setCommentLoading(true);
-    try {
-      const response = await axios.get(
-        `https://server-backend-nu.vercel.app/project/${projectId}/comments`
-      );
-      setProjectComments(response.data.comments || []);
-    } catch (error) {
-      console.error("Error fetching comments:", error);
-      alert("Failed to load comments");
-    } finally {
-      setCommentLoading(false);
-    }
-  };
-
-  const handleAddComment = (e, project) => {
-    e.stopPropagation();
-    setCommentModalProject(project);
-    setNewComment("");
-    fetchProjectComments(project._id);
-  };
-
-  const handleSubmitComment = async () => {
-    if (!newComment.trim()) {
-      alert("Please enter a comment");
-      return;
-    }
-
-    if (!commentModalProject?._id) {
-      alert("Project not selected");
-      return;
-    }
-
-    try {
-      const res = await axios.post(
-        `https://server-backend-nu.vercel.app/project/${commentModalProject._id}/comment`,
-        { comment: newComment },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-          },
-        }
-      );
-
-      if (res.data.success) {
-        await fetchProjectComments(commentModalProject._id);
-        setNewComment("");
-        alert("Comment added successfully");
-      }
-    } catch (error) {
-      console.error("Add comment error:", error);
-      alert(error?.response?.data?.message || "Failed to add comment");
-    }
-  };
-
+  /////Change by dip
   const filteredData =
     searchQuery.trim() === ""
       ? projectData
       : projectData.filter((item) => {
-          const q = searchQuery.toLowerCase();
+          const query = searchQuery.toLowerCase();
 
-          const fields = [
-            item.project || item.name,
-            item.projectCode,
-            item.desc || item.description,
-            item.clientName,
-            item.priority,
-            item.status?.name,
-            formatDateDisplay(item.startDate),
-            formatDateDisplay(item.endDate),
-            formatDateDisplay(item.dueDate),
-            ...getManagerNames(item.managers),
-          ];
+          // Search in project name and code
+          const matchesName = (item.project || item.name || "")
+            .toLowerCase()
+            .includes(query);
+          const matchesCode = (item.projectCode || "")
+            .toLowerCase()
+            .includes(query);
 
-          return fields.some(
-            (f) => f && f.toString().toLowerCase().includes(q)
+          // Search in managers
+          const managerNames = getManagerNames(item.managers)
+            .join(", ")
+            .toLowerCase();
+          const matchesManagers = managerNames.includes(query);
+
+          // Search in dates
+          const matchesStartDate = formatDateDisplay(item.startDate)
+            .toLowerCase()
+            .includes(query);
+          const matchesDueDate = formatDateDisplay(item.dueDate)
+            .toLowerCase()
+            .includes(query);
+
+          // Search in status
+          const matchesStatus = (item.status || "")
+            .toLowerCase()
+            .includes(query);
+
+          // Search in priority
+          const matchesPriority = (item.priority || "")
+            .toLowerCase()
+            .includes(query);
+
+          // Search in client name
+          const matchesClient = (item.clientName || "")
+            .toLowerCase()
+            .includes(query);
+
+          // Search in description
+          const matchesDesc = (item.desc || item.description || "")
+            .toLowerCase()
+            .includes(query);
+
+          return (
+            matchesName ||
+            matchesCode ||
+            matchesManagers ||
+            matchesStartDate ||
+            matchesDueDate ||
+            matchesStatus ||
+            matchesPriority ||
+            matchesClient ||
+            matchesDesc
           );
         });
 
+  /////end change
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const paginatedData = filteredData.slice(indexOfFirstItem, indexOfLastItem);
@@ -501,137 +407,220 @@ function AdminProjectTMS() {
     }
   };
 
+  // komal's status count code
+
+  // const handleEditSave = async (e) => {
+  //   e.preventDefault();
+
+  //   if (!selectedProjectId) {
+  //     alert("Project ID not found");
+  //     return;
+  //   }
+
+  //   const payload = {
+  //     name: form.project,
+  //     projectCode: form.projectCode,
+  //     description: form.desc,
+  //     clientName: form.clientName,
+  //     startDate: form.startDate,
+  //     endDate: form.endDate,
+  //     dueDate: form.due,
+  //     priority: form.priority,
+  //     managers: [...new Set(form.managers)],
+  //   };
+  //   console.log("status",form.status)
+  //   console.log("Payload:", payload);
+
+  //   try {
+  //     await axios.put(`${API_URL}/${selectedProjectId}`, payload);
+
+  //     alert("Project Updated Successfully ✅");
+  //     setShowPopup(false);
+  //     fetchProjects(); // refresh table
+  //   } catch (err) {
+  //     console.error("Update error:", err.response?.data || err);
+  //     alert(err.response?.data?.message || "Update failed");
+  //   }
+  // };
+
   const handleEditSave = async (e) => {
     e.preventDefault();
 
-    const holidaysRes = await axios.get("https://server-backend-nu.vercel.app/getHolidays");
-    const holidays = holidaysRes.data?.data || holidaysRes.data || [];
-
-    const isHoliday = (date) =>
-      holidays.some((holiday) => holiday.date.split("T")[0] === date);
-
-    const dateFields = [
-      { label: "Start Date", value: form.startDate },
-      { label: "End Date", value: form.endDate },
-      { label: "Due Date", value: form.due },
-    ];
-
-    for (let field of dateFields) {
-      if (!field.value) continue;
-
-      if (isWeeklyOff(field.value)) {
-        alert(
-          `${field.label}: The selected date is a weekly off. Please choose another date.`
-        );
-
-        return;
-      }
-
-      if (isHoliday(field.value)) {
-        alert(`${field.label} is a holiday. Kindly select another date.`);
-
-        return;
-      }
-    }
-
-    if (!selectedProjectId) {
-      alert("Project ID not found");
-      return;
-    }
-
-    const payload = {
-      name: form.project,
-      projectCode: form.projectCode,
-      description: form.desc,
-      clientName: form.clientName,
-      startDate: form.startDate,
-      endDate: form.endDate,
-      dueDate: form.due,
-      status: form.status, // ✅ send as status_id
-      priority: form.priority,
-      managers: [...new Set(form.managers)],
-    };
-    console.log("Payload:", payload);
-
     try {
-      await axios.put(`${API_URL}/${selectedProjectId}`, payload);
+      // 1️⃣ Update project details (without status)
+      await axios.put(`${API_URL}/${selectedProjectId}`, {
+        name: form.project,
+        projectCode: form.projectCode,
+        description: form.desc,
+        clientName: form.clientName,
+        startDate: form.startDate,
+        endDate: form.endDate,
+        dueDate: form.due,
+        priority: form.priority,
+        managers: [...new Set(form.managers)],
+      });
+
+      // 2️⃣ Update status ONLY if selected
+      if (["Completed", "Cancelled"].includes(form.status)) {
+        await axios.put(`${API_URL}/${selectedProjectId}/manual-status`, {
+          status: form.status,
+        });
+      }
 
       alert("Project Updated Successfully ✅");
       setShowPopup(false);
-      fetchProjects(); // 🔄 refresh table
+      fetchProjects();
     } catch (err) {
-      console.error("Update error:", err.response?.data || err);
-      alert(err.response?.data?.message || "Update failed");
+      console.error(err);
+      alert("Update failed");
     }
   };
-  const statusColors = {
-    "Total Tasks": "#D1ECF1",
-    Completed: "#D7F5E4",
-    Assigned: "#E8F0FE",
-    "In Progress": "#D1E7FF",
-    "Assignment Pending": "#E2E3E5",
-    Testing: "#FFE493",
-    Hold: "#FFF1CC",
-    Review: "#E7DDF7",
-    Cancelled: "#F8D7DA",
-    Delayed: "#FFB3B3",
-  };
 
-  const getDerivedProjectStatus = (project) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  const [summary, setSummary] = useState({
+    total: 0,
+    completed: 0,
+    cancelled: 0,
+    upcoming: 0,
+    delayed: 0,
+    onTrack: 0,
+    todayLastDate: 0,
+    futureDue: 0,
+    inProgress: 0,
+  });
 
-    const dueDate = project.dueDate ? new Date(project.dueDate) : null;
-    if (dueDate) dueDate.setHours(0, 0, 0, 0);
+  useEffect(() => {
+    if (!projectData.length) return;
 
-    const startDate = project.startDate ? new Date(project.startDate) : null;
-    const isCompleted = project.status?.name === "Completed";
+    let completed = 0;
+    let cancelled = 0;
+    let upcoming = 0;
+    let delayed = 0;
+    let onTrack = 0;
+    let todayLastDate = 0;
+    let futureDue = 0;
 
-    // No due date
-    if (!dueDate) return "—";
-
-    // Completed cases
-    if (isCompleted) {
-      if (project.completedAt) {
-        const completedAt = new Date(project.completedAt);
-        completedAt.setHours(0, 0, 0, 0);
-
-        if (completedAt <= dueDate) {
-          return "Completed";
-        } else {
-          return "Completed (extra time)";
-        }
+    projectData.forEach((p) => {
+      switch (p.status) {
+        case "Completed":
+          completed++;
+          break;
+        case "Cancelled":
+          cancelled++;
+          break;
+        case "Upcoming Project":
+          upcoming++;
+          break;
+        case "Delayed":
+          delayed++;
+          break;
+        case "Today is last date":
+          onTrack++;
+          todayLastDate++;
+          break;
+        case "On Track":
+          onTrack++;
+          futureDue++;
+          break;
+        default:
+          break;
       }
-      return "Completed";
+    });
+
+    setSummary({
+      total: projectData.length,
+      completed,
+      cancelled,
+      upcoming,
+      delayed,
+      onTrack,
+      todayLastDate,
+      futureDue,
+      inProgress: delayed + onTrack,
+    });
+  }, [projectData]);
+
+  const {
+    total,
+    completed,
+    cancelled,
+    upcoming,
+    delayed,
+    onTrack,
+    todayLastDate,
+    futureDue,
+    inProgress,
+  } = summary;
+
+  const derivedStatusOptions = [
+    "On Track",
+    "Delayed",
+    "Completed",
+    "Cancelled",
+    "Upcoming Project",
+    "Today is last date",
+  ];
+
+  console.log("paginated", paginatedData);
+
+  // added by harshada
+  const fetchProjectComments = async (projectId) => {
+    setCommentLoading(true);
+    try {
+      const response = await axios.get(
+        `https://server-backend-nu.vercel.app/project/${projectId}/comments`,
+      );
+      setProjectComments(response.data.comments || []);
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+      alert("Failed to load comments");
+    } finally {
+      setCommentLoading(false);
+    }
+  };
+
+  const handleSubmitComment = async () => {
+    if (!newComment.trim()) {
+      alert("Please enter a comment");
+      return;
     }
 
-    // Not started
-    if (!startDate) {
-      return "Not Started";
+    if (!commentModalProject?._id) {
+      alert("Project not selected");
+      return;
     }
 
-    // After due date
-    if (today > dueDate) {
-      return "Delayed";
-    }
+    try {
+      const res = await axios.post(
+        `https://server-backend-nu.vercel.app/project/${commentModalProject._id}/comment`,
+        { comment: newComment },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        },
+      );
 
-    // Today is last date
-    if (today.getTime() === dueDate.getTime()) {
-      return "Today is last date";
+      if (res.data.success) {
+        await fetchProjectComments(commentModalProject._id);
+        setNewComment("");
+        alert("Comment added successfully");
+      }
+    } catch (error) {
+      console.error("Add comment error:", error);
+      alert(error?.response?.data?.message || "Failed to add comment");
     }
-
-    // Future due date
-    if (today < dueDate) {
-      return "In Progress";
-    }
-
-    return "—";
+  };
+  const handleAddComment = (e, project) => {
+    e.stopPropagation();
+    setCommentModalProject(project);
+    setNewComment("");
+    fetchProjectComments(project._id);
   };
 
   return (
     <div className="container-fluid">
-      <div className="d-flex justify-content-between align-items-center mb-2">
-        <h2 style={{ color: "#3A5FBE", fontSize: "25px" }}>Projects</h2>
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h4 style={{ color: "#3A5FBE", fontSize: "25px" }}>Projects</h4>
 
         <button
           className="btn btn-sm custom-outline-btn"
@@ -641,37 +630,32 @@ function AdminProjectTMS() {
         </button>
       </div>
 
-      <div className="row mb-4">
+      <div className="row g-3 mb-3">
         {[
-          { title: "Total Projects", count: cardCounts.total, bg: "#D1ECF1" },
+          { title: "Total Projects", count: total, bg: "#D1ECF1" }, ////Changes in all color dip
+          { title: "In Progress", count: inProgress, bg: "#D1E7FF" },
+          { title: "Delayed", count: delayed, bg: "#FFB3B3" },
+          { title: "On Track", count: onTrack, bg: "#D7F5E4" },
           {
-            title: "Completed Projects",
-            count: cardCounts.completed,
-            bg: "#D7F5E4",
-          },
-          {
-            title: "Ongoing Projects",
-            count: cardCounts.ongoing,
+            title: "Today is last date",
+            count: todayLastDate,
             bg: "#FFE493",
           },
-          {
-            title: "Delayed Projects",
-            count: cardCounts.delayed,
-            bg: "#FFB3B3",
-          },
-        ].map((card, i) => (
-          <div className="col-md-3" key={i}>
+          { title: "Upcoming Project", count: upcoming, bg: "#E7DDF7" },
+          { title: "Completed", count: completed, bg: "#D7F5E4" },
+          { title: "Cancelled", count: cancelled, bg: "#F8D7DA" },
+        ].map((card, index) => (
+          <div className="col-md-3 " key={index}>
             <div className="card shadow-sm h-100 border-0">
               <div
                 className="card-body d-flex align-items-center"
                 style={{ gap: "20px" }}
               >
                 <h4
-                  className="mb-0"
                   style={{
                     fontSize: "32px",
                     backgroundColor: card.bg,
-                    textAlign: "center",
+                    padding: "10px",
                     minWidth: "70px",
                     minHeight: "70px",
                     display: "flex",
@@ -694,57 +678,54 @@ function AdminProjectTMS() {
         ))}
       </div>
 
-      {/* Filter */}
-      {/* Filter */}
-      <div className="card bg-white shadow-sm p-3 mb-4 border-0">
-        <div className="d-flex flex-wrap align-items-center justify-content-between">
+      {/* komal  cards */}
+      {/* Filter  Dip */}
+      <div className="card shadow-sm border-0 mb-3">
+        <div className="card-body p-3">
           {/* Search Input */}
-          <div
-            className="d-flex align-items-center mb-2 "
-            style={{ minWidth: "200px", gap: "10px" }}
-          >
-            <label
-              className="fg-label"
-              style={{
-                color: "#3A5FBE",
-                fontWeight: 500,
-                whiteSpace: "nowrap",
-              }}
+          <div className="d-flex align-items-center gap-3 flex-wrap">
+            <div
+              className="d-flex align-items-center gap-2"
+              style={{ minWidth: "300px" }}
             >
-              Search
-            </label>
+              <label
+                className="mb-0 fw-bold"
+                style={{ fontSize: 14, color: "#3A5FBE", whiteSpace: "nowrap" }}
+              >
+                Search
+              </label>
 
-            <input
-              type="text"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Search by any field..."
-              className="form-control "
-            />
-          </div>
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Search by any field..."
+                className="form-control form-control-sm"
+                style={{ flex: 1 }}
+              />
+            </div>
 
-          <div
-            className="d-flex align-items-center ms-auto mb-2"
-            style={{ gap: "10px" }}
-          >
-            <button
-              className="btn btn-sm custom-outline-btn"
-              style={{ minWidth: 90 }}
-              onClick={() => setSearchQuery(searchInput)}
-            >
-              Filter
-            </button>
+            {/* Buttons */}
+            <div className="d-flex gap-2 ms-auto">
+              <button
+                className="btn btn-sm custom-outline-btn"
+                style={{ minWidth: 90 }}
+                onClick={() => setSearchQuery(searchInput)}
+              >
+                Filter
+              </button>
 
-            <button
-              className="btn btn-sm custom-outline-btn"
-              style={{ minWidth: 90 }}
-              onClick={() => {
-                setSearchInput("");
-                setSearchQuery("");
-              }}
-            >
-              Reset
-            </button>
+              <button
+                className="btn btn-sm custom-outline-btn"
+                style={{ minWidth: 90 }}
+                onClick={() => {
+                  setSearchInput("");
+                  setSearchQuery("");
+                }}
+              >
+                Reset
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -802,7 +783,6 @@ function AdminProjectTMS() {
                 >
                   Start Date
                 </th>
-
                 <th
                   style={{
                     fontWeight: "500",
@@ -827,6 +807,19 @@ function AdminProjectTMS() {
                 >
                   Status
                 </th>
+                {/* //added by harshada */}
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Comments
+                </th>
                 <th
                   style={{
                     fontWeight: "500",
@@ -849,19 +842,6 @@ function AdminProjectTMS() {
                     whiteSpace: "nowrap",
                   }}
                 >
-                  Comments
-                </th>
-
-                <th
-                  style={{
-                    fontWeight: "500",
-                    fontSize: "14px",
-                    color: "#6c757d",
-                    borderBottom: "2px solid #dee2e6",
-                    padding: "12px",
-                    whiteSpace: "nowrap",
-                  }}
-                >
                   Action
                 </th>
               </tr>
@@ -870,9 +850,25 @@ function AdminProjectTMS() {
             <tbody>
               {paginatedData.length > 0 ? (
                 paginatedData.map((item, index) => (
+                  // <tr key={item._id || index} onClick={() => openRowPopup(item, index)}>
                   <tr
                     key={item._id || index}
-                    onClick={() => openRowPopup(item, index)}
+                    onClick={() => {
+                      if (item.status === "Cancelled") return;
+                      openRowPopup(item, index);
+                    }}
+                    style={{
+                      opacity: item.status === "Cancelled" ? 0.6 : 1,
+                      cursor:
+                        item.status === "Cancelled" ? "not-allowed" : "pointer",
+                      backgroundColor:
+                        item.status === "Cancelled" ? "#f8d7da" : "inherit",
+                    }}
+                    title={
+                      item.status === "Cancelled"
+                        ? "This project is cancelled. Status will be auto-managed based on dates when enabled."
+                        : ""
+                    }
                   >
                     <td
                       style={{
@@ -939,9 +935,9 @@ function AdminProjectTMS() {
                         whiteSpace: "nowrap",
                       }}
                     >
-                      {getDerivedProjectStatus(item) || "—"}
+                      {item.status || "—"}
                     </td>
-                    <td
+                    {/* <td
                       style={{
                         padding: "12px",
                         verticalAlign: "middle",
@@ -950,8 +946,9 @@ function AdminProjectTMS() {
                         whiteSpace: "nowrap",
                       }}
                     >
-                      {item.priority}
-                    </td>
+                      {item.manualStatusUpdatedBy?.name}
+                    </td> */}
+                    {/* //added by harshada */}
                     <td
                       style={{
                         padding: "12px",
@@ -973,7 +970,6 @@ function AdminProjectTMS() {
                         Add Comment
                       </button>
                     </td>
-
                     <td
                       style={{
                         padding: "12px",
@@ -983,6 +979,10 @@ function AdminProjectTMS() {
                         whiteSpace: "nowrap",
                       }}
                     >
+                      {item.priority}
+                    </td>
+
+                    <td>
                       <div className="d-flex gap-2">
                         <button
                           className="btn btn-sm custom-outline-btn"
@@ -1050,14 +1050,14 @@ function AdminProjectTMS() {
 
           <div>
             <button
-              className="btn btn-sm focus-ring "
+              className="btn btn-sm"
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
             >
               ‹
             </button>
             <button
-              className="btn btn-sm focus-ring "
+              className="btn btn-sm"
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
             >
@@ -1085,15 +1085,12 @@ function AdminProjectTMS() {
         >
           <div
             className="popup-box bg-white p-4 shadow"
-            ref={popupRef}
-            tabIndex="-1"
-            autoFocus
-            onKeyDown={trapFocus}
             style={{
               width: "600px",
               borderRadius: "10px",
-              maxHeight: "68vh",
+              maxHeight: "90vh",
               overflowY: "auto",
+              marginTop: "75px",
             }}
           >
             <form
@@ -1119,12 +1116,12 @@ function AdminProjectTMS() {
                   borderTopLeftRadius: "10px",
                 }}
               >
-                <h5 className="fw-bold">
+                <h5 className="model-title">
                   {popupMode === "create"
                     ? "Create New Project"
                     : popupMode === "edit"
-                    ? "Edit Project"
-                    : "Project Details"}
+                      ? "Edit Project"
+                      : "Project Details"}
                 </h5>
 
                 <button
@@ -1289,20 +1286,18 @@ function AdminProjectTMS() {
               <div
                 className="mb-1 row align-items-center manager-dropdown-area"
                 style={{ position: "relative" }}
-                ref={managerRef} // ✅ REQUIRED
               >
                 <label className="col-4 form-label fw-semibold">Managers</label>
-                <div className="col-8" style={{ position: "relative" }}>
+                <div className="col-8 " style={{ position: "relative" }}>
                   {popupMode === "view" ? (
                     <p>{getManagerNames(form.managers).join(", ") || "—"}</p>
                   ) : (
                     <>
                       <div
-                        className="form-control d-flex justify-content-between"
+                        className=" form-control d-flex justify-content-between"
                         onClick={() =>
                           setShowManagerDropdown(!showManagerDropdown)
                         }
-                        style={{ cursor: "pointer" }} // inline CSS ✔
                       >
                         <span>
                           {form.managers.length === 0
@@ -1325,7 +1320,7 @@ function AdminProjectTMS() {
                             maxHeight: "150px",
                             overflowY: "auto",
                             zIndex: 1050,
-                          }} // inline CSS ✔
+                          }}
                         >
                           {managerList.map((m) => (
                             <div className="form-check" key={m._id}>
@@ -1337,13 +1332,12 @@ function AdminProjectTMS() {
                                   let updated = [...form.managers];
                                   if (updated.includes(m._id)) {
                                     updated = updated.filter(
-                                      (id) => id !== m._id
+                                      (id) => id !== m._id,
                                     );
                                   } else {
                                     updated.push(m._id);
                                   }
                                   setForm({ ...form, managers: updated });
-
                                   if (errors.managers) {
                                     setErrors({ ...errors, managers: "" });
                                   }
@@ -1356,7 +1350,6 @@ function AdminProjectTMS() {
                           ))}
                         </div>
                       )}
-
                       {errors.managers && (
                         <small className="text-danger">{errors.managers}</small>
                       )}
@@ -1454,44 +1447,37 @@ function AdminProjectTMS() {
               </div>
               {/* ----------------------------------------------------------------------------------------------------- */}
               <div className="mb-1 row align-items-center">
-                <label className="col-4 fw-semibold">Status</label>
+                {popupMode === "view" ? (
+                  <label className="col-4 fw-semibold">Status</label>
+                ) : (
+                  <></>
+                )}
                 <div className="col-8">
-                  {popupMode === "view" ? (
-                    <p>{getDerivedProjectStatus(projectData[selectedIndex])}</p>
-                  ) : (
-                    <>
-                      <select
-                        className="form-control"
-                        value={form.status}
-                        onChange={(e) => {
-                          setForm({ ...form, status: e.target.value });
-                          if (errors.status) {
-                            setErrors({ ...errors, status: "" });
-                          }
-                        }}
-                      >
-                        <option value="">Select Status</option>
-                        {popupMode === "create" &&
-                          createStatuses.map((s) => (
-                            <option key={s.id} value={s.id}>
-                              {s.name}
-                            </option>
-                          ))}
-                        {popupMode === "edit" &&
-                          statusList.map((s) => (
-                            <option key={s.id} value={s.id}>
-                              {s.name}
-                            </option>
-                          ))}
-                      </select>
-                      {errors.status && (
-                        <small className="text-danger">{errors.status}</small>
-                      )}
-                    </>
-                  )}
+                  {popupMode === "view" ? <p>{form.status}</p> : <></>}
                 </div>
               </div>
               {/* --------------------------------------------------------------------------------------------------------- */}
+
+              {/* STATUS (EDIT ONLY) */}
+              {popupMode === "edit" && (
+                <div className="mb-1 row align-items-center">
+                  <label className="col-4 form-label fw-semibold">Status</label>
+                  <div className="col-8">
+                    <select
+                      className="form-control"
+                      value={form.status}
+                      onChange={(e) =>
+                        setForm({ ...form, status: e.target.value })
+                      }
+                    >
+                      <option value="">-- Select Status --</option>
+                      <option value="Completed">Completed</option>
+                      <option value="Cancelled">Cancelled</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+
               {/* Priority */}
               <div className="mb-1 row align-items-center">
                 <label className="col-4 form-label fw-semibold">Priority</label>
@@ -1515,74 +1501,38 @@ function AdminProjectTMS() {
                 </div>
               </div>
 
-              {/* Status & Action
-              {popupMode !== "create" && (
-                <>
-                  <div className="mb-3">
-                    <label className="fw-semibold">Status</label>
-                    {popupMode === "view" ? (
-                      <p>{form.status}</p>
-                    ) : (
-                      <input
-                        className="form-control"
-                        value={form.status}
-                        onChange={(e) =>
-                          setForm({ ...form, status: e.target.value })
-                        }
-                      />
-                    )}
-                  </div>
+              <div className="mb-1 row align-items-center">
+                {popupMode === "view" ? (
+                  <label className="col-4 fw-semibold">Status Updated by</label>
+                ) : (
+                  <></>
+                )}
+                <div className="col-8">
+                  {popupMode === "view" ? (
+                    <p className="mb-0">{form.manualStatusUpdatedBy?.name}</p>
+                  ) : (
+                    <></>
+                  )}
+                </div>
+              </div>
+              {/* comments added by harshada*/}
 
-                  <div className="mb-4">
-                    <label className="fw-semibold">Action</label>
-                    {popupMode === "view" ? (
-                      <p>{form.action}</p>
-                    ) : (
-                      <input
-                        className="form-control"
-                        value={form.action}
-                        onChange={(e) =>
-                          setForm({ ...form, action: e.target.value })
-                        }
-                      />
-                    )}
-                  </div>
-                </>
-              )} */}
-
-              {/* //Added by Rutuja for project comments */}
               {popupMode === "view" && (
-                <div className="row mb-3">
-                  <div className="col-4 fw-semibold">Comments</div>
+                <div className="row mb-2">
+                  <label className="col-4 fw-semibold">Comments</label>
+
                   <div className="col-8">
                     <div style={{ maxHeight: "200px", overflowY: "auto" }}>
-                      {projectComments && projectComments.length > 0 ? (
-                        projectComments.map((comment, index) => (
-                          <div key={index} className="mb-2 p-2 border rounded">
-                            <div className="d-flex justify-content-between">
-                              <span className="text-primary">
-                                {comment.user?.name ||
-                                  comment.userId?.name ||
-                                  "Anonymous"}
-                                <span className="text-muted ms-1">
-                                  (
-                                  {comment.user?.role ||
-                                    comment.userId?.role ||
-                                    "Unknown"}
-                                  )
-                                </span>
-                              </span>
-                              <small className="text-muted">
-                                {comment.createdAt
-                                  ? new Date(
-                                      comment.createdAt
-                                    ).toLocaleDateString()
-                                  : ""}
-                              </small>
-                            </div>
-                            <div className="mt-1">
-                              {comment.comment || comment.text}
-                            </div>
+                      {projectComments.length > 0 ? (
+                        projectComments.map((c, i) => (
+                          <div key={i} className="mb-2 p-2 border rounded">
+                            <small className="text-muted">
+                              {c.createdAt &&
+                                new Date(c.createdAt).toLocaleDateString(
+                                  "en-GB",
+                                )}
+                            </small>
+                            <div>{c.comment || c.text}</div>
                           </div>
                         ))
                       ) : (
@@ -1598,7 +1548,6 @@ function AdminProjectTMS() {
                 {popupMode === "view" &&
                   userRole === "admin" &&
                   userRole !== "ceo" &&
-                  userRole !== "md" &&
                   userRole !== "employee" && (
                     <button
                       className="btn btn-sm custom-outline-btn"
@@ -1642,8 +1591,19 @@ function AdminProjectTMS() {
           </div>
         </div>
       )}
+      {/* ------------------------------------------------------------------------------------------------------------ */}
+      <div className="text-end mt-3">
+        <button
+          className="btn btn-sm custom-outline-btn"
+          style={{ minWidth: 90 }}
+          onClick={() => window.history.go(-1)}
+        >
+          Back
+        </button>
+      </div>
 
-      {/* //Added by Rutuja for project comments */}
+      {/* //added by harshada */}
+
       {commentModalProject && (
         <div
           className="modal fade show"
@@ -1728,17 +1688,6 @@ function AdminProjectTMS() {
           </div>
         </div>
       )}
-
-      {/* ------------------------------------------------------------------------------------------------------------ */}
-      <div className="text-end mt-3">
-        <button
-          className="btn btn-sm custom-outline-btn"
-          style={{ minWidth: 90 }}
-          onClick={() => window.history.go(-1)}
-        >
-          Back
-        </button>
-      </div>
     </div>
   );
 }

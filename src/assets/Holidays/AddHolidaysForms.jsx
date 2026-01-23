@@ -1,7 +1,6 @@
-
 import React, { useState } from "react";
 import axios from "axios";
-import '../Events/AddEvent.css'
+import "../Events/AddEvent.css";
 
 function AddHolidayForm({ onAdd }) {
   const [name, setName] = useState("");
@@ -69,13 +68,11 @@ function AddHolidayForm({ onAdd }) {
       {/* Button to open modal */}
       <button
         className="btn btn-sm custom-outline-btn"
-            style={{  minWidth: 90 }}
+        style={{ minWidth: 90 }}
         onClick={() => setShowModal(true)}
       >
         Add Holiday
       </button>
-
-      
 
       {/* Modal - Using Custom Classes */}
       {showModal && (
@@ -108,7 +105,9 @@ function AddHolidayForm({ onAdd }) {
                   />
                 </div> */}
                   <div className="mb-2">
-                    <label htmlFor="event-desc" className="form-label">Holiday Title</label>
+                    <label htmlFor="event-desc" className="form-label">
+                      Holiday Title
+                    </label>
                     <textarea
                       id="event-desc"
                       className="form-control"
@@ -117,7 +116,9 @@ function AddHolidayForm({ onAdd }) {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                     />
-                    {errors.name && <small className="text-danger">{errors.name}</small>}
+                    {errors.name && (
+                      <small className="text-danger">{errors.name}</small>
+                    )}
                     <div className="char-count">{name.length}/50</div>
                   </div>
                   <div className="mb-2">
@@ -129,24 +130,24 @@ function AddHolidayForm({ onAdd }) {
                       onChange={(e) => setDate(e.target.value)}
                       min={minDate}
                     />
-                    {errors.date && <small className="text-danger">{errors.date}</small>}
+                    {errors.date && (
+                      <small className="text-danger">{errors.date}</small>
+                    )}
                   </div>
-
-
 
                   {/* Footer Buttons */}
                   <div className="custom-modal-footer">
                     <button
                       type="button"
-                     
                       onClick={() => setShowModal(false)}
-  className="btn btn-sm custom-outline-btn"
-            style={{  minWidth: 90 }}                    >
+                      className="btn btn-sm custom-outline-btn"
+                      style={{ minWidth: 90 }}
+                    >
                       Cancel
                     </button>
                     <button
-                       className="btn btn-sm custom-outline-btn"
-            style={{  minWidth: 90 }}
+                      className="btn btn-sm custom-outline-btn"
+                      style={{ minWidth: 90 }}
                       type="submit"
                       disabled={loading}
                     >
