@@ -158,7 +158,7 @@ function EmployeeTeams() {
                   ? "0–0 of 0"
                   : `${indexOfFirstItem + 1}-${Math.min(
                       indexOfLastItem,
-                      employees.length
+                      employees.length,
                     )} of ${employees.length}`}
               </span>
 

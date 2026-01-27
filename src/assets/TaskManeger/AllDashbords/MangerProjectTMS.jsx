@@ -501,6 +501,7 @@ function ManagerProjectTMS({ user }) {
         await fetchProjectComments(commentModalProject._id);
         setNewComment("");
         alert("Comment added successfully");
+        setCommentModalProject(null);
       }
     } catch (error) {
       console.error("Add comment error:", error);
@@ -513,7 +514,21 @@ function ManagerProjectTMS({ user }) {
     setNewComment("");
     fetchProjectComments(project._id);
   };
+  const isAnyPopupOpen = !!showPopup;
+  useEffect(() => {
+    if (isAnyPopupOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
 
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [isAnyPopupOpen]);
   return (
     <div className="container-fluid">
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -575,10 +590,7 @@ function ManagerProjectTMS({ user }) {
         <div className="card-body p-3">
           {/* Search Input */}
           <div className="d-flex align-items-center gap-3 flex-wrap">
-            <div
-              className="d-flex align-items-center gap-2"
-              style={{ minWidth: "300px" }}
-            >
+            <div className="d-flex align-items-center gap-2 flex-grow-1 flex-md-grow-0 w-md-100">
               <label
                 className="mb-0 fw-bold"
                 style={{ fontSize: 14, color: "#3A5FBE", whiteSpace: "nowrap" }}
@@ -1443,12 +1455,24 @@ function ManagerProjectTMS({ user }) {
                       {projectComments.length > 0 ? (
                         projectComments.map((c, i) => (
                           <div key={i} className="mb-2 p-2 border rounded">
-                            <small className="text-muted">
-                              {c.createdAt &&
-                                new Date(c.createdAt).toLocaleDateString(
-                                  "en-GB",
-                                )}
-                            </small>
+                            {/* rutuja code start */}
+                            <div className="d-flex justify-content-between align-items-start mb-1">
+                              <div>
+                                <strong>
+                                  {c.user?.name || "Unknown User"}
+                                </strong>
+                                <small className="text-muted ms-2">
+                                  ({c.user?.role || "No role"})
+                                </small>
+                              </div>
+                              <small className="text-muted">
+                                {c.createdAt &&
+                                  new Date(c.createdAt).toLocaleDateString(
+                                    "en-GB",
+                                  )}
+                              </small>
+                            </div>
+                            {/* rutuja code end */}
                             <div>{c.comment || c.text}</div>
                           </div>
                         ))

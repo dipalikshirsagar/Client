@@ -13,7 +13,7 @@ function MyProfile({ user }) {
     e?.preventDefault?.();
 
     const ok = window.confirm(
-      "Are you sure you want to remove the profile image?"
+      "Are you sure you want to remove the profile image?",
     );
     if (!ok) return;
 
@@ -21,7 +21,7 @@ function MyProfile({ user }) {
       setRemovingImage(true);
 
       const res = await axios.delete(
-        `https://server-backend-nu.vercel.app/employees/${user._id}/image`
+        `https://server-backend-nu.vercel.app/employees/${user._id}/image`,
       );
 
       if (res?.data?.employee) {
@@ -48,7 +48,7 @@ function MyProfile({ user }) {
     const fetchProfile = async () => {
       try {
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/employees/${user._id}`
+          `https://server-backend-nu.vercel.app/employees/${user._id}`,
         );
         setProfile(res.data);
         setFormData({
@@ -169,7 +169,7 @@ function MyProfile({ user }) {
 
       // Refresh profile
       const updated = await axios.get(
-        `https://server-backend-nu.vercel.app/employees/${user._id}`
+        `https://server-backend-nu.vercel.app/employees/${user._id}`,
       );
       setProfile(updated.data);
     } catch (err) {

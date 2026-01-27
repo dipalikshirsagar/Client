@@ -126,7 +126,7 @@ function EmployeeTasksView({ selectedEmployee, allTasks, onBack }) {
           <div className="d-flex align-items-center gap-3 flex-wrap">
             {/* Search Filter */}
             <div
-              className="d-flex align-items-center gap-2"
+              className="d-flex align-items-center gap-2 flex-grow-1 flex-md-grow-0 w-md-100"
               style={{ minWidth: "300px" }}
             >
               <label
@@ -141,7 +141,6 @@ function EmployeeTasksView({ selectedEmployee, allTasks, onBack }) {
                 placeholder="Search by any field..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ flex: 1 }}
               />
             </div>
 

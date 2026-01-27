@@ -613,6 +613,22 @@ const EmployeeTaskTMS = ({ user }) => {
     delayedTasks: allTasks.filter((t) => t.status === "Delayed").length,
   };
 
+  const isAnyPopupOpen = !!commentModalTask || !!selectedTask;
+  useEffect(() => {
+    if (isAnyPopupOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [isAnyPopupOpen]);
+
   return (
     <div className="container-fluid">
       <h2 className="mb-3" style={{ color: "#3A5FBE", fontSize: "25px" }}>
@@ -942,7 +958,7 @@ const EmployeeTaskTMS = ({ user }) => {
           <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
             {/* Search Input */}
             <div
-              className="d-flex align-items-center gap-2 "
+              className="d-flex align-items-center gap-2 flex-grow-1 flex-md-grow-0 w-md-100"
               style={{ maxWidth: "400px" }}
             >
               <label

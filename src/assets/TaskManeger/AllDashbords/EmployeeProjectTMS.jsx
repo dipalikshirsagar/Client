@@ -185,7 +185,14 @@ function EmployeeProjectTMS({ employeeId }) {
             (item.myRole && item.myRole.toLowerCase().includes(query)) ||
             // Managers
             (item.managers &&
-              item.managers.some((m) => m.toLowerCase().includes(query))) ||
+              (Array.isArray(item.managers)
+                ? item.managers.some((m) =>
+                    (typeof m === "string" ? m : m?.name)
+                      ?.trim()
+                      .toLowerCase()
+                      .includes(query),
+                  )
+                : item.managers.trim().toLowerCase().includes(query))) ||
             // Start Date (formatted)
             (item.startDate &&
               formatDateDisplay(item.startDate)
@@ -197,7 +204,8 @@ function EmployeeProjectTMS({ employeeId }) {
             // Progress
             (item.progress && item.progress.toString().includes(query)) ||
             // Status
-            (item.status && item.status.toLowerCase().includes(query))
+            (item.status && item.status.toLowerCase().includes(query)) ||
+            (item.priority && item.priority.toLowerCase().includes(query))
             // Priority
             // (item.priority && item.priority.toLowerCase().includes(query)) ||
             // // Description (FIXED - added || before this line)
@@ -341,6 +349,22 @@ function EmployeeProjectTMS({ employeeId }) {
   }, [rowsPerPage, searchQuery, totalItems]);
 
   console.log("paginated data", paginatedData);
+
+  const isAnyPopupOpen = !!showPopup;
+  useEffect(() => {
+    if (isAnyPopupOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [isAnyPopupOpen]);
   return (
     <div
       className="container-fluid pt-1 px-3"
@@ -617,7 +641,7 @@ function EmployeeProjectTMS({ employeeId }) {
       {/* Search Section */}
       <div className="card bg-white shadow-sm p-3 mb-4 border-0">
         <div className="d-flex align-items-center justify-content-between flex-wrap">
-          <div className="d-flex align-items-center">
+          <div className="d-flex align-items-center gap-2 flex-grow-1 flex-md-grow-0 w-md-100">
             <label
               className="me-3 fw-bold mb-0"
               style={{ color: "#3A5FBE", fontSize: "16px" }}
@@ -634,14 +658,10 @@ function EmployeeProjectTMS({ employeeId }) {
               }
               placeholder="Search by any field..."
               className="form-control"
-              style={{
-                width: "230px",
-                minWidth: "200px",
-              }}
             />
           </div>
 
-          <div className="d-flex align-items-center mb-2 gap-2 ms-auto">
+          <div className="d-flex gap-2 ms-auto mt-2">
             <button
               className="btn btn-sm custom-outline-btn"
               style={{ minWidth: 90 }}
@@ -968,8 +988,8 @@ function EmployeeProjectTMS({ employeeId }) {
           onClick={() => setShowPopup(null)}
         >
           <div
-            className="modal-dialog modal-dialog-scrollable"
-            style={{ maxWidth: "650px", width: "95%", marginTop: "200px" }}
+            className="modal-dialog"
+            style={{ maxWidth: "650px", width: "95%", marginTop: "100px" }}
           >
             <div className="modal-content">
               <div

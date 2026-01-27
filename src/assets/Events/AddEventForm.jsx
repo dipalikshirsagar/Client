@@ -36,7 +36,7 @@ function AddEventForm({ onAdd }) {
       const res = await axios.post(
         "https://server-backend-nu.vercel.app/addEvent",
         { name, date },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       // if (onAdd) onAdd(res.data);

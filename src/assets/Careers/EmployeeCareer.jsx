@@ -52,7 +52,7 @@ const EmployeeCareer = ({ user }) => {
   const fetchAppliedJobs = async () => {
     try {
       const res = await fetch(
-        `https://server-backend-nu.vercel.app/api/apply/employee/${user._id}?applicantType=inhouse`
+        `https://server-backend-nu.vercel.app/api/apply/employee/${user._id}?applicantType=inhouse`,
       );
 
       if (!res.ok) throw new Error("Failed to fetch applied jobs");
@@ -68,7 +68,7 @@ const EmployeeCareer = ({ user }) => {
   const fetchRefferedJobs = async () => {
     try {
       const res = await fetch(
-        `https://server-backend-nu.vercel.app/api/apply/employee/${user._id}?applicantType=referral`
+        `https://server-backend-nu.vercel.app/api/apply/employee/${user._id}?applicantType=referral`,
       );
 
       if (!res.ok) throw new Error("Failed to fetch applied jobs");
@@ -235,19 +235,19 @@ const EmployeeCareer = ({ user }) => {
 
   const paginatedJobs = filteredJobs.slice(
     jobsPage * rowsPerPage,
-    jobsPage * rowsPerPage + rowsPerPage
+    jobsPage * rowsPerPage + rowsPerPage,
   );
 
   const appliedData = appliedJob;
 
   const paginatedApplied = appliedData.slice(
     appliedPage * rowsPerPage,
-    appliedPage * rowsPerPage + rowsPerPage
+    appliedPage * rowsPerPage + rowsPerPage,
   );
 
   const paginatedReferrals = referralJobs.slice(
     referralPage * rowsPerPage,
-    referralPage * rowsPerPage + rowsPerPage
+    referralPage * rowsPerPage + rowsPerPage,
   );
 
   const resetJobFilters = () => {
@@ -977,7 +977,7 @@ const EmployeeCareer = ({ user }) => {
                                       >
                                         {skill}
                                       </li>
-                                    )
+                                    ),
                                   )}
                                 </ul>
                               </>
@@ -1010,7 +1010,7 @@ const EmployeeCareer = ({ user }) => {
                         formData.append("employee", user._id);
                         formData.append(
                           "name",
-                          `${form.firstName.value}${form.middleName.value} ${form.lastName.value}`
+                          `${form.firstName.value}${form.middleName.value} ${form.lastName.value}`,
                         );
                         formData.append("email", form.email.value);
                         formData.append("experience", form.experience.value);
@@ -1025,7 +1025,7 @@ const EmployeeCareer = ({ user }) => {
                           setShowViewModal(false);
                         } catch (err) {
                           alert(
-                            err.response?.data?.message || "Application failed"
+                            err.response?.data?.message || "Application failed",
                           );
                         }
                       }}
@@ -1279,7 +1279,7 @@ const EmployeeCareer = ({ user }) => {
                                       >
                                         {skill}
                                       </li>
-                                    )
+                                    ),
                                   )}
                                 </ul>
                               </>
@@ -1312,7 +1312,7 @@ const EmployeeCareer = ({ user }) => {
                         formData.append("referredBy", user._id); // logged-in employee id
                         formData.append(
                           "name",
-                          `${form.firstName.value} ${form.middleName.value} ${form.lastName.value}`
+                          `${form.firstName.value} ${form.middleName.value} ${form.lastName.value}`,
                         );
                         formData.append("email", form.email.value);
                         formData.append("experience", form.experience.value);
@@ -1338,7 +1338,7 @@ const EmployeeCareer = ({ user }) => {
                           setShowViewModal(false);
                         } catch (err) {
                           alert(
-                            err.response?.data?.message || "Application failed"
+                            err.response?.data?.message || "Application failed",
                           );
                         }
                       }}

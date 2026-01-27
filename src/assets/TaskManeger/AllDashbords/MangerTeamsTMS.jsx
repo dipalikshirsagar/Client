@@ -446,6 +446,21 @@ const ManagerTeamsTMS = ({ role }) => {
     };
   }, [isOpen]);
 
+  const isAnyPopupOpen = !!selectedTeam || showAddTeam;
+  useEffect(() => {
+    if (isAnyPopupOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [isAnyPopupOpen]);
   return (
     <div className="container-fluid ">
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -518,16 +533,12 @@ const ManagerTeamsTMS = ({ role }) => {
             onSubmit={handleFilterSubmit}
             style={{ justifyContent: "space-between" }}
           >
-            <div className="col-12 col-md-auto d-flex align-items-center gap-2">
-              <label
-                className="fw-bold mb-0"
-                style={{ color: "#3A5FBE", width: 60 }}
-              >
+            <div className="d-flex align-items-center gap-2 flex-grow-1 flex-md-grow-0 w-md-100">
+              <label className="fw-bold mb-0" style={{ color: "#3A5FBE" }}>
                 Search
               </label>
               <input
                 className="form-control"
-                style={{ minWidth: 300 }}
                 placeholder="Search by any field..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}

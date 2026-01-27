@@ -83,7 +83,7 @@ function AdminDashboard({ user }) {
         } else {
           console.warn(
             "Leave/Regularization fetch failed:",
-            leaveRegRes.reason
+            leaveRegRes.reason,
           );
         }
       } catch (err) {
@@ -126,7 +126,7 @@ function AdminDashboard({ user }) {
     attendanceData?.employees?.filter((emp) => emp.hasCheckedIn).length || 0;
   const pendingLeaves = leaves.filter((l) => l.status === "pending");
   const pendingRegularizations = regularizations.filter(
-    (r) => r?.regularizationRequest?.status === "Pending"
+    (r) => r?.regularizationRequest?.status === "Pending",
   );
   // Merge employee info with attendance
   const mergedEmployees = employees.map((emp) => {
@@ -146,7 +146,7 @@ function AdminDashboard({ user }) {
       let nextBirthday = new Date(
         today.getFullYear(),
         dob.getMonth(),
-        dob.getDate()
+        dob.getDate(),
       );
       if (nextBirthday < today)
         nextBirthday.setFullYear(today.getFullYear() + 1);
@@ -155,7 +155,7 @@ function AdminDashboard({ user }) {
       let nextAnniversary = new Date(
         today.getFullYear(),
         doj.getMonth(),
-        doj.getDate()
+        doj.getDate(),
       );
       if (nextAnniversary < today)
         nextAnniversary.setFullYear(today.getFullYear() + 1);
@@ -235,7 +235,7 @@ function AdminDashboard({ user }) {
                     className="btn btn-sm custom-outline-btn"
                     onClick={() =>
                       navigate(
-                        `/dashboard/${role}/${username}/${id}/allemployeedetails`
+                        `/dashboard/${role}/${username}/${id}/allemployeedetails`,
                       )
                     }
                   >
@@ -281,7 +281,7 @@ function AdminDashboard({ user }) {
                     className="btn btn-sm custom-outline-btn"
                     onClick={() =>
                       navigate(
-                        `/dashboard/${role}/${username}/${id}/leavebalance`
+                        `/dashboard/${role}/${username}/${id}/leavebalance`,
                       )
                     }
                   >
@@ -328,7 +328,7 @@ function AdminDashboard({ user }) {
                     className="btn btn-sm custom-outline-btn"
                     onClick={() =>
                       navigate(
-                        `/dashboard/${role}/${username}/${id}/regularization`
+                        `/dashboard/${role}/${username}/${id}/regularization`,
                       )
                     }
                   >
@@ -374,7 +374,7 @@ function AdminDashboard({ user }) {
                     className="btn btn-sm custom-outline-btn"
                     onClick={() =>
                       navigate(
-                        `/dashboard/${role}/${username}/${id}/TodaysAttendanceDetails`
+                        `/dashboard/${role}/${username}/${id}/TodaysAttendanceDetails`,
                       )
                     }
                   >
@@ -408,7 +408,7 @@ function AdminDashboard({ user }) {
                 className="btn btn-sm custom-outline-btn"
                 onClick={() =>
                   navigate(
-                    `/dashboard/${role}/${username}/${id}/allemployeedetails`
+                    `/dashboard/${role}/${username}/${id}/allemployeedetails`,
                   )
                 }
               >
@@ -602,16 +602,16 @@ function AdminDashboard({ user }) {
                                   displayStatus === "Approved"
                                     ? "text-dark"
                                     : displayStatus === "Rejected"
-                                    ? "text-dark"
-                                    : "text-dark"
+                                      ? "text-dark"
+                                      : "text-dark"
                                 }`}
                                 style={{
                                   backgroundColor:
                                     displayStatus === "Approved"
                                       ? "#d1f2dd"
                                       : displayStatus === "Rejected"
-                                      ? "#f8d7da"
-                                      : "#FFE493",
+                                        ? "#f8d7da"
+                                        : "#FFE493",
                                   fontWeight: "600",
                                 }}
                               >

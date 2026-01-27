@@ -71,7 +71,7 @@ function AdminCareer({ user }) {
 
   useEffect(() => {
     const temp = jobs.filter(
-      (j) => j.jobType === activeTab || j.jobType === "both"
+      (j) => j.jobType === activeTab || j.jobType === "both",
     );
     setFilteredJobs(temp);
   }, [activeTab, jobs]);
@@ -112,14 +112,14 @@ function AdminCareer({ user }) {
         res = await axios.put(
           `https://server-backend-nu.vercel.app/api/jobs/${editJobId}`,
           payload,
-          { headers: { "Content-Type": "application/json" } }
+          { headers: { "Content-Type": "application/json" } },
         );
         await fetchJobs();
       } else {
         const res = await axios.post(
           "https://server-backend-nu.vercel.app/api/jobs/",
           payload,
-          { headers: { "Content-Type": "application/json" } }
+          { headers: { "Content-Type": "application/json" } },
         );
         await fetchJobs();
       }
@@ -187,8 +187,8 @@ function AdminCareer({ user }) {
       importantSkills: Array.isArray(job?.importantSkills)
         ? job.importantSkills
         : typeof job?.importantSkills === "string"
-        ? job.importantSkills.split(",").map((s) => s.trim())
-        : [],
+          ? job.importantSkills.split(",").map((s) => s.trim())
+          : [],
       status: job?.status || "",
     });
     console.log("new Job from edit", newJob);
@@ -228,7 +228,7 @@ function AdminCareer({ user }) {
   // };
   const applyFilters = () => {
     let temp = jobs.filter(
-      (job) => job.jobType === activeTab || job.jobType === "both"
+      (job) => job.jobType === activeTab || job.jobType === "both",
     );
 
     // Status Filter
@@ -300,7 +300,7 @@ function AdminCareer({ user }) {
     setAssignDateToFilter("");
 
     const temp = jobs.filter(
-      (job) => job.jobType === activeTab || job.jobType === "both"
+      (job) => job.jobType === activeTab || job.jobType === "both",
     );
 
     setFilteredJobs(temp);
@@ -315,7 +315,7 @@ function AdminCareer({ user }) {
   const totalPages = Math.ceil(filteredJobs.length / itemsPerPage);
   const indexOfLastItem = Math.min(
     currentPage * itemsPerPage,
-    filteredJobs.length
+    filteredJobs.length,
   );
   const indexOfFirstItem = (currentPage - 1) * itemsPerPage;
   const currentJobs = filteredJobs.slice(indexOfFirstItem, indexOfLastItem);
@@ -339,8 +339,8 @@ function AdminCareer({ user }) {
 
       setApplicants((prev) =>
         prev.map((app) =>
-          app._id === applicationId ? { ...app, status: newStatus } : app
-        )
+          app._id === applicationId ? { ...app, status: newStatus } : app,
+        ),
       );
     } catch (err) {
       alert("Failed to update status");

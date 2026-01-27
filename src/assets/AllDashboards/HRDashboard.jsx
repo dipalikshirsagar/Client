@@ -105,7 +105,7 @@ function HRDashboard({ user }) {
     attendanceData?.employees?.filter((emp) => emp.hasCheckedIn).length || 0;
   const pendingLeaves = leaves.filter((l) => l.status === "pending");
   const pendingRegularizations = regularizations.filter(
-    (r) => r?.regularizationRequest?.status === "Pending"
+    (r) => r?.regularizationRequest?.status === "Pending",
   );
 
   const mergedEmployees = employees.map((emp) => {
@@ -124,7 +124,7 @@ function HRDashboard({ user }) {
       let nextBirthday = new Date(
         today.getFullYear(),
         dob.getMonth(),
-        dob.getDate()
+        dob.getDate(),
       );
       if (nextBirthday < today)
         nextBirthday.setFullYear(today.getFullYear() + 1);
@@ -133,7 +133,7 @@ function HRDashboard({ user }) {
       let nextAnniversary = new Date(
         today.getFullYear(),
         doj.getMonth(),
-        doj.getDate()
+        doj.getDate(),
       );
       if (nextAnniversary < today)
         nextAnniversary.setFullYear(today.getFullYear() + 1);
@@ -202,7 +202,7 @@ function HRDashboard({ user }) {
                     className="btn btn-sm custom-outline-btn"
                     onClick={() =>
                       navigate(
-                        `/dashboard/${role}/${username}/${id}/allemployeedetails`
+                        `/dashboard/${role}/${username}/${id}/allemployeedetails`,
                       )
                     }
                   >
@@ -254,7 +254,7 @@ function HRDashboard({ user }) {
                     onClick={(e) => {
                       e.stopPropagation(); // prevent card click event from firing
                       navigate(
-                        `/dashboard/${role}/${username}/${id}/hr-leavebalance`
+                        `/dashboard/${role}/${username}/${id}/hr-leavebalance`,
                       );
                     }}
                   >
@@ -304,7 +304,7 @@ function HRDashboard({ user }) {
                     style={{ color: "#3A5FBE", borderColor: "#3A5FBE" }}
                     onClick={() =>
                       navigate(
-                        `/dashboard/${role}/${username}/${id}/hr-employee-regularization`
+                        `/dashboard/${role}/${username}/${id}/hr-employee-regularization`,
                       )
                     }
                   >
@@ -353,7 +353,7 @@ function HRDashboard({ user }) {
                     style={{ color: "#3A5FBE", borderColor: "#3A5FBE" }}
                     onClick={() =>
                       navigate(
-                        `/dashboard/${role}/${username}/${id}/TodaysAttendanceDetails`
+                        `/dashboard/${role}/${username}/${id}/TodaysAttendanceDetails`,
                       )
                     }
                   >
@@ -388,7 +388,7 @@ function HRDashboard({ user }) {
                 style={{ color: "#3A5FBE", borderColor: "#3A5FBE" }}
                 onClick={() =>
                   navigate(
-                    `/dashboard/${role}/${username}/${id}/allemployeedetails`
+                    `/dashboard/${role}/${username}/${id}/allemployeedetails`,
                   )
                 }
               >
@@ -434,7 +434,7 @@ function HRDashboard({ user }) {
                           emp.name &&
                           emp.designation &&
                           emp.department &&
-                          emp.doj
+                          emp.doj,
                       )
                       .slice(0, 3)
                       .map((emp) => (
@@ -520,9 +520,9 @@ function HRDashboard({ user }) {
                       const formatted =
                         type === "Leave"
                           ? `${new Date(
-                              req.dateFrom
+                              req.dateFrom,
                             ).toLocaleDateString()} - ${new Date(
-                              req.dateTo
+                              req.dateTo,
                             ).toLocaleDateString()}`
                           : new Date(req.date).toLocaleDateString();
 
@@ -560,8 +560,8 @@ function HRDashboard({ user }) {
                                   status?.toLowerCase() === "approved"
                                     ? "#d1f2dd" // green
                                     : status?.toLowerCase() === "rejected"
-                                    ? "#f8d7da" // yellow
-                                    : "#FFE493", // pending or other
+                                      ? "#f8d7da" // yellow
+                                      : "#FFE493", // pending or other
                                 fontWeight: "600",
                               }}
                             >

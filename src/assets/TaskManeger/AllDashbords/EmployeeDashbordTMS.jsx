@@ -77,13 +77,13 @@ export default function EmployeeDashbordTMS({ user }) {
       try {
         setLoading(true);
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/tasks/assigned/${user._id}`
+          `https://server-backend-nu.vercel.app/tasks/assigned/${user._id}`,
         );
 
         const tasks = res.data.tasks || [];
         // Filter out Assignment Pending tasks first
         const activeTasks = tasks.filter(
-          (task) => task.status?.name !== "Assignment Pending"
+          (task) => task.status?.name !== "Assignment Pending",
         );
 
         // Calculate counts
@@ -190,6 +190,22 @@ export default function EmployeeDashbordTMS({ user }) {
     setShowTaskModal(true);
   };
 
+  const isAnyPopupOpen = !!showTaskModal;
+  useEffect(() => {
+    if (isAnyPopupOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [isAnyPopupOpen]);
+
   return (
     <div className="main-layout" style={{ marginTop: "-25px" }}>
       <div className="left-section">
@@ -205,9 +221,9 @@ export default function EmployeeDashbordTMS({ user }) {
                 <h4
                   className="mb-0 d-flex align-items-center justify-content-center"
                   style={{
-                    fontSize: "28px",
-                    minWidth: "60px",
-                    minHeight: "60px",
+                    fontSize: "32px",
+                    minWidth: "70px",
+                    minHeight: "70px",
                     flexShrink: 0,
 
                     backgroundColor: "#D1ECF1",
@@ -225,7 +241,7 @@ export default function EmployeeDashbordTMS({ user }) {
                 <p
                   className="mb-0 fw-semibold text-center text-sm-start"
                   style={{
-                    fontSize: "16px",
+                    fontSize: "18px",
                     color: "#3A5FBE",
                     wordBreak: "break-word",
                   }}
@@ -251,9 +267,9 @@ export default function EmployeeDashbordTMS({ user }) {
                 <h4
                   className="mb-0 d-flex align-items-center justify-content-center"
                   style={{
-                    fontSize: "28px",
-                    minWidth: "60px",
-                    minHeight: "60px",
+                    fontSize: "32px",
+                    minWidth: "70px",
+                    minHeight: "70px",
                     flexShrink: 0,
 
                     backgroundColor: "#FFE493",
@@ -271,7 +287,7 @@ export default function EmployeeDashbordTMS({ user }) {
                 <p
                   className="mb-0 fw-semibold text-center text-sm-start"
                   style={{
-                    fontSize: "16px",
+                    fontSize: "18px",
                     color: "#3A5FBE",
                     wordBreak: "break-word",
                   }}
@@ -296,9 +312,9 @@ export default function EmployeeDashbordTMS({ user }) {
                 <h4
                   className="mb-0 d-flex align-items-center justify-content-center"
                   style={{
-                    fontSize: "28px",
-                    minWidth: "60px",
-                    minHeight: "60px",
+                    fontSize: "32px",
+                    minWidth: "70px",
+                    minHeight: "70px",
                     flexShrink: 0,
                     backgroundColor: "#FFB3B3",
                     display: "flex",
@@ -314,7 +330,7 @@ export default function EmployeeDashbordTMS({ user }) {
                 <p
                   className="mb-0 fw-semibold text-center text-sm-start"
                   style={{
-                    fontSize: "16px",
+                    fontSize: "18px",
                     color: "#3A5FBE",
                     wordBreak: "break-word",
                   }}
@@ -340,9 +356,9 @@ export default function EmployeeDashbordTMS({ user }) {
                 <h4
                   className="mb-0 d-flex align-items-center justify-content-center"
                   style={{
-                    fontSize: "28px",
-                    minWidth: "60px",
-                    minHeight: "60px",
+                    fontSize: "32px",
+                    minWidth: "70px",
+                    minHeight: "70px",
                     flexShrink: 0,
 
                     backgroundColor: "#D7F5E4",
@@ -360,7 +376,7 @@ export default function EmployeeDashbordTMS({ user }) {
                 <p
                   className="mb-0 fw-semibold text-center text-sm-start"
                   style={{
-                    fontSize: "16px",
+                    fontSize: "18px",
                     color: "#3A5FBE",
                     wordBreak: "break-word",
                   }}
@@ -397,8 +413,8 @@ export default function EmployeeDashbordTMS({ user }) {
               {loading
                 ? "Loading..."
                 : taskStats.totalTasks === 0
-                ? "No tasks assigned."
-                : `${taskStats.completedTasks}/${taskStats.totalTasks} Tasks completed.`}
+                  ? "No tasks assigned."
+                  : `${taskStats.completedTasks}/${taskStats.totalTasks} Tasks completed.`}
             </p>
             <span className="date">
               {selectedDate.toLocaleDateString("en-GB", {
@@ -623,7 +639,7 @@ export default function EmployeeDashbordTMS({ user }) {
           }}
         >
           <div
-            className="modal-dialog modal-dialog-scrollable"
+            className="modal-dialog"
             style={{ maxWidth: "650px", width: "95%", marginTop: "200px" }}
           >
             <div className="modal-content">

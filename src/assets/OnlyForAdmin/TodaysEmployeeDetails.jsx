@@ -40,7 +40,7 @@ function TodaysEmployeeDetails() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       // API returns array → take today's record
@@ -71,7 +71,7 @@ function TodaysEmployeeDetails() {
     getCompletedBreaks(breaks).reduce(
       (total, brk) =>
         total + getBreakDurationInMinutes(brk.startTime, brk.endTime),
-      0
+      0,
     );
 
   const formatMinutes = (mins) => {
@@ -131,7 +131,7 @@ function TodaysEmployeeDetails() {
         setLoading(true);
         const token = localStorage.getItem("accessToken");
         const authAxios = axios.create({
-          baseURL: " https://server-backend-nu.vercel.app",
+          baseURL: "https://server-backend-nu.vercel.app",
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -279,7 +279,9 @@ function TodaysEmployeeDetails() {
     // Name filter
     if (employeeNameFilter.trim() !== "") {
       temp = temp.filter((emp) =>
-        emp.name.toLowerCase().includes(employeeNameFilter.trim().toLowerCase())
+        emp.name
+          .toLowerCase()
+          .includes(employeeNameFilter.trim().toLowerCase()),
       );
     }
 
@@ -293,7 +295,7 @@ function TodaysEmployeeDetails() {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentEmployees = filteredEmployees.slice(
     indexOfFirstItem,
-    indexOfLastItem
+    indexOfLastItem,
   );
 
   const handlePageChange = (newPage) => {
@@ -707,7 +709,7 @@ function TodaysEmployeeDetails() {
                             `/dashboard/${role}/${username}/${id}/employeeattendance/${emp._id}`,
                             {
                               state: { employee: emp },
-                            }
+                            },
                           )
                         }
                       >
@@ -821,7 +823,7 @@ function TodaysEmployeeDetails() {
                       <div className="col-sm-9">
                         {selectedEmployee.checkInTime
                           ? new Date(
-                              selectedEmployee.checkInTime
+                              selectedEmployee.checkInTime,
                             ).toLocaleTimeString()
                           : "-"}
                       </div>
@@ -832,7 +834,7 @@ function TodaysEmployeeDetails() {
                       <div className="col-sm-9">
                         {selectedEmployee.checkOutTime
                           ? new Date(
-                              selectedEmployee.checkOutTime
+                              selectedEmployee.checkOutTime,
                             ).toLocaleTimeString()
                           : "-"}
                       </div>
@@ -843,7 +845,7 @@ function TodaysEmployeeDetails() {
                       <div className="col-sm-9">
                         {calculateWorkingHours(
                           selectedEmployee.checkInTime,
-                          selectedEmployee.checkOutTime
+                          selectedEmployee.checkOutTime,
                         )}{" "}
                         hrs
                       </div>
@@ -860,29 +862,29 @@ function TodaysEmployeeDetails() {
                               selectedEmployee.checkOutTime,
                               calculateWorkingHours(
                                 selectedEmployee.checkInTime,
-                                selectedEmployee.checkOutTime
-                              )
+                                selectedEmployee.checkOutTime,
+                              ),
                             ) === "Present"
                               ? "bg-success"
                               : getStatus(
-                                  selectedEmployee.checkInTime,
-                                  selectedEmployee.checkOutTime,
-                                  calculateWorkingHours(
                                     selectedEmployee.checkInTime,
-                                    selectedEmployee.checkOutTime
-                                  )
-                                ) === "Half Day"
-                              ? "bg-warning text-dark"
-                              : getStatus(
-                                  selectedEmployee.checkInTime,
-                                  selectedEmployee.checkOutTime,
-                                  calculateWorkingHours(
-                                    selectedEmployee.checkInTime,
-                                    selectedEmployee.checkOutTime
-                                  )
-                                ) === "Working"
-                              ? "bg-info text-dark"
-                              : "bg-danger")
+                                    selectedEmployee.checkOutTime,
+                                    calculateWorkingHours(
+                                      selectedEmployee.checkInTime,
+                                      selectedEmployee.checkOutTime,
+                                    ),
+                                  ) === "Half Day"
+                                ? "bg-warning text-dark"
+                                : getStatus(
+                                      selectedEmployee.checkInTime,
+                                      selectedEmployee.checkOutTime,
+                                      calculateWorkingHours(
+                                        selectedEmployee.checkInTime,
+                                        selectedEmployee.checkOutTime,
+                                      ),
+                                    ) === "Working"
+                                  ? "bg-info text-dark"
+                                  : "bg-danger")
                           }
                         >
                           {getStatus(
@@ -890,8 +892,8 @@ function TodaysEmployeeDetails() {
                             selectedEmployee.checkOutTime,
                             calculateWorkingHours(
                               selectedEmployee.checkInTime,
-                              selectedEmployee.checkOutTime
-                            )
+                              selectedEmployee.checkOutTime,
+                            ),
                           )}
                         </span>
                       </div>

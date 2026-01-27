@@ -8,6 +8,7 @@ import {
   BarChartFill,
   GearFill,
   ClipboardCheck,
+  GraphUpArrow,
 } from "react-bootstrap-icons";
 import "./TMSSidebar.css";
 
@@ -103,7 +104,7 @@ function TMSSidebar() {
               onClick={handleLinkClick}
               end
             >
-              <BarChartFill size={20} />
+              <GraphUpArrow size={20} />
               <h6 className="mt-1">Reports</h6>
             </NavLink>
           </li>

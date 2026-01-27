@@ -143,7 +143,7 @@ function AllEmployeesTable({ employees, onClose, onViewTasks }) {
           <div className="d-flex align-items-center gap-3 flex-wrap">
             {/* Search Label and Input inline */}
             <div
-              className="d-flex align-items-center gap-2"
+              className="d-flex align-items-center gap-2 flex-grow-1 flex-md-grow-0 w-md-100"
               style={{ minWidth: "300px" }}
             >
               <label
@@ -158,7 +158,6 @@ function AllEmployeesTable({ employees, onClose, onViewTasks }) {
                 placeholder="Search by any field..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ flex: 1 }}
               />
             </div>
 

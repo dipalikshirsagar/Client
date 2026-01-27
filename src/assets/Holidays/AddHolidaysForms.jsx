@@ -38,7 +38,7 @@ function AddHolidayForm({ onAdd }) {
       const res = await axios.post(
         "https://server-backend-nu.vercel.app/holidays",
         { name, date },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       // Call parent callback to update holidays dynamically

@@ -29,21 +29,21 @@ function ApplyRegularization({ user, selectedRecord }) {
   const fetchCounts = async () => {
     try {
       const res = await axios.get(
-        `https://server-backend-nu.vercel.app/attendance/regularization/my/${user._id}`
+        `https://server-backend-nu.vercel.app/attendance/regularization/my/${user._id}`,
       );
 
       const requests = res.data || [];
       setAcceptedCount(
         requests.filter((r) => r?.regularizationRequest?.status === "Approved")
-          .length
+          .length,
       );
       setRejectedCount(
         requests.filter((r) => r?.regularizationRequest?.status === "Rejected")
-          .length
+          .length,
       );
       setPendingCount(
         requests.filter((r) => r?.regularizationRequest?.status === "Pending")
-          .length
+          .length,
       );
     } catch (err) {
       console.error("Failed to fetch regularization counts", err);
@@ -61,7 +61,7 @@ function ApplyRegularization({ user, selectedRecord }) {
     const fetchWeeklyOffs = async () => {
       try {
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`
+          `https://server-backend-nu.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`,
         );
 
         const weeklyData = res.data?.data || res.data || {};
@@ -87,7 +87,7 @@ function ApplyRegularization({ user, selectedRecord }) {
     const fetchAttendance = async () => {
       try {
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/attendance/regularization/my/${user._id}`
+          `https://server-backend-nu.vercel.app/attendance/regularization/my/${user._id}`,
         );
         setAttendance(res.data);
         console.log(res.data);
@@ -159,7 +159,7 @@ function ApplyRegularization({ user, selectedRecord }) {
             hour: "2-digit",
             minute: "2-digit",
             hour12: false,
-          }
+          },
         );
         setCheckIn(localCheckIn);
       } else {
@@ -175,7 +175,7 @@ function ApplyRegularization({ user, selectedRecord }) {
             hour: "2-digit",
             minute: "2-digit",
             hour12: false,
-          }
+          },
         );
         setCheckOut(localCheckOut);
       } else {
@@ -231,10 +231,10 @@ function ApplyRegularization({ user, selectedRecord }) {
       //  Block if outside allowed window
       if (selected < windowStart || selected > windowEnd) {
         alert(
-          " Regularization is allowed only for past dates within the permitted window."
+          " Regularization is allowed only for past dates within the permitted window.",
         );
         setMessage(
-          " You can apply regularization only for past dates within the allowed period."
+          " You can apply regularization only for past dates within the allowed period.",
         );
         return;
       }
@@ -254,7 +254,7 @@ function ApplyRegularization({ user, selectedRecord }) {
         const firstDay = new Date(
           selected.getFullYear(),
           selected.getMonth(),
-          1
+          1,
         );
         let saturdayCount = 0;
         for (
@@ -267,7 +267,7 @@ function ApplyRegularization({ user, selectedRecord }) {
 
         if (weeklyOffs.saturdays.includes(saturdayCount)) {
           alert(
-            `❌ You cannot apply regularization on Weekly Off Saturday (${date})`
+            `❌ You cannot apply regularization on Weekly Off Saturday (${date})`,
           );
           setMessage("❌ Regularization not allowed on 2nd/4th Saturday");
           return;
@@ -312,10 +312,10 @@ function ApplyRegularization({ user, selectedRecord }) {
         selectedDate.getTime() === today.getTime()
       ) {
         alert(
-          "Please check out first before applying regularization for today."
+          "Please check out first before applying regularization for today.",
         );
         setMessage(
-          "Please check out first before applying regularization for today."
+          "Please check out first before applying regularization for today.",
         );
         return;
       }
@@ -327,17 +327,17 @@ function ApplyRegularization({ user, selectedRecord }) {
         existingAttendance.checkOut
       ) {
         alert(
-          "You cannot apply regularization for this date because check-in and check-out are already recorded."
+          "You cannot apply regularization for this date because check-in and check-out are already recorded.",
         );
         setMessage(
-          "Regularization not allowed because full attendance already exists for this date."
+          "Regularization not allowed because full attendance already exists for this date.",
         );
         return;
       }
 
       // 1️⃣ Fetch existing leaves for the employee
       const leaveRes = await axios.get(
-        `https://server-backend-nu.vercel.app/leave/my/${user._id}`
+        `https://server-backend-nu.vercel.app/leave/my/${user._id}`,
       );
       const leaves = leaveRes.data || [];
 
@@ -361,7 +361,7 @@ function ApplyRegularization({ user, selectedRecord }) {
       const currentYear = new Date().getFullYear();
       const holidaysRes = await axios.get("https://server-backend-nu.vercel.app/getHolidays");
       const holidays = holidaysRes.data.filter(
-        (h) => new Date(h.date).getFullYear() === currentYear
+        (h) => new Date(h.date).getFullYear() === currentYear,
       );
 
       // 🔹 Check if selected date is a holiday
@@ -373,7 +373,7 @@ function ApplyRegularization({ user, selectedRecord }) {
 
       if (isHoliday) {
         alert(
-          "🎉 It's a holiday! You cannot apply regularization on this date."
+          "🎉 It's a holiday! You cannot apply regularization on this date.",
         );
         setMessage("🎉 You cannot apply regularization on a holiday.");
         return;
@@ -381,7 +381,7 @@ function ApplyRegularization({ user, selectedRecord }) {
 
       // 3 Fetch existing regularization requests (✅ fixed link)
       const regRes = await axios.get(
-        `https://server-backend-nu.vercel.app/attendance/regularization/my/${user._id}`
+        `https://server-backend-nu.vercel.app/attendance/regularization/my/${user._id}`,
       );
       const regularizations = regRes.data || [];
 
@@ -707,8 +707,8 @@ function ApplyRegularization({ user, selectedRecord }) {
                           checkIn
                             ? dayjs(checkIn, "HH:mm") // if employee already checked in
                             : checkInTime
-                            ? dayjs(checkInTime)
-                            : null
+                              ? dayjs(checkInTime)
+                              : null
                         }
                         onChange={(newValue) => {
                           if (
@@ -744,8 +744,8 @@ function ApplyRegularization({ user, selectedRecord }) {
                           checkOut
                             ? dayjs(checkOut, "HH:mm") // if employee already checked out
                             : checkOutTime
-                            ? dayjs(checkOutTime)
-                            : null
+                              ? dayjs(checkOutTime)
+                              : null
                         }
                         onChange={(newValue) => {
                           if (

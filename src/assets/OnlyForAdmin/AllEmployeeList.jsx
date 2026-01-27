@@ -49,7 +49,7 @@
 
 //   //   try {
 //   //     const token = localStorage.getItem("accessToken");
-//   //     const res = await axios.delete(` https://server-backend-nu.vercel.app/deleteEmployee/${id}`, {
+//   //     const res = await axios.delete(`https://server-backend-nu.vercel.app/deleteEmployee/${id}`, {
 //   //       headers: { Authorization: `Bearer ${token}` },
 //   //     });
 
@@ -516,7 +516,7 @@ function AllEmployeeDetails() {
   const handleDeleteEmployeepermanent = async (id) => {
     if (
       !window.confirm(
-        "⚠️ Are you sure you want to permanently delete this employee? This action cannot be undone."
+        "⚠️ Are you sure you want to permanently delete this employee? This action cannot be undone.",
       )
     )
       return;
@@ -527,7 +527,7 @@ function AllEmployeeDetails() {
         `https://server-backend-nu.vercel.app/deleteEmployee/${id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
 
       if (res.data.success) {
@@ -558,7 +558,7 @@ function AllEmployeeDetails() {
         });
         //Geetanjali
         const sortedEmployees = (res.data || []).sort((a, b) =>
-          a.name.localeCompare(b.name)
+          a.name.localeCompare(b.name),
         );
 
         setEmployees(sortedEmployees);
@@ -590,7 +590,7 @@ function AllEmployeeDetails() {
     setSelectedEmployee(emp);
     setSelectedManagerId(emp.reportingManager?._id || "");
     const managers = employees.filter(
-      (e) => e.role === "manager" && e._id !== emp._id
+      (e) => e.role === "manager" && e._id !== emp._id,
     );
     setManagersList(managers);
     setShowModal(true);
@@ -607,7 +607,7 @@ function AllEmployeeDetails() {
       await axios.put(
         `https://server-backend-nu.vercel.app/users/${selectedEmployee._id}/assign-manager`,
         { managerId: selectedManagerId },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       const managerObj = managersList.find((m) => m._id === selectedManagerId);
@@ -615,15 +615,15 @@ function AllEmployeeDetails() {
         prev.map((emp) =>
           emp._id === selectedEmployee._id
             ? { ...emp, reportingManager: managerObj }
-            : emp
-        )
+            : emp,
+        ),
       );
       setFilteredEmployees((prev) =>
         prev.map((emp) =>
           emp._id === selectedEmployee._id
             ? { ...emp, reportingManager: managerObj }
-            : emp
-        )
+            : emp,
+        ),
       );
       setMessage("Manager assigned successfully!");
       setShowModal(false);
@@ -639,7 +639,7 @@ function AllEmployeeDetails() {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentEmployees = displayedList.slice(
     indexOfFirstItem,
-    indexOfLastItem
+    indexOfLastItem,
   );
   const totalPages = Math.ceil(displayedList.length / itemsPerPage);
 
@@ -996,7 +996,7 @@ function AllEmployeeDetails() {
                       day: "2-digit",
                       month: "short",
                       year: "numeric",
-                    }
+                    },
                   )}
                 </td>
 

@@ -47,7 +47,8 @@ const TaskNotification = ({ userId }) => {
       if (
         n.type === "Task_Assigned" ||
         n.type === "Task_Status_Update" ||
-        n.type === "Task_Comment"
+        n.type === "Task_Comment" ||
+        n.type === "Task_updated"
       ) {
         if (role === "manager") {
           navigate(`/tms-dashboard/${role}/${username}/${id}/task`);
@@ -59,7 +60,9 @@ const TaskNotification = ({ userId }) => {
       } else if (
         n.type === "Project_Assigned" ||
         n.type === "Project_update" ||
-        n.type === "Project_deleted"
+        n.type === "Project_deleted" ||
+        n.type === "Project_Assigned" ||
+        n.type === "Project_comment"
       ) {
         if (role === "manager") {
           navigate(`/tms-dashboard/${role}/${username}/${id}/project`);

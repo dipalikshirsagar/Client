@@ -129,6 +129,21 @@ function AllProjectsTable({ projects, onClose }) {
     XLSX.writeFile(workbook, "All_Projects.xlsx");
   };
 
+  const isAnyPopupOpen = !!showPopup;
+  useEffect(() => {
+    if (isAnyPopupOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [isAnyPopupOpen]);
   return (
     <>
       {/* Title  */}
@@ -150,7 +165,7 @@ function AllProjectsTable({ projects, onClose }) {
           <div className="d-flex align-items-center gap-3 flex-wrap">
             {/* Search Label and Input inline */}
             <div
-              className="d-flex align-items-center gap-2"
+              className="d-flex align-items-center gap-2 flex-grow-1 flex-md-grow-0 w-md-100"
               style={{ minWidth: "300px" }}
             >
               <label
@@ -165,7 +180,6 @@ function AllProjectsTable({ projects, onClose }) {
                 placeholder="Search by any field..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ flex: 1 }}
               />
             </div>
 

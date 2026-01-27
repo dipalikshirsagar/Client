@@ -45,7 +45,7 @@ function ChangePassword() {
 
     if (!passwordRegex.test(newPassword)) {
       setPasswordError(
-        "Password must be at least 6 characters and include uppercase, lowercase, number, and special character."
+        "Password must be at least 6 characters and include uppercase, lowercase, number, and special character.",
       );
       return;
     }
@@ -65,7 +65,7 @@ function ChangePassword() {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
-        }
+        },
       );
 
       setPasswordSuccess("Password changed successfully. Please login again.");
@@ -85,7 +85,7 @@ function ChangePassword() {
     } catch (err) {
       console.error("Failed to change password:", err);
       setPasswordError(
-        err?.response?.data?.message || "Failed to change password."
+        err?.response?.data?.message || "Failed to change password.",
       );
     } finally {
       setPasswordLoading(false);

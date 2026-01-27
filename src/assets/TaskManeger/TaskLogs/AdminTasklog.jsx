@@ -24,6 +24,29 @@ const AdminTasklog = ({ user }) => {
 
   const [filterEmployee, setFilterEmployee] = useState("");
 
+  // rutuja code start
+  const [selectedWorkload, setSelectedWorkload] = useState(null);
+
+  const handleWorkloadRowClick = (workload) => {
+    setSelectedWorkload(workload);
+  };
+
+  const closeWorkloadView = () => {
+    setSelectedWorkload(null);
+  };
+
+  const handleWorkloadReset = () => {
+    setWorkloadDate("");
+    setWorkloadWeek("");
+    setWorkloadMonth("");
+    setWorkloadData([]);
+    setWorkloadRangeLabel("");
+    setDate("");
+    fetchWorkload();
+  };
+
+  // rutuja code end
+
   const getTaskDayNumber = (startDate, endDate) => {
     if (!startDate || !endDate) return null;
 
@@ -143,7 +166,7 @@ const AdminTasklog = ({ user }) => {
 
         const res = await axios.get(
           `https://server-backend-nu.vercel.app/api/tasklogs/daily-workload?date=${dateStr}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: `Bearer ${token}` } },
         );
 
         if (res.data.data && res.data.data.length > 0) {
@@ -208,7 +231,7 @@ const AdminTasklog = ({ user }) => {
         `https://server-backend-nu.vercel.app/api/tasklogs/daily-workload?date=${selectedDate}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       setDate(res.data.date);
       setWorkloadData(res.data.data);
@@ -254,7 +277,7 @@ const AdminTasklog = ({ user }) => {
       } else if (workloadMonth) {
         const d = new Date(`${workloadMonth}-01`);
         setWorkloadRangeLabel(
-          d.toLocaleDateString("en-GB", { month: "short", year: "numeric" })
+          d.toLocaleDateString("en-GB", { month: "short", year: "numeric" }),
         );
       }
     } catch (error) {
@@ -407,14 +430,14 @@ const AdminTasklog = ({ user }) => {
           l.employee?.name?.toLowerCase().includes(text) ||
           l.task?.taskName?.toLowerCase().includes(text) ||
           l.status?.toLowerCase().includes(text) ||
-          l.workDescription?.toLowerCase().includes(text)
+          l.workDescription?.toLowerCase().includes(text),
       );
     }
     if (filterDate) {
       data = data.filter((l) => {
         const date = new Date(l.date);
         const logDate = `${date.getFullYear()}-${String(
-          date.getMonth() + 1
+          date.getMonth() + 1,
         ).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
         return logDate === filterDate;
       });
@@ -434,6 +457,21 @@ const AdminTasklog = ({ user }) => {
     setFilteredLogs([]);
   };
 
+  const isAnyPopupOpen = !!viewOpen;
+  useEffect(() => {
+    if (isAnyPopupOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [isAnyPopupOpen]);
   return (
     <div style={{ padding: 20, background: "#f7f9fc", minHeight: "auto" }}>
       <h3 style={{ color: "#3A5FBE", marginBottom: 20 }}>
@@ -503,7 +541,7 @@ const AdminTasklog = ({ user }) => {
           </div>
 
           {/* RIGHT SIDE BUTTONS */}
-          <div style={{ display: "flex", gap: 12 }}>
+          <div style={{ display: "flex", gap: 12, alignSelf: "center" }}>
             <button
               onClick={handleFilter}
               className="btn btn-sm custom-outline-btn"
@@ -524,10 +562,50 @@ const AdminTasklog = ({ user }) => {
       )}
 
       {activeTab === "work" && (
-        <div className="workload-filter-wrapper">
-          <div className="workload-filter-left">
-            <div className="filter-group">
-              <span>Workload by date</span>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 12,
+            padding: "20px",
+            background: "#fff",
+            marginBottom: "20px",
+            flexWrap: "wrap",
+            ...(isMobile && {
+              flexDirection: "row",
+              flexWrap: "wrap",
+            }),
+          }}
+        >
+          {/* LEFT SIDE - More compact layout */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              flexWrap: "nowrap",
+              minWidth: 0,
+            }}
+          >
+            {/* Date filter */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                whiteSpace: "nowrap",
+              }}
+            >
+              <span
+                style={{
+                  color: "#3A5FBE",
+                  fontWeight: "bold",
+                  fontSize: "14px",
+                }}
+              >
+                Workload by date
+              </span>
               <input
                 type="date"
                 value={workloadDate}
@@ -536,11 +614,35 @@ const AdminTasklog = ({ user }) => {
                   setWorkloadWeek("");
                   setWorkloadMonth("");
                 }}
+                style={{
+                  width: 150,
+                  padding: "8px 10px",
+                  borderRadius: 6,
+                  border: "1px solid #ddd",
+                  height: "40px",
+                  fontSize: "14px",
+                }}
               />
             </div>
 
-            <div className="filter-group">
-              <span>Workload by week</span>
+            {/* Week filter */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                whiteSpace: "nowrap",
+              }}
+            >
+              <span
+                style={{
+                  color: "#3A5FBE",
+                  fontWeight: "bold",
+                  fontSize: "14px",
+                }}
+              >
+                Workload by week
+              </span>
               <input
                 type="week"
                 value={workloadWeek}
@@ -549,11 +651,35 @@ const AdminTasklog = ({ user }) => {
                   setWorkloadDate("");
                   setWorkloadMonth("");
                 }}
+                style={{
+                  width: 150,
+                  padding: "8px 10px",
+                  borderRadius: 6,
+                  border: "1px solid #ddd",
+                  height: "40px",
+                  fontSize: "14px",
+                }}
               />
             </div>
 
-            <div className="filter-group">
-              <span>Workload by month</span>
+            {/* Month filter */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                whiteSpace: "nowrap",
+              }}
+            >
+              <span
+                style={{
+                  color: "#3A5FBE",
+                  fontWeight: "bold",
+                  fontSize: "14px",
+                }}
+              >
+                Workload by month
+              </span>
               <input
                 type="month"
                 value={workloadMonth}
@@ -562,22 +688,41 @@ const AdminTasklog = ({ user }) => {
                   setWorkloadDate("");
                   setWorkloadWeek("");
                 }}
+                style={{
+                  width: 150,
+                  padding: "8px 10px",
+                  borderRadius: 6,
+                  border: "1px solid #ddd",
+                  height: "40px",
+                  fontSize: "14px",
+                }}
               />
             </div>
           </div>
-          <div style={{ display: "flex", gap: 12 }}>
+
+          {/* RIGHT SIDE BUTTONS */}
+          <div style={{ display: "flex", gap: 12, flexShrink: 0 }}>
             <button
               onClick={gettingWorkload}
               className="btn btn-sm custom-outline-btn"
               style={{ minWidth: 90 }}
             >
-              Get Workload
+              Filter
+            </button>
+
+            {/* Update this button to use handleWorkloadReset */}
+            <button
+              onClick={handleWorkloadReset}
+              className="btn btn-sm custom-outline-btn"
+              style={{ minWidth: 90 }}
+            >
+              Reset
             </button>
           </div>
         </div>
       )}
 
-      <div
+      {/* <div
         style={{
           display: "flex",
           gap: 32,
@@ -620,6 +765,30 @@ const AdminTasklog = ({ user }) => {
         >
           Work Load
         </span>
+      </div> */}
+
+      <div className="d-flex gap-2 justify-content-end mt-3 mb-3">
+        <button
+          onClick={() => {
+            setActiveTab("task");
+            setCurrentPage(1);
+          }}
+          className="btn btn-sm custom-outline-btn"
+          style={{ minWidth: 120 }}
+        >
+          Task Log
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveTab("work");
+            setCurrentPage(1);
+          }}
+          className="btn btn-sm custom-outline-btn"
+          style={{ minWidth: 120 }}
+        >
+          Work Load
+        </button>
       </div>
 
       {/* TABLE */}
@@ -732,11 +901,11 @@ const AdminTasklog = ({ user }) => {
                             {/* Period */}
                             <div>
                               {formatDateWithoutYear(
-                                log.task.dateOfTaskAssignment
+                                log.task.dateOfTaskAssignment,
                               )}{" "}
                               →{" "}
                               {formatDateWithoutYear(
-                                log.task.dateOfExpectedCompletion
+                                log.task.dateOfExpectedCompletion,
                               )}
                             </div>
 
@@ -745,7 +914,7 @@ const AdminTasklog = ({ user }) => {
                               (() => {
                                 const dayNumber = getTaskDayNumber(
                                   log.task.dateOfTaskAssignment,
-                                  log.task.dateOfExpectedCompletion
+                                  log.task.dateOfExpectedCompletion,
                                 );
 
                                 return (
@@ -777,7 +946,7 @@ const AdminTasklog = ({ user }) => {
                         log?.task?.dateOfExpectedCompletion
                           ? getWorkingDays(
                               log.task.dateOfTaskAssignment,
-                              log.task.dateOfExpectedCompletion
+                              log.task.dateOfExpectedCompletion,
                             )
                           : "—"}
                       </td>
@@ -851,143 +1020,462 @@ const AdminTasklog = ({ user }) => {
         </div>
       )}
 
-      {/* VIEW POPUP */}
+      {/* VIEW POPUP rutuja updated*/}
       {viewOpen && (
         <div
+          tabIndex="-1"
+          className="modal fade show"
           style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.5)",
             position: "fixed",
             inset: 0,
-            background: "rgba(0,0,0,0.4)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 999,
+            zIndex: 1050,
           }}
+          onClick={() => setViewOpen(false)}
         >
           <div
-            style={{
-              width: 580,
-              background: "#fff",
-              borderRadius: 10,
-              marginTop: "2vh",
-              maxHeight: "85vh",
-              overflowY: "auto",
-              scrollbarWidth: "thin",
-            }}
+            className="modal-dialog"
+            style={{ maxWidth: "650px", width: "95%", marginTop: "120px" }}
           >
-            {/* HEADER */}
-            <div
-              style={{
-                background: "#3f5fbf",
-                color: "#fff",
-                padding: "12px 16px",
-                fontSize: 16,
-                fontWeight: 600,
-                display: "flex",
-                justifyContent: "center",
-              }}
-            >
-              View Worklog
-            </div>
-
-            {/* BODY */}
-            <div style={{ padding: 16, fontSize: 14 }}>
-              <p>
-                <b>Date:</b> {formatDate(selectedRow.date)}
-              </p>
-              <p>
-                <b>Employee:</b> {selectedRow?.employee?.name}
-              </p>
-              <p>
-                <b>Task:</b> {selectedRow?.task?.taskName}
-              </p>
-              <p>
-                <b>Start Time:</b> {selectedRow.startTime}
-              </p>
-              <p>
-                <b>End Time:</b> {selectedRow.endTime}
-              </p>
-              <p>
-                <b>Total Hours:</b> {formatDisplayHours(selectedRow.totalHours)}
-              </p>
-              <p>
-                <b>Status:</b>{" "}
-                <span style={getStatusColor(selectedRow.status)}>
-                  {selectedRow.status}
-                  {selectedRow.status === "InProgress" && (
-                    <span
-                      style={{
-                        color: "#92400e",
-                        borderRadius: 4,
-                        padding: "2px 6px",
-                        fontSize: 11,
-                        fontWeight: 600,
-                      }}
-                    >
-                      {selectedRow.progressToday}%
-                    </span>
-                  )}
-                </span>
-              </p>
-              <p>
-                <b>Description:</b> {selectedRow.workDescription}
-              </p>
-              <p>
-                <b>Challenges:</b> {selectedRow.challengesFaced}
-              </p>
-              <p>
-                <b>What I Learned:</b> {selectedRow.whatLearnedToday}
-              </p>
-              {selectedRow.status === "Approved" && (
-                <>
-                  <p>
-                    <b>Remarks:</b> {selectedRow.remarks || "-"}
-                  </p>
-                  <p>
-                    <b>Rating:</b>{" "}
-                    {renderStars(selectedRow.rating, selectedRow?.status)}
-                  </p>
-                  <p>
-                    <b>Approved By:</b> {selectedRow?.approvedBy?.name || "-"}
-                  </p>
-                </>
-              )}
-              {selectedRow.status === "Rejected" && (
-                <>
-                  <p>
-                    <b>Rejected By:</b> {selectedRow?.approvedBy?.name || "-"}
-                  </p>
-                </>
-              )}
-              {selectedRow.status !== "Rejected" &&
-                selectedRow.status !== "Approved" && (
-                  <>
-                    <p>
-                      <b>Approval: </b> Not Yet Reviewed
-                    </p>
-                  </>
-                )}
-            </div>
-
-            {/* FOOTER */}
-            <div
-              style={{
-                padding: 16,
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: 10,
-              }}
-            >
-              <button
-                onClick={() => setViewOpen(false)}
-                className="btn btn-sm custom-outline-btn"
+            <div className="modal-content">
+              <div
+                className="modal-header text-white"
+                style={{ backgroundColor: "#3A5FBE" }}
               >
-                Close
-              </button>
+                <h5 className="modal-title mb-0">View Worklog</h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setViewOpen(false)}
+                />
+              </div>
+
+              <div className="modal-body">
+                <div className="container-fluid">
+                  <div className="row mb-2">
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Date
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {formatDate(selectedRow.date)}
+                    </div>
+                  </div>
+
+                  <div className="row mb-2">
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Employee
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {selectedRow?.employee?.name}
+                    </div>
+                  </div>
+
+                  <div className="row mb-2">
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Task
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {selectedRow?.task?.taskName}
+                    </div>
+                  </div>
+
+                  <div className="row mb-2">
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Start Time
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {selectedRow.startTime}
+                    </div>
+                  </div>
+
+                  <div className="row mb-2">
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      End Time
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {selectedRow.endTime}
+                    </div>
+                  </div>
+
+                  <div className="row mb-2">
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Total Hours
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {formatDisplayHours(selectedRow.totalHours)}
+                    </div>
+                  </div>
+
+                  <div className="row mb-2">
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Status
+                    </div>
+                    <div className="col-7 col-sm-9">
+                      <span style={getStatusColor(selectedRow.status)}>
+                        {selectedRow.status}
+                        {selectedRow.status === "InProgress" && (
+                          <span
+                            style={{
+                              color: "#92400e",
+                              borderRadius: 4,
+                              padding: "2px 6px",
+                              fontSize: 11,
+                              fontWeight: 600,
+                            }}
+                          >
+                            {selectedRow.progressToday}%
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="row mb-2">
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Description
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {selectedRow.workDescription}
+                    </div>
+                  </div>
+
+                  <div className="row mb-2">
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Challenges
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {selectedRow.challengesFaced}
+                    </div>
+                  </div>
+
+                  <div className="row mb-2">
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      What I Learned
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {selectedRow.whatLearnedToday}
+                    </div>
+                  </div>
+
+                  {selectedRow.status === "Approved" && (
+                    <>
+                      <div className="row mb-2">
+                        <div
+                          className="col-5 col-sm-3 fw-semibold"
+                          style={{ color: "#212529" }}
+                        >
+                          Remarks
+                        </div>
+                        <div
+                          className="col-7 col-sm-9"
+                          style={{ color: "#212529" }}
+                        >
+                          {selectedRow.remarks || "-"}
+                        </div>
+                      </div>
+
+                      <div className="row mb-2">
+                        <div
+                          className="col-5 col-sm-3 fw-semibold"
+                          style={{ color: "#212529" }}
+                        >
+                          Rating
+                        </div>
+                        <div
+                          className="col-7 col-sm-9"
+                          style={{ color: "#212529" }}
+                        >
+                          {renderStars(selectedRow.rating, selectedRow?.status)}
+                        </div>
+                      </div>
+
+                      <div className="row mb-2">
+                        <div
+                          className="col-5 col-sm-3 fw-semibold"
+                          style={{ color: "#212529" }}
+                        >
+                          Approved By
+                        </div>
+                        <div
+                          className="col-7 col-sm-9"
+                          style={{ color: "#212529" }}
+                        >
+                          {selectedRow?.approvedBy?.name || "-"}
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {selectedRow.status === "Rejected" && (
+                    <div className="row mb-2">
+                      <div
+                        className="col-5 col-sm-3 fw-semibold"
+                        style={{ color: "#212529" }}
+                      >
+                        Rejected By
+                      </div>
+                      <div
+                        className="col-7 col-sm-9"
+                        style={{ color: "#212529" }}
+                      >
+                        {selectedRow?.approvedBy?.name || "-"}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedRow.status !== "Rejected" &&
+                    selectedRow.status !== "Approved" && (
+                      <div className="row mb-2">
+                        <div
+                          className="col-5 col-sm-3 fw-semibold"
+                          style={{ color: "#212529" }}
+                        >
+                          Approval
+                        </div>
+                        <div
+                          className="col-7 col-sm-9"
+                          style={{ color: "#212529" }}
+                        >
+                          Not Yet Reviewed
+                        </div>
+                      </div>
+                    )}
+                </div>
+              </div>
+
+              <div className="modal-footer border-0 pt-0">
+                <button
+                  className="btn btn-sm custom-outline-btn"
+                  style={{ minWidth: 90 }}
+                  onClick={() => setViewOpen(false)}
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
+      {/* rutuja code start */}
+      {selectedWorkload && (
+        <div
+          tabIndex="-1"
+          className="modal fade show"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.5)",
+            position: "fixed",
+            inset: 0,
+            zIndex: 1050,
+          }}
+          onClick={closeWorkloadView}
+        >
+          <div
+            className="modal-dialog"
+            style={{ maxWidth: "650px", width: "95%", marginTop: "120px" }}
+          >
+            <div className="modal-content">
+              {/* HEADER */}
+              <div
+                className="modal-header text-white"
+                style={{ backgroundColor: "#3A5FBE" }}
+              >
+                <h5 className="modal-title mb-0">Workload Details</h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={closeWorkloadView}
+                />
+              </div>
+
+              {/* BODY */}
+              <div className="modal-body">
+                <div className="container-fluid">
+                  <div className="row mb-2">
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Period
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {workloadRangeLabel || formatDate(date)}
+                    </div>
+                  </div>
+
+                  <div className="row mb-2">
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Employee
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {selectedWorkload.employeeName}
+                    </div>
+                  </div>
+
+                  <div className="row mb-2">
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Tasks
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {selectedWorkload.tasks}
+                    </div>
+                  </div>
+
+                  <div className="row mb-2">
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Estimated Hours
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {formatDisplayHours(selectedWorkload.estimatedHours)}
+                    </div>
+                  </div>
+
+                  <div className="row mb-2">
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Logged Hours
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {formatDisplayHours(selectedWorkload.loggedHours)}
+                    </div>
+                  </div>
+
+                  <div className="row mb-2">
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Utilization
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {selectedWorkload.utilization.toFixed(0)}%
+                    </div>
+                  </div>
+
+                  <div className="row mb-2">
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Status
+                    </div>
+                    <div className="col-7 col-sm-9">
+                      <span
+                        style={getUtilizationColor(selectedWorkload.status)}
+                      >
+                        {selectedWorkload.status}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* FOOTER */}
+              <div className="modal-footer border-0 pt-0">
+                <button
+                  className="btn btn-sm custom-outline-btn"
+                  style={{ minWidth: 90 }}
+                  onClick={closeWorkloadView}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* rutuja code end */}
 
       {activeTab === "work" && (
         <div
@@ -1041,7 +1529,15 @@ const AdminTasklog = ({ user }) => {
                 </tr>
               ) : (
                 paginatedData.map((row, i) => (
-                  <tr key={i} style={{ borderBottom: "1px solid #eee" }}>
+                  <tr
+                    key={i}
+                    style={{
+                      borderBottom: "1px solid #eee",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => handleWorkloadRowClick(row)}
+                  >
+                    {/* added by rutuja cursor and onnclick */}
                     <td
                       style={{
                         padding: "12px",
@@ -1119,76 +1615,78 @@ const AdminTasklog = ({ user }) => {
           </table>
         </div>
       )}
+
+      {/* rutuja code start */}
       {totalItems > 0 && (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "flex-end",
-            alignItems: "center",
-            gap: 16,
-            marginTop: 12,
-            fontSize: 14,
-            color: "#374151",
-          }}
-        >
-          {/* Rows per page */}
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span>Rows per page:</span>
-            <select
-              value={rowsPerPage}
-              onChange={(e) => {
-                setRowsPerPage(Number(e.target.value));
-                setCurrentPage(1);
-              }}
-              style={{
-                padding: "4px 6px",
-                borderRadius: 6,
-                border: "1px solid #d1d5db",
-                cursor: "pointer",
-              }}
+        <nav className="d-flex align-items-center justify-content-end mt-3 text-muted">
+          <div className="d-flex align-items-center gap-3">
+            {/* Rows per page */}
+            <div className="d-flex align-items-center">
+              <span
+                style={{
+                  fontSize: "14px",
+                  marginRight: "8px",
+                  color: "#212529",
+                }}
+              >
+                Rows per page:
+              </span>
+              <select
+                className="form-select form-select-sm"
+                style={{ width: "auto", fontSize: "14px" }}
+                value={rowsPerPage}
+                onChange={(e) => {
+                  setRowsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+              </select>
+            </div>
+
+            {/* Range display */}
+            <span
+              style={{ fontSize: "14px", marginLeft: "16px", color: "#212529" }}
             >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={25}>25</option>
-            </select>
+              {startIndex + 1}-{endIndex} of {totalItems}
+            </span>
+
+            {/* Arrows */}
+            <div
+              className="d-flex align-items-center"
+              style={{ marginLeft: "16px" }}
+            >
+              <button
+                className="btn btn-sm focus-ring"
+                onClick={() => setCurrentPage((p) => p - 1)}
+                disabled={currentPage === 1}
+                style={{
+                  fontSize: "18px",
+                  padding: "2px 8px",
+                  color: "#212529",
+                }}
+              >
+                ‹
+              </button>
+              <button
+                className="btn btn-sm focus-ring"
+                onClick={() => setCurrentPage((p) => p + 1)}
+                disabled={currentPage === totalPages}
+                style={{
+                  fontSize: "18px",
+                  padding: "2px 8px",
+                  color: "#212529",
+                }}
+              >
+                ›
+              </button>
+            </div>
           </div>
-
-          {/* Range text */}
-          <span>
-            {startIndex + 1}-{endIndex} of {totalItems}
-          </span>
-
-          {/* Prev */}
-          <button
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage((p) => p - 1)}
-            style={{
-              border: "none",
-              background: "transparent",
-              fontSize: 18,
-              cursor: currentPage === 1 ? "not-allowed" : "pointer",
-              opacity: currentPage === 1 ? 0.4 : 1,
-            }}
-          >
-            ‹
-          </button>
-
-          {/* Next */}
-          <button
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage((p) => p + 1)}
-            style={{
-              border: "none",
-              background: "transparent",
-              fontSize: 18,
-              cursor: currentPage === totalPages ? "not-allowed" : "pointer",
-              opacity: currentPage === totalPages ? 0.4 : 1,
-            }}
-          >
-            ›
-          </button>
-        </div>
+        </nav>
       )}
+      {/* rutuja code end */}
     </div>
   );
 };

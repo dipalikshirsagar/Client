@@ -54,7 +54,7 @@ const MangerTaskTMS = ({ role }) => {
   const [editTaskId, setEditTaskId] = useState(null);
   const [taskErrors, setTaskErrors] = useState({});
   const [projectEmployees, setProjectEmployees] = useState([]);
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [popupMode, setPopupMode] = useState("view"); // view | edit
   const [searchInput, setSearchInput] = useState(""); // dip change
   // comment states -------------------------------------------
@@ -692,6 +692,8 @@ const MangerTaskTMS = ({ role }) => {
   }, []);
 
   async function handleAddTask(e) {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     e.preventDefault();
     const formData = new FormData();
 
@@ -865,6 +867,9 @@ const MangerTaskTMS = ({ role }) => {
     } catch (error) {
       console.error("Submit failed:", error.response?.data || error.message);
       alert("Operation failed");
+    } finally {
+      //  ------------------------------------------add
+      setIsSubmitting(false);
     }
   }
 
@@ -1107,6 +1112,21 @@ const MangerTaskTMS = ({ role }) => {
     saveAs(data, fileName);
   };
 
+  const isAnyPopupOpen = !!commentModalTask || !!selectedTask || showAddTask;
+  useEffect(() => {
+    if (isAnyPopupOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [isAnyPopupOpen]);
   return (
     <div className="container-fluid ">
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -1234,28 +1254,28 @@ const MangerTaskTMS = ({ role }) => {
         <div className="card-body">
           <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
             {/* Search Input */}
-            <div
-              className="d-flex align-items-center gap-2 "
-              style={{ maxWidth: "400px" }}
-            >
+            <div className="d-flex align-items-center gap-2 flex-grow-1 flex-md-grow-0 w-md-100">
               <label
-                className="fw-bold mb-0"
-                style={{ fontSize: "16px", color: "#3A5FBE" }}
+                className="fw-bold mb-0 text-start text-md-end"
+                style={{
+                  fontSize: "16px",
+                  color: "#3A5FBE",
+                  width: "50px",
+                  minWidth: "50px",
+                  marginRight: "8px",
+                }}
               >
                 Search
               </label>
               <input
                 type="text"
-                className="form-control"
+                className="form-control form-control-sm"
                 placeholder="Search by any field..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
               />
             </div>
-            <div
-              className="col-12 col-md-auto d-flex align-items-center mb-1 "
-              style={{ minWidth: "140px" }}
-            >
+            <div className="d-flex align-items-center gap-2 flex-grow-1 flex-md-grow-0 w-md-100">
               <label
                 className="fw-bold mb-0 text-start text-md-end"
                 style={{
@@ -1273,12 +1293,11 @@ const MangerTaskTMS = ({ role }) => {
                 className="form-control form-control-sm"
                 value={assignDateFromFilter}
                 onChange={(e) => setAssignDateFromFilter(e.target.value)}
-                style={{ width: "140px" }}
               />
             </div>
 
             {/* To Date */}
-            <div className="col-12 col-md-auto d-flex align-items-center mb-1 ">
+            <div className="d-flex align-items-center gap-2 flex-grow-1 flex-md-grow-0 w-md-100">
               <label
                 className="fw-bold mb-0 text-start text-md-end"
                 style={{
@@ -1296,7 +1315,6 @@ const MangerTaskTMS = ({ role }) => {
                 className="form-control form-control-sm"
                 value={assignDateToFilter}
                 onChange={(e) => setAssignDateToFilter(e.target.value)}
-                style={{ width: "140px" }}
               />
             </div>
 
@@ -1924,7 +1942,10 @@ const MangerTaskTMS = ({ role }) => {
       )}
       {/* Add task popu end */}
 
-      <nav className="d-flex align-items-center justify-content-end mt-3 text-muted">
+      <nav
+        className="d-flex align-items-center justify-content-end mt-3 text-muted"
+        style={{ userSelect: "none" }}
+      >
         <div className="d-flex align-items-center gap-3">
           {/* Rows per page */}
           <div className="d-flex align-items-center">
@@ -1967,6 +1988,7 @@ const MangerTaskTMS = ({ role }) => {
               className="btn btn-sm focus-ring "
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
+              onMouseDown={(e) => e.preventDefault()}
               style={{ fontSize: "18px", padding: "2px 8px", color: "#212529" }}
             >
               ‹
@@ -1974,6 +1996,7 @@ const MangerTaskTMS = ({ role }) => {
             <button
               className="btn btn-sm focus-ring "
               onClick={() => handlePageChange(currentPage + 1)}
+              onMouseDown={(e) => e.preventDefault()}
               disabled={currentPage === totalPages}
               style={{ fontSize: "18px", padding: "2px 8px", color: "#212529" }}
             >

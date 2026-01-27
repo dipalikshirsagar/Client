@@ -9,7 +9,7 @@ function EmployeeCheckInOut({ employeeId }) {
   useEffect(() => {
     if (!employeeId) return;
     axios
-      .get(` https://server-backend-nu.vercel.app/attendance/today/${employeeId}`, {
+      .get(`https://server-backend-nu.vercel.app/attendance/today/${employeeId}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
@@ -21,18 +21,18 @@ function EmployeeCheckInOut({ employeeId }) {
 
   const handleCheckIn = async () => {
     const res = await axios.post(
-      ` https://server-backend-nu.vercel.app/attendance/checkin/${employeeId}`,
+      `https://server-backend-nu.vercel.app/attendance/checkin/${employeeId}`,
       {},
-      { headers: { Authorization: `Bearer ${token}` } }
+      { headers: { Authorization: `Bearer ${token}` } },
     );
     setAttendance(res.data);
   };
 
   const handleCheckOut = async () => {
     const res = await axios.post(
-      ` https://server-backend-nu.vercel.app/attendance/checkout/${employeeId}`,
+      `https://server-backend-nu.vercel.app/attendance/checkout/${employeeId}`,
       {},
-      { headers: { Authorization: `Bearer ${token}` } }
+      { headers: { Authorization: `Bearer ${token}` } },
     );
     setAttendance(res.data);
   };

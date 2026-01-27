@@ -23,7 +23,7 @@ function PasswordReset() {
     const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|in)$/;
     if (!emailPattern.test(email)) {
       setError(
-        "Enter a valid email (e.g., abc@gmail.com or abc@creativewebsolution.in)"
+        "Enter a valid email (e.g., abc@gmail.com or abc@creativewebsolution.in)",
       );
       return;
     }

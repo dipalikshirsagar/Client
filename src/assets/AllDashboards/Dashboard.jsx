@@ -64,7 +64,7 @@ import ManagerPerformances from "../Performances/ManagerPerformances";
 import ManagerResignation from "./ManagerResignation";
 import SupportEmployeeSetting from "../ITSupport/SupportEmployeeSetting";
 import ITSupportDashboard from "../ITSupport/ITSupportDashboard";
-import AdminFeedback from "./AdminFeedback"
+import AdminFeedback from "./AdminFeedback";
 
 function Dashboard() {
   const { role, username, id } = useParams();
@@ -648,7 +648,6 @@ function Dashboard() {
                   )
                 }
               />
-
               <Route
                 path="/SupportEmployeeSetting"
                 element={<SupportEmployeeSetting />}

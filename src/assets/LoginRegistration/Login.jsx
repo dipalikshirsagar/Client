@@ -91,7 +91,7 @@ function Login() {
             employeeId: response.data.employeeId,
             image: response.data.image,
             email: response.data.email,
-          })
+          }),
         );
 
         // // ✅ Save active user session → prevents multiple login
@@ -116,7 +116,7 @@ function Login() {
         }
 
         navigate(
-          `/dashboard/${response.data.role}/${response.data.username}/${response.data.userId}`
+          `/dashboard/${response.data.role}/${response.data.username}/${response.data.userId}`,
         );
         //window.location.reload();
       }
@@ -138,7 +138,7 @@ function Login() {
       // No connection or server unreachable
       if (err.code === "ERR_NETWORK" || !navigator.onLine) {
         setErrorMessage(
-          "⚠️ Network connection lost. Attempting to reconnect..."
+          "⚠️ Network connection lost. Attempting to reconnect...",
         );
         return;
       }
@@ -153,11 +153,11 @@ function Login() {
           setErrorMessage(
             `Server Error (500): ${
               serverMsg || "Internal Server Error. Please try again later."
-            }`
+            }`,
           );
         } else if (status === 400 || status === 401) {
           setErrorMessage(
-            serverMsg || "Invalid credentials. Please try again."
+            serverMsg || "Invalid credentials. Please try again.",
           );
         } else {
           setErrorMessage(serverMsg || `Unexpected error: ${status}`);

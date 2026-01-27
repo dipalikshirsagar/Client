@@ -641,6 +641,22 @@ function HRReportTMS() {
     return taskDueDate >= tomorrowStr && taskDueDate <= nextWeekStr; //dip chnage
   });
 
+  const isAnyPopupOpen = !!selectedDonutStatus || !!selectedProjectMonth;
+  useEffect(() => {
+    if (isAnyPopupOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [isAnyPopupOpen]);
+
   // Loading state
   if (loading) {
     return (
@@ -1005,7 +1021,7 @@ function HRReportTMS() {
 
                   <text
                     x="50%"
-                    y="58%"
+                    y="43%"
                     textAnchor="middle"
                     dominantBaseline="middle"
                     style={{
@@ -1038,13 +1054,17 @@ function HRReportTMS() {
           <div className="card shadow-sm border-0 rounded-4 h-100">
             <div className="card-body p-4">
               <div className="d-flex justify-content-between align-items-center mb-3">
-                <h6 className="fw-semibold text-primary mb-0">
-                  📈 Project Status Trend
-                </h6>
-                <span className="text-muted ms-2 fs-6">
-                  (Total Projects: {totalProjects})
-                </span>
-                <small className="text-muted">Month-wise overview</small>
+                <div className="d-flex flex-column align-items-start">
+                  <h6 className="fw-semibold text-primary mb-1">
+                    📈 Project Status Trend
+                  </h6>
+                  <span
+                    className="text-muted fs-6"
+                    style={{ paddingLeft: "25px" }}
+                  >
+                    (Total Projects: {totalProjects})
+                  </span>
+                </div>
 
                 <div className="dropdown">
                   <button
@@ -1169,10 +1189,7 @@ function HRReportTMS() {
           }}
           onClick={() => setSelectedDonutStatus(null)}
         >
-          <div
-            className="modal-dialog modal-lg modal-dialog-scrollable"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="modal-dialog " onClick={(e) => e.stopPropagation()}>
             <div className="modal-content">
               {/* HEADER */}
               <div

@@ -31,7 +31,7 @@ function MyAttendance({ employeeId }) {
   const [checkOut, setCheckOut] = useState("");
   // const [workMode, setWorkMode] = useState("WFO"); // Default to WFO
   const [workMode, setWorkMode] = useState(
-    localStorage.getItem("workMode") || "WFO"
+    localStorage.getItem("workMode") || "WFO",
   );
   useEffect(() => {
     localStorage.setItem("workMode", workMode);
@@ -50,7 +50,7 @@ function MyAttendance({ employeeId }) {
     if (selectedRecord?.leaveRef?.reportingManager) {
       axios
         .get(
-          ` https://server-backend-nu.vercel.app/users/${selectedRecord.leaveRef.reportingManager}`
+          `https://server-backend-nu.vercel.app/users/${selectedRecord.leaveRef.reportingManager}`,
         )
         .then((res) => setManager(res.data))
         .catch((err) => console.error("Error fetching manager:", err));
@@ -63,14 +63,14 @@ function MyAttendance({ employeeId }) {
       try {
         const [attRes, leaveRes, weeklyRes, holidayRes, regRes] =
           await Promise.all([
-            axios.get(` https://server-backend-nu.vercel.app/attendance/${employeeId}`),
-            axios.get(` https://server-backend-nu.vercel.app/leave/my/${employeeId}`),
+            axios.get(`https://server-backend-nu.vercel.app/attendance/${employeeId}`),
+            axios.get(`https://server-backend-nu.vercel.app/leave/my/${employeeId}`),
             axios.get(
-              ` https://server-backend-nu.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`
+              `https://server-backend-nu.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`,
             ),
-            axios.get(` https://server-backend-nu.vercel.app/getHolidays`),
+            axios.get(`https://server-backend-nu.vercel.app/getHolidays`),
             axios.get(
-              ` https://server-backend-nu.vercel.app/attendance/regularization/my/${employeeId}`
+              `https://server-backend-nu.vercel.app/attendance/regularization/my/${employeeId}`,
             ),
           ]);
 
@@ -102,7 +102,7 @@ function MyAttendance({ employeeId }) {
           const dateKey = new Date(reg.date).toDateString();
 
           const existingIndex = mergedAttendance.findIndex(
-            (att) => new Date(att.date).toDateString() === dateKey
+            (att) => new Date(att.date).toDateString() === dateKey,
           );
 
           const regDate = new Date(reg.date);
@@ -134,8 +134,8 @@ function MyAttendance({ employeeId }) {
               !mergedAttendance[existingIndex]?.checkOut
                 ? "Working"
                 : reg.regularizationRequest?.status === "Approved"
-                ? "Regularized"
-                : "Absent",
+                  ? "Regularized"
+                  : "Absent",
           };
 
           if (existingIndex > -1) {
@@ -154,8 +154,8 @@ function MyAttendance({ employeeId }) {
         setSelectedDate(today);
         setSelectedRecord(
           mergedAttendance.find(
-            (rec) => new Date(rec.date).toDateString() === today.toDateString()
-          ) || null
+            (rec) => new Date(rec.date).toDateString() === today.toDateString(),
+          ) || null,
         );
         setDate(today.toISOString().split("T")[0]);
       } catch (err) {
@@ -180,7 +180,7 @@ function MyAttendance({ employeeId }) {
 
   const getHoliday = (date) =>
     holidays.find(
-      (h) => new Date(h.date).toDateString() === date.toDateString()
+      (h) => new Date(h.date).toDateString() === date.toDateString(),
     );
   const isHoliday = (date) => !!getHoliday(date);
 
@@ -438,7 +438,7 @@ function MyAttendance({ employeeId }) {
     console.log("📅 Selected Date:", date.toDateString());
     console.log(
       "🧾 Day Record:",
-      record ? record : "No record found for this date"
+      record ? record : "No record found for this date",
     );
   };
 
@@ -454,7 +454,7 @@ function MyAttendance({ employeeId }) {
     try {
       const token = localStorage.getItem("accessToken");
       const authAxios = axios.create({
-        baseURL: " https://server-backend-nu.vercel.app",
+        baseURL: "https://server-backend-nu.vercel.app",
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -574,7 +574,7 @@ function MyAttendance({ employeeId }) {
     try {
       const token = localStorage.getItem("accessToken");
       const authAxios = axios.create({
-        baseURL: " https://server-backend-nu.vercel.app",
+        baseURL: "https://server-backend-nu.vercel.app",
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -602,7 +602,7 @@ function MyAttendance({ employeeId }) {
 
       const res = await authAxios.post(
         "/attendance/regularization/apply",
-        payload
+        payload,
       );
 
       setMessage("✅ Regularization request submitted successfully!");
@@ -630,7 +630,7 @@ function MyAttendance({ employeeId }) {
   const getAddressFromCoords = async (lat, lng) => {
     try {
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
       );
       const data = await res.json();
       return data.display_name || "Unknown location";
@@ -678,7 +678,7 @@ function MyAttendance({ employeeId }) {
 
     const today = new Date().toDateString();
     const todayRecord = attendance.find(
-      (rec) => new Date(rec.date).toDateString() === today
+      (rec) => new Date(rec.date).toDateString() === today,
     );
 
     // If already checked in
@@ -695,7 +695,7 @@ function MyAttendance({ employeeId }) {
     const todayLeaveData = await fetchTodayLeaveDirect();
     if (todayLeaveData) {
       return alert(
-        "❗ You have applied for leave today. Check-in is not allowed."
+        "❗ You have applied for leave today. Check-in is not allowed.",
       );
     }
 
@@ -727,7 +727,7 @@ function MyAttendance({ employeeId }) {
       // find today's record by date (safe comparison)
       const today = new Date().toDateString();
       const todayRecord = attendance.find(
-        (rec) => new Date(rec.date).toDateString() === today
+        (rec) => new Date(rec.date).toDateString() === today,
       );
 
       console.log("DEBUG todayRecord for checkout:", todayRecord);
@@ -751,15 +751,15 @@ function MyAttendance({ employeeId }) {
         prev.map((rec) =>
           rec._id === todayRecord._id
             ? { ...rec, checkOut: new Date().toISOString() }
-            : rec
-        )
+            : rec,
+        ),
       );
 
       // optional: update selectedRecord if it's same day
       setSelectedRecord((prev) =>
         prev && new Date(prev.date).toDateString() === today
           ? { ...prev, checkOut: new Date().toISOString() }
-          : prev
+          : prev,
       );
     } catch (err) {
       console.error("Checkout error:", err);
@@ -796,7 +796,7 @@ function MyAttendance({ employeeId }) {
     const selected = breakData.find(
       (b) =>
         new Date(b.date).toDateString() ===
-        new Date(selectedDate).toDateString()
+        new Date(selectedDate).toDateString(),
     );
 
     setTodayBreak(selected || null);
@@ -903,7 +903,7 @@ function MyAttendance({ employeeId }) {
               const today = new Date();
               const todayRecord = attendance.find(
                 (rec) =>
-                  new Date(rec.date).toDateString() === today.toDateString()
+                  new Date(rec.date).toDateString() === today.toDateString(),
               );
               return (
                 <div className="attendance-details">
@@ -926,7 +926,7 @@ function MyAttendance({ employeeId }) {
                               hour: "2-digit",
                               minute: "2-digit",
                               hour12: true,
-                            }
+                            },
                           )}
                         </p>
                       ) : (
@@ -959,7 +959,7 @@ function MyAttendance({ employeeId }) {
                               hour: "2-digit",
                               minute: "2-digit",
                               hour12: true,
-                            }
+                            },
                           )}
                         </p>
                       )}
@@ -972,7 +972,7 @@ function MyAttendance({ employeeId }) {
                             <strong>Total Hours:</strong>{" "}
                             {calculateWorkedHours(
                               todayRecord.checkIn,
-                              todayRecord.checkOut
+                              todayRecord.checkOut,
                             )}
                           </p>
                         </>
@@ -1128,10 +1128,10 @@ function MyAttendance({ employeeId }) {
                         {selectedRecord.leaveRef.status === "approved"
                           ? "Approved"
                           : selectedRecord.leaveRef.status === "pending"
-                          ? "Pending"
-                          : selectedRecord.leaveRef.status === "rejected"
-                          ? "Rejected"
-                          : "N/A"}
+                            ? "Pending"
+                            : selectedRecord.leaveRef.status === "rejected"
+                              ? "Rejected"
+                              : "N/A"}
                       </p>
 
                       <p style={{ fontSize: "14px", marginBottom: "20px" }}>
@@ -1149,7 +1149,7 @@ function MyAttendance({ employeeId }) {
                         {Math.ceil(
                           (new Date(selectedRecord.leaveRef.dateTo) -
                             new Date(selectedRecord.leaveRef.dateFrom)) /
-                            (1000 * 60 * 60 * 24)
+                            (1000 * 60 * 60 * 24),
                         ) + 1}
                          Day
                       </p>
@@ -1202,7 +1202,7 @@ function MyAttendance({ employeeId }) {
                             <strong>Check-in:</strong>{" "}
                             {selectedRecord?.checkIn
                               ? new Date(
-                                  selectedRecord.checkIn
+                                  selectedRecord.checkIn,
                                 ).toLocaleTimeString([], {
                                   hour: "2-digit",
                                   minute: "2-digit",
@@ -1214,7 +1214,7 @@ function MyAttendance({ employeeId }) {
                             <strong>Check-out:</strong>{" "}
                             {selectedRecord?.checkOut
                               ? new Date(
-                                  selectedRecord.checkOut
+                                  selectedRecord.checkOut,
                                 ).toLocaleTimeString([], {
                                   hour: "2-digit",
                                   minute: "2-digit",
@@ -1295,7 +1295,7 @@ function MyAttendance({ employeeId }) {
                                   >
                                     <strong>Start:</strong>{" "}
                                     {new Date(
-                                      brk.startTime
+                                      brk.startTime,
                                     ).toLocaleTimeString()}
                                   </p>
 
@@ -1309,7 +1309,7 @@ function MyAttendance({ employeeId }) {
                                     <strong>End:</strong>{" "}
                                     {brk.endTime
                                       ? new Date(
-                                          brk.endTime
+                                          brk.endTime,
                                         ).toLocaleTimeString()
                                       : "In Progress"}
                                   </p>
@@ -1366,7 +1366,7 @@ function MyAttendance({ employeeId }) {
                   onClick={() =>
                     navigate(
                       `/dashboard/${role}/${username}/${id}/regularization`,
-                      { replace: true }
+                      { replace: true },
                     )
                   }
                 >
@@ -1432,7 +1432,7 @@ function MyAttendance({ employeeId }) {
                                 hour: "2-digit",
                                 minute: "2-digit",
                                 hour12: false,
-                              }
+                              },
                             )
                           : "")
                       }
@@ -1456,7 +1456,7 @@ function MyAttendance({ employeeId }) {
                         checkOut ||
                         (selectedRecord?.checkOut
                           ? new Date(
-                              selectedRecord.checkOut
+                              selectedRecord.checkOut,
                             ).toLocaleTimeString([], {
                               hour: "2-digit",
                               minute: "2-digit",

@@ -45,7 +45,7 @@ function EmployeeApplyLeave({ user, onLeaveApplied }) {
     const fetchWeeklyOffs = async () => {
       try {
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`
+          `https://server-backend-nu.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`,
         );
 
         // 👇 Extract weekly off data safely
@@ -80,7 +80,7 @@ function EmployeeApplyLeave({ user, onLeaveApplied }) {
       if (!user?.reportingManager) return;
       try {
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/users/${user.reportingManager}`
+          `https://server-backend-nu.vercel.app/users/${user.reportingManager}`,
         );
         setManager(res.data);
       } catch (err) {
@@ -144,7 +144,7 @@ function EmployeeApplyLeave({ user, onLeaveApplied }) {
 
     if (toDate < fromDate) {
       setMessage(
-        "⚠️ Invalid date range: 'To Date' cannot precede 'From Date'."
+        "⚠️ Invalid date range: 'To Date' cannot precede 'From Date'.",
       );
       return;
     }
@@ -187,7 +187,7 @@ function EmployeeApplyLeave({ user, onLeaveApplied }) {
       // Check Sunday off
       if (weeklyOffs.sundayOff && day === 0) {
         alert(
-          `❌As per the system's sandwich leave policy, applying manual leave on weekends is restricted. (${dateStr}`
+          `❌As per the system's sandwich leave policy, applying manual leave on weekends is restricted. (${dateStr}`,
         );
         return;
       }
@@ -214,7 +214,7 @@ function EmployeeApplyLeave({ user, onLeaveApplied }) {
     try {
       // ✅ 1️⃣ Fetch existing leaves of employee
       const existingLeavesRes = await axios.get(
-        `https://server-backend-nu.vercel.app/leave/my/${user._id}`
+        `https://server-backend-nu.vercel.app/leave/my/${user._id}`,
       );
       const existingLeaves = existingLeavesRes.data || [];
 
@@ -239,10 +239,10 @@ function EmployeeApplyLeave({ user, onLeaveApplied }) {
 
       if (isOverlapping) {
         setMessage(
-          "⚠️ You already applied for leave on one or more of these dates."
+          "⚠️ You already applied for leave on one or more of these dates.",
         );
         alert(
-          "⚠️ You already applied for leave on one or more of these dates."
+          "⚠️ You already applied for leave on one or more of these dates.",
         );
         return;
       }

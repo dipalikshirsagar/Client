@@ -130,7 +130,9 @@ function ManagerAssignedEmployeesAttendance() {
     // Name filter
     if (employeeNameFilter.trim() !== "") {
       temp = temp.filter((emp) =>
-        emp.name.toLowerCase().includes(employeeNameFilter.trim().toLowerCase())
+        emp.name
+          .toLowerCase()
+          .includes(employeeNameFilter.trim().toLowerCase()),
       );
     }
 
@@ -146,7 +148,7 @@ function ManagerAssignedEmployeesAttendance() {
   // ✅ THIS WAS MISSING – CAUSING YOUR CRASH
   const currentEmployees = filteredEmployees.slice(
     indexOfFirstItem,
-    indexOfLastItem
+    indexOfLastItem,
   );
 
   // ✅ Page Change Handler
@@ -553,7 +555,7 @@ function ManagerAssignedEmployeesAttendance() {
                             `/dashboard/${role}/${username}/${id}/employeeattendance/${emp._id}`,
                             {
                               state: { employee: emp },
-                            }
+                            },
                           )
                         }
                       >

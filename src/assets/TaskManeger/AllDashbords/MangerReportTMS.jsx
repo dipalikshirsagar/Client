@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState,useRef } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import axios from "axios";
 import {
   PieChart,
@@ -37,7 +37,7 @@ const normalize = (value) => {
 //focus pop-up - MOVED INSIDE TableRowModal
 function TableRowModal({ show, onClose, title, fields }) {
   const popupRef = useRef(null);
-  
+
   useEffect(() => {
     if (show && popupRef.current) {
       popupRef.current.focus();
@@ -259,7 +259,7 @@ function ManagerReportTMS({ user }) {
     Completed: [],
     Delayed: [],
   });
-
+  const isMainCardView = selectedEmployee === null;
   //added by harshda
   const handleClose = () => {
     setShowCardList(null);
@@ -1079,6 +1079,26 @@ function ManagerReportTMS({ user }) {
   // =============================================================
   //Date format
 
+  const isAnyPopupOpen =
+    !!selectedDonutStatus ||
+    !!selectedProjectMonth ||
+    !!selectedEmployee ||
+    showRowModal;
+  useEffect(() => {
+    if (isAnyPopupOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [isAnyPopupOpen]);
+
   return (
     <div className="container-fluid ">
       <h2 style={{ color: "#3A5FBE", fontSize: "25px" }}>Reports</h2>
@@ -1094,7 +1114,7 @@ function ManagerReportTMS({ user }) {
               setSelectedEmployee(null); // Reset employee selection
               setShowCardList("teamMembers"); // or "myProjects", "delayedTasks", "upcomingTasks"
             }}
-            >
+          >
             <div
               className="card-body d-flex align-items-center"
               style={{ gap: "16px" }}
@@ -1131,9 +1151,9 @@ function ManagerReportTMS({ user }) {
             className="card shadow-sm border-0 h-100"
             style={{ borderRadius: "7px", cursor: "pointer" }}
             onClick={() => {
-  setSelectedEmployee(null); // Reset employee selection
-  setShowCardList("myProjects"); // or "myProjects", "delayedTasks", "upcomingTasks"
-}}
+              setSelectedEmployee(null); // Reset employee selection
+              setShowCardList("myProjects"); // or "myProjects", "delayedTasks", "upcomingTasks"
+            }}
             // onClick={() => setShowCardList("myProjects")}
           >
             <div
@@ -1172,9 +1192,9 @@ function ManagerReportTMS({ user }) {
             className="card shadow-sm border-0 h-100"
             style={{ borderRadius: "7px", cursor: "pointer" }}
             onClick={() => {
-  setSelectedEmployee(null); // Reset employee selection
-  setShowCardList("delayedTasks"); // or "myProjects", "delayedTasks", "upcomingTasks"
-}}
+              setSelectedEmployee(null); // Reset employee selection
+              setShowCardList("delayedTasks"); // or "myProjects", "delayedTasks", "upcomingTasks"
+            }}
             // onClick={() => setShowCardList("delayedTasks")}
           >
             <div
@@ -1213,9 +1233,9 @@ function ManagerReportTMS({ user }) {
             className="card shadow-sm border-0 h-100"
             style={{ borderRadius: "7px", cursor: "pointer" }}
             onClick={() => {
-  setSelectedEmployee(null); // Reset employee selection
-  setShowCardList("upcomingTasks"); // or "myProjects", "delayedTasks", "upcomingTasks"
-}}
+              setSelectedEmployee(null); // Reset employee selection
+              setShowCardList("upcomingTasks"); // or "myProjects", "delayedTasks", "upcomingTasks"
+            }}
             // onClick={() => setShowCardList("upcomingTasks")}
           >
             <div
@@ -1278,25 +1298,68 @@ function ManagerReportTMS({ user }) {
                 className="fw-semibold"
                 style={{ color: "#3A5FBE", fontSize: "20px" }}
               >
-                {showCardList === "teamMembers" && "My Team"}
-                {showCardList === "myProjects" && "My Projects"}
-                {showCardList === "delayedTasks" && "Delayed Tasks"}
-                {showCardList === "upcomingTasks" && "Upcoming Tasks"}
+                {/* //added by harshada  23-01-2026*/}
+                {showCardList === "teamMembers" &&
+                  isMainCardView &&
+                  "My Team Membersss"}
+                {showCardList === "myProjects" &&
+                  isMainCardView &&
+                  "My Projects"}
+                {showCardList === "delayedTasks" &&
+                  isMainCardView &&
+                  "Delayed Tasks"}
+                {showCardList === "upcomingTasks" &&
+                  isMainCardView &&
+                  "Upcoming Tasks"}
               </span>
 
-              <button
-                className="btn btn-sm custom-outline-btn"
-                onClick={() => setShowCardList(null)}
-              >
-                Close
-              </button>
+              {/* //added by harshada  23-01-2026*/}
+              {isMainCardView && (
+                <button
+                  className="btn btn-sm custom-outline-btn"
+                  onClick={() => setShowCardList(null)}
+                >
+                  Close
+                </button>
+              )}
             </div>
+
+            <>
+              {/* Employee selected → Show employee details + back  23-01-2026*/}
+              {selectedEmployee !== null && (
+                <div className="mb-3">
+                  <div className="d-flex justify-content-between align-items-center flex-wrap">
+                    <div
+                      className="fw-semibold"
+                      style={{ fontSize: "20px", color: "#3A5FBE" }}
+                    >
+                      {selectedEmployee.name} - {selectedEmployee.role}
+                    </div>
+
+                    <button
+                      className="btn btn-sm custom-outline-btn"
+                      onClick={() => {
+                        setSelectedEmployee(null);
+                        handleReset();
+                      }}
+                    >
+                      Back to List
+                    </button>
+                  </div>
+
+                  {/* Subtitle */}
+                  <small className="text-muted">
+                    Task report for selected date range
+                  </small>
+                </div>
+              )}
+            </>
           </div>
 
           {/* ===== Filter ===== */}
           <div className="card bg-white shadow-sm p-3 mb-4 border-0">
             <div className="d-flex align-items-center justify-content-between flex-wrap">
-              <div className="d-flex align-items-center me-3 mb-2">
+              <div className="d-flex align-items-center gap-2 flex-grow-1 flex-md-grow-0 w-md-100">
                 <label
                   className="me-3 fw-bold mb-0"
                   style={{ color: "#3A5FBE", fontSize: "16px" }}
@@ -1312,7 +1375,7 @@ function ManagerReportTMS({ user }) {
                 />
               </div>
 
-              <div className="col-auto ms-auto d-flex gap-2">
+              <div className="col-auto ms-auto d-flex gap-2 mt-2">
                 <button
                   className="btn btn-sm custom-outline-btn"
                   onClick={handleFilter}
@@ -1336,7 +1399,7 @@ function ManagerReportTMS({ user }) {
       {selectedEmployee && (
         <>
           <div className="card shadow-sm border-0 mb-3">
-            <div className="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+            {/* <div className="card-header bg-white border-0 d-flex justify-content-between align-items-center">
               <div>
                 <div
                   className="fw-semibold"
@@ -1357,10 +1420,10 @@ function ManagerReportTMS({ user }) {
               >
                 Back to List
               </button>
-            </div>
+            </div> */}
 
             {/* <div className="card-body pt-3"> */}
-              {/* <div className="card bg-white shadow-sm p-3 mb-4 border-0">
+            {/* <div className="card bg-white shadow-sm p-3 mb-4 border-0">
                 <div className="row g-3 align-items-end">
                   <div className="col-12 col-md-3">
                     <label
@@ -1434,137 +1497,135 @@ function ManagerReportTMS({ user }) {
                 </div>
               </div> */}
 
-              {/* Task Table */}
-              <div className="table-responsive">
-                <table className="table table-hover mb-0">
-                  <thead style={{ backgroundColor: "#ffffffff" }}>
-                    <tr>
-                      <th
-                        style={{
-                          fontWeight: "500",
-                          fontSize: "14px",
-                          color: "#6c757d",
-                          borderBottom: "2px solid #dee2e6",
-                          padding: "12px",
-                        }}
-                      >
-                        Task
-                      </th>
-                      <th
-                        style={{
-                          fontWeight: "500",
-                          fontSize: "14px",
-                          color: "#6c757d",
-                          borderBottom: "2px solid #dee2e6",
-                          padding: "12px",
-                        }}
-                      >
-                        Status
-                      </th>
-                      <th
-                        style={{
-                          fontWeight: "500",
-                          fontSize: "14px",
-                          color: "#6c757d",
-                          borderBottom: "2px solid #dee2e6",
-                          padding: "12px",
-                        }}
-                      >
-                        Project
-                      </th>
-                      <th
-                        style={{
-                          fontWeight: "500",
-                          fontSize: "14px",
-                          color: "#6c757d",
-                          borderBottom: "2px solid #dee2e6",
-                          padding: "12px",
-                        }}
-                      >
-                        Due Date
-                      </th>
-                    </tr>
-                  </thead>
+            {/* Task Table */}
+            <div className="table-responsive">
+              <table className="table table-hover mb-0">
+                <thead style={{ backgroundColor: "#ffffffff" }}>
+                  <tr>
+                    <th
+                      style={{
+                        fontWeight: "500",
+                        fontSize: "14px",
+                        color: "#6c757d",
+                        borderBottom: "2px solid #dee2e6",
+                        padding: "12px",
+                      }}
+                    >
+                      Task
+                    </th>
+                    <th
+                      style={{
+                        fontWeight: "500",
+                        fontSize: "14px",
+                        color: "#6c757d",
+                        borderBottom: "2px solid #dee2e6",
+                        padding: "12px",
+                      }}
+                    >
+                      Status
+                    </th>
+                    <th
+                      style={{
+                        fontWeight: "500",
+                        fontSize: "14px",
+                        color: "#6c757d",
+                        borderBottom: "2px solid #dee2e6",
+                        padding: "12px",
+                      }}
+                    >
+                      Project
+                    </th>
+                    <th
+                      style={{
+                        fontWeight: "500",
+                        fontSize: "14px",
+                        color: "#6c757d",
+                        borderBottom: "2px solid #dee2e6",
+                        padding: "12px",
+                      }}
+                    >
+                      Due Date
+                    </th>
+                  </tr>
+                </thead>
 
-                  <tbody>
-                    {employeeTasks.length > 0 ? (
-                      paginatedEmployeeTasks.map((task) => (
-                        <tr // change tr 10 jan--------------
-                          key={task._id}
-                          style={{ cursor: "pointer" }}
-                          onClick={() => {
-                            setModalTitle("Employee Task Details");
-                            setModalFields([
-                              { label: "Task", value: task.taskName },
+                <tbody>
+                  {employeeTasks.length > 0 ? (
+                    paginatedEmployeeTasks.map((task) => (
+                      <tr // change tr 10 jan--------------
+                        key={task._id}
+                        style={{ cursor: "pointer" }}
+                        onClick={() => {
+                          setModalTitle("Employee Task Details");
+                          setModalFields([
+                            { label: "Task", value: task.taskName },
 
-                              {
-                                label: "Status",
-                                value: <span>{task?.status?.name || "-"}</span>,
-                              },
+                            {
+                              label: "Status",
+                              value: <span>{task?.status?.name || "-"}</span>,
+                            },
 
-                              { label: "Project", value: task.projectName },
-                              {
-                                label: "Due Date",
-                                value: formatDate(
-                                  task.dateOfExpectedCompletion,
-                                ),
-                              },
-                            ]);
-                            setShowRowModal(true);
+                            { label: "Project", value: task.projectName },
+                            {
+                              label: "Due Date",
+                              value: formatDate(task.dateOfExpectedCompletion),
+                            },
+                          ]);
+                          setShowRowModal(true);
+                        }}
+                      >
+                        <td
+                          style={{
+                            padding: "12px",
+                            fontSize: "14px",
+                            borderBottom: "1px solid #dee2e6",
+                            color: "#212529",
                           }}
                         >
-                          <td
-                            style={{
-                              padding: "12px",
-                              fontSize: "14px",
-                              borderBottom: "1px solid #dee2e6",
-                              color: "#212529",
-                            }}
-                          >
-                            {task.taskName}
-                          </td>
-                          <td
-                            style={{
-                              padding: "12px",
-                              fontSize: "14px",
-                              borderBottom: "1px solid #dee2e6",
-                            }}
-                          >
-                            <span>{task?.status?.name}</span>
-                          </td>
-                          <td
-                            style={{
-                              padding: "12px",
-                              fontSize: "14px",
-                              borderBottom: "1px solid #dee2e6",
-                              color: "#212529",
-                            }}
-                          >
-                            {task.projectName}
-                          </td>
-                          <td
-                            style={{
-                              padding: "12px",
-                              fontSize: "14px",
-                              borderBottom: "1px solid #dee2e6",
-                              color: "#212529",
-                            }}
-                          >
-                            {formatDate(task.dateOfExpectedCompletion)}
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={4} className="text-center py-3 text-muted">
-                          No tasks found for the selected filters.
+                          {task.taskName}
+                        </td>
+                        <td
+                          style={{
+                            padding: "12px",
+                            fontSize: "14px",
+                            borderBottom: "1px solid #dee2e6",
+                          }}
+                        >
+                          <span>{task?.status?.name}</span>
+                        </td>
+                        <td
+                          style={{
+                            padding: "12px",
+                            fontSize: "14px",
+                            borderBottom: "1px solid #dee2e6",
+                            color: "#212529",
+                          }}
+                        >
+                          {task.projectName}
+                        </td>
+                        <td
+                          style={{
+                            padding: "12px",
+                            fontSize: "14px",
+                            borderBottom: "1px solid #dee2e6",
+                            color: "#212529",
+                          }}
+                        >
+                          {formatDate(task.dateOfExpectedCompletion)}
                         </td>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={4} className="text-center py-3 text-muted">
+                        No tasks found for the selected filters.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
+          </div>
           {/* </div> */}
 
           <div className="d-flex justify-content-end mt-3">
@@ -1875,14 +1936,10 @@ function ManagerReportTMS({ user }) {
                           padding: "12px",
                           fontSize: "14px",
                           borderBottom: "1px solid #dee2e6",
-                           color: "#212529",
+                          color: "#212529",
                         }}
                       >
-                        <span
-                          
-                        >
-                          {proj?.status}
-                        </span>
+                        <span>{proj?.status}</span>
                       </td>
                       <td
                         style={{
@@ -2302,14 +2359,18 @@ function ManagerReportTMS({ user }) {
           <div className="card shadow border-0 h-100 rounded-4">
             <div className="card-body p-4">
               <div className="d-flex justify-content-between align-items-center mb-3">
-                <h6 className="fw-semibold mb-0 text-primary">
-                  📈 Project Status Trend
-                </h6>
-                <span className="text-muted ms-2 fs-6">
-                  (Total Projects: {totalProjects})
-                </span>
+                <div className="d-flex flex-column align-items-start">
+                  <h6 className="fw-semibold text-primary mb-1">
+                    📈 Project Status Trend
+                  </h6>
+                  <span
+                    className="text-muted fs-6"
+                    style={{ paddingLeft: "25px" }}
+                  >
+                    ( Total Projects: {totalProjects})
+                  </span>
+                </div>
 
-                <small className="text-muted">Monthly overview</small>
                 <div className="d-flex align-items-center gap-2">
                   <div className="dropdown">
                     <button

@@ -48,12 +48,12 @@ function ManagerDashboard({ user }) {
     const fetchData = async () => {
       try {
         const leavesRes = await axios.get(
-          `https://server-backend-nu.vercel.app/leaves/manager/${user._id}`
+          `https://server-backend-nu.vercel.app/leaves/manager/${user._id}`,
         );
         setLeaves(leavesRes.data);
 
         const regRes = await axios.get(
-          `https://server-backend-nu.vercel.app/regularization/manager/${user._id}`
+          `https://server-backend-nu.vercel.app/regularization/manager/${user._id}`,
         );
         setRegularizations(regRes.data);
       } catch (err) {
@@ -75,11 +75,11 @@ function ManagerDashboard({ user }) {
           status,
           userId: user._id,
           role: "manager",
-        }
+        },
       );
       const updatedLeave = res.data.leave;
       setLeaves((prev) =>
-        prev.map((l) => (l._id === leaveId ? { ...l, ...updatedLeave } : l))
+        prev.map((l) => (l._id === leaveId ? { ...l, ...updatedLeave } : l)),
       );
     } catch (err) {
       console.error("Error updating leave status:", err);
@@ -96,11 +96,11 @@ function ManagerDashboard({ user }) {
           approvedBy: user._id,
           approvedByRole: "manager",
           approvedByName: user.name,
-        }
+        },
       );
       const updatedRecord = res.data.attendance;
       setRegularizations((prev) =>
-        prev.map((r) => (r._id === attendanceId ? updatedRecord : r))
+        prev.map((r) => (r._id === attendanceId ? updatedRecord : r)),
       );
     } catch (err) {
       console.error("Error updating regularization status:", err);
@@ -145,18 +145,18 @@ function ManagerDashboard({ user }) {
 
   const totalLeavePages = Math.ceil(filteredLeaves.length / itemsPerPage);
   const totalRegPages = Math.ceil(
-    filteredRegularizations.length / itemsPerPage
+    filteredRegularizations.length / itemsPerPage,
   );
 
   const indexOfLastLeave = leavePage * itemsPerPage;
   const indexOfFirstLeave = indexOfLastLeave - itemsPerPage;
   const sortedLeaves = [...filteredLeaves].sort(
-    (a, b) => new Date(b.appliedAt) - new Date(a.appliedAt)
+    (a, b) => new Date(b.appliedAt) - new Date(a.appliedAt),
   );
 
   const paginatedLeaves = sortedLeaves.slice(
     indexOfFirstLeave,
-    indexOfLastLeave
+    indexOfLastLeave,
   );
 
   // Step 1: calculate first and last index
@@ -189,7 +189,7 @@ function ManagerDashboard({ user }) {
   // Step 3: paginate
   const paginatedRegularizations = sortedRegularizations.slice(
     indexOfFirstReg,
-    indexOfLastReg
+    indexOfLastReg,
   );
 
   // ===== Pagination Component =====
@@ -199,7 +199,7 @@ function ManagerDashboard({ user }) {
     totalItems,
     indexOfFirstItem,
     indexOfLastItem,
-    setPage
+    setPage,
   ) => (
     <nav className="d-flex align-items-center justify-content-end mt-3 text-muted">
       <div className="d-flex align-items-center gap-3">
@@ -229,7 +229,7 @@ function ManagerDashboard({ user }) {
             ? "0–0 of 0"
             : `${indexOfFirstItem + 1}-${Math.min(
                 indexOfLastItem,
-                totalItems
+                totalItems,
               )} of ${totalItems}`}
         </span>
 
@@ -283,7 +283,7 @@ function ManagerDashboard({ user }) {
     // Filter by status
     if (leaveStatusFilter !== "All") {
       temp = temp.filter(
-        (l) => l.status.toLowerCase() === leaveStatusFilter.toLowerCase()
+        (l) => l.status.toLowerCase() === leaveStatusFilter.toLowerCase(),
       );
     }
 
@@ -292,19 +292,19 @@ function ManagerDashboard({ user }) {
       temp = temp.filter((l) =>
         l.employee?.name
           .toLowerCase()
-          .includes(leaveNameFilter.trim().toLowerCase())
+          .includes(leaveNameFilter.trim().toLowerCase()),
       );
     }
 
     // Filter by date range
     if (leaveDateFromFilter) {
       temp = temp.filter(
-        (l) => new Date(l.dateFrom) >= new Date(leaveDateFromFilter)
+        (l) => new Date(l.dateFrom) >= new Date(leaveDateFromFilter),
       );
     }
     if (leaveDateToFilter) {
       temp = temp.filter(
-        (l) => new Date(l.dateTo) <= new Date(leaveDateToFilter)
+        (l) => new Date(l.dateTo) <= new Date(leaveDateToFilter),
       );
     }
 
@@ -320,7 +320,7 @@ function ManagerDashboard({ user }) {
       temp = temp.filter(
         (r) =>
           (r.regularizationRequest?.status || "").toLowerCase() ===
-          regStatusFilter.toLowerCase()
+          regStatusFilter.toLowerCase(),
       );
     }
 
@@ -329,14 +329,14 @@ function ManagerDashboard({ user }) {
       temp = temp.filter((r) =>
         r.employee?.name
           .toLowerCase()
-          .includes(regNameFilter.trim().toLowerCase())
+          .includes(regNameFilter.trim().toLowerCase()),
       );
     }
 
     // Filter by date range
     if (regDateFromFilter) {
       temp = temp.filter(
-        (r) => new Date(r.date) >= new Date(regDateFromFilter)
+        (r) => new Date(r.date) >= new Date(regDateFromFilter),
       );
     }
     if (regDateToFilter) {
@@ -759,7 +759,7 @@ function ManagerDashboard({ user }) {
                           ? 0.5
                           : Math.floor(
                               (new Date(l.dateTo) - new Date(l.dateFrom)) /
-                                (1000 * 60 * 60 * 24)
+                                (1000 * 60 * 60 * 24),
                             ) + 1}
                       </td>
                       {/* <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>{l.reason}</td> */}
@@ -991,8 +991,8 @@ function ManagerDashboard({ user }) {
                               (selectedLeave.status === "approved"
                                 ? "bg-success"
                                 : selectedLeave.status === "rejected"
-                                ? "bg-danger"
-                                : "bg-warning text-dark")
+                                  ? "bg-danger"
+                                  : "bg-warning text-dark")
                             }
                           >
                             {selectedLeave.status}
@@ -1047,7 +1047,7 @@ function ManagerDashboard({ user }) {
             filteredLeaves.length, // Use filtered, not leaves.length!
             indexOfFirstLeave,
             indexOfLastLeave,
-            setLeavePage
+            setLeavePage,
           )}
         </>
       )}
@@ -1388,7 +1388,7 @@ function ManagerDashboard({ user }) {
                         }}
                       >
                         {new Date(
-                          r.regularizationRequest.requestedAt
+                          r.regularizationRequest.requestedAt,
                         ).toLocaleDateString("en-GB", {
                           day: "numeric",
                           month: "short",
@@ -1624,8 +1624,9 @@ function ManagerDashboard({ user }) {
                               ?.requestedAt
                               ? df.format(
                                   new Date(
-                                    selectedRegularization.regularizationRequest.requestedAt
-                                  )
+                                    selectedRegularization.regularizationRequest
+                                      .requestedAt,
+                                  ),
                                 )
                               : "-"}
                           </div>
@@ -1645,7 +1646,7 @@ function ManagerDashboard({ user }) {
                           <div className="col-sm-9 col-5">
                             {formatToIST(
                               selectedRegularization?.regularizationRequest
-                                ?.checkIn
+                                ?.checkIn,
                             )}
                           </div>
                         </div>
@@ -1657,7 +1658,7 @@ function ManagerDashboard({ user }) {
                           <div className="col-sm-9 col-5">
                             {formatToIST(
                               selectedRegularization?.regularizationRequest
-                                ?.checkOut
+                                ?.checkOut,
                             )}
                           </div>
                         </div>
@@ -1698,14 +1699,14 @@ function ManagerDashboard({ user }) {
                                   ?.status === "Approved"
                                   ? "bg-success"
                                   : selectedRegularization
-                                      ?.regularizationRequest?.status ===
-                                    "Rejected"
-                                  ? "bg-danger"
-                                  : selectedRegularization
-                                      ?.regularizationRequest?.status ===
-                                    "Pending"
-                                  ? "bg-warning text-dark"
-                                  : "bg-secondary")
+                                        ?.regularizationRequest?.status ===
+                                      "Rejected"
+                                    ? "bg-danger"
+                                    : selectedRegularization
+                                          ?.regularizationRequest?.status ===
+                                        "Pending"
+                                      ? "bg-warning text-dark"
+                                      : "bg-secondary")
                               }
                             >
                               {selectedRegularization?.regularizationRequest
@@ -1726,7 +1727,7 @@ function ManagerDashboard({ user }) {
                             onClick={() => {
                               updateRegularizationStatus(
                                 selectedRegularization?._id,
-                                "Approved"
+                                "Approved",
                               );
                               setSelectedRegularization(null);
                             }}
@@ -1739,7 +1740,7 @@ function ManagerDashboard({ user }) {
                             onClick={() => {
                               updateRegularizationStatus(
                                 selectedRegularization?._id,
-                                "Rejected"
+                                "Rejected",
                               );
                               setSelectedRegularization(null);
                             }}
@@ -1768,7 +1769,7 @@ function ManagerDashboard({ user }) {
             filteredRegularizations.length, // Use filtered, not regularizations.length!
             indexOfFirstReg,
             indexOfLastReg,
-            setRegPage
+            setRegPage,
           )}
         </>
       )}

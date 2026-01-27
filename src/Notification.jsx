@@ -13,7 +13,7 @@ function Notification({ userId }) {
 
     try {
       const res = await axios.get(
-        ` https://server-backend-nu.vercel.app/notifications/${userId}`,
+        `https://server-backend-nu.vercel.app/notifications/${userId}`,
       );
 
       // Filter last 15 days notifications
@@ -64,47 +64,50 @@ function Notification({ userId }) {
     } else if (n.type === "Attendance") {
       navigate(`/dashboard/${role}/${username}/${id}/employee`);
     } else if (n.type === "Ticket") {
-      if ( role === "IT_Support") {
+      if (role === "IT_Support") {
         navigate(`/dashboard/${role}/${username}/${id}/ITSupportDashboard`);
       } else {
         navigate(`/dashboard/${role}/${username}/${id}/settings`);
       }
-    } 
+    }
     // rutuja code start
-    else if (n.type === "Event" || n.type === "Holiday" || n.type === "Announcements" || n.type === "Announcement") {  //added by rutuja
+    else if (
+      n.type === "Event" ||
+      n.type === "Holiday" ||
+      n.type === "Announcements" ||
+      n.type === "Announcement"
+    ) {
+      //added by rutuja
       navigate(`/dashboard/${role}/${username}/${id}/AllEventsandHolidays`);
     } else if (n.type === "Attendance") {
       navigate(`/dashboard/${role}/${username}/${id}/employee`);
-    } 
-    
-    //Feedback 
-    else if (n.type === "Feedback" || n.type === "Feedback Viewed"){
-      if(role === "employee" || role === "manager"){
-        navigate(`/dashboard/${role}/${username}/${id}/employee-feedback`);
-      }else{
-        navigate(`/dashboard/${role}/${username}/${id}/feedback`);
-      }
-    }  
-    // resignation
-    else if(n.type === "Resignation"){
-      if(role === "employee"){
-        navigate(`/dashboard/${role}/${username}/${id}/employee-resignation`);
-      }else if(role === "hr" || role === "admin"){
-        navigate(`/dashboard/${role}/${username}/${id}/resignation`);
-      }else if(role === "manager"){
-        navigate(`/dashboard/${role}/${username}/${id}/Manager-Resignation`)
-      }
     }
 
-    else if (n.type === "Interview"){
-      if(role === "employee"){
+    //Feedback
+    else if (n.type === "Feedback" || n.type === "Feedback Viewed") {
+      if (role === "employee" || role === "manager") {
+        navigate(`/dashboard/${role}/${username}/${id}/employee-feedback`);
+      } else {
+        navigate(`/dashboard/${role}/${username}/${id}/feedback`);
+      }
+    }
+    // resignation
+    else if (n.type === "Resignation") {
+      if (role === "employee") {
+        navigate(`/dashboard/${role}/${username}/${id}/employee-resignation`);
+      } else if (role === "hr" || role === "admin") {
+        navigate(`/dashboard/${role}/${username}/${id}/resignation`);
+      } else if (role === "manager") {
+        navigate(`/dashboard/${role}/${username}/${id}/Manager-Resignation`);
+      }
+    } else if (n.type === "Interview") {
+      if (role === "employee") {
         navigate(`/dashboard/${role}/${username}/${id}/interviews`);
-      }else{
+      } else {
         navigate(`/dashboard/${role}/${username}/${id}/schedule-interview`);
       }
-    }  
-    // rutuja code end 
-    
+    }
+    // rutuja code end
     else {
       navigate("/");
     }

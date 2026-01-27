@@ -250,14 +250,14 @@ function MyAttendanceCalendar({ employeeId }) {
       try {
         const [attRes, leaveRes, weeklyRes, holidayRes, regRes] =
           await Promise.all([
-            axios.get(` https://server-backend-nu.vercel.app/attendance/${employeeId}`),
-            axios.get(` https://server-backend-nu.vercel.app/leave/my/${employeeId}`),
+            axios.get(`https://server-backend-nu.vercel.app/attendance/${employeeId}`),
+            axios.get(`https://server-backend-nu.vercel.app/leave/my/${employeeId}`),
             axios.get(
-              ` https://server-backend-nu.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`
+              `https://server-backend-nu.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`,
             ),
-            axios.get(` https://server-backend-nu.vercel.app/getHolidays`),
+            axios.get(`https://server-backend-nu.vercel.app/getHolidays`),
             axios.get(
-              ` https://server-backend-nu.vercel.app/attendance/regularization/my/${employeeId}`
+              `https://server-backend-nu.vercel.app/attendance/regularization/my/${employeeId}`,
             ),
           ]);
         setWeeklyOff(weeklyRes.data.data?.saturdays || []);
@@ -288,7 +288,7 @@ function MyAttendanceCalendar({ employeeId }) {
           const dateKey = new Date(reg.date).toDateString();
 
           const existingIndex = mergedAttendance.findIndex(
-            (att) => new Date(att.date).toDateString() === dateKey
+            (att) => new Date(att.date).toDateString() === dateKey,
           );
 
           const regDate = new Date(reg.date);
@@ -316,8 +316,8 @@ function MyAttendanceCalendar({ employeeId }) {
               !mergedAttendance[existingIndex]?.checkOut
                 ? "Working"
                 : reg.regularizationRequest?.status === "Approved"
-                ? "Regularized"
-                : "Absent",
+                  ? "Regularized"
+                  : "Absent",
           };
 
           if (existingIndex > -1) {
@@ -340,7 +340,7 @@ function MyAttendanceCalendar({ employeeId }) {
   }, [employeeId]);
   const getHoliday = (date) =>
     holidays.find(
-      (h) => new Date(h.date).toDateString() === date.toDateString()
+      (h) => new Date(h.date).toDateString() === date.toDateString(),
     );
   const isHoliday = (date) => !!getHoliday(date);
   const getWorkedHoursDecimal = (checkIn, checkOut) =>

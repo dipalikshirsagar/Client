@@ -28,12 +28,12 @@ function EmployeeFullAttendance() {
         setLoading(true);
         const token = localStorage.getItem("accessToken");
         const authAxios = axios.create({
-          baseURL: "  https://server-backend-nu.vercel.app",
+          baseURL: " https://server-backend-nu.vercel.app",
           headers: { Authorization: `Bearer ${token}` },
         });
 
         const empRes = await axios.get(
-          ` https://server-backend-nu.vercel.app/employees/${empId}`,
+          `https://server-backend-nu.vercel.app/employees/${empId}`,
         );
         setEmployee(empRes.data);
 

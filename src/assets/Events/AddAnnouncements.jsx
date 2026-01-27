@@ -91,7 +91,7 @@ function AddAnnouncements({ onAdd }) {
             Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
           },
-        }
+        },
       );
 
       const newAnnouncement = response.data?.announcement || response.data;

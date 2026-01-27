@@ -44,14 +44,14 @@ function AdminAddLeaveBalance() {
         });
 
         const sortedLeaves = filteredByDate.sort(
-          (a, b) => new Date(b.appliedAt) - new Date(a.appliedAt)
+          (a, b) => new Date(b.appliedAt) - new Date(a.appliedAt),
         );
 
         setLeaves(sortedLeaves);
         setFilteredLeaves(sortedLeaves);
 
         setPendingRequests(
-          filteredByDate.filter((l) => l.status === "pending").length
+          filteredByDate.filter((l) => l.status === "pending").length,
         );
       })
       .catch((err) => console.error("Leaves fetch error:", err))
@@ -79,7 +79,7 @@ function AdminAddLeaveBalance() {
       .get("https://server-backend-nu.vercel.app/leaves")
       .then((res) => {
         const sortedLeaves = res.data.sort(
-          (a, b) => new Date(b.appliedAt) - new Date(a.appliedAt)
+          (a, b) => new Date(b.appliedAt) - new Date(a.appliedAt),
         );
         setLeaves(sortedLeaves);
 
@@ -125,14 +125,14 @@ function AdminAddLeaveBalance() {
 
       // 🔥 Update leaves list instantly
       const updatedLeaves = leaves.map((l) =>
-        l._id === leaveId ? { ...l, status } : l
+        l._id === leaveId ? { ...l, status } : l,
       );
 
       setLeaves(updatedLeaves);
 
       // 🔥 VERY IMPORTANT — update filteredLeaves also
       setFilteredLeaves((prev) =>
-        prev.map((l) => (l._id === leaveId ? { ...l, status } : l))
+        prev.map((l) => (l._id === leaveId ? { ...l, status } : l)),
       );
 
       // update pending count
@@ -161,7 +161,7 @@ function AdminAddLeaveBalance() {
   const fetchYearlySettings = async () => {
     try {
       const res = await axios.get(
-        "https://server-backend-nu.vercel.app/leave/yearly-settings"
+        "https://server-backend-nu.vercel.app/leave/yearly-settings",
       );
       setData(res.data);
     } catch (err) {
@@ -210,7 +210,7 @@ function AdminAddLeaveBalance() {
         {
           sl,
           cl,
-        }
+        },
       );
       setMessage(res.data.message + " for " + res.data.count + " employees");
       alert(res.data.message + " for " + res.data.count + " employees");
@@ -269,7 +269,7 @@ function AdminAddLeaveBalance() {
 
   const HandleDelete = async (leaveId) => {
     const confirmDelete = window.confirm(
-      "Are you sure you want to delete this leave?"
+      "Are you sure you want to delete this leave?",
     );
     if (!confirmDelete) return;
 
@@ -305,7 +305,7 @@ function AdminAddLeaveBalance() {
   const resetYearlySettings = async () => {
     if (
       !window.confirm(
-        "⚠️ Are you sure you want to reset all yearly leave settings and employee balances?"
+        "⚠️ Are you sure you want to reset all yearly leave settings and employee balances?",
       )
     ) {
       return;
@@ -959,7 +959,7 @@ function AdminAddLeaveBalance() {
                                   day: "2-digit",
                                   month: "short",
                                   year: "numeric",
-                                }
+                                },
                               )
                             : "-"}
                         </td>
@@ -1187,7 +1187,7 @@ function AdminAddLeaveBalance() {
                               day: "2-digit",
                               month: "short",
                               year: "numeric",
-                            }
+                            },
                           )
                         : "-"}
                     </div>
@@ -1207,7 +1207,7 @@ function AdminAddLeaveBalance() {
                           day: "2-digit",
                           month: "short",
                           year: "numeric",
-                        }
+                        },
                       )}
                     </div>
                   </div>
@@ -1221,7 +1221,7 @@ function AdminAddLeaveBalance() {
                           day: "2-digit",
                           month: "short",
                           year: "numeric",
-                        }
+                        },
                       )}
                     </div>
                   </div>
@@ -1253,8 +1253,8 @@ function AdminAddLeaveBalance() {
                           (selectedLeave.status === "approved"
                             ? "bg-success"
                             : selectedLeave.status === "rejected"
-                            ? "bg-danger"
-                            : "bg-warning text-dark")
+                              ? "bg-danger"
+                              : "bg-warning text-dark")
                         }
                       >
                         {selectedLeave.status}

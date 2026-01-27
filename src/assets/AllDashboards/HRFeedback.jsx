@@ -37,7 +37,7 @@ const HRFeedback = () => {
             .map(function (c) {
               return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
             })
-            .join("")
+            .join(""),
         );
         const userData = JSON.parse(jsonPayload);
         setCurrentUser(userData);
@@ -65,12 +65,12 @@ const HRFeedback = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (response.data) {
         const nonHREmployees = response.data.filter(
-          (emp) => emp.role !== "hr" && emp._id !== currentUser?._id
+          (emp) => emp.role !== "hr" && emp._id !== currentUser?._id,
         );
         setEmployees(nonHREmployees || []);
       }
@@ -93,7 +93,7 @@ const HRFeedback = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (response.data && response.data.success) {
@@ -176,7 +176,7 @@ const HRFeedback = () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       if (response.data.success) {
@@ -189,8 +189,8 @@ const HRFeedback = () => {
                   readAt: new Date().toLocaleString("en-GB"),
                   originalStatus: "viewed",
                 }
-              : fb
-          )
+              : fb,
+          ),
         );
 
         if (selectedFeedback && selectedFeedback.id === feedbackId) {
@@ -243,27 +243,27 @@ const HRFeedback = () => {
   });
 
   const totalPagesReceived = Math.ceil(
-    filteredReceivedFeedbacks.length / itemsPerPage
+    filteredReceivedFeedbacks.length / itemsPerPage,
   );
   const indexOfLastItemReceived = Math.min(
     currentPageReceived * itemsPerPage,
-    filteredReceivedFeedbacks.length
+    filteredReceivedFeedbacks.length,
   );
   const indexOfFirstItemReceived = (currentPageReceived - 1) * itemsPerPage;
   const currentReceivedFeedbacks = filteredReceivedFeedbacks.slice(
     indexOfFirstItemReceived,
-    indexOfLastItemReceived
+    indexOfLastItemReceived,
   );
 
   const totalPagesSent = Math.ceil(filteredSentFeedbacks.length / itemsPerPage);
   const indexOfLastItemSent = Math.min(
     currentPageSent * itemsPerPage,
-    filteredSentFeedbacks.length
+    filteredSentFeedbacks.length,
   );
   const indexOfFirstItemSent = (currentPageSent - 1) * itemsPerPage;
   const currentSentFeedbacks = filteredSentFeedbacks.slice(
     indexOfFirstItemSent,
-    indexOfLastItemSent
+    indexOfLastItemSent,
   );
 
   const handlePageChangeSent = (pageNumber) => {
@@ -282,7 +282,7 @@ const HRFeedback = () => {
     totalItems,
     indexOfFirstItem,
     indexOfLastItem,
-    setPage
+    setPage,
   ) => (
     <nav className="d-flex align-items-center justify-content-end mt-3 text-muted">
       <div className="d-flex align-items-center gap-3">
@@ -310,7 +310,7 @@ const HRFeedback = () => {
             ? "0–0 of 0"
             : `${indexOfFirstItem + 1}-${Math.min(
                 indexOfLastItem,
-                totalItems
+                totalItems,
               )} of ${totalItems}`}
         </span>
 
@@ -387,7 +387,7 @@ const HRFeedback = () => {
               Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
             },
-          }
+          },
         );
       } else {
         response = await axios.post(
@@ -402,7 +402,7 @@ const HRFeedback = () => {
               Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
             },
-          }
+          },
         );
       }
 
@@ -411,7 +411,7 @@ const HRFeedback = () => {
         alert(
           editId
             ? "Feedback updated successfully"
-            : "Feedback sent successfully"
+            : "Feedback sent successfully",
         );
         setShowForm(false);
         setEditId(null);
@@ -419,14 +419,14 @@ const HRFeedback = () => {
       } else {
         alert(
           response.data.message ||
-            (editId ? "Failed to update feedback" : "Failed to send feedback")
+            (editId ? "Failed to update feedback" : "Failed to send feedback"),
         );
       }
     } catch (err) {
       console.error("Error submitting feedback:", err);
       alert(
         err.response?.data?.message ||
-          (editId ? "Failed to update feedback" : "Failed to send feedback")
+          (editId ? "Failed to update feedback" : "Failed to send feedback"),
       );
     } finally {
       setSending(false);
@@ -805,7 +805,7 @@ const HRFeedback = () => {
             filteredReceivedFeedbacks.length,
             indexOfFirstItemReceived,
             indexOfLastItemReceived,
-            handlePageChangeReceived
+            handlePageChangeReceived,
           )}
         </>
       )}
@@ -1087,7 +1087,7 @@ const HRFeedback = () => {
             filteredSentFeedbacks.length,
             indexOfFirstItemSent,
             indexOfLastItemSent,
-            handlePageChangeSent
+            handlePageChangeSent,
           )}
         </>
       )}
@@ -1225,8 +1225,8 @@ const HRFeedback = () => {
                       ? "Updating..."
                       : "Sending..."
                     : editId
-                    ? "Update Feedback"
-                    : "Send Feedback"}
+                      ? "Update Feedback"
+                      : "Send Feedback"}
                 </button>
                 <button
                   className="btn custom-outline-btn"

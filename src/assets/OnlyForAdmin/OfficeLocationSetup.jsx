@@ -15,7 +15,7 @@
 //   // Fetch existing office location from backend
 //   useEffect(() => {
 //     axios
-//       .get(" https://server-backend-nu.vercel.app/admin/office-location")
+//       .get("https://server-backend-nu.vercel.app/admin/office-location")
 //       .then((res) => {
 //         if (res.data.length) setLocation(res.data[0]);
 //       })
@@ -364,7 +364,7 @@ function OfficeLocationSetup() {
   const getAddressFromCoords = async (lat, lng) => {
     try {
       const res = await fetch(
-        ` https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+        ` https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
       );
       const data = await res.json();
       return data.display_name || "Unknown location";
@@ -398,7 +398,7 @@ function OfficeLocationSetup() {
       (error) => {
         console.error(error);
         alert("Unable to retrieve your location.");
-      }
+      },
     );
   };
 

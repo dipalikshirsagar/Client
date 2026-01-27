@@ -124,12 +124,25 @@ function TMSDashboard() {
     window.location.href = "/login";
   };
 
-  if (loading)
+  if (loading) {
     return (
-      <div style={{ padding: 20 }}>
-        <h2>Loading user data...</h2>
+      <div
+        className="d-flex flex-column justify-content-center align-items-center"
+        style={{ minHeight: "100vh" }}
+      >
+        <div
+          className="spinner-grow"
+          role="status"
+          style={{ width: "4rem", height: "4rem", color: "#3A5FBE" }}
+        >
+          <span className="visually-hidden">Loading...</span>
+        </div>
+        <p className="mt-3 fw-semibold" style={{ color: "#3A5FBE" }}>
+          Loading ...
+        </p>
       </div>
     );
+  }
 
   return (
     <div>
@@ -324,7 +337,11 @@ function TMSDashboard() {
               <Route
                 path="tasklogs"
                 element={
-                  role === "admin" || role === "hr" || role === "ceo" ? (
+                  role === "admin" ||
+                  role === "hr" ||
+                  role === "ceo" ||
+                  role === "coo" ||
+                  role === "md" ? (
                     <AdminTasklog />
                   ) : role === "manager" ? (
                     <ManagerTasklog user={user} />

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 function AdminDashboardTMS() {
@@ -34,7 +34,6 @@ function AdminDashboardTMS() {
           "https://server-backend-nu.vercel.app/bench-employees",
           { headers },
         );
-        setAvailableEmployees(benchEmp.data.benchEmployees || []);
 
         const allEmployees = empRes.data || [];
 
@@ -47,7 +46,7 @@ function AdminDashboardTMS() {
         const totalEmployeeCount = activeEmployees.filter((e) =>
           allowedRoles.includes(e.role?.toLowerCase()),
         ).length;
-        setAvailableEmployees(activeEmployees);
+        setAvailableEmployees(benchEmp.data.benchEmployees || []);
 
         setTotalEmployees(totalEmployeeCount);
 
@@ -70,7 +69,9 @@ function AdminDashboardTMS() {
         const teamRes = await axios.get("https://server-backend-nu.vercel.app/api/teams", {
           headers,
         });
-        setTotalTeams(teamRes.data?.data?.length || 0);
+        const teamList = teamRes.data?.data || [];
+        setTeams(teamList);
+        setTotalTeams(teamList.length);
 
         /* TASKS */
         const taskRes = await axios.get("https://server-backend-nu.vercel.app/task/getall", {
@@ -153,13 +154,21 @@ function AdminDashboardTMS() {
   };
 
   const upcomingProjects = projects
+    ////change dip
+    .filter((p) => {
+      const statusValue = p.status?.name || p.status || "";
+      const statusLower = statusValue.toString().toLowerCase().trim();
+
+      return statusLower === "upcoming project";
+    })
+    ////change dip
     .map((p) => ({
       id: p._id,
       title: p.name || "—",
       startDate: p.startDate,
-      status: p.status?.name || "On Track",
+      status: p.status || "On Track",
     }))
-    .filter((p) => isUpcomingStart(p.startDate))
+    // .filter((p) => isUpcomingStart(p.startDate))
     .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
     .slice(0, 3); // show only 3
 
@@ -194,7 +203,53 @@ function AdminDashboardTMS() {
       .filter((t) => t.project && t.project._id === projectId)
       .reduce((total, team) => total + team.assignToProject.length, 0);
   };
+  const popupRef = useRef(null);
+  useEffect(() => {
+    if (showProfile && popupRef.current) {
+      popupRef.current.focus();
+    }
+  }, [showProfile]);
 
+  const trapFocus = (e) => {
+    if (!popupRef.current) return;
+
+    const focusableElements = popupRef.current.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+
+    const first = focusableElements[0];
+    const last = focusableElements[focusableElements.length - 1];
+
+    if (e.key === "Tab") {
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+  };
+  const isAnyPopupOpen = !!showProfile;
+
+  useEffect(() => {
+    if (isAnyPopupOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [isAnyPopupOpen]);
   return (
     <div className="container-fluid" style={{ marginTop: "-25px" }}>
       {/* Main Content */}
@@ -202,7 +257,7 @@ function AdminDashboardTMS() {
         {/* Stats Cards Row */}
         <div className="row g-3 mb-4">
           {/* Total Tasks */}
-          <div className="col-md-3">
+          <div className="col-12 col-md-6 col-lg-3">
             <div
               className="card shadow-sm h-100 border-0"
               style={{ borderRadius: "7px" }}
@@ -247,7 +302,7 @@ function AdminDashboardTMS() {
           </div>
 
           {/* Total Project */}
-          <div className="col-md-3">
+          <div className="col-12 col-md-6 col-lg-3">
             <div
               className="card shadow-sm h-100 border-0"
               style={{ borderRadius: "7px" }}
@@ -292,7 +347,7 @@ function AdminDashboardTMS() {
           </div>
 
           {/* Total Teams */}
-          <div className="col-md-3">
+          <div className="col-12 col-md-6 col-lg-3">
             <div
               className="card shadow-sm h-100 border-0"
               style={{ borderRadius: "7px" }}
@@ -337,7 +392,7 @@ function AdminDashboardTMS() {
           </div>
 
           {/* Total Employees */}
-          <div className="col-md-3">
+          <div className="col-12 col-md-6 col-lg-3">
             <div
               className="card shadow-sm h-100 border-0"
               style={{ borderRadius: "7px" }}
@@ -658,6 +713,10 @@ function AdminDashboardTMS() {
             {/* View profile popup */}
             {showProfile && selectedEmployee && (
               <div
+                ref={popupRef}
+                tabIndex="-1"
+                autoFocus
+                onKeyDown={trapFocus}
                 className="modal fade show"
                 style={{
                   display: "flex",
@@ -670,7 +729,7 @@ function AdminDashboardTMS() {
                 }}
               >
                 <div
-                  className="modal-dialog modal-dialog-scrollable"
+                  className="modal-dialog "
                   style={{ maxWidth: "650px", width: "95%" }}
                 >
                   <div className="modal-content">

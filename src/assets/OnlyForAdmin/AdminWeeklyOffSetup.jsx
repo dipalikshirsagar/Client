@@ -10,7 +10,7 @@ function AdminWeeklyOffSetup() {
     const fetchWeeklyOff = async () => {
       try {
         const res = await axios.get(
-          ` https://server-backend-nu.vercel.app/admin/weeklyoff/${year}`
+          `https://server-backend-nu.vercel.app/admin/weeklyoff/${year}`,
         );
         setSaturdays(res.data?.data?.saturdays || []);
       } catch (err) {
@@ -23,13 +23,13 @@ function AdminWeeklyOffSetup() {
 
   const toggleSaturday = (num) => {
     setSaturdays((prev) =>
-      prev.includes(num) ? prev.filter((x) => x !== num) : [...prev, num]
+      prev.includes(num) ? prev.filter((x) => x !== num) : [...prev, num],
     );
   };
 
   const saveWeeklyOff = async () => {
     try {
-      await axios.post(" https://server-backend-nu.vercel.app/admin/weeklyoff", {
+      await axios.post("https://server-backend-nu.vercel.app/admin/weeklyoff", {
         year,
         saturdays,
       });
@@ -66,7 +66,7 @@ function AdminWeeklyOffSetup() {
                     <label htmlFor={`sat-${weekNum}`}>{label} Saturday</label>
                   </div>
                 );
-              }
+              },
             )}
           </div>
 

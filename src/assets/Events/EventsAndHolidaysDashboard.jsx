@@ -46,7 +46,7 @@ function EventsAndHolidaysDashboard() {
         const res = await axios.get("https://server-backend-nu.vercel.app/announcements/");
         console.log("Announcements response:", res.data); // 👀 check shape
         const sortedAnnouncements = res.data.data.sort(
-          (a, b) => new Date(a.date) - new Date(b.date)
+          (a, b) => new Date(a.date) - new Date(b.date),
         );
         console.log("Sorted Announcements:", sortedAnnouncements);
         setAnnouncementsList(sortedAnnouncements);
@@ -66,7 +66,7 @@ function EventsAndHolidaysDashboard() {
 
         // Sort by date and store all holidays
         const sorted = res.data.sort(
-          (a, b) => new Date(a.date) - new Date(b.date)
+          (a, b) => new Date(a.date) - new Date(b.date),
         );
         setHolidayList(sorted);
       } catch (err) {
@@ -103,11 +103,11 @@ function EventsAndHolidaysDashboard() {
           "https://server-backend-nu.vercel.app/events-for-employee",
           {
             headers: { Authorization: `Bearer ${token}` },
-          }
+          },
         );
         console.log("Events response:", res.data); // 👀 check shape
         const sortedEvents = res.data.sort(
-          (a, b) => new Date(a.date) - new Date(b.date)
+          (a, b) => new Date(a.date) - new Date(b.date),
         );
         setEventsList(sortedEvents);
       } catch (err) {
@@ -179,8 +179,8 @@ function EventsAndHolidaysDashboard() {
                         event.type === "Birthday"
                           ? "bi bi-gift"
                           : event.type === "Team Outing"
-                          ? "bi bi-geo-alt"
-                          : "bi bi-calendar-event"
+                            ? "bi bi-geo-alt"
+                            : "bi bi-calendar-event"
                       }`}
                     ></i>
 
@@ -313,7 +313,7 @@ function EventsAndHolidaysDashboard() {
                         </div>
                         <div className="event-details">
                           {new Date(
-                            announcement.publishDate
+                            announcement.publishDate,
                           ).toLocaleDateString("en-CA", {
                             month: "short",
                             day: "numeric",

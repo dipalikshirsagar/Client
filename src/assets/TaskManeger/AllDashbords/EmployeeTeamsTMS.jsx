@@ -3,10 +3,10 @@ import axios from "axios";
 const EmployeeTeamsTMS = ({ user }) => {
   // ---------- Stat Cards Data ----------
   const initialTaskStats = [
-    { title: "Total Teams", color: "#D1ECF1" },
-    { title: "Total Managers", color: "#FFB3B3" },
-    { title: "Total Employees", color: "#FFE493" },
-    { title: "Total Departments", color: "#D7F5E4" },
+    { title: "Total Teams", count: 0, color: "#D1ECF1" },
+    { title: "Total Managers", count: 0, color: "#FFB3B3" },
+    { title: "Total Employees", count: 0, color: "#FFE493" },
+    { title: "Total Departments", count: 0, color: "#D7F5E4" },
   ];
 
   // ---------- Teams Table Data ----------
@@ -148,7 +148,8 @@ const EmployeeTeamsTMS = ({ user }) => {
           team.teamName.toLowerCase().includes(query) ||
           team.teamLead.toLowerCase().includes(query) ||
           team.department.toLowerCase().includes(query) ||
-          team.totalMembers.toString().includes(query),
+          team.totalMembers.toString().includes(query) ||
+          team.projectName.toLowerCase().includes(query),
       );
     }
 
@@ -156,7 +157,7 @@ const EmployeeTeamsTMS = ({ user }) => {
     setCurrentPage(1);
 
     // Important: departments stays same!
-    updateStats(temp, departments);
+    // updateStats(temp, departments);
   };
 
   // ================== Stats Logic ==================
@@ -185,7 +186,7 @@ const EmployeeTeamsTMS = ({ user }) => {
   const resetFilters = () => {
     setSearchQuery("");
     setFilteredTeams([...allTeams]);
-    setTaskStats(initialTaskStats);
+    // setTaskStats(initialTaskStats);
     setCurrentPage(1);
   };
 
@@ -223,6 +224,22 @@ const EmployeeTeamsTMS = ({ user }) => {
   const handleRowClick = (team) => {
     setSelectedTeam(team);
   };
+
+  const isAnyPopupOpen = !!selectedTeam;
+  useEffect(() => {
+    if (isAnyPopupOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [isAnyPopupOpen]);
 
   return (
     <div className="container-fluid">
@@ -301,7 +318,6 @@ const EmployeeTeamsTMS = ({ user }) => {
                 type="text"
                 className="form-control"
                 placeholder="Search by any field..."
-                style={{ minWidth: 300 }}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={handleSearchKeyPress}

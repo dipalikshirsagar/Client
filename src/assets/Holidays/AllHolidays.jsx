@@ -40,7 +40,7 @@ function AllHolidays() {
     } catch (err) {
       console.error(
         "❌ Failed to delete holiday:",
-        err.response || err.message
+        err.response || err.message,
       );
       alert("Failed to delete holiday.");
     }

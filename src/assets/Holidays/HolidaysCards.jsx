@@ -176,7 +176,7 @@ function HolidaysCard({}) {
                 `/dashboard/${role}/${username}/${id}/AllEventsandHolidays`,
                 {
                   state: { holidays },
-                }
+                },
               )
             }
           >

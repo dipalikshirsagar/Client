@@ -54,10 +54,11 @@ function EmployeeReportTMS({ employeeId }) {
   const [loadingDelayedTasks, setLoadingDelayedTasks] = useState(false);
 
   //graph --------------------------------------------------------------------
-
   const [allTasks, setAllTasks] = useState([]);
   const [selectedMonth, setSelectedMonth] = useState("all");
 
+  const [donutStatus, setDonutStatus] = useState(null);
+  const [donutTasks, setDonutTasks] = useState([]); // 15 jan--------------------
   useEffect(() => {
     if (!employeeId) return;
 
@@ -66,7 +67,10 @@ function EmployeeReportTMS({ employeeId }) {
       .then((res) => {
         const apiTasks = res.data.tasks.map((task) => ({
           _id: task._id,
+          taskName: task.taskName,
+          taskType: task.typeOfTask,
           assignDate: task.dateOfTaskAssignment,
+          dueDate: task.dateOfExpectedCompletion,
           status:
             task.status?.name === "In progress"
               ? "In Progress"
@@ -78,6 +82,23 @@ function EmployeeReportTMS({ employeeId }) {
       .catch((err) => console.error("Task fetch error:", err));
   }, [employeeId]);
 
+  const handleDonutClick = (data) => {
+    if (!data || !data.name) return;
+
+    const filtered = allTasks.filter(
+      (task) =>
+        task.status === data.name &&
+        (selectedMonth === "all" ||
+          (() => {
+            const d = new Date(task.assignDate);
+            return `${d.getFullYear()}-${d.getMonth() + 1}` === selectedMonth;
+          })()),
+    );
+
+    setDonutStatus(data.name);
+    setDonutTasks(filtered);
+    setModalTitle(`${data.name} Tasks`);
+  };
   const TASK_COLORS = {
     Assigned: "#3A5FBE",
     Completed: "#198754",
@@ -307,72 +328,71 @@ function EmployeeReportTMS({ employeeId }) {
       setLoadingTeam(false);
     }
   };
-// 
-const handleDownloadExcel = () => {
-  if (!filteredListData || filteredListData.length === 0) {
-    alert("No data to download");
-    return;
-  }
-
-  let excelData = [];
-
-  switch (showCardList) {
-    case "teamMembers":
-      excelData = filteredListData.map((item) => ({
-        "Team Name": item.teamName,
-        "Project Name": item.projectName,
-        "Employees Assigned": item.employeeCount,
-      }));
-      break;
-
-    case "myProjects":
-      excelData = filteredListData.map((item) => ({
-        "Project Name": item.name,
-        Status: item.isDelayed ? "Delayed" : item.status?.name,
-        "Delivery Date": formatDate(item.endDate),
-      }));
-      break;
-
-    case "delayedTasks":
-      excelData = filteredListData.map((item) => ({
-        "Project Name": item.project,
-        "Task Title": item.title,
-        "Due Date": formatDate(item.dueDate),
-      }));
-      break;
-
-    case "upcomingTasks":
-      excelData = filteredListData.map((item) => ({
-        "Project Name": item.project,
-        "Task Title": item.title,
-        "Start Date": formatDate(item.startDate),
-        "Due Date": formatDate(item.dueDate),
-        Status: item.status,
-      }));
-      break;
-
-    default:
+  //
+  const handleDownloadExcel = () => {
+    if (!filteredListData || filteredListData.length === 0) {
+      alert("No data to download");
       return;
-  }
+    }
 
-  const worksheet = XLSX.utils.json_to_sheet(excelData);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
+    let excelData = [];
 
-  const excelBuffer = XLSX.write(workbook, {
-    bookType: "xlsx",
-    type: "array",
-  });
+    switch (showCardList) {
+      case "teamMembers":
+        excelData = filteredListData.map((item) => ({
+          "Team Name": item.teamName,
+          "Project Name": item.projectName,
+          "Employees Assigned": item.employeeCount,
+        }));
+        break;
 
-  const blob = new Blob([excelBuffer], {
-    type:
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  });
+      case "myProjects":
+        excelData = filteredListData.map((item) => ({
+          "Project Name": item.name,
+          Status: item.isDelayed ? "Delayed" : item.status?.name,
+          "Delivery Date": formatDate(item.endDate),
+        }));
+        break;
 
-  const fileName = `${getListTitle().replaceAll(" ", "_")}.xlsx`;
-  saveAs(blob, fileName);
-};
-// 
+      case "delayedTasks":
+        excelData = filteredListData.map((item) => ({
+          "Project Name": item.project,
+          "Task Title": item.title,
+          "Due Date": formatDate(item.dueDate),
+        }));
+        break;
+
+      case "upcomingTasks":
+        excelData = filteredListData.map((item) => ({
+          "Project Name": item.project,
+          "Task Title": item.title,
+          "Start Date": formatDate(item.startDate),
+          "Due Date": formatDate(item.dueDate),
+          Status: item.status,
+        }));
+        break;
+
+      default:
+        return;
+    }
+
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
+
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+
+    const blob = new Blob([excelBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    const fileName = `${getListTitle().replaceAll(" ", "_")}.xlsx`;
+    saveAs(blob, fileName);
+  };
+  //
   useEffect(() => {
     if (!employeeId) return;
 
@@ -579,6 +599,21 @@ const handleDownloadExcel = () => {
     }
   };
 
+  const isAnyPopupOpen = !!selectedItem || !!donutStatus;
+  useEffect(() => {
+    if (isAnyPopupOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [isAnyPopupOpen]);
   // function getStatusStyle(status) {
   //   if (status === "Completed") {
   //     return { backgroundColor: "#d1f2dd", color: "#0f5132" };
@@ -671,7 +706,7 @@ const handleDownloadExcel = () => {
             <div className="col-auto ms-auto d-flex gap-2">
               <button
                 type="button"
-                 className="btn btn-sm custom-outline-btn"
+                className="btn btn-sm custom-outline-btn"
                 onClick={handleDownloadExcel}
               >
                 Download Excel
@@ -1336,14 +1371,8 @@ const handleDownloadExcel = () => {
   };
 
   return (
-    <div
-      className="container-fluid"
-      
-    >
-      <h3
-        className="mb-4 "
-        style={{ color: "#3A5FBE", fontSize: "25px" }}
-      >
+    <div className="container-fluid">
+      <h3 className="mb-4 " style={{ color: "#3A5FBE", fontSize: "25px" }}>
         My Reports
       </h3>
 
@@ -1617,6 +1646,8 @@ const handleDownloadExcel = () => {
                     paddingAngle={2}
                     label={renderCustomizedLabel}
                     labelLine={false}
+                    onClick={handleDonutClick} // add this line --
+                    cursor="pointer"
                   >
                     {employeeTaskDonutData.map((entry) => (
                       <Cell
@@ -1629,7 +1660,7 @@ const handleDownloadExcel = () => {
                   {/* CENTER TOTAL */}
                   <text
                     x="50%"
-                    y="48%"
+                    y="50%"
                     textAnchor="middle"
                     dominantBaseline="middle"
                     style={{
@@ -1643,7 +1674,7 @@ const handleDownloadExcel = () => {
 
                   <text
                     x="50%"
-                    y="58%"
+                    y="43%"
                     textAnchor="middle"
                     dominantBaseline="middle"
                     style={{
@@ -1709,7 +1740,89 @@ const handleDownloadExcel = () => {
           Back
         </button>
       </div>
+      {donutStatus && (
+        <div
+          className="modal fade show"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.5)",
+            position: "fixed",
+            inset: 0,
+            zIndex: 1050,
+          }}
+          onClick={() => {
+            setDonutStatus(null);
+            setDonutTasks([]);
+          }}
+        >
+          <div
+            className="modal-dialog modal-dialog-scrollable"
+            style={{ maxWidth: "750px", width: "95%" }}
+          >
+            <div className="modal-content">
+              <div
+                className="modal-header text-white"
+                style={{ backgroundColor: "#3A5FBE" }}
+              >
+                <h5 className="modal-title mb-0">{modalTitle}</h5>
+                <button
+                  className="btn-close btn-close-white"
+                  onClick={() => {
+                    setDonutStatus(null);
+                    setDonutTasks([]);
+                  }}
+                />
+              </div>
 
+              <div className="modal-body">
+                {donutTasks.length === 0 ? (
+                  <div className="text-center py-3">No tasks found.</div>
+                ) : (
+                  donutTasks.map((task) => (
+                    <div key={task._id} className="border rounded p-2 mb-2">
+                      <div className="row mb-1">
+                        <div className="col-4 fw-semibold">Task Name</div>
+                        <div className="col-8">{task.taskName}</div>
+                      </div>
+
+                      <div className="row mb-1">
+                        <div className="col-4 fw-semibold">Task Type</div>
+                        <div className="col-8">{task.taskType}</div>
+                      </div>
+
+                      <div className="row mb-1">
+                        <div className="col-4 fw-semibold">Assigned Date</div>
+                        <div className="col-8">
+                          {formatDate(task.assignDate)}
+                        </div>
+                      </div>
+
+                      <div className="row mb-1">
+                        <div className="col-4 fw-semibold">Due Date</div>
+                        <div className="col-8">{formatDate(task.dueDate)}</div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="modal-footer border-0">
+                <button
+                  className="btn btn-sm custom-outline-btn"
+                  onClick={() => {
+                    setDonutStatus(null);
+                    setDonutTasks([]);
+                  }}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {selectedItem && (
         <div
           ref={popupRef}

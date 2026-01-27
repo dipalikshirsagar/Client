@@ -148,6 +148,22 @@ function UpcomingTasksTable({ upcomingTasks, allEmployees, onClose }) {
     }
   };
   ////
+
+  const isAnyPopupOpen = !!showPopup;
+  useEffect(() => {
+    if (isAnyPopupOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [isAnyPopupOpen]);
   return (
     <>
       {/* Title outside table with Close button */}
@@ -169,7 +185,7 @@ function UpcomingTasksTable({ upcomingTasks, allEmployees, onClose }) {
           <div className="d-flex align-items-center gap-3 flex-wrap">
             {/* Search Label and Input inline */}
             <div
-              className="d-flex align-items-center gap-2"
+              className="d-flex align-items-center gap-2 flex-grow-1 flex-md-grow-0 w-md-100"
               style={{ minWidth: "300px" }}
             >
               <label
@@ -189,7 +205,6 @@ function UpcomingTasksTable({ upcomingTasks, allEmployees, onClose }) {
                     handleFilter();
                   }
                 }}
-                style={{ flex: 1 }}
               />
             </div>
 

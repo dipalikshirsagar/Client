@@ -361,10 +361,9 @@ function SupportEmployeeSetting() {
   };
 
   const deleteTicket = async (id) => {
-
     if (!window.confirm("Are you sure you want to delete this ticket?")) {
-      return; 
-    }  //added by rutuja
+      return;
+    } //added by rutuja
 
     try {
       await API.delete(`/tickets/${id}`);
@@ -380,13 +379,22 @@ function SupportEmployeeSetting() {
   const statusBadge = (status) => {
     let bgColor = "";
     switch (status) {
-      case "Open": bgColor = "#D1E7FF"; break;
-      case "In Progress": bgColor = "#FFF1CC"; break;
-      case "Resolved": bgColor = "#D7F5E4"; break;
-      case "Closed": bgColor = "#E2E3E5"; break;
-      default: bgColor = "#F8D7DA";
+      case "Open":
+        bgColor = "#D1E7FF";
+        break;
+      case "In Progress":
+        bgColor = "#FFF1CC";
+        break;
+      case "Resolved":
+        bgColor = "#D7F5E4";
+        break;
+      case "Closed":
+        bgColor = "#E2E3E5";
+        break;
+      default:
+        bgColor = "#F8D7DA";
     }
-    
+
     return {
       backgroundColor: bgColor,
       padding: "4px 12px",
@@ -429,9 +437,11 @@ function SupportEmployeeSetting() {
         }
         `}
       </style>
-  
-      <h3 className="mb-4" style={{ color: "#3A5FBE", fontSize: "25px" }}>Support Ticket System</h3>
-      
+
+      <h3 className="mb-4" style={{ color: "#3A5FBE", fontSize: "25px" }}>
+        Support Ticket System
+      </h3>
+
       <div className="text-end mb-3">
         <button
           className="btn btn-sm custom-outline-btn"
@@ -441,38 +451,55 @@ function SupportEmployeeSetting() {
           Raise Support Ticket
         </button>
       </div>
-  
+
       {/* Raise Ticket Modal */}
       {showRaiseModal && (
-        <div className="modal fade show" style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "rgba(0,0,0,0.5)",
-          position: "fixed",
-          inset: 0,
-          zIndex: 1050,
-        }}>
-          <div className="modal-dialog modal-dialog-scrollable" style={{ maxWidth: "650px", width: "95%" }}>
+        <div
+          className="modal fade show"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.5)",
+            position: "fixed",
+            inset: 0,
+            zIndex: 1050,
+          }}
+        >
+          <div
+            className="modal-dialog modal-dialog-scrollable"
+            style={{ maxWidth: "650px", width: "95%" }}
+          >
             <div className="modal-content">
-              <div className="modal-header text-white" style={{ backgroundColor: "#3A5FBE" }}>
+              <div
+                className="modal-header text-white"
+                style={{ backgroundColor: "#3A5FBE" }}
+              >
                 <h5 className="modal-title mb-0">Raise Support Ticket</h5>
-                <button type="button" className="btn-close btn-close-white" onClick={() => setShowRaiseModal(false)} />
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setShowRaiseModal(false)}
+                />
               </div>
-  
+
               <div className="modal-body">
-                <label className="form-label" style={{ color: "#3A5FBE" }}>Employee Name</label>
+                <label className="form-label" style={{ color: "#3A5FBE" }}>
+                  Employee Name
+                </label>
                 <input
                   className="form-control form-control-sm mb-1"
                   name="employeeName"
                   value={formData.employeeName}
                   disabled
                 />
-  
+
                 <div className="row g-2 mt-2">
                   {/* Category */}
                   <div className="col-md-4">
-                    <label className="form-label" style={{ color: "#3A5FBE" }}>Select Category</label>
+                    <label className="form-label" style={{ color: "#3A5FBE" }}>
+                      Select Category
+                    </label>
                     <select
                       className="form-select form-select-sm"
                       name="category"
@@ -489,10 +516,12 @@ function SupportEmployeeSetting() {
                       <small className="text-danger">{errors.category}</small>
                     )}
                   </div>
-  
+
                   {/* Priority */}
                   <div className="col-md-4">
-                    <label className="form-label" style={{ color: "#3A5FBE" }}>Select Priority</label>
+                    <label className="form-label" style={{ color: "#3A5FBE" }}>
+                      Select Priority
+                    </label>
                     <select
                       className="form-select form-select-sm"
                       name="priority"
@@ -508,10 +537,12 @@ function SupportEmployeeSetting() {
                       <small className="text-danger">{errors.priority}</small>
                     )}
                   </div>
-  
+
                   {/* Attachment */}
                   <div className="col-md-4">
-                    <label className="form-label" style={{ color: "#3A5FBE" }}>Select File</label>
+                    <label className="form-label" style={{ color: "#3A5FBE" }}>
+                      Select File
+                    </label>
                     <input
                       type="file"
                       multiple
@@ -525,7 +556,7 @@ function SupportEmployeeSetting() {
                     />
                   </div>
                 </div>
-  
+
                 {/* Description */}
                 <label className="form-label mt-3" style={{ color: "#3A5FBE" }}>
                   Enter Description (Max 200 words)
@@ -538,14 +569,14 @@ function SupportEmployeeSetting() {
                   onChange={handleChange}
                   placeholder="Describe your issue"
                 />
-                
+
                 <br />
                 {errors.description && (
                   <small className="text-danger">{errors.description}</small>
                 )}
-  
+
                 <div className="text-end">
-                  <button 
+                  <button
                     className="btn btn-sm custom-outline-btn"
                     style={{ minWidth: 90 }}
                     onClick={handleSubmit}
@@ -558,53 +589,265 @@ function SupportEmployeeSetting() {
           </div>
         </div>
       )}
-  
+
       {/* Tickets Table */}
       <div className="card shadow-sm border-0">
         <div className="table-responsive bg-white">
           <table className="table table-hover mb-0">
             <thead style={{ backgroundColor: "#ffffffff" }}>
               <tr>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>ID</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Category</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Priority</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Description</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Attachment</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Status</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Assigned</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Raised Date</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Closed Date</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Actions</th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  ID
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Category
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Priority
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Description
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Attachment
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Status
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Assigned
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Raised Date
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Closed Date
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Actions
+                </th>
               </tr>
             </thead>
-  
+
             <tbody>
               {paginatedTickets.map((t) => (
-                <tr 
-                  key={t._id} 
+                <tr
+                  key={t._id}
                   style={{ cursor: "pointer" }}
                   onClick={() => setViewTicket(t)}
                 >
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', color: "#212529" }}>{t.ticketId}</td>
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', color: "#212529" }}>{t.category}</td>
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', color: "#212529" }}>{t.priority}</td>
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', color: "#212529" }}>{shortDescription(t.description)}</td>
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', color: "#212529" }}>
-                    {Array.isArray(t.attachment) && t.attachment.length > 0 ? (
-                      t.attachment.map((file, i) => (
-                        <div key={i}>{file.split("/").pop()}</div>
-                      ))
-                    ) : "-"}
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                      color: "#212529",
+                    }}
+                  >
+                    {t.ticketId}
                   </td>
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                      color: "#212529",
+                    }}
+                  >
+                    {t.category}
+                  </td>
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                      color: "#212529",
+                    }}
+                  >
+                    {t.priority}
+                  </td>
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                      color: "#212529",
+                    }}
+                  >
+                    {shortDescription(t.description)}
+                  </td>
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                      color: "#212529",
+                    }}
+                  >
+                    {Array.isArray(t.attachment) && t.attachment.length > 0
+                      ? t.attachment.map((file, i) => (
+                          <div key={i}>{file.split("/").pop()}</div>
+                        ))
+                      : "-"}
+                  </td>
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
                     <span style={statusBadge(t.status)}>{t.status}</span>
                   </td>
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', color: "#212529" }}>{t.assignedTo || "-"}</td>
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', color: "#212529" }}>{new Date(t.raisedDate).toLocaleString()}</td>
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', color: "#212529" }}>
-                    {t.closedDate ? new Date(t.closedDate).toLocaleString() : "-"}
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                      color: "#212529",
+                    }}
+                  >
+                    {t.assignedTo || "-"}
                   </td>
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                      color: "#212529",
+                    }}
+                  >
+                    {new Date(t.raisedDate).toLocaleString()}
+                  </td>
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                      color: "#212529",
+                    }}
+                  >
+                    {t.closedDate
+                      ? new Date(t.closedDate).toLocaleString()
+                      : "-"}
+                  </td>
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
                     <div className="d-flex gap-2 justify-content-center">
                       <button
                         className="btn btn-sm custom-outline-btn"
@@ -620,7 +863,7 @@ function SupportEmployeeSetting() {
                       >
                         Edit
                       </button>
-  
+
                       <button
                         className="btn btn-sm custom-outline-btn"
                         style={{ minWidth: 90 }}
@@ -642,12 +885,16 @@ function SupportEmployeeSetting() {
           </table>
         </div>
       </div>
-  
+
       {/* Pagination */}
       <nav className="d-flex align-items-center justify-content-end mt-3 text-muted">
         <div className="d-flex align-items-center gap-3">
           <div className="d-flex align-items-center">
-            <span style={{ fontSize: "14px", marginRight: "8px", color: "#212529" }}>Rows per page:</span>
+            <span
+              style={{ fontSize: "14px", marginRight: "8px", color: "#212529" }}
+            >
+              Rows per page:
+            </span>
             <select
               className="form-select form-select-sm"
               style={{ width: "auto", fontSize: "14px" }}
@@ -662,12 +909,18 @@ function SupportEmployeeSetting() {
               <option value={20}>20</option>
             </select>
           </div>
-  
-          <span style={{ fontSize: "14px", marginLeft: "16px", color: "#212529" }}>
-            {indexOfFirstRow + 1}–{Math.min(indexOfLastRow, tickets.length)} of {tickets.length}
+
+          <span
+            style={{ fontSize: "14px", marginLeft: "16px", color: "#212529" }}
+          >
+            {indexOfFirstRow + 1}–{Math.min(indexOfLastRow, tickets.length)} of{" "}
+            {tickets.length}
           </span>
-  
-          <div className="d-flex align-items-center" style={{ marginLeft: "16px" }}>
+
+          <div
+            className="d-flex align-items-center"
+            style={{ marginLeft: "16px" }}
+          >
             <button
               className="btn btn-sm border-0"
               disabled={currentPage === 1}
@@ -687,7 +940,7 @@ function SupportEmployeeSetting() {
           </div>
         </div>
       </nav>
-  
+
       {/* Back Button */}
       <div className="text-end mt-3">
         <button
@@ -698,108 +951,227 @@ function SupportEmployeeSetting() {
           Back
         </button>
       </div>
-  
+
       {/* View Ticket Modal */}
       {viewTicket && (
-        <div className="modal fade show" style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "rgba(0,0,0,0.5)",
-          position: "fixed",
-          inset: 0,
-          zIndex: 1050,
-        }}>
-          <div className="modal-dialog modal-dialog-scrollable" style={{ maxWidth: "650px", width: "95%" }}>
+        <div
+          className="modal fade show"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.5)",
+            position: "fixed",
+            inset: 0,
+            zIndex: 1050,
+          }}
+        >
+          <div
+            className="modal-dialog modal-dialog-scrollable"
+            style={{ maxWidth: "650px", width: "95%" }}
+          >
             <div className="modal-content">
-              <div className="modal-header text-white" style={{ backgroundColor: "#3A5FBE" }}>
+              <div
+                className="modal-header text-white"
+                style={{ backgroundColor: "#3A5FBE" }}
+              >
                 <h5 className="modal-title mb-0">View Ticket</h5>
-                <button type="button" className="btn-close btn-close-white" onClick={() => setViewTicket(null)} />
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setViewTicket(null)}
+                />
               </div>
-  
+
               <div className="modal-body">
                 <div className="container-fluid">
                   <div className="row mb-2">
-                    <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>Ticket ID</div>
-                    <div className="col-7 col-sm-9" style={{ color: "#212529" }}>{viewTicket.ticketId}</div>
-                  </div>
-  
-                  <div className="row mb-2">
-                    <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>Employee Name</div>
-                    <div className="col-7 col-sm-9" style={{ color: "#212529" }}>{viewTicket.employeeName}</div>
-                  </div>
-  
-                  <div className="row mb-2">
-                    <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>Category</div>
-                    <div className="col-7 col-sm-9" style={{ color: "#212529" }}>{viewTicket.category}</div>
-                  </div>
-  
-                  <div className="row mb-2">
-                    <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>Priority</div>
-                    <div className="col-7 col-sm-9" style={{ color: "#212529" }}>{viewTicket.priority}</div>
-                  </div>
-  
-                  <div className="row mb-2">
-                    <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>Description</div>
-                    <div className="col-7 col-sm-9" style={{ color: "#212529" }}>{viewTicket.description}</div>
-                  </div>
-  
-                  <div className="row mb-2">
-                    <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>Attachment</div>
-                    <div className="col-7 col-sm-9" style={{ color: "#212529" }}>
-                      {Array.isArray(viewTicket.attachment) && viewTicket.attachment.length > 0 ? (
-                        viewTicket.attachment.map((file, i) => (
-                          <div key={i}>
-                            <a
-                              href={`https://server-backend-nu.vercel.app/uploads/${file}`}
-                              download
-                              className="btn btn-sm btn-outline-primary mb-1"
-                            >
-                              ⬇ download {file.split("/").pop()}
-                            </a>
-                          </div>
-                        ))
-                      ) : "-"}
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Ticket ID
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {viewTicket.ticketId}
                     </div>
                   </div>
-  
+
                   <div className="row mb-2">
-                    <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>Status</div>
-                    <div className="col-7 col-sm-9" style={{ color: "#212529" }}>
-                      <span style={statusBadge(viewTicket.status)}>{viewTicket.status}</span>
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Employee Name
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {viewTicket.employeeName}
                     </div>
                   </div>
-  
+
                   <div className="row mb-2">
-                    <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>Assigned To</div>
-                    <div className="col-7 col-sm-9" style={{ color: "#212529" }}>{viewTicket.assignedTo || "-"}</div>
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Category
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {viewTicket.category}
+                    </div>
                   </div>
-  
+
                   <div className="row mb-2">
-                    <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>Raised Date</div>
-                    <div className="col-7 col-sm-9" style={{ color: "#212529" }}>
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Priority
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {viewTicket.priority}
+                    </div>
+                  </div>
+
+                  <div className="row mb-2">
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Description
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {viewTicket.description}
+                    </div>
+                  </div>
+
+                  <div className="row mb-2">
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Attachment
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {Array.isArray(viewTicket.attachment) &&
+                      viewTicket.attachment.length > 0
+                        ? viewTicket.attachment.map((file, i) => (
+                            <div key={i}>
+                              <a
+                                href={`https://server-backend-nu.vercel.app/uploads/${file}`}
+                                download
+                                className="btn btn-sm btn-outline-primary mb-1"
+                              >
+                                ⬇ download {file.split("/").pop()}
+                              </a>
+                            </div>
+                          ))
+                        : "-"}
+                    </div>
+                  </div>
+
+                  <div className="row mb-2">
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Status
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      <span style={statusBadge(viewTicket.status)}>
+                        {viewTicket.status}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="row mb-2">
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Assigned To
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {viewTicket.assignedTo || "-"}
+                    </div>
+                  </div>
+
+                  <div className="row mb-2">
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Raised Date
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
                       {new Date(viewTicket.raisedDate).toLocaleString()}
                     </div>
                   </div>
-  
+
                   <div className="row mb-2">
-                    <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>Closed Date</div>
-                    <div className="col-7 col-sm-9" style={{ color: "#212529" }}>
-                      {viewTicket.closedDate ? new Date(viewTicket.closedDate).toLocaleString() : "-"}
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Closed Date
+                    </div>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
+                      {viewTicket.closedDate
+                        ? new Date(viewTicket.closedDate).toLocaleString()
+                        : "-"}
                     </div>
                   </div>
-  
+
                   {viewTicket.comments && viewTicket.comments.length > 0 && (
                     <div className="row mb-2">
-                      <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>Comments</div>
+                      <div
+                        className="col-5 col-sm-3 fw-semibold"
+                        style={{ color: "#212529" }}
+                      >
+                        Comments
+                      </div>
                       <div className="col-7 col-sm-9">
                         <div style={{ maxHeight: "150px", overflowY: "auto" }}>
                           {viewTicket.comments.map((c, i) => (
                             <div key={i} className="mb-2 p-2 bg-light rounded">
                               <small className="text-muted d-block">
-                                {c.timestamp ? new Date(c.timestamp).toLocaleString() : ""}
+                                {c.timestamp
+                                  ? new Date(c.timestamp).toLocaleString()
+                                  : ""}
                               </small>
-                              <div><b>{c.role}:</b> {c.message}</div>
+                              <div>
+                                <b>{c.role}:</b> {c.message}
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -808,7 +1180,7 @@ function SupportEmployeeSetting() {
                   )}
                 </div>
               </div>
-  
+
               <div className="modal-footer border-0">
                 <button
                   className="btn custom-outline-btn"
@@ -833,41 +1205,58 @@ function SupportEmployeeSetting() {
           </div>
         </div>
       )}
-  
+
       {/* Edit Ticket Modal */}
       {editData && (
-        <div className="modal fade show" style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "rgba(0,0,0,0.5)",
-          position: "fixed",
-          inset: 0,
-          zIndex: 1050,
-        }}>
-          <div className="modal-dialog modal-dialog-scrollable" style={{ maxWidth: "650px", width: "95%" }}>
+        <div
+          className="modal fade show"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.5)",
+            position: "fixed",
+            inset: 0,
+            zIndex: 1050,
+          }}
+        >
+          <div
+            className="modal-dialog modal-dialog-scrollable"
+            style={{ maxWidth: "650px", width: "95%" }}
+          >
             <div className="modal-content">
-              <div className="modal-header text-white" style={{ backgroundColor: "#3A5FBE" }}>
+              <div
+                className="modal-header text-white"
+                style={{ backgroundColor: "#3A5FBE" }}
+              >
                 <h5 className="modal-title mb-0">Edit Ticket</h5>
-                <button type="button" className="btn-close btn-close-white" onClick={() => setEditData(null)} />
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setEditData(null)}
+                />
               </div>
-  
+
               <div className="modal-body">
                 <div className="mb-3">
-                  <label className="form-label fw-semibold">Employee Name</label>
+                  <label className="form-label fw-semibold">
+                    Employee Name
+                  </label>
                   <input
                     className="form-control"
                     value={editData.employeeName}
                     disabled
                   />
                 </div>
-  
+
                 <div className="mb-3">
                   <label className="form-label fw-semibold">Category</label>
-                  <select 
-                    className="form-select" 
+                  <select
+                    className="form-select"
                     value={editData.category}
-                    onChange={e => setEditData({ ...editData, category: e.target.value })}
+                    onChange={(e) =>
+                      setEditData({ ...editData, category: e.target.value })
+                    }
                   >
                     <option>Hardware Issue</option>
                     <option>Network Issue</option>
@@ -875,22 +1264,26 @@ function SupportEmployeeSetting() {
                     <option>Other</option>
                   </select>
                 </div>
-  
+
                 <div className="mb-3">
                   <label className="form-label fw-semibold">Priority</label>
-                  <select 
-                    className="form-select" 
+                  <select
+                    className="form-select"
                     value={editData.priority}
-                    onChange={e => setEditData({ ...editData, priority: e.target.value })}
+                    onChange={(e) =>
+                      setEditData({ ...editData, priority: e.target.value })
+                    }
                   >
                     <option>Low</option>
                     <option>Medium</option>
                     <option>High</option>
                   </select>
                 </div>
-  
+
                 <div className="mb-3">
-                  <label className="form-label fw-semibold">Update Attachment</label>
+                  <label className="form-label fw-semibold">
+                    Update Attachment
+                  </label>
                   <input
                     type="file"
                     multiple
@@ -903,7 +1296,7 @@ function SupportEmployeeSetting() {
                     }
                   />
                 </div>
-  
+
                 <div className="mb-3">
                   <label className="form-label fw-semibold">Description</label>
                   <textarea
@@ -912,18 +1305,21 @@ function SupportEmployeeSetting() {
                     value={editData.description}
                     onChange={(e) => {
                       const words = e.target.value.trim().split(/\s+/);
-                      if (words.length <= 200) { 
-                        setEditData({ ...editData, description: e.target.value });
+                      if (words.length <= 200) {
+                        setEditData({
+                          ...editData,
+                          description: e.target.value,
+                        });
                       }
                     }}
                   />
                 </div>
-  
+
                 <div className="mb-3">
                   <label className="form-label fw-semibold">Status</label>
-                  <select 
-                    className="form-select" 
-                    value={editData.status} 
+                  <select
+                    className="form-select"
+                    value={editData.status}
                     disabled
                   >
                     <option>Open</option>
@@ -932,7 +1328,7 @@ function SupportEmployeeSetting() {
                     <option>Closed</option>
                   </select>
                 </div>
-  
+
                 <div className="mb-3">
                   <label className="form-label fw-semibold">Add Comment</label>
                   <textarea
@@ -940,41 +1336,46 @@ function SupportEmployeeSetting() {
                     rows="3"
                     placeholder="Add your comment here..."
                     value={comment}
-                    onChange={e => setComment(e.target.value)}
+                    onChange={(e) => setComment(e.target.value)}
                   />
                 </div>
-  
+
                 {/*  Comments  */}
                 {editData.comments && editData.comments.length > 0 && (
                   <div className="row mb-2">
-                    <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
                       Previous Comments
                     </div>
-                    
+
                     <div className="col-7 col-sm-9">
                       <div style={{ maxHeight: "150px", overflowY: "auto" }}>
-                        {[...(editData.comments || [])].reverse().map((comment, index) => (
-                          <div key={index} className="mb-2 p-2 bg-light rounded">
-                            {comment.timestamp && (
-                              <small className="text-muted d-block">
-                                {new Date(comment.timestamp).toLocaleString()}
-                              </small>
-                            )}
-                            <div>
-                              <b>{comment.role || "User"}:</b> {comment.message}
+                        {[...(editData.comments || [])]
+                          .reverse()
+                          .map((comment, index) => (
+                            <div
+                              key={index}
+                              className="mb-2 p-2 bg-light rounded"
+                            >
+                              {comment.timestamp && (
+                                <small className="text-muted d-block">
+                                  {new Date(comment.timestamp).toLocaleString()}
+                                </small>
+                              )}
+                              <div>
+                                <b>{comment.role || "User"}:</b>{" "}
+                                {comment.message}
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          ))}
                       </div>
                     </div>
                   </div>
                 )}
-  
-  
-  
-  
               </div>
-  
+
               <div className="modal-footer border-0">
                 <button
                   className="btn custom-outline-btn"
@@ -989,6 +1390,6 @@ function SupportEmployeeSetting() {
       )}
     </div>
   );
-  }
-  
+}
+
 export default SupportEmployeeSetting;

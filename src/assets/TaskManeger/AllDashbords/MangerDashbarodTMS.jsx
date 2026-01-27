@@ -891,18 +891,18 @@ function MangerDashbarodTMS() {
 
         /* EMPLOYEES */
         const empRes = await axios.get(
-          `https://server-backend-nu.vercel.app/employees/manager/${user._id}`
+          `https://server-backend-nu.vercel.app/employees/manager/${user._id}`,
         );
 
         /* PROJECTS */
         const projectRes = await axios.get(
-          `https://server-backend-nu.vercel.app/api/projects/manager/${user._id}`
+          `https://server-backend-nu.vercel.app/api/projects/manager/${user._id}`,
         );
 
         /* TEAMS */
         const teamRes = await axios.get(
           `https://server-backend-nu.vercel.app/api/teams/createdBy/${user._id}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: `Bearer ${token}` } },
         );
 
         /* TASKS */
@@ -910,7 +910,7 @@ function MangerDashbarodTMS() {
           `https://server-backend-nu.vercel.app/tasks/${user._id}`,
           {
             headers: { Authorization: `Bearer ${token}` },
-          }
+          },
         );
         const tasks = Array.isArray(taskRes.data)
           ? taskRes.data
@@ -1024,8 +1024,26 @@ function MangerDashbarodTMS() {
   }, []);
 
   const activeProjects = formattedProjects.filter((p) =>
-    isActiveProject(p.startDate, p.dueDate)
+    isActiveProject(p.startDate, p.dueDate),
   );
+
+  // shiivani
+  const isAnyPopupOpen = !!showProfile;
+
+  useEffect(() => {
+    if (isAnyPopupOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [isAnyPopupOpen]);
 
   return (
     <div className="container-fluid " style={{ marginTop: "-25px" }}>
@@ -1070,7 +1088,7 @@ function MangerDashbarodTMS() {
                   className="btn btn-sm custom-outline-btn"
                   onClick={() =>
                     navigate(
-                      `/tms-dashboard/${role}/${username}/${id}/employee`
+                      `/tms-dashboard/${role}/${username}/${id}/employee`,
                     )
                   }
                 >
@@ -1385,7 +1403,7 @@ function MangerDashbarodTMS() {
                                 day: "2-digit",
                                 month: "short",
                                 year: "numeric",
-                              }
+                              },
                             )}
                           </span>
 
@@ -1566,7 +1584,7 @@ function MangerDashbarodTMS() {
                                 day: "2-digit",
                                 month: "short",
                                 year: "numeric",
-                              }
+                              },
                             )
                           : "-"}
                       </div>

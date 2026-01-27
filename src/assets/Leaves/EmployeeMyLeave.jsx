@@ -24,7 +24,7 @@ function EmployeeMyLeave({ user, refreshKey }) {
     const fetchLeaves = async () => {
       try {
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/leave/my/${user._id}`
+          `https://server-backend-nu.vercel.app/leave/my/${user._id}`,
         );
 
         console.log("raw leaves from API:", res.data);
@@ -45,7 +45,7 @@ function EmployeeMyLeave({ user, refreshKey }) {
         const leavesData = filteredByDate.sort(
           (a, b) =>
             new Date(b.appliedAt || b.createdAt) -
-            new Date(a.appliedAt || a.createdAt)
+            new Date(a.appliedAt || a.createdAt),
         );
 
         // small cache
@@ -90,8 +90,8 @@ function EmployeeMyLeave({ user, refreshKey }) {
                 rejectedByName !== "N/A"
                   ? rejectedByName
                   : approverName !== "N/A"
-                  ? approverName
-                  : reportingManagerName || "N/A";
+                    ? approverName
+                    : reportingManagerName || "N/A";
             } else {
               approverDisplay = approverName || reportingManagerName || "N/A";
             }
@@ -103,7 +103,7 @@ function EmployeeMyLeave({ user, refreshKey }) {
               rejectedByName,
               approverDisplay,
             };
-          })
+          }),
         );
 
         console.log("leavesWithNames (first 5):", leavesWithNames.slice(0, 5));
@@ -134,14 +134,14 @@ function EmployeeMyLeave({ user, refreshKey }) {
     // Status filter
     if (statusFilter !== "All") {
       temp = temp.filter(
-        (l) => (l.status || "").toLowerCase() === statusFilter.toLowerCase()
+        (l) => (l.status || "").toLowerCase() === statusFilter.toLowerCase(),
       );
     }
 
     // Date From filter
     if (dateFromFilter) {
       temp = temp.filter(
-        (l) => new Date(l.dateFrom) >= new Date(dateFromFilter)
+        (l) => new Date(l.dateFrom) >= new Date(dateFromFilter),
       );
     }
     // Date To filter
@@ -550,7 +550,7 @@ function EmployeeMyLeave({ user, refreshKey }) {
                       ? 0.5
                       : Math.floor(
                           (new Date(l.dateTo) - new Date(l.dateFrom)) /
-                            (1000 * 60 * 60 * 24)
+                            (1000 * 60 * 60 * 24),
                         ) + 1}
                   </td>
                   <td
@@ -718,7 +718,7 @@ function EmployeeMyLeave({ user, refreshKey }) {
                           day: "2-digit",
                           month: "short",
                           year: "numeric",
-                        }
+                        },
                       )}
                     </div>
                   </div>
@@ -732,7 +732,7 @@ function EmployeeMyLeave({ user, refreshKey }) {
                           day: "2-digit",
                           month: "short",
                           year: "numeric",
-                        }
+                        },
                       )}
                     </div>
                   </div>
@@ -784,8 +784,8 @@ function EmployeeMyLeave({ user, refreshKey }) {
                           (selectedLeave.status === "approved"
                             ? "bg-success"
                             : selectedLeave.status === "rejected"
-                            ? "bg-danger"
-                            : "bg-warning text-dark")
+                              ? "bg-danger"
+                              : "bg-warning text-dark")
                         }
                       >
                         {selectedLeave.status}
@@ -850,7 +850,7 @@ function EmployeeMyLeave({ user, refreshKey }) {
               ? "0–0 of 0"
               : `${indexOfFirstItem + 1}-${Math.min(
                   indexOfLastItem,
-                  filteredLeaves.length
+                  filteredLeaves.length,
                 )} of ${filteredLeaves.length}`}
           </span>
 

@@ -89,7 +89,7 @@ const EventCard = () => {
           style={{ color: "#3A5FBE", fontSize: "20px" }}
           onClick={() =>
             setCurrentIndex((prev) =>
-              prev === 0 ? events.length - 1 : prev - 1
+              prev === 0 ? events.length - 1 : prev - 1,
             )
           }
         >
@@ -107,7 +107,7 @@ const EventCard = () => {
           style={{ color: "#3A5FBE" }}
           onClick={() =>
             setCurrentIndex((prev) =>
-              prev === events.length - 1 ? 0 : prev + 1
+              prev === events.length - 1 ? 0 : prev + 1,
             )
           }
         >
@@ -166,7 +166,7 @@ const EventCard = () => {
                 `/dashboard/${role}/${username}/${id}/AllEventsandHolidays`,
                 {
                   state: { events },
-                }
+                },
               )
             }
           >

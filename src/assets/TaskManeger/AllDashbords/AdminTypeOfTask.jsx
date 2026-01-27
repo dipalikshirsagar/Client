@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import axios from "axios";
 
 function AdminTypeOfTask() {
@@ -166,7 +166,7 @@ function AdminTypeOfTask() {
 
   const handleDelete = async (id) => {
     const ok = window.confirm(
-      "Are you sure you want to delete this task type?"
+      "Are you sure you want to delete this task type?",
     );
     if (!ok) return;
 
@@ -188,7 +188,7 @@ function AdminTypeOfTask() {
       whiteSpace: "nowrap",
       maxWidth: "220px",
     }),
-    []
+    [],
   );
 
   const tdStyle = useMemo(
@@ -199,7 +199,7 @@ function AdminTypeOfTask() {
       borderBottom: "1px solid #dee2e6",
       whiteSpace: "nowrap",
     }),
-    []
+    [],
   );
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -217,6 +217,52 @@ function AdminTypeOfTask() {
   useEffect(() => {
     setPage(1);
   }, [rowsPerPage, totalItems]);
+  const popupRef = useRef(null);
+  useEffect(() => {
+    if (showModal && popupRef.current) {
+      popupRef.current.focus();
+    }
+  }, [showModal]);
+
+  const trapFocus = (e) => {
+    if (!popupRef.current) return;
+
+    const focusableElements = popupRef.current.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+
+    const first = focusableElements[0];
+    const last = focusableElements[focusableElements.length - 1];
+
+    if (e.key === "Tab") {
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+  };
+  const isAnyPopupOpen = !!showModal;
+  useEffect(() => {
+    if (isAnyPopupOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [isAnyPopupOpen]);
   return (
     <div
       className="container-fluid p-3 p-md-4"
@@ -228,8 +274,7 @@ function AdminTypeOfTask() {
           Type of Task
         </span>
         <button
-          className="btn btn-primary btn-sm"
-          style={{ backgroundColor: "#3A5FBE" }}
+          className="btn btn-sm custom-outline-btn"
           onClick={() => {
             resetForm();
             setIsEditMode(false);
@@ -448,7 +493,7 @@ function AdminTypeOfTask() {
               ? "0-0 of 0"
               : `${indexOfFirstItem + 1}-${Math.min(
                   indexOfLastItem,
-                  totalItems
+                  totalItems,
                 )} of ${totalItems}`}
           </span>
 
@@ -493,6 +538,10 @@ function AdminTypeOfTask() {
       {/* Modal */}
       {showModal && (
         <div
+          ref={popupRef}
+          tabIndex="-1"
+          autoFocus
+          onKeyDown={trapFocus}
           style={{
             position: "fixed",
             inset: 0,

@@ -301,6 +301,21 @@ function TaskCalendar({ employeeId }) {
     });
   };
 
+  const isAnyPopupOpen = !!selectedDate;
+  useEffect(() => {
+    if (isAnyPopupOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [isAnyPopupOpen]);
   return (
     <div
       className="card shadow-sm mt-2 border-0"
@@ -375,7 +390,7 @@ function TaskCalendar({ employeeId }) {
           onClick={closeModal}
         >
           <div
-            className="modal-dialog modal-dialog-scrollable"
+            className="modal-dialog "
             style={{ maxWidth: "650px", width: "95%", marginTop: "100px" }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -403,7 +418,7 @@ function TaskCalendar({ employeeId }) {
               <div className="modal-body">
                 {selectedTasks.map((task, index) => {
                   const taskDate = new Date(
-                    task.dateOfExpectedCompletion || task.dateOfTaskAssignment
+                    task.dateOfExpectedCompletion || task.dateOfTaskAssignment,
                   );
                   const isToday =
                     taskDate.toDateString() === today.toDateString();

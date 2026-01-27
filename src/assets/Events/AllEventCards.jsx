@@ -22,12 +22,12 @@ function AllEventsCards() {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
 
         // Sort events by date
         const sortedEvents = res.data.sort(
-          (a, b) => new Date(a.date) - new Date(b.date)
+          (a, b) => new Date(a.date) - new Date(b.date),
         );
 
         setEventsList(sortedEvents);

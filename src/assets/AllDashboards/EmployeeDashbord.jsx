@@ -17,7 +17,7 @@ function EmployeeDashboard({ user }) {
   const [events, setEvents] = useState([]);
   // Initialize workMode from localStorage, fallback to WFO
   const [workMode, setWorkMode] = useState(
-    localStorage.getItem("workMode") || "WFO"
+    localStorage.getItem("workMode") || "WFO",
   );
 
   // rutuja code
@@ -114,7 +114,7 @@ function EmployeeDashboard({ user }) {
   const getAddressFromCoords = async (lat, lng) => {
     try {
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
       );
       const data = await res.json();
       return data.display_name || "Unknown location";
@@ -134,7 +134,7 @@ function EmployeeDashboard({ user }) {
     console.log("todayLeaveData", todayLeaveData);
     if (todayLeaveData) {
       return alert(
-        "❗ You have applied for leave today. Check-in is not allowed."
+        "❗ You have applied for leave today. Check-in is not allowed.",
       );
     }
 
@@ -164,7 +164,7 @@ function EmployeeDashboard({ user }) {
           alert(err.response?.data?.message || "Check-in failed");
         }
       },
-      () => alert("Allow location access")
+      () => alert("Allow location access"),
     );
   };
 
@@ -263,15 +263,15 @@ function EmployeeDashboard({ user }) {
           let message = "";
           if (totalHours < 4) {
             message = `⚠️ You have completed only ${totalHours.toFixed(
-              2
+              2,
             )} hrs.\nAbsent will be marked.\n\nDo you want to proceed?`;
           } else if (totalHours >= 4 && totalHours < 8) {
             message = `⚠️ You completed ${totalHours.toFixed(
-              2
+              2,
             )} hrs.\nHalf Day will be considered.\n\nDo you want to proceed?`;
           } else if (totalHours >= 8) {
             message = `✅ Great! You completed ${totalHours.toFixed(
-              2
+              2,
             )} hrs.\nFull Day will be considered.\n\nDo you want to proceed?`;
           }
 
@@ -293,7 +293,7 @@ function EmployeeDashboard({ user }) {
           alert(err.response?.data?.message || "Check-out failed");
         }
       },
-      () => alert("Allow location access")
+      () => alert("Allow location access"),
     );
   };
 
@@ -356,13 +356,13 @@ function EmployeeDashboard({ user }) {
         const [leaveRes, regRes] = await Promise.all([
           axios.get(`https://server-backend-nu.vercel.app/leave/my/${user._id}`),
           axios.get(
-            `https://server-backend-nu.vercel.app/attendance/regularization/my/${user._id}`
+            `https://server-backend-nu.vercel.app/attendance/regularization/my/${user._id}`,
           ),
         ]);
 
         // ✅ Pending leaves
         const pendingLeaves = leaveRes.data.filter(
-          (leave) => leave.status?.trim().toLowerCase() === "pending"
+          (leave) => leave.status?.trim().toLowerCase() === "pending",
         ).length;
         setPendingCount(pendingLeaves);
 
@@ -370,7 +370,7 @@ function EmployeeDashboard({ user }) {
         const pendingRegs = regRes.data.filter(
           (reg) =>
             reg.regularizationRequest?.status?.trim().toLowerCase() ===
-            "pending"
+            "pending",
         ).length;
         setPendingRegularization(pendingRegs);
       } catch (err) {
@@ -442,7 +442,7 @@ function EmployeeDashboard({ user }) {
         const secs = Math.floor((diff % 60000) / 1000);
 
         setBreakTimer(
-          `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`
+          `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`,
         );
       }, 1000);
     }
@@ -592,7 +592,7 @@ function EmployeeDashboard({ user }) {
                             Checked in at{" "}
                             {new Date(attendance.checkIn).toLocaleTimeString(
                               [],
-                              { hour: "2-digit", minute: "2-digit" }
+                              { hour: "2-digit", minute: "2-digit" },
                             )}
                           </span>
 
@@ -605,7 +605,7 @@ function EmployeeDashboard({ user }) {
                                 <FontAwesomeIcon icon={faSquareCheck} />
                                 Checked out at{" "}
                                 {new Date(
-                                  attendance.checkOut
+                                  attendance.checkOut,
                                 ).toLocaleTimeString([], {
                                   hour: "2-digit",
                                   minute: "2-digit",
@@ -854,7 +854,7 @@ function EmployeeDashboard({ user }) {
                         }}
                         onClick={() =>
                           navigate(
-                            `/dashboard/${role}/${username}/${id}/leavebalance`
+                            `/dashboard/${role}/${username}/${id}/leavebalance`,
                           )
                         }
                       >
@@ -872,7 +872,7 @@ function EmployeeDashboard({ user }) {
                         }}
                         onClick={() =>
                           navigate(
-                            `/dashboard/${role}/${username}/${id}/regularization`
+                            `/dashboard/${role}/${username}/${id}/regularization`,
                           )
                         }
                       >

@@ -1,6 +1,25 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+function isWeeklyOff(date, weeklyOffs = { saturdays: [], sundayOff: true }) {
+  const day = date.getDay(); // 0 = Sunday, 6 = Saturday
 
+  const saturdays = weeklyOffs.saturdays || [];
+  const sundayOff = weeklyOffs.sundayOff ?? true;
+
+  // Sunday
+  if (day === 0 && sundayOff) {
+    return "Sunday";
+  }
+
+  // Saturday (from backend config)
+  if (day === 6 && saturdays.length) {
+    const weekOfMonth = Math.ceil(date.getDate() / 7);
+    if (saturdays.includes(weekOfMonth)) {
+      return `${weekOfMonth} Saturday`;
+    }
+  }
+  return null;
+}
 const API_URL = "https://server-backend-nu.vercel.app/api/projects";
 
 function AdminProjectTMS() {
@@ -20,9 +39,10 @@ function AdminProjectTMS() {
     saturdays: [],
     sundayOff: true,
   });
-
+  const managerRef = useRef(null);
   const userRole = localStorage.getItem("role") || "employee";
   const today = new Date().toISOString().split("T")[0];
+  const isAdmin = userRole === "admin";
   const [form, setForm] = useState({
     projectCode: "",
     project: "",
@@ -41,7 +61,44 @@ function AdminProjectTMS() {
   const [newComment, setNewComment] = useState("");
   const [projectComments, setProjectComments] = useState([]);
   const [commentLoading, setCommentLoading] = useState(false);
+  const popupRef = useRef(null);
+  const commentPopupRef = useRef(null);
+  useEffect(() => {
+    if (showPopup && popupRef.current) {
+      popupRef.current.focus();
+    }
 
+    if (commentModalProject && commentPopupRef.current) {
+      commentPopupRef.current.focus();
+    }
+  }, [showPopup, commentModalProject]);
+
+  const trapFocus = (e, ref) => {
+    if (!ref.current) return;
+
+    const focusableElements = ref.current.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+
+    if (!focusableElements.length) return;
+
+    const first = focusableElements[0];
+    const last = focusableElements[focusableElements.length - 1];
+
+    if (e.key === "Tab") {
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+  };
   useEffect(() => {
     fetchProjects();
   }, []);
@@ -249,16 +306,39 @@ function AdminProjectTMS() {
 
     const holidaysRes = await axios.get("https://server-backend-nu.vercel.app/getHolidays");
     const holidays = holidaysRes.data?.data || holidaysRes.data || [];
-
     const isHoliday = (date) =>
-      holidays.some((holiday) => holiday.date.split("T")[0] === date);
-
+      holidays.some((holiday) => {
+        const holidayDate = new Date(holiday.date);
+        holidayDate.setHours(0, 0, 0, 0);
+        const checkDate = new Date(date);
+        checkDate.setHours(0, 0, 0, 0);
+        return holidayDate.getTime() === checkDate.getTime();
+      });
     const dateFields = [
       { label: "Start Date", value: form.startDate },
       { label: "End Date", value: form.endDate },
       { label: "Due Date", value: form.due },
     ];
+    for (let field of dateFields) {
+      if (!field.value) continue;
 
+      const fieldDate = new Date(field.value);
+
+      // Check weekly off
+      const weeklyOffReason = isWeeklyOff(fieldDate, weeklyOffs);
+      if (weeklyOffReason) {
+        alert(
+          `${field.label} falls on a Weekly Off. Please select another date.`,
+        );
+        return;
+      }
+
+      // Check holiday
+      if (isHoliday(field.value)) {
+        alert(`${field.label} falls on a Holiday. Please select another date.`);
+        return;
+      }
+    }
     // for (let field of dateFields) {
     //   if (!field.value) continue;
 
@@ -445,7 +525,46 @@ function AdminProjectTMS() {
 
   const handleEditSave = async (e) => {
     e.preventDefault();
+    const holidaysRes = await axios.get("https://server-backend-nu.vercel.app/getHolidays");
+    const holidays = holidaysRes.data?.data || holidaysRes.data || [];
 
+    const isHoliday = (date) =>
+      holidays.some((holiday) => {
+        const holidayDate = new Date(holiday.date);
+        holidayDate.setHours(0, 0, 0, 0);
+        const checkDate = new Date(date);
+        checkDate.setHours(0, 0, 0, 0);
+        return holidayDate.getTime() === checkDate.getTime();
+      });
+
+    // Validate dates
+    const dateFields = [
+      { label: "Start Date", value: form.startDate },
+      { label: "End Date", value: form.endDate },
+      { label: "Due Date", value: form.due },
+    ];
+
+    // Check weekly offs and holidays
+    for (let field of dateFields) {
+      if (!field.value) continue;
+
+      const fieldDate = new Date(field.value);
+
+      // Check weekly off
+      const weeklyOffReason = isWeeklyOff(fieldDate, weeklyOffs);
+      if (weeklyOffReason) {
+        alert(
+          `${field.label} falls on a Weekly Off. Please select another date.`,
+        );
+        return;
+      }
+
+      // Check holiday
+      if (isHoliday(field.value)) {
+        alert(`${field.label} falls on a Holiday. Please select another date.`);
+        return;
+      }
+    }
     try {
       // 1️⃣ Update project details (without status)
       await axios.put(`${API_URL}/${selectedProjectId}`, {
@@ -604,6 +723,7 @@ function AdminProjectTMS() {
         await fetchProjectComments(commentModalProject._id);
         setNewComment("");
         alert("Comment added successfully");
+        setCommentModalProject(null);
       }
     } catch (error) {
       console.error("Add comment error:", error);
@@ -617,17 +737,53 @@ function AdminProjectTMS() {
     fetchProjectComments(project._id);
   };
 
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (
+        showManagerDropdown &&
+        managerRef.current &&
+        !managerRef.current.contains(e.target)
+      ) {
+        setShowManagerDropdown(false); // close dropdown
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, [showManagerDropdown]);
+
+  const isAnyPopupOpen = !!showPopup || !!commentModalProject;
+  useEffect(() => {
+    if (isAnyPopupOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [isAnyPopupOpen]);
+
   return (
     <div className="container-fluid">
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h4 style={{ color: "#3A5FBE", fontSize: "25px" }}>Projects</h4>
 
-        <button
-          className="btn btn-sm custom-outline-btn"
-          onClick={openCreatePopup}
-        >
-          Create New Project
-        </button>
+        {isAdmin && (
+          <button
+            className="btn btn-sm custom-outline-btn"
+            onClick={openCreatePopup}
+          >
+            Create New Project
+          </button>
+        )}
       </div>
 
       <div className="row g-3 mb-3">
@@ -683,7 +839,7 @@ function AdminProjectTMS() {
       <div className="card shadow-sm border-0 mb-3">
         <div className="card-body p-3">
           {/* Search Input */}
-          <div className="d-flex align-items-center gap-3 flex-wrap">
+          <div className="d-flex align-items-center gap-2 flex-grow-1 flex-md-grow-0 w-md-100">
             <div
               className="d-flex align-items-center gap-2"
               style={{ minWidth: "300px" }}
@@ -701,7 +857,6 @@ function AdminProjectTMS() {
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="Search by any field..."
                 className="form-control form-control-sm"
-                style={{ flex: 1 }}
               />
             </div>
 
@@ -832,18 +987,20 @@ function AdminProjectTMS() {
                 >
                   Priority
                 </th>
-                <th
-                  style={{
-                    fontWeight: "500",
-                    fontSize: "14px",
-                    color: "#6c757d",
-                    borderBottom: "2px solid #dee2e6",
-                    padding: "12px",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  Action
-                </th>
+                {isAdmin && (
+                  <th
+                    style={{
+                      fontWeight: "500",
+                      fontSize: "14px",
+                      color: "#6c757d",
+                      borderBottom: "2px solid #dee2e6",
+                      padding: "12px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Action
+                  </th>
+                )}
               </tr>
             </thead>
 
@@ -981,31 +1138,32 @@ function AdminProjectTMS() {
                     >
                       {item.priority}
                     </td>
+                    {isAdmin && (
+                      <td>
+                        <div className="d-flex gap-2">
+                          <button
+                            className="btn btn-sm custom-outline-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openRowPopup(item, index);
+                              setPopupMode("edit");
+                            }}
+                          >
+                            Edit
+                          </button>
 
-                    <td>
-                      <div className="d-flex gap-2">
-                        <button
-                          className="btn btn-sm custom-outline-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openRowPopup(item, index);
-                            setPopupMode("edit");
-                          }}
-                        >
-                          Edit
-                        </button>
-
-                        <button
-                          className="btn btn-sm btn-outline-danger"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteProject(item._id);
-                          }}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
+                          <button
+                            className="btn btn-sm btn-outline-danger"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteProject(item._id);
+                            }}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))
               ) : (
@@ -1070,6 +1228,9 @@ function AdminProjectTMS() {
       {/* POPUP */}
       {showPopup && (
         <div
+          ref={popupRef}
+          tabIndex={-1}
+          onKeyDown={(e) => trapFocus(e, popupRef)}
           className="popup-overlay"
           style={{
             position: "fixed",
@@ -1079,7 +1240,7 @@ function AdminProjectTMS() {
             justifyContent: "center",
             alignItems: "center",
             zIndex: 1000,
-            overflowY: "auto",
+            overflowX: "auto",
             padding: "20px",
           }}
         >
@@ -1088,8 +1249,8 @@ function AdminProjectTMS() {
             style={{
               width: "600px",
               borderRadius: "10px",
-              maxHeight: "90vh",
-              overflowY: "auto",
+              maxHeight: "91vh",
+              overflowX: "auto",
               marginTop: "75px",
             }}
           >
@@ -1286,6 +1447,7 @@ function AdminProjectTMS() {
               <div
                 className="mb-1 row align-items-center manager-dropdown-area"
                 style={{ position: "relative" }}
+                ref={managerRef} //added by rutuja
               >
                 <label className="col-4 form-label fw-semibold">Managers</label>
                 <div className="col-8 " style={{ position: "relative" }}>
@@ -1516,7 +1678,6 @@ function AdminProjectTMS() {
                 </div>
               </div>
               {/* comments added by harshada*/}
-
               {popupMode === "view" && (
                 <div className="row mb-2">
                   <label className="col-4 fw-semibold">Comments</label>
@@ -1526,13 +1687,25 @@ function AdminProjectTMS() {
                       {projectComments.length > 0 ? (
                         projectComments.map((c, i) => (
                           <div key={i} className="mb-2 p-2 border rounded">
-                            <small className="text-muted">
-                              {c.createdAt &&
-                                new Date(c.createdAt).toLocaleDateString(
-                                  "en-GB",
-                                )}
-                            </small>
-                            <div>{c.comment || c.text}</div>
+                            {/* rutuja code start */}
+                            <div className="d-flex justify-content-between align-items-start mb-1">
+                              <div>
+                                <strong>
+                                  {c.user?.name || "Unknown User"}
+                                </strong>
+                                <small className="text-muted ms-2">
+                                  ({c.user?.role || "No role"})
+                                </small>
+                              </div>
+                              <small className="text-muted">
+                                {c.createdAt &&
+                                  new Date(c.createdAt).toLocaleDateString(
+                                    "en-GB",
+                                  )}
+                              </small>
+                            </div>
+                            {/* rutuja code end */}
+                            <div className="mt-1">{c.text}</div>
                           </div>
                         ))
                       ) : (
@@ -1606,6 +1779,9 @@ function AdminProjectTMS() {
 
       {commentModalProject && (
         <div
+          ref={commentPopupRef}
+          tabIndex={-1}
+          onKeyDown={(e) => trapFocus(e, commentPopupRef)}
           className="modal fade show"
           style={{
             display: "flex",

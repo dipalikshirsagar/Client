@@ -26,7 +26,7 @@ function QuickApplyLeave({ user }) {
     const fetchWeeklyOffs = async () => {
       try {
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`
+          `https://server-backend-nu.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`,
         );
 
         // 👇 Extract weekly off data safely
@@ -61,7 +61,7 @@ function QuickApplyLeave({ user }) {
       if (!user?.reportingManager) return;
       try {
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/users/${user.reportingManager}`
+          `https://server-backend-nu.vercel.app/users/${user.reportingManager}`,
         );
         setManager(res.data);
       } catch (err) {
@@ -116,7 +116,7 @@ function QuickApplyLeave({ user }) {
   //   }
 
   //   try {
-  //     await axios.post(" https://server-backend-nu.vercel.app/leave/apply", {
+  //     await axios.post("https://server-backend-nu.vercel.app/leave/apply", {
   //       employeeId: user._id,
   //       leaveType: form.leaveType,
   //       dateFrom: form.dateFrom,
@@ -160,7 +160,7 @@ function QuickApplyLeave({ user }) {
 
     if (toDate < fromDate) {
       setMessage(
-        "⚠️ Invalid date range: 'To Date' cannot precede 'From Date'."
+        "⚠️ Invalid date range: 'To Date' cannot precede 'From Date'.",
       );
       return;
     }
@@ -223,7 +223,7 @@ function QuickApplyLeave({ user }) {
     try {
       // ✅ 1️⃣ Fetch existing leaves of employee
       const existingLeavesRes = await axios.get(
-        `https://server-backend-nu.vercel.app/leave/my/${user._id}`
+        `https://server-backend-nu.vercel.app/leave/my/${user._id}`,
       );
       const existingLeaves = existingLeavesRes.data || [];
 
@@ -248,10 +248,10 @@ function QuickApplyLeave({ user }) {
 
       if (isOverlapping) {
         setMessage(
-          "⚠️ You already applied for leave on one or more of these dates."
+          "⚠️ You already applied for leave on one or more of these dates.",
         );
         alert(
-          "⚠️ You already applied for leave on one or more of these dates."
+          "⚠️ You already applied for leave on one or more of these dates.",
         );
         return;
       }

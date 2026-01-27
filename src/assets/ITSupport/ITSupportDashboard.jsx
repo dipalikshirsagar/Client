@@ -28,58 +28,58 @@ function ITSupportDashboard() {
   const totalPages = Math.ceil(tickets.length / rowsPerPage);
 
   /* ================= STYLES ================= */
-//   const styles = `
-// .ticket-card {
-//   display: flex;
-//   align-items: center;
-//   gap: 16px;
-//   padding: 18px 20px;
-//   border-radius: 10px;
-//   background: #ffffff;
-//   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-//   height: 100%;
-// }
+  //   const styles = `
+  // .ticket-card {
+  //   display: flex;
+  //   align-items: center;
+  //   gap: 16px;
+  //   padding: 18px 20px;
+  //   border-radius: 10px;
+  //   background: #ffffff;
+  //   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  //   height: 100%;
+  // }
 
-// .ticket-count {
-//   width: 56px;
-//   height: 56px;
-//   display: flex;
-//   align-items: center;
-//   justify-content: center;
-//   font-size: 22px;
-//   font-weight: 700;
-//   border-radius: 8px;
-// }
+  // .ticket-count {
+  //   width: 56px;
+  //   height: 56px;
+  //   display: flex;
+  //   align-items: center;
+  //   justify-content: center;
+  //   font-size: 22px;
+  //   font-weight: 700;
+  //   border-radius: 8px;
+  // }
 
-// .ticket-info {
-//   font-size: 15px;
-//   font-weight: 500;
-//   color: #212529;
-//   line-height: 1.2;
-// }
+  // .ticket-info {
+  //   font-size: 15px;
+  //   font-weight: 500;
+  //   color: #212529;
+  //   line-height: 1.2;
+  // }
 
-// /* COLORS */
-// .open .ticket-count {
-//   background-color: #dbeafe;
-//   color: #1e40af;
-// }
+  // /* COLORS */
+  // .open .ticket-count {
+  //   background-color: #dbeafe;
+  //   color: #1e40af;
+  // }
 
-// .progress .ticket-count {
-//   background-color: #fef3c7;
-//   color: #92400e;
-// }
+  // .progress .ticket-count {
+  //   background-color: #fef3c7;
+  //   color: #92400e;
+  // }
 
-// .closed .ticket-count {
-//   background-color: #fee2e2;
-//   color: #991b1b;
-// }
+  // .closed .ticket-count {
+  //   background-color: #fee2e2;
+  //   color: #991b1b;
+  // }
 
-// .total .ticket-count {
-//   background-color: #dcfce7;
-//   color: #166534;
-// }
- 
-// `;
+  // .total .ticket-count {
+  //   background-color: #dcfce7;
+  //   color: #166534;
+  // }
+
+  // `;
 
   /* ================= FETCH ================= */
   const fetchTickets = async () => {
@@ -218,8 +218,8 @@ function ITSupportDashboard() {
       closeModal();
       fetchTickets();
       // rutuja code start
-      alert("Ticket Delete Succesfully")
-      // end 
+      alert("Ticket Delete Succesfully");
+      // end
     } catch (err) {
       console.error("Delete error:", err);
     }
@@ -239,7 +239,7 @@ function ITSupportDashboard() {
     else if (s === "Resolved") bgColor = "#D7F5E4";
     else if (s === "Closed") bgColor = "#E2E3E5";
     else bgColor = "#F8D7DA";
-    
+
     return {
       backgroundColor: bgColor,
       padding: "4px 12px",
@@ -257,9 +257,7 @@ function ITSupportDashboard() {
   //   `badge bg-${p === "High" ? "danger" : p === "Medium" ? "warning" : "success"}`;
 
   return (
-
     <div className="container-fluid pt-1 px-3" style={{ minHeight: "100vh" }}>
-  
       <style>
         {`
         .status-badge {
@@ -273,124 +271,171 @@ function ITSupportDashboard() {
         }
         `}
       </style>
-  
-      <h3 className="mb-4" style={{ color: "#3A5FBE", fontSize: "25px" }}>IT Support Dashboard</h3>
-  
+
+      <h3 className="mb-4" style={{ color: "#3A5FBE", fontSize: "25px" }}>
+        IT Support Dashboard
+      </h3>
+
       <div className="row g-2 mb-4">
         <div className="col-6 col-md-3">
-          <div className="p-3 rounded" style={{
-            backgroundColor: "#fff",
-            boxShadow: "0 2px 6px rgba(0, 0, 0, 0.06)",
-            border: "1px solid #f0f0f0",
-          }}>
+          <div
+            className="p-3 rounded"
+            style={{
+              backgroundColor: "#fff",
+              boxShadow: "0 2px 6px rgba(0, 0, 0, 0.06)",
+              border: "1px solid #f0f0f0",
+            }}
+          >
             <div className="d-flex align-items-center" style={{ gap: "16px" }}>
-              <h4 className="mb-0" style={{
-                fontSize: "32px",
-                backgroundColor: "#dbeafe",
-                minWidth: "70px",
-                minHeight: "70px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#1e40af",
-                fontWeight: "bold",
-              }}>
+              <h4
+                className="mb-0"
+                style={{
+                  fontSize: "32px",
+                  backgroundColor: "#dbeafe",
+                  minWidth: "70px",
+                  minHeight: "70px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#1e40af",
+                  fontWeight: "bold",
+                }}
+              >
                 {openCount}
               </h4>
-              <p className="mb-0 fw-semibold" style={{ fontSize: "18px", color: "#3A5FBE" }}>
+              <p
+                className="mb-0 fw-semibold"
+                style={{ fontSize: "18px", color: "#3A5FBE" }}
+              >
                 Open Tickets
               </p>
             </div>
           </div>
         </div>
-  
+
         <div className="col-6 col-md-3">
-          <div className="p-3 rounded" style={{
-            backgroundColor: "#fff",
-            boxShadow: "0 2px 6px rgba(0, 0, 0, 0.06)",
-            border: "1px solid #f0f0f0",
-          }}>
+          <div
+            className="p-3 rounded"
+            style={{
+              backgroundColor: "#fff",
+              boxShadow: "0 2px 6px rgba(0, 0, 0, 0.06)",
+              border: "1px solid #f0f0f0",
+            }}
+          >
             <div className="d-flex align-items-center" style={{ gap: "16px" }}>
-              <h4 className="mb-0" style={{
-                fontSize: "32px",
-                backgroundColor: "#fef3c7",
-                minWidth: "70px",
-                minHeight: "70px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#92400e",
-                fontWeight: "bold",
-              }}>
+              <h4
+                className="mb-0"
+                style={{
+                  fontSize: "32px",
+                  backgroundColor: "#fef3c7",
+                  minWidth: "70px",
+                  minHeight: "70px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#92400e",
+                  fontWeight: "bold",
+                }}
+              >
                 {progressCount}
               </h4>
-              <p className="mb-0 fw-semibold" style={{ fontSize: "18px", color: "#3A5FBE" }}>
+              <p
+                className="mb-0 fw-semibold"
+                style={{ fontSize: "18px", color: "#3A5FBE" }}
+              >
                 In Progress
               </p>
             </div>
           </div>
         </div>
-  
+
         <div className="col-6 col-md-3">
-          <div className="p-3 rounded" style={{
-            backgroundColor: "#fff",
-            boxShadow: "0 2px 6px rgba(0, 0, 0, 0.06)",
-            border: "1px solid #f0f0f0",
-          }}>
+          <div
+            className="p-3 rounded"
+            style={{
+              backgroundColor: "#fff",
+              boxShadow: "0 2px 6px rgba(0, 0, 0, 0.06)",
+              border: "1px solid #f0f0f0",
+            }}
+          >
             <div className="d-flex align-items-center" style={{ gap: "16px" }}>
-              <h4 className="mb-0" style={{
-                fontSize: "32px",
-                backgroundColor: "#fee2e2",
-                minWidth: "70px",
-                minHeight: "70px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#991b1b",
-                fontWeight: "bold",
-              }}>
+              <h4
+                className="mb-0"
+                style={{
+                  fontSize: "32px",
+                  backgroundColor: "#fee2e2",
+                  minWidth: "70px",
+                  minHeight: "70px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#991b1b",
+                  fontWeight: "bold",
+                }}
+              >
                 {closedCount}
               </h4>
-              <p className="mb-0 fw-semibold" style={{ fontSize: "18px", color: "#3A5FBE" }}>
+              <p
+                className="mb-0 fw-semibold"
+                style={{ fontSize: "18px", color: "#3A5FBE" }}
+              >
                 Closed Tickets
               </p>
             </div>
           </div>
         </div>
-  
+
         <div className="col-6 col-md-3">
-          <div className="p-3 rounded" style={{
-            backgroundColor: "#fff",
-            boxShadow: "0 2px 6px rgba(0, 0, 0, 0.06)",
-            border: "1px solid #f0f0f0",
-          }}>
+          <div
+            className="p-3 rounded"
+            style={{
+              backgroundColor: "#fff",
+              boxShadow: "0 2px 6px rgba(0, 0, 0, 0.06)",
+              border: "1px solid #f0f0f0",
+            }}
+          >
             <div className="d-flex align-items-center" style={{ gap: "16px" }}>
-              <h4 className="mb-0" style={{
-                fontSize: "32px",
-                backgroundColor: "#dcfce7",
-                minWidth: "70px",
-                minHeight: "70px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#166534",
-                fontWeight: "bold",
-              }}>
+              <h4
+                className="mb-0"
+                style={{
+                  fontSize: "32px",
+                  backgroundColor: "#dcfce7",
+                  minWidth: "70px",
+                  minHeight: "70px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#166534",
+                  fontWeight: "bold",
+                }}
+              >
                 {allTickets.length}
               </h4>
-              <p className="mb-0 fw-semibold" style={{ fontSize: "18px", color: "#3A5FBE" }}>
+              <p
+                className="mb-0 fw-semibold"
+                style={{ fontSize: "18px", color: "#3A5FBE" }}
+              >
                 Total Tickets
               </p>
             </div>
           </div>
         </div>
       </div>
-  
+
       <div className="card mb-4 shadow-sm border-0">
         <div className="card-body">
-          <div className="row g-2 align-items-center" style={{ justifyContent: "space-between" }}>
+          <div
+            className="row g-2 align-items-center"
+            style={{ justifyContent: "space-between" }}
+          >
             <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
-              <label htmlFor="statusFilter" className="fw-bold mb-0" style={{ fontSize: "16px", color: "#3A5FBE" }}>Status</label>
+              <label
+                htmlFor="statusFilter"
+                className="fw-bold mb-0"
+                style={{ fontSize: "16px", color: "#3A5FBE" }}
+              >
+                Status
+              </label>
               <select
                 id="statusFilter"
                 className="form-select"
@@ -404,9 +449,15 @@ function ITSupportDashboard() {
                 <option>Closed</option>
               </select>
             </div>
-  
+
             <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
-              <label htmlFor="fromDate" className="fw-bold mb-0" style={{ fontSize: "16px", color: "#3A5FBE", width: "50px" }}>From</label>
+              <label
+                htmlFor="fromDate"
+                className="fw-bold mb-0"
+                style={{ fontSize: "16px", color: "#3A5FBE", width: "50px" }}
+              >
+                From
+              </label>
               <input
                 id="fromDate"
                 type="date"
@@ -416,9 +467,19 @@ function ITSupportDashboard() {
                 onChange={(e) => setFromDate(e.target.value)}
               />
             </div>
-  
+
             <div className="col-12 col-md-auto d-flex align-items-center mb-1">
-              <label htmlFor="toDate" className="fw-bold mb-0" style={{ fontSize: "16px", color: "#3A5FBE", marginRight: "8px" }}>To</label>
+              <label
+                htmlFor="toDate"
+                className="fw-bold mb-0"
+                style={{
+                  fontSize: "16px",
+                  color: "#3A5FBE",
+                  marginRight: "8px",
+                }}
+              >
+                To
+              </label>
               <input
                 id="toDate"
                 type="date"
@@ -428,41 +489,168 @@ function ITSupportDashboard() {
                 onChange={(e) => setToDate(e.target.value)}
               />
             </div>
-  
+
             <div className="col-auto ms-auto d-flex gap-2">
-              <button className="btn btn-sm custom-outline-btn"
-                style={{ minWidth: 90, marginRight: 10 }} onClick={applyFilter}>
+              <button
+                className="btn btn-sm custom-outline-btn"
+                style={{ minWidth: 90, marginRight: 10 }}
+                onClick={applyFilter}
+              >
                 Filter
               </button>
-  
-              <button className="btn btn-sm custom-outline-btn"
-                style={{ minWidth: 90 }} onClick={resetFilter}>
+
+              <button
+                className="btn btn-sm custom-outline-btn"
+                style={{ minWidth: 90 }}
+                onClick={resetFilter}
+              >
                 Reset
               </button>
             </div>
           </div>
         </div>
       </div>
-  
+
       <div className="card shadow-sm border-0">
         <div className="table-responsive bg-white">
           <table className="table table-hover mb-0">
             <thead style={{ backgroundColor: "#ffffffff" }}>
               <tr>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Ticket ID</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Employee Name</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Category</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Description</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Priority</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Status</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Attachment</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Assigned</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Raised Date</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Closed Date</th>
-                <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Action</th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Ticket ID
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Employee Name
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Category
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Description
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Priority
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Status
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Attachment
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Assigned
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Raised Date
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Closed Date
+                </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Action
+                </th>
               </tr>
             </thead>
-  
+
             <tbody>
               {paginatedTickets.map((t) => (
                 <tr
@@ -473,29 +661,140 @@ function ITSupportDashboard() {
                     setViewOnly(true);
                   }}
                 >
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', color: "#212529" }}>{t.ticketId}</td>
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', color: "#212529" }}>{t.employeeName}</td>
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', color: "#212529" }}>{t.category}</td>
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', color: "#212529" }}>{t.description}</td>
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                      color: "#212529",
+                    }}
+                  >
+                    {t.ticketId}
+                  </td>
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                      color: "#212529",
+                    }}
+                  >
+                    {t.employeeName}
+                  </td>
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                      color: "#212529",
+                    }}
+                  >
+                    {t.category}
+                  </td>
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                      color: "#212529",
+                    }}
+                  >
+                    {t.description}
+                  </td>
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
                     {t.priority}
                   </td>
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
                     <span style={statusBadge(t.status)}>{t.status}</span>
                   </td>
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', color: "#212529" }}>
-                    {Array.isArray(t.attachment) && t.attachment.length > 0 ? (
-                      t.attachment.map((file, i) => (
-                        <div key={i}>{file.split("/").pop()}</div>
-                      ))
-                    ) : "-"}
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                      color: "#212529",
+                    }}
+                  >
+                    {Array.isArray(t.attachment) && t.attachment.length > 0
+                      ? t.attachment.map((file, i) => (
+                          <div key={i}>{file.split("/").pop()}</div>
+                        ))
+                      : "-"}
                   </td>
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', color: "#212529" }}>{t.assignedTo || "-"}</td>
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', color: "#212529" }}>{new Date(t.raisedDate).toLocaleString()}</td>
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap', color: "#212529" }}>
-                    {t.closedDate ? new Date(t.closedDate).toLocaleString() : "-"}
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                      color: "#212529",
+                    }}
+                  >
+                    {t.assignedTo || "-"}
                   </td>
-                  <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                      color: "#212529",
+                    }}
+                  >
+                    {new Date(t.raisedDate).toLocaleString()}
+                  </td>
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                      color: "#212529",
+                    }}
+                  >
+                    {t.closedDate
+                      ? new Date(t.closedDate).toLocaleString()
+                      : "-"}
+                  </td>
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <div className="d-flex gap-2 justify-content-center">
                       <button
                         className="btn btn-sm custom-outline-btn"
@@ -508,7 +807,7 @@ function ITSupportDashboard() {
                       >
                         Edit
                       </button>
-  
+
                       <button
                         className="btn btn-sm custom-outline-btn"
                         style={{ minWidth: 90 }}
@@ -524,11 +823,15 @@ function ITSupportDashboard() {
           </table>
         </div>
       </div>
-  
+
       <nav className="d-flex align-items-center justify-content-end mt-3 text-muted">
         <div className="d-flex align-items-center gap-3">
           <div className="d-flex align-items-center">
-            <span style={{ fontSize: "14px", marginRight: "8px", color: "#212529" }}>Rows per page:</span>
+            <span
+              style={{ fontSize: "14px", marginRight: "8px", color: "#212529" }}
+            >
+              Rows per page:
+            </span>
             <select
               className="form-select form-select-sm"
               style={{ width: "auto", fontSize: "14px" }}
@@ -543,13 +846,18 @@ function ITSupportDashboard() {
               <option value={20}>20</option>
             </select>
           </div>
-  
-          <span style={{ fontSize: "14px", marginLeft: "16px", color: "#212529" }}>
-            {indexOfFirstRow + 1}–
-            {Math.min(indexOfLastRow, tickets.length)} of {tickets.length}
+
+          <span
+            style={{ fontSize: "14px", marginLeft: "16px", color: "#212529" }}
+          >
+            {indexOfFirstRow + 1}–{Math.min(indexOfLastRow, tickets.length)} of{" "}
+            {tickets.length}
           </span>
-  
-          <div className="d-flex align-items-center" style={{ marginLeft: "16px" }}>
+
+          <div
+            className="d-flex align-items-center"
+            style={{ marginLeft: "16px" }}
+          >
             <button
               className="btn btn-sm border-0"
               disabled={currentPage === 1}
@@ -569,7 +877,7 @@ function ITSupportDashboard() {
           </div>
         </div>
       </nav>
-  
+
       {/* Back Button */}
       <div className="text-end mt-3">
         <button
@@ -580,31 +888,54 @@ function ITSupportDashboard() {
           Back
         </button>
       </div>
-  
+
       {/* 👁 VIEW MODAL */}
       {selectedTicket && viewOnly && (
-        <div className="modal fade show" style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "rgba(0,0,0,0.5)",
-          position: "fixed",
-          inset: 0,
-          zIndex: 1050,
-        }}>
-          <div className="modal-dialog modal-dialog-scrollable" style={{ maxWidth: "650px", width: "95%" }}>
+        <div
+          className="modal fade show"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.5)",
+            position: "fixed",
+            inset: 0,
+            zIndex: 1050,
+          }}
+        >
+          <div
+            className="modal-dialog modal-dialog-scrollable"
+            style={{ maxWidth: "650px", width: "95%" }}
+          >
             <div className="modal-content">
-              <div className="modal-header text-white" style={{ backgroundColor: "#3A5FBE" }}>
+              <div
+                className="modal-header text-white"
+                style={{ backgroundColor: "#3A5FBE" }}
+              >
                 <h5 className="modal-title mb-0">Ticket Details</h5>
-                <button type="button" className="btn-close btn-close-white" onClick={closeModal} />
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={closeModal}
+                />
               </div>
-  
+
               <div className="modal-body">
-                <p><b>Ticket ID:</b> {selectedTicket.ticketId}</p>
-                <p><b>Employee:</b> {selectedTicket.employeeName}</p>
-                <p><b>Category:</b> {selectedTicket.category}</p>
-                <p><b>Description:</b> {selectedTicket.description}</p>
-                <p><b>Priority:</b> {selectedTicket.priority}</p>
+                <p>
+                  <b>Ticket ID:</b> {selectedTicket.ticketId}
+                </p>
+                <p>
+                  <b>Employee:</b> {selectedTicket.employeeName}
+                </p>
+                <p>
+                  <b>Category:</b> {selectedTicket.category}
+                </p>
+                <p>
+                  <b>Description:</b> {selectedTicket.description}
+                </p>
+                <p>
+                  <b>Priority:</b> {selectedTicket.priority}
+                </p>
                 <p>
                   <b>Status:</b>{" "}
                   <span style={statusBadge(selectedTicket.status)}>
@@ -614,54 +945,69 @@ function ITSupportDashboard() {
                 <p>
                   <b>Attachment:</b>{" "}
                   {Array.isArray(selectedTicket.attachment) &&
-                  selectedTicket.attachment.length > 0 ? (
-                    selectedTicket.attachment.map((file, i) => (
-                      <div key={i}>
-                        <a
-                          href={`https://server-backend-nu.vercel.app/uploads/${file}`}
-                          download
-                          className="btn btn-sm btn-outline-primary ms-2"
-                        >
-                          ⬇ {file.split("/").pop()}
-                        </a>
-                      </div>
-                    ))
-                  ) : (
-                    "-"
-                  )}
+                  selectedTicket.attachment.length > 0
+                    ? selectedTicket.attachment.map((file, i) => (
+                        <div key={i}>
+                          <a
+                            href={`https://server-backend-nu.vercel.app/uploads/${file}`}
+                            download
+                            className="btn btn-sm btn-outline-primary ms-2"
+                          >
+                            ⬇ {file.split("/").pop()}
+                          </a>
+                        </div>
+                      ))
+                    : "-"}
                 </p>
-  
-                <p><b>Assigned:</b> {selectedTicket.assignedTo || "-"}</p>
-                <p><b>Raised:</b> {new Date(selectedTicket.raisedDate).toLocaleString()}</p>
-                <p><b>Closed:</b> {selectedTicket.closedDate || "-"}</p>
-  
+
+                <p>
+                  <b>Assigned:</b> {selectedTicket.assignedTo || "-"}
+                </p>
+                <p>
+                  <b>Raised:</b>{" "}
+                  {new Date(selectedTicket.raisedDate).toLocaleString()}
+                </p>
+                <p>
+                  <b>Closed:</b> {selectedTicket.closedDate || "-"}
+                </p>
+
                 <div className="row mb-2">
-                  <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>
+                  <div
+                    className="col-5 col-sm-3 fw-semibold"
+                    style={{ color: "#212529" }}
+                  >
                     Comments
                   </div>
-                  
+
                   <div className="col-7 col-sm-9">
                     <div style={{ maxHeight: "150px", overflowY: "auto" }}>
-                      {selectedTicket.comments && selectedTicket.comments.length > 0 ? (
-                        [...selectedTicket.comments].reverse().map((comment, index) => (
-                          <div key={index} className="mb-2 p-2 bg-light rounded">
-                            {comment.timestamp && (
-                              <small className="text-muted d-block">
-                                {new Date(comment.timestamp).toLocaleString()}
-                              </small>
-                            )}
-                            <div>
-                              <b>{comment.role || "User"}:</b> {comment.message}
+                      {selectedTicket.comments &&
+                      selectedTicket.comments.length > 0 ? (
+                        [...selectedTicket.comments]
+                          .reverse()
+                          .map((comment, index) => (
+                            <div
+                              key={index}
+                              className="mb-2 p-2 bg-light rounded"
+                            >
+                              {comment.timestamp && (
+                                <small className="text-muted d-block">
+                                  {new Date(comment.timestamp).toLocaleString()}
+                                </small>
+                              )}
+                              <div>
+                                <b>{comment.role || "User"}:</b>{" "}
+                                {comment.message}
+                              </div>
                             </div>
-                          </div>
-                        ))
+                          ))
                       ) : (
                         <span className="text-muted">No comments yet</span>
                       )}
                     </div>
                   </div>
                 </div>
-  
+
                 {/* FOOTER – RIGHT SIDE BUTTONS */}
                 <div className="modal-footer">
                   <button
@@ -687,27 +1033,42 @@ function ITSupportDashboard() {
           </div>
         </div>
       )}
-  
+
       {/* ✏️ EDIT MODAL */}
       {editData && !viewOnly && (
-        <div className="modal fade show" style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "rgba(0,0,0,0.5)",
-          position: "fixed",
-          inset: 0,
-          zIndex: 1050,
-        }}>
-          <div className="modal-dialog modal-dialog-scrollable" style={{ maxWidth: "650px", width: "95%" }}>
+        <div
+          className="modal fade show"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.5)",
+            position: "fixed",
+            inset: 0,
+            zIndex: 1050,
+          }}
+        >
+          <div
+            className="modal-dialog modal-dialog-scrollable"
+            style={{ maxWidth: "650px", width: "95%" }}
+          >
             <div className="modal-content">
-              <div className="modal-header text-white" style={{ backgroundColor: "#3A5FBE" }}>
+              <div
+                className="modal-header text-white"
+                style={{ backgroundColor: "#3A5FBE" }}
+              >
                 <h5 className="modal-title mb-0">Update Ticket</h5>
-                <button type="button" className="btn-close btn-close-white" onClick={closeModal} />
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={closeModal}
+                />
               </div>
-  
+
               <div className="modal-body">
-                <label><b>Status:</b></label>
+                <label>
+                  <b>Status:</b>
+                </label>
                 <select
                   className="form-select mb-2"
                   value={editData.status}
@@ -720,8 +1081,10 @@ function ITSupportDashboard() {
                   <option>Resolved</option>
                   <option>Closed</option>
                 </select>
-  
-                <label><b>Assigned:</b></label>
+
+                <label>
+                  <b>Assigned:</b>
+                </label>
                 <select
                   className="form-select mb-2"
                   value={editData.assignedTo || ""}
@@ -734,7 +1097,7 @@ function ITSupportDashboard() {
                   <option>Network Team</option>
                   <option>Hardware Team</option>
                 </select>
-  
+
                 {/* 📎 Attachment */}
                 <div className="mb-3">
                   <label className="form-label fw-bold">Attachment</label>
@@ -749,13 +1112,16 @@ function ITSupportDashboard() {
                     }
                   />
                 </div>
-  
+
                 {/* Add Comment Input - Row/Column Layout */}
                 <div className="row mb-2">
-                  <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>
+                  <div
+                    className="col-5 col-sm-3 fw-semibold"
+                    style={{ color: "#212529" }}
+                  >
                     Add Comment
                   </div>
-                  
+
                   <div className="col-7 col-sm-9">
                     <input
                       className="form-control"
@@ -763,42 +1129,46 @@ function ITSupportDashboard() {
                       onChange={(e) => setComment(e.target.value)}
                       placeholder="Add IT Comment"
                     />
-                    <small className="text-muted">
-                      Max 100 words
-                    </small>
+                    <small className="text-muted">Max 100 words</small>
                   </div>
                 </div>
-  
-                  {/* Display Previous Comments*/}
-                  {editData.comments && editData.comments.length > 0 && (
-                    <div className="row mb-2">
-                      <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>
-                        Previous Comments
-                      </div>
-                      
-                      <div className="col-7 col-sm-9">
-                        <div style={{ maxHeight: "150px", overflowY: "auto" }}>
-                          {[...(editData.comments || [])].reverse().map((comment, index) => (
-                            <div key={index} className="mb-2 p-2 bg-light rounded">
+
+                {/* Display Previous Comments*/}
+                {editData.comments && editData.comments.length > 0 && (
+                  <div className="row mb-2">
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
+                      Previous Comments
+                    </div>
+
+                    <div className="col-7 col-sm-9">
+                      <div style={{ maxHeight: "150px", overflowY: "auto" }}>
+                        {[...(editData.comments || [])]
+                          .reverse()
+                          .map((comment, index) => (
+                            <div
+                              key={index}
+                              className="mb-2 p-2 bg-light rounded"
+                            >
                               {comment.timestamp && (
                                 <small className="text-muted d-block">
                                   {new Date(comment.timestamp).toLocaleString()}
                                 </small>
                               )}
                               <div>
-                                <b>{comment.role || "User"}:</b> {comment.message}
+                                <b>{comment.role || "User"}:</b>{" "}
+                                {comment.message}
                               </div>
                             </div>
                           ))}
-                        </div>
                       </div>
                     </div>
-                  )}
-  
-  
-  
+                  </div>
+                )}
               </div>
-  
+
               <div className="modal-footer">
                 <button
                   className="btn btn-sm custom-outline-btn"
@@ -807,7 +1177,7 @@ function ITSupportDashboard() {
                 >
                   Save Changes
                 </button>
-  
+
                 <button
                   className="btn btn-sm custom-outline-btn ms-2"
                   onClick={closeModal}
@@ -821,7 +1191,6 @@ function ITSupportDashboard() {
       )}
     </div>
   );
-  }
+}
 
-  
-  export default ITSupportDashboard;
+export default ITSupportDashboard;

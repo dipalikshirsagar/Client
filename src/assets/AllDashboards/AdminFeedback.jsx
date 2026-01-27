@@ -26,9 +26,9 @@ const AdminFeedback = () => {
   const fetchAllFeedbacks = async () => {
     try {
       const response = await axios.get("https://server-backend-nu.vercel.app/feedback/all");
-      
+
       if (response.data && response.data.success) {
-        const allFeedbacks = (response.data.feedbacks || []).map(fb => {
+        const allFeedbacks = (response.data.feedbacks || []).map((fb) => {
           return {
             id: fb._id,
             feedbackId: fb.feedbackId,
@@ -42,16 +42,22 @@ const AdminFeedback = () => {
             receiverDesignation: fb.receiver?.designation || "-",
             receiverRole: fb.receiver?.role || "-",
             receiverEmail: fb.receiver?.email || "-",
-            date: fb.createdAt ? new Date(fb.createdAt).toLocaleDateString("en-GB") : new Date().toLocaleDateString("en-GB"),
-            fullDate: fb.createdAt ? new Date(fb.createdAt).toLocaleString("en-GB") : new Date().toLocaleString("en-GB"),
+            date: fb.createdAt
+              ? new Date(fb.createdAt).toLocaleDateString("en-GB")
+              : new Date().toLocaleDateString("en-GB"),
+            fullDate: fb.createdAt
+              ? new Date(fb.createdAt).toLocaleString("en-GB")
+              : new Date().toLocaleString("en-GB"),
             status: fb.status === "viewed" ? "Viewed" : "Pending",
             title: fb.title || "-",
             description: fb.message || "-",
-            readAt: fb.readAt ? new Date(fb.readAt).toLocaleString("en-GB") : null,
-            originalStatus: fb.status
+            readAt: fb.readAt
+              ? new Date(fb.readAt).toLocaleString("en-GB")
+              : null,
+            originalStatus: fb.status,
           };
         });
-        
+
         setFeedbacks(allFeedbacks);
       } else {
         setFeedbacks([]);
@@ -73,27 +79,36 @@ const AdminFeedback = () => {
   // Filter feedbacks
   const filteredFeedbacks = feedbacks.filter((fb) => {
     const q = searchQuery.toLowerCase();
-    const matchesText = q === "" ||
+    const matchesText =
+      q === "" ||
       (fb.feedbackId && fb.feedbackId.toLowerCase().includes(q)) ||
       (fb.senderName && fb.senderName.toLowerCase().includes(q)) ||
       (fb.receiverName && fb.receiverName.toLowerCase().includes(q)) ||
-      (fb.senderDesignation && fb.senderDesignation.toLowerCase().includes(q)) ||
-      (fb.receiverDesignation && fb.receiverDesignation.toLowerCase().includes(q)) ||
+      (fb.senderDesignation &&
+        fb.senderDesignation.toLowerCase().includes(q)) ||
+      (fb.receiverDesignation &&
+        fb.receiverDesignation.toLowerCase().includes(q)) ||
       (fb.senderRole && fb.senderRole.toLowerCase().includes(q)) ||
       (fb.receiverRole && fb.receiverRole.toLowerCase().includes(q)) ||
       (fb.title && fb.title.toLowerCase().includes(q)) ||
       (fb.status && fb.status.toLowerCase().includes(q));
-    
+
     const matchesStatus = statusFilter === "All" || fb.status === statusFilter;
-    
+
     return matchesText && matchesStatus;
   });
 
   // Pagination calculations
   const totalPages = Math.ceil(filteredFeedbacks.length / itemsPerPage);
-  const indexOfLastItem = Math.min(currentPage * itemsPerPage, filteredFeedbacks.length);
+  const indexOfLastItem = Math.min(
+    currentPage * itemsPerPage,
+    filteredFeedbacks.length,
+  );
   const indexOfFirstItem = (currentPage - 1) * itemsPerPage;
-  const currentFeedbacks = filteredFeedbacks.slice(indexOfFirstItem, indexOfLastItem);
+  const currentFeedbacks = filteredFeedbacks.slice(
+    indexOfFirstItem,
+    indexOfLastItem,
+  );
 
   const handlePageChange = (pageNumber) => {
     if (pageNumber < 1 || pageNumber > totalPages) return;
@@ -127,9 +142,9 @@ const AdminFeedback = () => {
           {filteredFeedbacks.length === 0
             ? "0–0 of 0"
             : `${indexOfFirstItem + 1}-${Math.min(
-              indexOfLastItem,
-              filteredFeedbacks.length
-            )} of ${filteredFeedbacks.length}`}
+                indexOfLastItem,
+                filteredFeedbacks.length,
+              )} of ${filteredFeedbacks.length}`}
         </span>
 
         <div
@@ -167,25 +182,26 @@ const AdminFeedback = () => {
 
   const handleDelete = async (id, e) => {
     if (e) e.stopPropagation();
-    if (!window.confirm("Are you sure you want to delete this feedback?")) return;
-  
+    if (!window.confirm("Are you sure you want to delete this feedback?"))
+      return;
+
     try {
       const token = localStorage.getItem("accessToken");
-      
+
       if (!token) {
         alert("Authentication required. Please login again.");
         return;
       }
-  
+
       await axios.delete(`https://server-backend-nu.vercel.app/feedback/delete/${id}`, {
         headers: {
-          Authorization: `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
-      
-      setFeedbacks(feedbacks.filter(f => f.id !== id));
+
+      setFeedbacks(feedbacks.filter((f) => f.id !== id));
       alert("Feedback deleted successfully");
-      
+
       fetchAllFeedbacks();
     } catch (err) {
       console.error("Error deleting feedback:", err);
@@ -204,15 +220,23 @@ const AdminFeedback = () => {
         <div className="card-body">
           <form
             className="row g-2 align-items-center"
-            onSubmit={e => {
+            onSubmit={(e) => {
               e.preventDefault();
               handleSearch();
             }}
             style={{ justifyContent: "space-between" }}
           >
             <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
-              <label htmlFor="statusFilter" className="fw-bold mb-0"
-                style={{ fontSize: "16px", color: "#3A5FBE", marginRight: "5px", minWidth: "50px" }}>
+              <label
+                htmlFor="statusFilter"
+                className="fw-bold mb-0"
+                style={{
+                  fontSize: "16px",
+                  color: "#3A5FBE",
+                  marginRight: "5px",
+                  minWidth: "50px",
+                }}
+              >
                 Status
               </label>
               <select
@@ -228,8 +252,16 @@ const AdminFeedback = () => {
             </div>
 
             <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
-              <label htmlFor="searchInput" className="fw-bold mb-0"
-                style={{ fontSize: "16px", color: "#3A5FBE", marginRight: "5px", minWidth: "120px" }}>
+              <label
+                htmlFor="searchInput"
+                className="fw-bold mb-0"
+                style={{
+                  fontSize: "16px",
+                  color: "#3A5FBE",
+                  marginRight: "5px",
+                  minWidth: "120px",
+                }}
+              >
                 Search Feedback
               </label>
               <input
@@ -243,10 +275,19 @@ const AdminFeedback = () => {
             </div>
 
             <div className="col-12 col-md-auto ms-md-auto d-flex gap-2 justify-content-end">
-              <button type="submit" className="btn btn-sm custom-outline-btn" style={{ minWidth: 90 }}>
+              <button
+                type="submit"
+                className="btn btn-sm custom-outline-btn"
+                style={{ minWidth: 90 }}
+              >
                 Search
               </button>
-              <button type="button" className="btn btn-sm custom-outline-btn" onClick={handleReset} style={{ minWidth: 90 }}>
+              <button
+                type="button"
+                className="btn btn-sm custom-outline-btn"
+                onClick={handleReset}
+                style={{ minWidth: 90 }}
+              >
                 Reset
               </button>
             </div>
@@ -255,11 +296,15 @@ const AdminFeedback = () => {
       </div>
 
       {/*feedback TAble */}
-      <h2 style={{ color: "#3A5FBE", fontSize: "25px", marginLeft: "15px" }}>All Feedback Records</h2>
+      <h2 style={{ color: "#3A5FBE", fontSize: "25px", marginLeft: "15px" }}>
+        All Feedback Records
+      </h2>
 
       {filteredFeedbacks.length === 0 ? (
         <div className="text-center py-4">
-          <p style={{ color: "#6c757d", fontSize: "16px" }}>No feedback records found.</p>
+          <p style={{ color: "#6c757d", fontSize: "16px" }}>
+            No feedback records found.
+          </p>
         </div>
       ) : (
         <>
@@ -270,16 +315,96 @@ const AdminFeedback = () => {
               borderRadius: "8px",
             }}
           >
-            <table className="table table-hover mb-0" style={{ borderCollapse: 'collapse' }}>
-              <thead style={{ backgroundColor: '#f8f9fa' }}>
+            <table
+              className="table table-hover mb-0"
+              style={{ borderCollapse: "collapse" }}
+            >
+              <thead style={{ backgroundColor: "#f8f9fa" }}>
                 <tr>
-                  <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '10px', whiteSpace: 'nowrap' }}>Feedback ID</th>
-                  <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '10px', whiteSpace: 'nowrap' }}>Sender</th>
-                  <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '10px', whiteSpace: 'nowrap' }}>Receiver</th>
-                  <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '10px', whiteSpace: 'nowrap' }}>Date</th>
-                  <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '10px', whiteSpace: 'nowrap' }}>Status</th>
-                  <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '10px', whiteSpace: 'nowrap' }}>Title</th>
-                  <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '10px', whiteSpace: 'nowrap' }}>Actions</th>
+                  <th
+                    style={{
+                      fontWeight: "500",
+                      fontSize: "14px",
+                      color: "#6c757d",
+                      borderBottom: "2px solid #dee2e6",
+                      padding: "10px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Feedback ID
+                  </th>
+                  <th
+                    style={{
+                      fontWeight: "500",
+                      fontSize: "14px",
+                      color: "#6c757d",
+                      borderBottom: "2px solid #dee2e6",
+                      padding: "10px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Sender
+                  </th>
+                  <th
+                    style={{
+                      fontWeight: "500",
+                      fontSize: "14px",
+                      color: "#6c757d",
+                      borderBottom: "2px solid #dee2e6",
+                      padding: "10px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Receiver
+                  </th>
+                  <th
+                    style={{
+                      fontWeight: "500",
+                      fontSize: "14px",
+                      color: "#6c757d",
+                      borderBottom: "2px solid #dee2e6",
+                      padding: "10px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Date
+                  </th>
+                  <th
+                    style={{
+                      fontWeight: "500",
+                      fontSize: "14px",
+                      color: "#6c757d",
+                      borderBottom: "2px solid #dee2e6",
+                      padding: "10px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Status
+                  </th>
+                  <th
+                    style={{
+                      fontWeight: "500",
+                      fontSize: "14px",
+                      color: "#6c757d",
+                      borderBottom: "2px solid #dee2e6",
+                      padding: "10px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Title
+                  </th>
+                  <th
+                    style={{
+                      fontWeight: "500",
+                      fontSize: "14px",
+                      color: "#6c757d",
+                      borderBottom: "2px solid #dee2e6",
+                      padding: "10px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -288,51 +413,127 @@ const AdminFeedback = () => {
                     key={fb.id}
                     style={{
                       cursor: "pointer",
-                      backgroundColor: 'transparent',
-                      transition: 'background-color 0.2s'
+                      backgroundColor: "transparent",
+                      transition: "background-color 0.2s",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#e9ecef';
+                      e.currentTarget.style.backgroundColor = "#e9ecef";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.backgroundColor = "transparent";
                     }}
                     onClick={() => handleRowClick(fb)}
                   >
-                    <td style={{ padding: '10px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                    <td
+                      style={{
+                        padding: "10px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {fb.feedbackId}
                     </td>
-                    <td style={{ padding: '10px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                    <td
+                      style={{
+                        padding: "10px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {fb.senderName}
                     </td>
-                    <td style={{ padding: '10px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
-                     {fb.receiverName}
+                    <td
+                      style={{
+                        padding: "10px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {fb.receiverName}
                     </td>
-                    <td style={{ padding: '10px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                    <td
+                      style={{
+                        padding: "10px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {fb.date}
                     </td>
-                    <td style={{ padding: '10px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                    <td
+                      style={{
+                        padding: "10px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {fb.status === "Viewed" ? (
-                        <span style={{ backgroundColor: '#d1f2dd', padding: '6px 12px', borderRadius: '4px', fontSize: '13px', fontWeight: '500', display: 'inline-block', width: "100px", textAlign: "center" }}>
+                        <span
+                          style={{
+                            backgroundColor: "#d1f2dd",
+                            padding: "6px 12px",
+                            borderRadius: "4px",
+                            fontSize: "13px",
+                            fontWeight: "500",
+                            display: "inline-block",
+                            width: "100px",
+                            textAlign: "center",
+                          }}
+                        >
                           Viewed
                         </span>
                       ) : (
-                        <span style={{ backgroundColor: '#fff3cd', padding: '6px 12px', borderRadius: '4px', fontSize: '13px', fontWeight: '500', display: 'inline-block', width: "100px", textAlign: "center" }}>
+                        <span
+                          style={{
+                            backgroundColor: "#fff3cd",
+                            padding: "6px 12px",
+                            borderRadius: "4px",
+                            fontSize: "13px",
+                            fontWeight: "500",
+                            display: "inline-block",
+                            width: "100px",
+                            textAlign: "center",
+                          }}
+                        >
                           Pending
                         </span>
                       )}
                     </td>
-                    <td style={{ padding: '10px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>
+                    <td
+                      style={{
+                        padding: "10px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {fb.title}
                     </td>
-                    <td 
-                      style={{ padding: '10px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}
+                    <td
+                      style={{
+                        padding: "10px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                      }}
                       onClick={(e) => e.stopPropagation()}
                     >
                       <button
                         className="btn btn-sm btn-outline-danger"
                         onClick={(e) => handleDelete(fb.id, e)}
-                        style={{ minWidth: "70px", padding: '5px 10px' }}
+                        style={{ minWidth: "70px", padding: "5px 10px" }}
                       >
                         Delete
                       </button>
@@ -368,8 +569,13 @@ const AdminFeedback = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="modal-content">
-              <div className="modal-header text-white" style={{ backgroundColor: "#3A5FBE" }}>
-                <h5 className="modal-title mb-0">Feedback Details - {selectedFeedback.feedbackId}</h5>
+              <div
+                className="modal-header text-white"
+                style={{ backgroundColor: "#3A5FBE" }}
+              >
+                <h5 className="modal-title mb-0">
+                  Feedback Details - {selectedFeedback.feedbackId}
+                </h5>
                 <button
                   type="button"
                   className="btn-close btn-close-white"
@@ -382,37 +588,66 @@ const AdminFeedback = () => {
                   {/* Sender info */}
                   <div className="row mb-3">
                     <div className="col-12 mb-2">
-                      <h6 className="fw-bold" style={{ color: "#3A5FBE", fontSize: "16px" }}>Sender Information</h6>
+                      <h6
+                        className="fw-bold"
+                        style={{ color: "#3A5FBE", fontSize: "16px" }}
+                      >
+                        Sender Information
+                      </h6>
                     </div>
                     <div className="row mb-2">
-                      <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>
+                      <div
+                        className="col-5 col-sm-3 fw-semibold"
+                        style={{ color: "#212529" }}
+                      >
                         Name
                       </div>
-                      <div className="col-7 col-sm-9" style={{ color: "#212529" }}>
+                      <div
+                        className="col-7 col-sm-9"
+                        style={{ color: "#212529" }}
+                      >
                         {selectedFeedback.senderName}
                       </div>
                     </div>
                     <div className="row mb-2">
-                      <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>
+                      <div
+                        className="col-5 col-sm-3 fw-semibold"
+                        style={{ color: "#212529" }}
+                      >
                         Role
                       </div>
-                      <div className="col-7 col-sm-9" style={{ color: "#212529" }}>
+                      <div
+                        className="col-7 col-sm-9"
+                        style={{ color: "#212529" }}
+                      >
                         {selectedFeedback.senderRole}
                       </div>
                     </div>
                     <div className="row mb-2">
-                      <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>
+                      <div
+                        className="col-5 col-sm-3 fw-semibold"
+                        style={{ color: "#212529" }}
+                      >
                         Designation
                       </div>
-                      <div className="col-7 col-sm-9" style={{ color: "#212529" }}>
+                      <div
+                        className="col-7 col-sm-9"
+                        style={{ color: "#212529" }}
+                      >
                         {selectedFeedback.senderDesignation}
                       </div>
                     </div>
                     <div className="row mb-2">
-                      <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>
+                      <div
+                        className="col-5 col-sm-3 fw-semibold"
+                        style={{ color: "#212529" }}
+                      >
                         Email
                       </div>
-                      <div className="col-7 col-sm-9" style={{ color: "#212529" }}>
+                      <div
+                        className="col-7 col-sm-9"
+                        style={{ color: "#212529" }}
+                      >
                         {selectedFeedback.senderEmail}
                       </div>
                     </div>
@@ -420,37 +655,66 @@ const AdminFeedback = () => {
                   {/* Receiver infi */}
                   <div className="row mb-3">
                     <div className="col-12 mb-2">
-                      <h6 className="fw-bold" style={{ color: "#3A5FBE", fontSize: "16px" }}>Receiver Information</h6>
+                      <h6
+                        className="fw-bold"
+                        style={{ color: "#3A5FBE", fontSize: "16px" }}
+                      >
+                        Receiver Information
+                      </h6>
                     </div>
                     <div className="row mb-2">
-                      <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>
+                      <div
+                        className="col-5 col-sm-3 fw-semibold"
+                        style={{ color: "#212529" }}
+                      >
                         Name
                       </div>
-                      <div className="col-7 col-sm-9" style={{ color: "#212529" }}>
+                      <div
+                        className="col-7 col-sm-9"
+                        style={{ color: "#212529" }}
+                      >
                         {selectedFeedback.receiverName}
                       </div>
                     </div>
                     <div className="row mb-2">
-                      <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>
+                      <div
+                        className="col-5 col-sm-3 fw-semibold"
+                        style={{ color: "#212529" }}
+                      >
                         Role
                       </div>
-                      <div className="col-7 col-sm-9" style={{ color: "#212529" }}>
+                      <div
+                        className="col-7 col-sm-9"
+                        style={{ color: "#212529" }}
+                      >
                         {selectedFeedback.receiverRole}
                       </div>
                     </div>
                     <div className="row mb-2">
-                      <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>
+                      <div
+                        className="col-5 col-sm-3 fw-semibold"
+                        style={{ color: "#212529" }}
+                      >
                         Designation
                       </div>
-                      <div className="col-7 col-sm-9" style={{ color: "#212529" }}>
+                      <div
+                        className="col-7 col-sm-9"
+                        style={{ color: "#212529" }}
+                      >
                         {selectedFeedback.receiverDesignation}
                       </div>
                     </div>
                     <div className="row mb-2">
-                      <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>
+                      <div
+                        className="col-5 col-sm-3 fw-semibold"
+                        style={{ color: "#212529" }}
+                      >
                         Email
                       </div>
-                      <div className="col-7 col-sm-9" style={{ color: "#212529" }}>
+                      <div
+                        className="col-7 col-sm-9"
+                        style={{ color: "#212529" }}
+                      >
                         {selectedFeedback.receiverEmail}
                       </div>
                     </div>
@@ -458,29 +722,46 @@ const AdminFeedback = () => {
 
                   {/* feedback info */}
                   <div className="row mb-2">
-                    <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
                       Feedback ID
                     </div>
-                    <div className="col-7 col-sm-9" style={{ color: "#212529" }}>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
                       {selectedFeedback.feedbackId}
                     </div>
                   </div>
 
                   <div className="row mb-2">
-                    <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
                       Created Date
                     </div>
-                    <div className="col-7 col-sm-9" style={{ color: "#212529" }}>
+                    <div
+                      className="col-7 col-sm-9"
+                      style={{ color: "#212529" }}
+                    >
                       {selectedFeedback.fullDate}
                     </div>
                   </div>
 
                   <div className="row mb-2">
-                    <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>
+                    <div
+                      className="col-5 col-sm-3 fw-semibold"
+                      style={{ color: "#212529" }}
+                    >
                       Status
                     </div>
                     <div className="col-7 col-sm-9">
-                      <span className={`badge ${selectedFeedback.status === "Viewed" ? "bg-success" : "bg-warning text-dark"}`}>
+                      <span
+                        className={`badge ${selectedFeedback.status === "Viewed" ? "bg-success" : "bg-warning text-dark"}`}
+                      >
                         {selectedFeedback.status}
                       </span>
                     </div>
@@ -488,31 +769,54 @@ const AdminFeedback = () => {
 
                   {selectedFeedback.readAt && (
                     <div className="row mb-2">
-                      <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>
+                      <div
+                        className="col-5 col-sm-3 fw-semibold"
+                        style={{ color: "#212529" }}
+                      >
                         Viewed At
                       </div>
-                      <div className="col-7 col-sm-9" style={{ color: "#212529" }}>
+                      <div
+                        className="col-7 col-sm-9"
+                        style={{ color: "#212529" }}
+                      >
                         {selectedFeedback.readAt}
                       </div>
                     </div>
                   )}
                   <div className="row mb-3">
                     <div className="col-12 mb-2">
-                      <h6 className="fw-bold" style={{ color: "#3A5FBE", fontSize: "16px" }}>Feedback Content</h6>
+                      <h6
+                        className="fw-bold"
+                        style={{ color: "#3A5FBE", fontSize: "16px" }}
+                      >
+                        Feedback Content
+                      </h6>
                     </div>
                     <div className="row mb-2">
-                      <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>
+                      <div
+                        className="col-5 col-sm-3 fw-semibold"
+                        style={{ color: "#212529" }}
+                      >
                         Title
                       </div>
-                      <div className="col-7 col-sm-9" style={{ color: "#212529" }}>
+                      <div
+                        className="col-7 col-sm-9"
+                        style={{ color: "#212529" }}
+                      >
                         {selectedFeedback.title}
                       </div>
                     </div>
                     <div className="row">
-                      <div className="col-5 col-sm-3 fw-semibold" style={{ color: "#212529" }}>
+                      <div
+                        className="col-5 col-sm-3 fw-semibold"
+                        style={{ color: "#212529" }}
+                      >
                         Message
                       </div>
-                      <div className="col-7 col-sm-9" style={{ color: "#212529", whiteSpace: "pre-wrap" }}>
+                      <div
+                        className="col-7 col-sm-9"
+                        style={{ color: "#212529", whiteSpace: "pre-wrap" }}
+                      >
                         {selectedFeedback.description}
                       </div>
                     </div>
@@ -534,8 +838,7 @@ const AdminFeedback = () => {
         </div>
       )}
 
-
-    <div className="text-end mt-3">
+      <div className="text-end mt-3">
         <button
           className="btn btn-sm custom-outline-btn"
           style={{ minWidth: 90 }}

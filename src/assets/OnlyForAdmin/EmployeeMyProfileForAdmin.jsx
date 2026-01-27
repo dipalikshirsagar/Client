@@ -13,7 +13,7 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
           permanentAddress: stateEmployee.permanentAddress || {},
           bankDetails: stateEmployee.bankDetails || {},
         }
-      : {}
+      : {},
   );
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(!stateEmployee);
@@ -33,7 +33,7 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
             `https://server-backend-nu.vercel.app/getEmployee/${empId}`,
             {
               headers: { Authorization: `Bearer ${token}` },
-            }
+            },
           );
           setEmployee(res.data);
           setFormData({
@@ -67,7 +67,7 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
           error = "Email is required.";
         } else if (
           !/^[a-zA-Z0-9._%+-]+@(gmail\.com|creativewebsolution\.in)$/.test(
-            value
+            value,
           )
         ) {
           error = "Please enter a valid email address.";
@@ -378,24 +378,24 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
       });
 
       await axios.put(
-        ` https://server-backend-nu.vercel.app/employees/${employee._id || empId}`,
+        `https://server-backend-nu.vercel.app/employees/${employee._id || empId}`,
         data,
         {
           headers: {
             "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       alert("Employee profile updated successfully!");
       setIsEditing(false);
 
       const updated = await axios.get(
-        ` https://server-backend-nu.vercel.app/getEmployee/${employee._id || empId}`,
+        `https://server-backend-nu.vercel.app/getEmployee/${employee._id || empId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
 
       setEmployee(updated.data);
@@ -513,7 +513,7 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
   const handlePermanentDelete = async (id) => {
     if (
       !window.confirm(
-        "⚠️ Are you sure you want to permanently delete this employee? This action cannot be undone."
+        "⚠️ Are you sure you want to permanently delete this employee? This action cannot be undone.",
       )
     )
       return;
@@ -524,7 +524,7 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
         `https://server-backend-nu.vercel.app/deleteEmployee/${id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
 
       if (res.data.success) {
@@ -887,7 +887,7 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
                       className="form-control bg-light border-0"
                       max={
                         new Date(
-                          new Date().setFullYear(new Date().getFullYear() - 18)
+                          new Date().setFullYear(new Date().getFullYear() - 18),
                         )
                           .toISOString()
                           .split("T")[0]

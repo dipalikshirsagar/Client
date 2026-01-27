@@ -17,7 +17,7 @@
 //     const verifyToken = async () => {
 //       try {
 //         const res = await axios.get(
-//           ` https://server-backend-nu.vercel.app/employee/verify/${id}/${token}`
+//           `https://server-backend-nu.vercel.app/employee/verify/${id}/${token}`
 //         );
 //         if (res.data.success) setValidLink(true);
 //       } catch (err) {
@@ -38,7 +38,7 @@
 
 //     try {
 //       const res = await axios.post(
-//         ` https://server-backend-nu.vercel.app/employee/set-password`,
+//         `https://server-backend-nu.vercel.app/employee/set-password`,
 //         { id, token, password }
 //       );
 //       setMessage(res.data.message);
@@ -124,7 +124,7 @@ const EmployeeVerify = () => {
     const verifyToken = async () => {
       try {
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/employee/verify/${id}/${token}`
+          `https://server-backend-nu.vercel.app/employee/verify/${id}/${token}`,
         );
         if (res.data.success) setValidLink(true);
       } catch (err) {
@@ -146,7 +146,7 @@ const EmployeeVerify = () => {
     try {
       const res = await axios.post(
         `https://server-backend-nu.vercel.app/employee/set-password`,
-        { id, token, password }
+        { id, token, password },
       );
       setMessage(res.data.message);
       setTimeout(() => navigate("/login"), 2000);
