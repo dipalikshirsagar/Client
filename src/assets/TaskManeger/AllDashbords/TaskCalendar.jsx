@@ -318,7 +318,7 @@ function TaskCalendar({ employeeId }) {
   }, [isAnyPopupOpen]);
   return (
     <div
-      className="card shadow-sm mt-2 border-0"
+      className="card shadow-sm mt-2 border-0 bg-white"
       style={{ borderRadius: "12px", width: "100%", maxHeight: "auto" }}
     >
       <h4
@@ -357,7 +357,7 @@ function TaskCalendar({ employeeId }) {
       />
 
       <div
-        className="d-flex justify-content-center flex-wrap"
+        className="d-flex justify-content-center flex-wrap mb-1 mt-1"
         style={{ gap: "15px" }}
       >
         <span>
@@ -474,7 +474,7 @@ function TaskCalendar({ employeeId }) {
                               Status
                             </div>
                             <div className="col-8" style={{ color: "#212529" }}>
-                              <span style={getStatusStyle(task.status.name)}>
+                              <span >
                                 {task.status.name}
                               </span>
                             </div>
@@ -545,59 +545,76 @@ function TaskCalendar({ employeeId }) {
       )}
 
       {/* if no task for today*/}
-      {showNoTaskModal && selectedDate && (
-        <div
-          className="modal fade show"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "rgba(0,0,0,0.5)",
-            position: "fixed",
-            inset: 0,
-            zIndex: 1050,
-          }}
-          onClick={closeModal}
-        >
-          <div
-            className="modal-dialog"
-            style={{ maxWidth: "500px", width: "95%", marginTop: "100px" }}
+      {/* if no task for today*/}
+      {/* //snehal added code 28-01-2023  */}
+    
+                      {showNoTaskModal && selectedDate && (
+                 <div className="modal fade show"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      background: "rgba(0,0,0,0.5)",
+                      position: "fixed",
+                      inset: 0,
+                      zIndex: 1050,
+                    }}
+                    onClick={closeModal}
+                  >
+                   
+                     <div
+            className="modal-dialog "
+            style={{ maxWidth: "650px", width: "95%", marginTop: "100px" }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="modal-content">
-              <div
-                className="modal-header text-white"
-                style={{ backgroundColor: "#3A5FBE" }}
-              >
-                <h5 className="modal-title mb-0">
-                  {selectedDate.toLocaleDateString("en-US", {
-                    weekday: "long",
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </h5>
-                <button
-                  type="button"
-                  className="btn-close btn-close-white"
-                  onClick={closeModal}
-                />
-              </div>
+                     
+                       <div className="modal-content">
+        {/* HEADER */}
+        <div
+          className="modal-header text-white"
+          style={{ backgroundColor: "#3A5FBE" }}
+        >
+          <h5 className="modal-title mb-0">
+                         {selectedDate.toLocaleDateString("en-US", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </h5>
+          <button
+            type="button"
+            className="btn-close btn-close-white"
+            onClick={closeModal}
+          />
+        </div>
 
-              <div className="modal-body text-center py-5">
-                <div className="no-task-icon mb-3">
-                  <i
-                    className="bi bi-calendar-check"
-                    style={{ fontSize: "3rem", color: "#3A5FBE" }}
-                  ></i>
-                </div>
-                <h5 style={{ color: "#3A5FBE" }}>No Tasks</h5>
-                <p className="text-muted">
-                  You have no tasks assigned for this date.
-                </p>
-              </div>
+                      {/* BODY */}
+                      <div className="modal-body text-center py-5">
+                        <div
+                          style={{
+                            width: "60px",
+                            height: "60px",
+                            margin: "0 auto 15px",
+                            borderRadius: "12px",
+                            border: "2px solid #3A5FBE",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <span style={{ fontSize: "26px", color: "#edf0f7" }}>✔</span>
+                        </div>
 
-              <div className="modal-footer border-0 pt-0">
+                        <h4 style={{ color: "#3A5FBE", marginBottom: "8px" }}>No Tasks</h4>
+                        <p style={{ color: "#6c757d", margin: 0 }}>
+                          You have no tasks assigned for this date.
+                        </p>
+                      </div>
+
+                      {/* FOOTER */}
+                      
+                      <div className="modal-footer border-0 pt-0">
                 <button
                   className="btn btn-sm custom-outline-btn"
                   style={{ minWidth: 90 }}
@@ -606,10 +623,11 @@ function TaskCalendar({ employeeId }) {
                   Close
                 </button>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+         {/* //snehal added code 28-01-2023  */}
     </div>
   );
 }

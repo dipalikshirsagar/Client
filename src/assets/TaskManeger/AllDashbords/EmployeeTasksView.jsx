@@ -148,12 +148,14 @@ function EmployeeTasksView({ selectedEmployee, allTasks, onBack }) {
             <div className="d-flex gap-2 ms-auto">
               <button
                 className="btn btn-sm custom-outline-btn"
+                style={{ minWidth: "90px" }}
                 onClick={handleFilter}
               >
                 Filter
               </button>
               <button
                 className="btn btn-sm custom-outline-btn"
+                style={{ minWidth: "90px" }}
                 onClick={handleReset}
               >
                 Reset
@@ -291,7 +293,10 @@ function EmployeeTasksView({ selectedEmployee, allTasks, onBack }) {
 
       {/* Inline Pagination */}
       <div className="d-flex justify-content-end mt-3">
-        <nav className="d-flex align-items-center justify-content-end text-muted">
+        <nav
+          className="d-flex align-items-center justify-content-end text-muted"
+          style={{ userSelect: "none" }}
+        >
           <div className="d-flex align-items-center gap-3">
             <div className="d-flex align-items-center">
               <span
@@ -333,6 +338,7 @@ function EmployeeTasksView({ selectedEmployee, allTasks, onBack }) {
                 type="button"
                 onClick={() => goTo(taskPage - 1)}
                 disabled={isPrevDisabled}
+                onMouseDown={(e) => e.preventDefault()}
                 style={{
                   fontSize: "18px",
                   padding: "2px 8px",
@@ -347,6 +353,7 @@ function EmployeeTasksView({ selectedEmployee, allTasks, onBack }) {
                 type="button"
                 onClick={() => goTo(taskPage + 1)}
                 disabled={isNextDisabled}
+                onMouseDown={(e) => e.preventDefault()}
                 style={{
                   fontSize: "18px",
                   padding: "2px 8px",

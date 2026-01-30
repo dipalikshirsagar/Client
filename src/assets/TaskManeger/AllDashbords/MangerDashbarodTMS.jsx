@@ -816,7 +816,7 @@ function MangerDashbarodTMS() {
   const [formattedProjects, setFormattedProjects] = useState([]);
   const [upcomingProjects, setUpcomingProjects] = useState([]);
   const [upcomingItems, setUpcomingItems] = useState([]);
-
+  const [activeProjects, setActiveProjects] = useState([]); // ADD THIS LINE
   const [loadingEmployees, setLoadingEmployees] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
@@ -919,6 +919,56 @@ function MangerDashbarodTMS() {
         const employeesData = empRes.data.employees || [];
         const projects = projectRes.data.projects || projectRes.data.data || [];
         const teams = teamRes.data.data || teamRes.data.teams || [];
+        //////dip code
+        //  UPCOMING PROJECTS (ONLY "upcoming project")
+        const upcomingProjects = projects
+          .filter((p) => {
+            const statusValue = p.status?.name || p.status || "";
+            const statusLower = statusValue.toString().toLowerCase().trim();
+            return statusLower === "upcoming project";
+          })
+          .map((p) => ({
+            title: p.name || "—",
+            startDate: p.startDate,
+            status: p.status?.name || "Upcoming Project",
+          }))
+          .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+
+        //  ACTIVE PROJECTS (ONLY "on track")
+        const activeProjectsData = projects
+          .filter((p) => {
+            const statusValue = p.status?.name || p.status || "";
+            const statusLower = statusValue.toString().toLowerCase().trim();
+            return statusLower === "on track";
+          })
+          .map((p) => ({
+            title: p.name || "—",
+            dueDate: p.dueDate,
+            status: "On Track",
+          }));
+
+        // Set states
+        // setTotalEmployees(employeesData.length);
+        // setTotalProjects(projects.length);
+        // setTotalTeams(teams.length);
+        // setTotalTasks(tasks.length);
+        // setEmployees(employeesData);
+
+        setUpcomingProjects(upcomingProjects);
+        setFormattedProjects(
+          projects.map((p) => ({
+            title: p.name || "—",
+            startDate: p.startDate ?? null,
+            dueDate: p.dueDate ?? null,
+            status:
+              p.status?.name ||
+              getProjectFinalStatus(p.status?.name, p.dueDate),
+          })),
+        );
+
+        //  SET ACTIVE PROJECTS AS STATE
+
+        setActiveProjects(activeProjectsData);
 
         const formattedProjectsForUpcoming = projects.map((p) => ({
           type: "PROJECT",
@@ -928,7 +978,10 @@ function MangerDashbarodTMS() {
           lead: p.teamLeadName || "—",
           status: p.status?.name || "In Progress",
           teamSize: p.assignedEmployees?.length || 0,
+          rawProject: p,
         }));
+
+        /////
 
         const formattedTasks = tasks.map((t) => ({
           type: "TASK",
@@ -942,8 +995,17 @@ function MangerDashbarodTMS() {
         const filteredUpcomingItems = [
           ...formattedProjectsForUpcoming.filter((p) => {
             const daysLeft = getDaysLeft(p.dueDate);
-            return daysLeft !== null && daysLeft >= 0 && daysLeft <= 5;
+
+            // rutuja code start
+            const cancelled = isProjectCancelled(p.rawProject || p);
+
+            return (
+              !cancelled && daysLeft !== null && daysLeft >= 0 && daysLeft <= 5
+            );
           }),
+          // rutuja code end
+          //   return daysLeft !== null && daysLeft >= 0 && daysLeft <= 5;
+          // }),
           ...formattedTasks.filter((t) => {
             const daysLeft = getDaysLeft(t.dueDate);
             return daysLeft !== null && daysLeft >= 0 && daysLeft <= 3;
@@ -971,7 +1033,7 @@ function MangerDashbarodTMS() {
           return start > today;
         });
 
-        setUpcomingProjects(upcoming);
+        // setUpcomingProjects(upcoming);
         setUpcomingItems(filteredUpcomingItems);
 
         /* KPI COUNTS */
@@ -1023,7 +1085,7 @@ function MangerDashbarodTMS() {
     fetchAvailableEmployees();
   }, []);
 
-  const activeProjects = formattedProjects.filter((p) =>
+  const activeProjectsData = formattedProjects.filter((p) =>
     isActiveProject(p.startDate, p.dueDate),
   );
 
@@ -1045,6 +1107,16 @@ function MangerDashbarodTMS() {
     };
   }, [isAnyPopupOpen]);
 
+  const isProjectCancelled = (project) => {
+    const status = project.status?.name || project.status;
+    const statusStr = typeof status === "string" ? status.toLowerCase() : "";
+
+    const isCancelled =
+      statusStr.includes("cancelled") || project.isCancelled === true;
+
+    return isCancelled;
+  };
+
   return (
     <div className="container-fluid " style={{ marginTop: "-25px" }}>
       {/* Main Content */}
@@ -1052,7 +1124,7 @@ function MangerDashbarodTMS() {
         {/* Stats Cards Row */}
         <div className="row g-3 mb-4">
           {/* Total Employees */}
-          <div className="col-md-3">
+          <div className="col-12 col-md-4 col-lg-3">
             <div
               className="card shadow-sm h-100 border-0"
               style={{ borderRadius: "7px" }}
@@ -1099,7 +1171,7 @@ function MangerDashbarodTMS() {
           </div>
 
           {/* Total Projects */}
-          <div className="col-md-3">
+          <div className="col-12 col-md-4 col-lg-3">
             <div
               className="card shadow-sm h-100 border-0"
               style={{ borderRadius: "7px" }}
@@ -1113,7 +1185,7 @@ function MangerDashbarodTMS() {
                     className="mb-0"
                     style={{
                       fontSize: "32px",
-                      backgroundColor: "rgba(249, 115, 22, 0.13)",
+                      backgroundColor: "#FFB3B3",
                       minWidth: "70px",
                       minHeight: "70px",
                       display: "flex",
@@ -1144,7 +1216,7 @@ function MangerDashbarodTMS() {
           </div>
 
           {/* Total Teams */}
-          <div className="col-md-3">
+          <div className="col-12 col-md-4 col-lg-3">
             <div
               className="card shadow-sm h-100 border-0"
               style={{ borderRadius: "7px" }}
@@ -1158,7 +1230,7 @@ function MangerDashbarodTMS() {
                     className="mb-0"
                     style={{
                       fontSize: "32px",
-                      backgroundColor: "rgba(250, 204, 21, 0.13)",
+                      backgroundColor: "#FFE493",
                       minWidth: "70px",
                       minHeight: "70px",
                       display: "flex",
@@ -1189,7 +1261,7 @@ function MangerDashbarodTMS() {
           </div>
 
           {/* Total Assigned Tasks */}
-          <div className="col-md-3">
+          <div className="col-12 col-md-4 col-lg-3">
             <div
               className="card shadow-sm h-100 border-0"
               style={{ borderRadius: "7px" }}
@@ -1203,7 +1275,7 @@ function MangerDashbarodTMS() {
                     className="mb-0"
                     style={{
                       fontSize: "32px",
-                      backgroundColor: "rgba(139, 92, 246, 0.13)",
+                      backgroundColor: "#D7F5E4",
                       minWidth: "70px",
                       minHeight: "70px",
                       display: "flex",
@@ -1686,7 +1758,7 @@ function UpcomingProject({ name, startDate }) {
           background: "#0dcaf0",
         }}
       >
-        Upcoming
+        Upcoming Project
       </span>
     </div>
   );

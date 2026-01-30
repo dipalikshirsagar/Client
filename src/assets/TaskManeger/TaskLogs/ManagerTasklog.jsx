@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import "./Tasklog.css";
 
@@ -34,6 +34,55 @@ const ManagerTasklog = ({ user }) => {
 
   const closeWorkloadView = () => {
     setSelectedWorkload(null);
+  };
+
+  const viewPopupRef = useRef(null);
+  const workloadPopupRef = useRef(null);
+  const approvePopupRef = useRef(null);
+
+  useEffect(() => {
+    if (viewOpen && viewPopupRef.current) {
+      viewPopupRef.current.focus();
+    }
+  }, [viewOpen]);
+
+  useEffect(() => {
+    if (selectedWorkload && workloadPopupRef.current) {
+      workloadPopupRef.current.focus();
+    }
+  }, [selectedWorkload]);
+
+  useEffect(() => {
+    if (approveOpen && approvePopupRef.current) {
+      approvePopupRef.current.focus();
+    }
+  }, [approveOpen]);
+
+  const trapFocus = (ref) => (e) => {
+    if (!ref.current) return;
+
+    const focusableElements = ref.current.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+
+    if (!focusableElements.length) return;
+
+    const first = focusableElements[0];
+    const last = focusableElements[focusableElements.length - 1];
+
+    if (e.key === "Tab") {
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
   };
 
   // rutuja code end
@@ -267,7 +316,7 @@ const ManagerTasklog = ({ user }) => {
           textAlign: "center",
           color: "#0f5132",
         };
-      case "InProgress":
+      case "In Progress":
         return {
           backgroundColor: "#d1e7ff",
           padding: "7px 16px",
@@ -376,14 +425,13 @@ const ManagerTasklog = ({ user }) => {
   };
   useEffect(() => {
     handleFilter();
-  }, [logs, searchText, filterDate]);
+  }, [logs,  filterDate]);
   console.log("data", filteredLogs);
 
   const handleReset = () => {
     setSearchText("");
     setFilterDate("");
-    setFilterEmployee("");
-    setFilteredLogs([]);
+    setFilteredLogs(logs);
   };
 
   // rutuja code start
@@ -540,76 +588,137 @@ const ManagerTasklog = ({ user }) => {
     };
   }, [isAnyPopupOpen]);
   return (
-    <div style={{ padding: 20, background: "#f7f9fc", minHeight: "auto" }}>
-      <h3 style={{ color: "#3A5FBE", marginBottom: 20 }}>
-        {activeTab === "task" ? "Task Log" : "Work Load"}
-      </h3>
+     <div className="container-fluid">
+      <style>
+      {`
+      @media (max-width: 768px) {
+        input[type="date"],
+        input[type="week"],
+        input[type="month"],
+        input[type="search"],
+          input[type="filter"] {
+          font-size: 16px !important;
+          height: 40px !important;
+          width: 268px !important;
+
+          max-width: 285px !important;
+        }
+      }
+      `}
+      </style>
+      <h4 className=" mb-4"style={{ color: "#3A5FBE", fontSize: "25px" }}>
+        {activeTab === "task" ? "Task Logs" : "Work Load"}
+      </h4>
 
       {/* SEARCH / FILTER BAR */}
       {activeTab === "task" && (
         <div
+          className="shadow-sm"
           style={{
             display: "flex",
-            justifyContent: "space-between",
             alignItems: "center",
-            gap: 12,
-            padding: "20px",
+            justifyContent: "space-between",
+            gap: 14,
+            padding: 16,
             background: "#fff",
-            marginBottom: "20px",
+            marginBottom: 18,
             flexWrap: "wrap",
-            ...(isMobile && {
-              flexDirection: "row",
-              flexWrap: "wrap",
-            }),
           }}
         >
-          {/* LEFT SIDE */}
           <div
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 12,
+              gap: 14,
               flexWrap: "wrap",
+              flex: "1 1 auto",
               minWidth: 0,
             }}
           >
-            <b style={{ color: "#3A5FBE", whiteSpace: "nowrap" }}>
-              Search by any field
-            </b>
-
-            <input
-              placeholder="Search by any fe..."
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
+            <div 
               style={{
-                width: 280,
-                padding: "10px 14px",
-                borderRadius: 8,
-                border: "1px solid #ddd",
-                height: "40px",
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                flexWrap: "nowrap",
               }}
-            />
+            >
+              <b
+                style={{
+                  color: "#3A5FBE",
+                  width: 55,
+                  minWidth: 55,
+                  textAlign: "left",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Search
+              </b>
 
-            <b style={{ whiteSpace: "nowrap", color: "#3A5FBE" }}>
-              Filter by date
-            </b>
+              <input
+                className="form-control"
+                placeholder="Search By Any Field..."
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                type="search"
+                style={{
+                  width: 220,
+                  minWidth: 220,
+                  padding: "10px 14px",
+                  borderRadius: 8,
+                  // border: "1px solid #ddd",
+                  height: 40,
+                }}
+              />
+            </div>
 
-            <input
-              type="date"
-              value={filterDate}
-              onChange={(e) => setFilterDate(e.target.value)}
+            <div
               style={{
-                width: 280,
-                padding: "10px 14px",
-                borderRadius: 8,
-                border: "1px solid #ddd",
-                height: "40px",
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                flexWrap: "nowrap",
               }}
-            />
+            >
+              <b
+                style={{
+                  color: "#3A5FBE",
+                  width: 55,
+                  minWidth: 55,
+                  textAlign: "left",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Filter
+              </b>
+
+              <input
+                className="form-control"
+                type="date"
+                value={filterDate}
+                onChange={(e) => setFilterDate(e.target.value)}
+                style={{
+                  width: 220,
+                  minWidth: 220,
+                  padding: "10px 14px",
+                  borderRadius: 8,
+                  // border: "1px solid #ddd",
+                  height: 40,
+                }}
+              />
+            </div>
           </div>
 
-          {/* RIGHT SIDE BUTTONS */}
-          <div style={{ display: "flex", gap: 12 }}>
+          <div
+            style={{
+              display: "flex",
+              gap: 10,
+              flexWrap: "wrap",
+              marginLeft: "auto",
+              justifyContent: "flex-end",
+              alignItems: "center",
+            }}
+          >
             <button
               onClick={handleFilter}
               className="btn btn-sm custom-outline-btn"
@@ -631,48 +740,48 @@ const ManagerTasklog = ({ user }) => {
 
       {activeTab === "work" && (
         <div
+          className="shadow-sm"
           style={{
             display: "flex",
-            justifyContent: "space-between",
             alignItems: "center",
-            gap: 12,
-            padding: "20px",
+            justifyContent: "space-between",
+            gap: 14,
+            padding: 16,
             background: "#fff",
-            marginBottom: "20px",
+            marginBottom: 18,
             flexWrap: "wrap",
-            ...(isMobile && {
-              flexDirection: "row",
-              flexWrap: "wrap",
-            }),
           }}
         >
-          {/* LEFT SIDE */}
+          {/* LEFT */}
           <div
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 10,
-              flexWrap: "nowrap",
+              gap: 14,
+              flexWrap: "wrap",
+              flex: "1 1 auto",
               minWidth: 0,
             }}
           >
+            {/* Date */}
             <div
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: 6,
-                whiteSpace: "nowrap",
+                gap: 10,
+                flexWrap: "nowrap",
               }}
             >
-              <span
+              <b
                 style={{
                   color: "#3A5FBE",
-                  fontWeight: "bold",
-                  fontSize: "14px",
+                  width: 50,
+                  minWidth: 50,
+                  whiteSpace: "nowrap",
                 }}
               >
-                Workload by date
-              </span>
+                Date
+              </b>
               <input
                 type="date"
                 value={workloadDate}
@@ -682,33 +791,35 @@ const ManagerTasklog = ({ user }) => {
                   setWorkloadMonth("");
                 }}
                 style={{
-                  width: 150,
-                  padding: "8px 10px",
-                  borderRadius: 6,
+                  width: isMobile ? 220 : 130,
+                  minWidth: isMobile ? 180 : 220,
+                  padding: "10px 14px",
+                  borderRadius: 8,
                   border: "1px solid #ddd",
-                  height: "40px",
-                  fontSize: "14px",
+                  height: 40,
                 }}
               />
             </div>
 
+            {/* Week */}
             <div
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: 6,
-                whiteSpace: "nowrap",
+                gap: 10,
+                flexWrap: "nowrap",
               }}
             >
-              <span
+              <b
                 style={{
                   color: "#3A5FBE",
-                  fontWeight: "bold",
-                  fontSize: "14px",
+                  width: 50,
+                  minWidth: 50,
+                  whiteSpace: "nowrap",
                 }}
               >
-                Workload by week
-              </span>
+                Week
+              </b>
               <input
                 type="week"
                 value={workloadWeek}
@@ -718,33 +829,35 @@ const ManagerTasklog = ({ user }) => {
                   setWorkloadMonth("");
                 }}
                 style={{
-                  width: 150,
-                  padding: "8px 10px",
-                  borderRadius: 6,
+                  width: 220,
+                  minWidth: isMobile ? 180 : 220,
+                  padding: "10px 14px",
+                  borderRadius: 8,
                   border: "1px solid #ddd",
-                  height: "40px",
-                  fontSize: "14px",
+                  height: 40,
                 }}
               />
             </div>
 
+            {/* Month */}
             <div
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: 6,
-                whiteSpace: "nowrap",
+                gap: 10,
+                flexWrap: "nowrap",
               }}
             >
-              <span
+              <b
                 style={{
                   color: "#3A5FBE",
-                  fontWeight: "bold",
-                  fontSize: "14px",
+                  width: 50,
+                  minWidth: 50,
+                  whiteSpace: "nowrap",
                 }}
               >
-                Workload by month
-              </span>
+                Month
+              </b>
               <input
                 type="month"
                 value={workloadMonth}
@@ -754,27 +867,35 @@ const ManagerTasklog = ({ user }) => {
                   setWorkloadWeek("");
                 }}
                 style={{
-                  width: 150,
-                  padding: "8px 10px",
-                  borderRadius: 6,
+                  width: 220,
+                  minWidth: isMobile ? 180 : 220,
+                  padding: "10px 14px",
+                  borderRadius: 8,
                   border: "1px solid #ddd",
-                  height: "40px",
-                  fontSize: "14px",
+                  height: 40,
                 }}
               />
             </div>
           </div>
 
-          {/* RIGHT SIDE BUTTONS */}
-          <div style={{ display: "flex", gap: 12, flexShrink: 0 }}>
+          {/* RIGHT BUTTON */}
+          <div
+            style={{
+              display: "flex",
+              gap: 12,
+              marginLeft: "auto",
+              justifyContent: "flex-end",
+              alignItems: "center",
+            }}
+          >
             <button
               onClick={gettingWorkload}
               className="btn btn-sm custom-outline-btn"
-              style={{ minWidth: 90 }}
+              style={{ minWidth: 110 }}
             >
-              Filter
+              Get Workload
             </button>
-
+            {/* //Snehal COde added 29-01-2016 reset button start*/}
             <button
               onClick={handleWorkloadReset}
               className="btn btn-sm custom-outline-btn"
@@ -782,11 +903,12 @@ const ManagerTasklog = ({ user }) => {
             >
               Reset
             </button>
+     {/* //Snehal COde added 29-01-2016 reset button end*/}
           </div>
         </div>
       )}
 
-      <div className="d-flex gap-2 justify-content-end mt-3 mb-3">
+      <div className="d-flex gap-2 justify-content-center mt-3 mb-3">
         <button
           onClick={() => {
             setActiveTab("task");
@@ -816,7 +938,7 @@ const ManagerTasklog = ({ user }) => {
         <div
           style={{
             background: "#fff",
-            borderRadius: 12,
+            
             boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
             overflowX: "auto",
             minHeight: 80,
@@ -846,9 +968,9 @@ const ManagerTasklog = ({ user }) => {
                   <th
                     key={h}
                     style={{
-                      padding: "14px 16px",
+                      padding: "12px",
                       textAlign: "left",
-                      fontSize: 14,
+                      fontSize: "14px",
                       fontWeight: 600,
                       color: "#6b7280",
                       whiteSpace: "nowrap",
@@ -915,53 +1037,58 @@ const ManagerTasklog = ({ user }) => {
                       >
                         {log?.task?.taskName}
                       </td>
-                      <td style={{ padding: "14px 16px", fontSize: 14 }}>
-                        {log?.task?.dateOfTaskAssignment &&
-                        log?.task?.dateOfExpectedCompletion ? (
-                          <>
-                            {/* Period */}
-                            <div>
-                              {formatDateWithoutYear(
-                                log.task.dateOfTaskAssignment,
-                              )}{" "}
-                              →{" "}
-                              {formatDateWithoutYear(
-                                log.task.dateOfExpectedCompletion,
-                              )}
-                            </div>
+                     {/* //snehal code 28-01-2026 start*/}
+                      <td style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                    }}>
+                    {log?.task?.dateOfTaskAssignment &&
+                    log?.task?.dateOfExpectedCompletion ? (
+                      <>
+                        {/* Period */}
+                        <div>
+                          {formatDateWithoutYear(log.task.dateOfTaskAssignment)} →{" "}
+                          {formatDateWithoutYear(
+                            log.task.dateOfExpectedCompletion,
+                          )}
+                        </div>
 
-                            {/* Day badge ONLY for today's log */}
-                            {isToday(log.date) &&
-                              (() => {
-                                const dayNumber = getTaskDayNumber(
-                                  log.task.dateOfTaskAssignment,
-                                  log.task.dateOfExpectedCompletion,
-                                );
+                        {/* Day badge ONLY for today's log */}
+                        {isToday(log.date) &&
+                          (() => {
+                            const dayNumber = getTaskDayNumber(
+                              log.task.dateOfTaskAssignment,
+                              log.task.dateOfExpectedCompletion,
+                            );
 
-                                return (
-                                  dayNumber && (
-                                    <div
-                                      style={{
-                                        display: "inline-block",
-                                        marginTop: 6,
-                                        padding: "2px 8px",
-                                        borderRadius: 12,
-                                        background: "#e0ecff",
-                                        color: "#1d4ed8",
-                                        fontSize: 12,
-                                        fontWeight: 500,
-                                      }}
-                                    >
-                                      Today • Day {dayNumber}
-                                    </div>
-                                  )
-                                );
-                              })()}
-                          </>
-                        ) : (
-                          "—"
-                        )}
-                      </td>
+                            return (
+                              dayNumber && (
+                                <div
+                                  style={{
+                                    display: "inline-block",
+                                    marginTop: 6,
+                                    padding: "2px 8px",
+                                    borderRadius: 12,
+                                    background: "#e0ecff",
+                                    color: "#1d4ed8",
+                                    fontSize: 12,
+                                    fontWeight: 500,
+                                  }}
+                                >
+                                  Today • Day {dayNumber}
+                                </div>
+                              )
+                            );
+                          })()}
+                      </>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+  {/* //snehal code 28-01-2026 end */}
                       <td style={{ padding: "14px 16px", fontSize: 14 }}>
                         {log?.task?.dateOfTaskAssignment &&
                         log?.task?.dateOfExpectedCompletion
@@ -991,17 +1118,12 @@ const ManagerTasklog = ({ user }) => {
                           whiteSpace: "nowrap",
                         }}
                       >
-                        <span style={getStatusColor(log.status)}>
+                        <span >
                           {log.status}
-                          {log.status === "InProgress" && (
+                          {log.status === "In Progress"|| log.status === "InProgress" && (
                             <span
-                              style={{
-                                color: "#92400e",
-                                borderRadius: 4,
-                                padding: "2px 6px",
-                                fontSize: 11,
-                                fontWeight: 600,
-                              }}
+                            style={{marginLeft:"5px"}}
+                              
                             >
                               {log.progressToday}%
                             </span>
@@ -1075,7 +1197,9 @@ const ManagerTasklog = ({ user }) => {
       {/* VIEW POPUP updated by rutuja  */}
       {viewOpen && (
         <div
+          ref={viewPopupRef}
           tabIndex="-1"
+          onKeyDown={trapFocus(viewPopupRef)}
           className="modal fade show"
           style={{
             display: "flex",
@@ -1086,7 +1210,7 @@ const ManagerTasklog = ({ user }) => {
             inset: 0,
             zIndex: 1050,
           }}
-          onClick={() => setViewOpen(false)}
+          // onClick={() => setViewOpen(false)}  //harshada
         >
           <div
             className="modal-dialog"
@@ -1103,7 +1227,7 @@ const ManagerTasklog = ({ user }) => {
                 <button
                   type="button"
                   className="btn-close btn-close-white"
-                  onClick={() => setViewOpen(false)}
+                  onClick={() => setViewOpen(false)}  
                 />
               </div>
 
@@ -1208,18 +1332,12 @@ const ManagerTasklog = ({ user }) => {
                       Status
                     </div>
                     <div className="col-7 col-sm-9">
-                      <span style={getStatusColor(selectedRow.status)}>
+                      <span >
                         {selectedRow.status}
-                        {selectedRow.status === "InProgress" && (
+                        {selectedRow.status === "In Progress" || selectedRow.status === "InProgress" && (
                           <span
-                            style={{
-                              color: "#92400e",
-                              borderRadius: 4,
-                              padding: "2px 6px",
-                              fontSize: 11,
-                              fontWeight: 600,
-                              marginLeft: "6px",
-                            }}
+                          style={{marginLeft:"5px"}}
+                            
                           >
                             {selectedRow.progressToday}%
                           </span>
@@ -1326,7 +1444,9 @@ const ManagerTasklog = ({ user }) => {
       {/* rutuja workload modal */}
       {selectedWorkload && (
         <div
+          ref={workloadPopupRef}
           tabIndex="-1"
+          onKeyDown={trapFocus(workloadPopupRef)}
           className="modal fade show"
           style={{
             display: "flex",
@@ -1337,7 +1457,7 @@ const ManagerTasklog = ({ user }) => {
             inset: 0,
             zIndex: 1050,
           }}
-          onClick={closeWorkloadView}
+         // onClick={closeWorkloadView}   //harshada
         >
           <div
             className="modal-dialog"
@@ -1353,7 +1473,7 @@ const ManagerTasklog = ({ user }) => {
                 <button
                   type="button"
                   className="btn-close btn-close-white"
-                  onClick={closeWorkloadView}
+                  onClick={closeWorkloadView}  harshada
                 />
               </div>
 
@@ -1569,7 +1689,7 @@ const ManagerTasklog = ({ user }) => {
         <div
           style={{
             background: "#fff",
-            borderRadius: 12,
+           
             boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
             overflowX: "auto",
             minHeight: 80,
@@ -1596,9 +1716,9 @@ const ManagerTasklog = ({ user }) => {
                   <th
                     key={h}
                     style={{
-                      padding: "14px 16px",
+                      padding: "12px",
                       textAlign: "left",
-                      fontSize: 14,
+                      fontSize: "14px",
                       fontWeight: 600,
                       color: "#6b7280",
                       whiteSpace: "nowrap",

@@ -53,7 +53,19 @@ const ManagerTeamsTMS = ({ role }) => {
   //const assignRef = useRef(null);
   const teamPopupRef = useRef(null);
   const addTeamPopupRef = useRef(null);
+//snehal added 27-01-2026 start limit member name
+ const formatMemberNames = (members, limit = 3) => {
+  if (!members || members.length === 0) return "NA";
 
+  const names = members.map((emp) => emp.name);
+
+  if (names.length <= limit) {
+    return names.join(", ");
+  }
+
+  return names.slice(0, limit).join(", ") + " ...";
+};
+//snehal added 27-01-2026 start limit member name'
   useEffect(() => {
     if (selectedTeam && teamPopupRef.current) {
       teamPopupRef.current.focus();
@@ -166,7 +178,11 @@ const ManagerTeamsTMS = ({ role }) => {
           normalizeDepartment(d),
         );
         const uniqueDepartments = [...new Set(normalizedDepartments)];
-        setProjects(projectNames);
+        const filteredProjects = projectNames.filter(
+          (project) =>
+            project.status !== "Cancelled" && project.status !== "Completed",
+        );
+        setProjects(filteredProjects);
         setDepartment(uniqueDepartments);
         setEmployees(employeesNames);
       } catch (err) {
@@ -303,26 +319,43 @@ const ManagerTeamsTMS = ({ role }) => {
   //
 
   // ================= FILTER LOGIC =================
-  const applyFilters = () => {
-    if (!searchQuery.trim()) {
-      setFilteredTeams(allTeams);
-      setCurrentPage(1);
-      return;
-    }
-
-    const query = searchQuery.toLowerCase();
-
-    const result = allTeams.filter((team) => {
-      return (
-        team?.name?.toLowerCase().includes(query) ||
-        team?.department?.toLowerCase().includes(query) ||
-        String(team?.assignToProject?.length || "").includes(query)
-      );
-    });
-
-    setFilteredTeams(result);
+ const applyFilters = () => {
+  if (!searchQuery.trim()) {
+    setFilteredTeams(allTeams);
     setCurrentPage(1);
-  };
+    return;
+  }
+
+  const query = searchQuery.toLowerCase();
+
+  const result = allTeams.filter((team) => {
+    const teamName = team?.name?.toLowerCase() || "";
+    const department = team?.department?.toLowerCase() || "";
+    const projectName = team?.project?.name?.toLowerCase() || "";
+const projectStatus = team?.project?.status?.toLowerCase() || "";
+
+
+    const memberNames = Array.isArray(team?.assignToProject)
+      ? team.assignToProject
+          .map((emp) => emp?.name?.toLowerCase())
+          .join(" ")
+      : "";
+
+    const totalMembers = String(team?.assignToProject?.length || "");
+
+    return (
+      teamName.includes(query) ||
+      department.includes(query) ||
+      projectName.includes(query) ||
+      projectStatus.includes(query)||
+      memberNames.includes(query) ||
+      totalMembers.includes(query)
+    );
+  });
+
+  setFilteredTeams(result);
+  setCurrentPage(1);
+};
 
   const resetFilters = () => {
     setSearchQuery("");
@@ -372,6 +405,7 @@ const ManagerTeamsTMS = ({ role }) => {
       await axios.delete(`https://server-backend-nu.vercel.app/api/teams/${id}`);
       setAllTeams((prev) => prev.filter((t) => t._id !== id));
       setFilteredTeams((prev) => prev.filter((t) => t._id !== id));
+      alert("Team deleted Successfully!!");
     } catch (error) {
       alert("Failed to delete task");
       console.log("error", error.message);
@@ -488,7 +522,7 @@ const ManagerTeamsTMS = ({ role }) => {
 
       <div className="row g-3 mb-4">
         {taskStats.map((task, i) => (
-          <div className="col-12 col-md-3" key={i}>
+          <div className="col-12 col-md-6 col-lg-3" key={i}>
             <div className="card shadow-sm h-100 border-0">
               <div
                 className="card-body d-flex align-items-center"
@@ -533,13 +567,13 @@ const ManagerTeamsTMS = ({ role }) => {
             onSubmit={handleFilterSubmit}
             style={{ justifyContent: "space-between" }}
           >
-            <div className="d-flex align-items-center gap-2 flex-grow-1 flex-md-grow-0 w-md-100">
+            <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
               <label className="fw-bold mb-0" style={{ color: "#3A5FBE" }}>
                 Search
               </label>
               <input
                 className="form-control"
-                placeholder="Search by any field..."
+                placeholder="Search By Any Field..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={handleSearchKeyPress}
@@ -547,10 +581,11 @@ const ManagerTeamsTMS = ({ role }) => {
             </div>
 
             <div className="col-auto ms-auto d-flex gap-2">
-              <button className="btn btn-sm custom-outline-btn">Filter</button>
+              <button className="btn btn-sm custom-outline-btn" style={{minWidth:"90px"}}>Filter</button>
               <button
                 type="button"
                 className="btn btn-sm custom-outline-btn"
+                style={{minWidth:"90px"}}
                 onClick={resetFilters}
               >
                 Reset
@@ -923,6 +958,18 @@ const ManagerTeamsTMS = ({ role }) => {
                 >
                   Project Name
                 </th>
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Project Status
+                </th>
 
                 {/* <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Team Lead</th> */}
                 <th
@@ -980,7 +1027,7 @@ const ManagerTeamsTMS = ({ role }) => {
               {currentTeams.length === 0 ? (
                 <tr>
                   <td
-                    colSpan="4"
+                    colSpan="7"
                     className="text-center py-4"
                     style={{ color: "#212529" }}
                   >
@@ -991,8 +1038,17 @@ const ManagerTeamsTMS = ({ role }) => {
                 currentTeams.map((team) => (
                   <tr
                     key={team._id}
-                    onClick={() => handleRowClick(team)}
-                    style={{ cursor: "pointer" }}
+                    onClick={() => {
+                      if (team?.project?.status === "Cancelled") return;
+                      handleRowClick(team);
+                    }}
+                    style={{
+                      cursor:
+                        team?.project?.status === "Cancelled"
+                          ? "not-allowed"
+                          : "pointer",
+                      opacity: team?.project?.status === "Cancelled" ? 0.6 : 1,
+                    }}
                   >
                     <td
                       style={{
@@ -1031,6 +1087,20 @@ const ManagerTeamsTMS = ({ role }) => {
                       }}
                     >
                       <span className="fw-normal">
+                        {team?.project?.status || "-"}
+                      </span>
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                        color: "#212529",
+                      }}
+                    >
+                      <span className="fw-normal">
                         {team?.department || "-"}
                       </span>
                     </td>
@@ -1045,11 +1115,15 @@ const ManagerTeamsTMS = ({ role }) => {
                       }}
                     >
                       <span className="fw-normal">
-                        {team?.assignToProject?.length > 0
+                        {/* {team?.assignToProject?.length > 0
                           ? team.assignToProject
                               .map((emp) => emp.name)
                               .join(", ")
-                          : "NA"}
+                          : "NA"} */}
+                          {/* //Snehal added 27-01-2026 member name */}
+                         {formatMemberNames(team?.assignToProject)}
+                            {/* //Snehal added 27-01-2026 member name */}
+
                       </span>
                     </td>
                     <td
@@ -1072,6 +1146,10 @@ const ManagerTeamsTMS = ({ role }) => {
                         <div className="d-flex gap-2">
                           <button
                             className="btn btn-sm custom-outline-btn"
+                            disabled={
+                              team?.project?.status === "Completed" ||
+                              team?.project?.status === "Cancelled"
+                            }
                             onClick={(e) => {
                               e.stopPropagation();
                               handleEditTeam(team);
@@ -1082,6 +1160,10 @@ const ManagerTeamsTMS = ({ role }) => {
 
                           <button
                             className="btn btn-sm btn-outline-danger"
+                            disabled={
+                              team?.project?.status === "Completed" ||
+                              team?.project?.status === "Cancelled"
+                            }
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDeleteTeam(team._id);
@@ -1101,7 +1183,10 @@ const ManagerTeamsTMS = ({ role }) => {
       </div>
 
       {/* Pagination */}
-      <nav className="d-flex align-items-center justify-content-end mt-3 text-muted">
+      <nav
+        className="d-flex align-items-center justify-content-end mt-3 text-muted"
+        style={{ userSelect: "none" }}
+      >
         <div className="d-flex align-items-center gap-3">
           <div className="d-flex align-items-center">
             <span
@@ -1141,6 +1226,7 @@ const ManagerTeamsTMS = ({ role }) => {
             <button
               className="btn btn-sm focus-ring "
               onClick={() => handlePageChange(currentPage - 1)}
+              onMouseDown={(e) => e.preventDefault()}
               disabled={currentPage === 1}
               style={{ fontSize: "18px", padding: "2px 8px", color: "#212529" }}
             >
@@ -1149,6 +1235,7 @@ const ManagerTeamsTMS = ({ role }) => {
             <button
               className="btn btn-sm focus-ring "
               onClick={() => handlePageChange(currentPage + 1)}
+              onMouseDown={(e) => e.preventDefault()}
               disabled={currentPage === totalPages}
               style={{ fontSize: "18px", padding: "2px 8px", color: "#212529" }}
             >
@@ -1278,16 +1365,19 @@ const ManagerTeamsTMS = ({ role }) => {
               </div>
 
               <div className="modal-footer border-0 pt-0">
-                <button
-                  className="btn btn-sm custom-outline-btn"
-                  style={{ minWidth: 90 }}
-                  onClick={() => {
-                    setSelectedTeam(null);
-                    handleEditTeam(selectedTeam);
-                  }}
-                >
-                  Edit
-                </button>
+                {selectedTeam?.project.status !== "Completed" && (
+                  <button
+                    className="btn btn-sm custom-outline-btn"
+                    style={{ minWidth: 90 }}
+                    onClick={() => {
+                      setSelectedTeam(null);
+                      handleEditTeam(selectedTeam);
+                    }}
+                  >
+                    Edit
+                  </button>
+                )}
+
                 <button
                   className="btn btn-sm custom-outline-btn"
                   style={{ minWidth: 90 }}

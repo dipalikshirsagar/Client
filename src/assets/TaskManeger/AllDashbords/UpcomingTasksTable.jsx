@@ -174,7 +174,7 @@ function UpcomingTasksTable({ upcomingTasks, allEmployees, onClose }) {
         >
           Upcoming Tasks (Next 7 days)
         </h5>
-        <button className="btn btn-sm custom-outline-btn" onClick={onClose}>
+        <button className="btn btn-sm custom-outline-btn" style={{ minWidth: 90 }} onClick={onClose}>
           Close
         </button>
       </div>
@@ -197,7 +197,7 @@ function UpcomingTasksTable({ upcomingTasks, allEmployees, onClose }) {
               <input
                 type="text"
                 className="form-control form-control-sm"
-                placeholder="Search by any field..."
+                placeholder="Search By Any Field..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => {
@@ -219,12 +219,13 @@ function UpcomingTasksTable({ upcomingTasks, allEmployees, onClose }) {
               </button>
               <button
                 className="btn btn-sm custom-outline-btn"
+                 style={{minWidth:"90px"}}
                 onClick={handleFilter}
               >
                 Filter
               </button>
               <button
-                className="btn btn-sm custom-outline-btn"
+                className="btn btn-sm custom-outline-btn"  style={{minWidth:"90px"}}
                 onClick={handleReset}
               >
                 Reset
@@ -370,42 +371,35 @@ function UpcomingTasksTable({ upcomingTasks, allEmployees, onClose }) {
       {showPopup && selectedUpcomingTasks && (
         <div
           ref={popupRef}
-          tabIndex="-1"
+          tabIndex="0"
           autoFocus
           onKeyDown={trapFocus}
-          className="popup-overlay"
+          className="modal fade show"
           style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.5)",
             position: "fixed",
             inset: 0,
-            background: "rgba(0,0,0,0.5)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 1000,
-            padding: "20px",
+            zIndex: 1050,
           }}
         >
+          
           <div
-            className="popup-box bg-white p-4 shadow"
-            style={{
-              width: "600px",
-              borderRadius: "10px",
-              maxHeight: "68vh",
-              overflowY: "auto",
-            }}
+            className="modal-dialog"
+            style={{ maxWidth: "650px", width: "95%" }}
+          >
+          <div
+            className="modal-content"
+            
           >
             {/* HEADER */}
             <div
-              className="modal-header"
-              style={{
-                backgroundColor: "#3A5FBE",
-                padding: "10px",
-                color: "#fff",
-                margin: "-25px -24px 15px -24px",
-                borderTopLeftRadius: "10px",
-              }}
+              className="modal-header text-white"
+              style={{ backgroundColor: "#3A5FBE" }}
             >
-              <h5 className="fw-bold">Upcoming Tasks Details</h5>
+              <h5 className="modal-title mb-0">Upcoming Tasks Details</h5>
               <button
                 className="btn-close btn-close-white"
                 onClick={() => setShowPopup(false)}
@@ -413,37 +407,42 @@ function UpcomingTasksTable({ upcomingTasks, allEmployees, onClose }) {
             </div>
 
             {/* DETAILS (VIEW ONLY) */}
-            <div className="mb-2 row">
-              <label className="col-4 fw-semibold">Task</label>
-              <div className="col-8">{selectedUpcomingTasks.title}</div>
+            <div className="modal-body">
+                <div className="container-fluid">
+            <div className="row mb-2">
+              <div  className="col-5 col-sm-3 fw-semibold">Task</div>
+              <div  className="col-7 col-sm-9">{selectedUpcomingTasks.title}</div>
             </div>
 
-            <div className="mb-2 row">
-              <label className="col-4 fw-semibold">Employee Name</label>
-              <div className="col-8"> {selectedEmployee?.name ?? "-"}</div>
+            <div className="row mb-2">
+              <div className="col-5 col-sm-3 fw-semibold">Employee Name</div>
+              <div className="col-7 col-sm-9"> {selectedEmployee?.name ?? "-"}</div>
             </div>
 
-            <div className="mb-2 row">
-              <label className="col-4 fw-semibold">Project</label>
-              <div className="col-8">{selectedUpcomingTasks.project}</div>
+            <div className="row mb-2">
+              <div className="col-5 col-sm-3 fw-semibold">Project</div>
+              <div className="col-7 col-sm-9">{selectedUpcomingTasks.project}</div>
             </div>
 
-            <div className="mb-2 row">
-              <label className="col-4 fw-semibold">Due Date</label>
-              <div className="col-8">
-                {formatDate(selectedUpcomingTasks.dueDate)}
+            <div className="row mb-2">
+              <div className="col-5 col-sm-3 fw-semibold">Due Date</div>
+              <div className="col-7 col-sm-9">
+{formatDate(selectedUpcomingTasks.dueDate)}
               </div>
             </div>
-
+</div>
+</div>
             {/* CLOSE BUTTON */}
-            <div className="d-flex justify-content-end mt-3">
+            <div className="modal-footer border-0 pt-0">
               <button
                 className="btn btn-sm custom-outline-btn"
+                style={{ minWidth: 90 }}
                 onClick={() => setShowPopup(false)}
               >
                 Close
               </button>
             </div>
+          </div>
           </div>
         </div>
       )}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo,useRef } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import axios from "axios";
 
 function AdminTypeOfStatus() {
@@ -12,8 +12,16 @@ function AdminTypeOfStatus() {
   const [editId, setEditId] = useState(null);
 
   const [errors, setErrors] = useState({});
+  //Added by harshada 27-01-2026
+  const [showPopup, setShowPopup] = useState(false);
+  const [selectedProject, setSelectedProject] = useState(null);
 
-  // 🔹 Fetch all statuses
+  //Added by harshada 27-01-2026
+  const handleRowClick = (s) => {
+    setSelectedProject(s);
+    setShowPopup(true);
+  };
+  //  Fetch all statuses
   const fetchStatuses = async () => {
     try {
       const res = await axios.get("https://server-backend-nu.vercel.app/taskstatus/all");
@@ -69,7 +77,7 @@ function AdminTypeOfStatus() {
         name: newName.trim(),
         description: newDesc?.trim() || "",
       });
-
+      alert("Status name updated successfully");
       // Reset & close modal
       setShowModal(false);
       setIsEditMode(false);
@@ -90,7 +98,7 @@ function AdminTypeOfStatus() {
 
     try {
       await axios.delete(`https://server-backend-nu.vercel.app/taskstatus/delete/${id}`);
-
+      alert("Task status deleted successfully");
       fetchStatuses(); // refresh list
     } catch (error) {
       alert(error?.response?.data?.message || "Failed to delete status");
@@ -114,7 +122,7 @@ function AdminTypeOfStatus() {
         name: newName,
         description: newDesc,
       });
-
+     alert("Task status created successfully");
       setNewName("");
       setNewDesc("");
       setShowModal(false);
@@ -197,7 +205,7 @@ function AdminTypeOfStatus() {
     >
       {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h4 className="mb-0" style={{ color: "#3A5FBE" }}>
+        <h4 className="mb-0" style={{ color: "#3A5FBE",fontSize:"25px" }}>
           Status
         </h4>
         <button
@@ -246,12 +254,22 @@ function AdminTypeOfStatus() {
                 >
                   Description
                 </th>
-                <th style={{ width: "140px" }}>Action</th>
+                <th style={{ fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                    maxWidth: "220px",width: "140px" }}>Action</th>
               </tr>
             </thead>
             <tbody>
               {paginatedStatuses.map((s) => (
-                <tr key={s._id}>
+                <tr
+                  key={s._id}
+                  onClick={() => handleRowClick(s)}
+                  style={{ cursor: "pointer" }}
+                >
                   <td style={{ fontWeight: 500 }}>{s.name}</td>
                   <td className="text-muted" style={{ fontSize: "14px" }}>
                     {s.description || "-"}
@@ -259,7 +277,7 @@ function AdminTypeOfStatus() {
                   <td>
                     <div className="d-flex gap-2">
                       <button
-                        className="btn  custom-outline-btn"
+                        className="btn btn-sm custom-outline-btn"
                         onClick={(e) => {
                           e.stopPropagation();
                           openEdit(s);
@@ -293,8 +311,82 @@ function AdminTypeOfStatus() {
           </table>
         </div>
       </div>
+      {/* //added by harshada 27-01-2026 */}
+
+      {showPopup && selectedProject && (
+        <div
+          ref={popupRef}
+          tabIndex="-1"
+          autoFocus
+          onKeyDown={trapFocus}
+          className="popup-overlay"
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1000,
+            padding: "20px",
+          }}
+        >
+          <div
+            className="popup-box bg-white p-4 shadow"
+            style={{
+              width: "600px",
+              borderRadius: "10px",
+              maxHeight: "68vh",
+              overflowY: "auto",
+            }}
+          >
+            {/* HEADER */}
+            <div
+              className="modal-header"
+              style={{
+                backgroundColor: "#3A5FBE",
+                padding: "10px",
+                color: "#fff",
+                margin: "-25px -24px 15px -24px",
+                borderTopLeftRadius: "10px",
+              }}
+            >
+              <h5 className="fw-bold">Type Of Status Details</h5>
+              <button
+                className="btn-close btn-close-white"
+                onClick={() => setShowPopup(false)}
+              />
+            </div>
+
+            {/* DETAILS (VIEW ONLY) */}
+            <div className="mb-2 row">
+              <label className="col-4 fw-semibold">Task Name</label>
+              <div className="col-8">{selectedProject.name}</div>
+            </div>
+
+            <div className="mb-2 row">
+              <label className="col-4 fw-semibold">Description</label>
+              <div className="col-8">{selectedProject.description}</div>
+            </div>
+
+            {/* CLOSE BUTTON */}
+            <div className="d-flex justify-content-end mt-3">
+              <button
+                className="btn btn-sm custom-outline-btn"
+                onClick={() => setShowPopup(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Pagination start */}
-      <nav className="d-flex align-items-center justify-content-end mt-3 text-muted">
+      <nav
+        className="d-flex align-items-center justify-content-end mt-3 text-muted"
+        style={{ userSelect: "none" }}
+      >
         <div className="d-flex align-items-center gap-3">
           {/* Rows per page */}
           <div className="d-flex align-items-center">
@@ -339,6 +431,7 @@ function AdminTypeOfStatus() {
             <button
               className="btn btn-sm border-0"
               type="button"
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
               style={{
@@ -355,6 +448,7 @@ function AdminTypeOfStatus() {
               type="button"
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages || totalItems === 0}
+              onMouseDown={(e) => e.preventDefault()}
               style={{
                 fontSize: "18px",
                 padding: "2px 8px",

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import dayjs from "dayjs";
 
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -20,13 +20,53 @@ const EmployeeTasklog = ({ user }) => {
   const [editIndex, setEditIndex] = useState(null);
   const [todayTasks, setTodayTasks] = useState([]);
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(3);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const isMobile = window.innerWidth <= 768;
   const token = localStorage.getItem("accessToken");
 
   const [showViewModal, setShowViewModal] = useState(false);
   const [viewData, setViewData] = useState(null);
+  const [isFiltered, setIsFiltered] = useState(false);
+  const modalRef = useRef(null); // showModal
+  const viewModalRef = useRef(null);
+  useEffect(() => {
+    if (showModal && modalRef.current) {
+      modalRef.current.focus();
+    }
+  }, [showModal]);
 
+  useEffect(() => {
+    if (showViewModal && viewData && viewModalRef.current) {
+      viewModalRef.current.focus();
+    }
+  }, [showViewModal, viewData]);
+
+  const trapFocus = (ref) => (e) => {
+    if (!ref.current) return;
+
+    const focusableElements = ref.current.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+
+    if (!focusableElements.length) return;
+
+    const first = focusableElements[0];
+    const last = focusableElements[focusableElements.length - 1];
+
+    if (e.key === "Tab") {
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+  };
   // rutuja code start
   const CHAR_LIMITS = {
     workDescription: 200,
@@ -207,7 +247,7 @@ const EmployeeTasklog = ({ user }) => {
           textAlign: "center",
           color: "#0f5132",
         };
-      case "InProgress":
+      case "In Progress":
         return {
           backgroundColor: "#d1e7ff",
           padding: "7px 16px",
@@ -426,7 +466,7 @@ const EmployeeTasklog = ({ user }) => {
         challengesFaced: form.challengesFaced,
         whatLearnedToday: form.whatLearnedToday,
         status: form.status,
-        ...(form.status === "InProgress" && {
+        ...(form.status === "InProgress" || form.status === "In Progress" && {
           progressToday: Number(form.progressToday) || 0,
         }),
       };
@@ -485,34 +525,72 @@ const EmployeeTasklog = ({ user }) => {
   // rutuja code end
 
   useEffect(() => {
-    if (form.status === "InProgress") {
+    if (form.status === "InProgress" || form.status === "In Progress") {
       console.log("Progress input should be visible");
     }
   }, [form.status]);
 
+  // const handleFilter = () => {
+  //   let data = [...logs];
+
+  //   if (searchText) {
+  //     data = data.filter(
+  //       (l) =>
+  //         l?.task?.taskName.toLowerCase().includes(searchText.toLowerCase()) ||
+  //         l?.workDescription.toLowerCase().includes(searchText.toLowerCase()) ||
+  //         l.status.toLowerCase().includes(searchText.toLowerCase()),
+  //     );
+  //   }
+
+  //   if (filterDate) {
+  //     data = data.filter((l) => l.date === filterDate);
+  //   }
+
+  //   setFilteredLogs(data);
+  // };
+
   const handleFilter = () => {
-    let data = [...logs];
+  let data = [...logs];
 
-    if (searchText) {
-      data = data.filter(
-        (l) =>
-          l?.task?.taskName.toLowerCase().includes(searchText.toLowerCase()) ||
-          l?.workDescription.toLowerCase().includes(searchText.toLowerCase()) ||
-          l.status.toLowerCase().includes(searchText.toLowerCase()),
-      );
-    }
+  if (searchText) {
+    data = data.filter(
+      (l) =>
+        l?.task?.taskName
+          ?.toLowerCase()
+          .includes(searchText.toLowerCase()) ||
+        l?.workDescription
+          ?.toLowerCase()
+          .includes(searchText.toLowerCase()) ||
+        l?.status?.toLowerCase().includes(searchText.toLowerCase()),
+    );
+  }
 
-    if (filterDate) {
-      data = data.filter((l) => l.date === filterDate);
-    }
+if (filterDate) {
+  data = data.filter((l) => {
+    const d = new Date(l.date);
+    const localDate =
+      d.getFullYear() +
+      "-" +
+      String(d.getMonth() + 1).padStart(2, "0") +
+      "-" +
+      String(d.getDate()).padStart(2, "0");
 
-    setFilteredLogs(data);
-  };
+    return localDate === filterDate;
+  });
+}
+
+
+  setFilteredLogs(data);
+  setIsFiltered(true);
+  setPage(0);
+};/////samiksha
 
   const handleReset = () => {
     setSearchText("");
     setFilterDate("");
     setFilteredLogs([]);
+    setIsFiltered(false); 
+     setPage(0);
   };
 
   const handleEdit = (log) => {
@@ -523,7 +601,9 @@ const EmployeeTasklog = ({ user }) => {
     setForm({
       task: log?.task?._id || "",
       employee: user._id,
-      date: log?.date,
+      date: log?.date
+  ? new Date(log.date).toISOString().split("T")[0]
+  : "",
       startTime: log.startTime ? dayjs(log.startTime, "HH:mm") : null,
       endTime: log.endTime ? dayjs(log.endTime, "HH:mm") : null,
       totalHours: log?.totalHours,
@@ -535,7 +615,7 @@ const EmployeeTasklog = ({ user }) => {
     });
   };
 
-  const tableData = filteredLogs.length ? filteredLogs : logs;
+ const tableData = isFiltered ? filteredLogs : logs;
   const totalRows = tableData.length;
 
   const paginatedData = tableData.slice(
@@ -551,7 +631,24 @@ const EmployeeTasklog = ({ user }) => {
   };
 
   return (
-    <div style={{ padding: 20, background: "#f7f9fc", overflowY: "hidden" }}>
+     <div className="container-fluid">
+       <style>
+      {`
+      @media (max-width: 768px) {
+        input[type="date"],
+        input[type="week"],
+        input[type="month"],
+        input[type="search"],
+          input[type="filter"] {
+          font-size: 16px !important;
+          height: 40px !important;
+          width: 268px !important;
+
+          max-width: 285px !important;
+        }
+      }
+      `}
+      </style>
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h3 className="mb-0" style={{ color: "#3A5FBE", fontSize: "25px" }}>
           My Worklog
@@ -565,7 +662,7 @@ const EmployeeTasklog = ({ user }) => {
             setForm({
               task: "",
               employee: user._id,
-              date: "",
+              date: new Date().toISOString().split("T")[0],
               startTime: null,
               endTime: null,
               totalHours: "",
@@ -584,87 +681,121 @@ const EmployeeTasklog = ({ user }) => {
 
       {/* SEARCH BAR */}
       <div
+        className="shadow-sm"
         style={{
           display: "flex",
-          justifyContent: "space-between",
           alignItems: "center",
+          justifyContent: "space-between",
           gap: 14,
-          padding: "20px",
+          padding: 16,
           background: "#fff",
-          marginBottom: "18px",
+          marginBottom: 18,
           flexWrap: "wrap",
-          ...(isMobile && {
-            flexDirection: "row",
-            flexWrap: "wrap",
-          }),
         }}
       >
         <div
           style={{
             display: "flex",
-            gap: 12,
             alignItems: "center",
+            gap: 14,
             flexWrap: "wrap",
+            flex: "1 1 auto",
+            minWidth: 0,
           }}
         >
-          <b style={{ whiteSpace: "nowrap", color: "#3A5FBE" }}>
-            Search by any field
-          </b>
-
-          <input
-            placeholder="Search by any fe..."
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
+          <div
             style={{
-              width: 280,
-              padding: "10px 14px",
-              borderRadius: 8,
-              border: "1px solid #ddd",
-              height: "40px",
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              flexWrap: "nowrap",
             }}
-          />
+          >
+            <b
+              style={{
+                color: "#3A5FBE",
+                width: 50,
+                minWidth: 50,
+                textAlign: "left",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Search
+            </b>
 
-          <b style={{ whiteSpace: "nowrap", color: "#3A5FBE" }}>
-            Filter by date
-          </b>
-          <input
-            type="date"
-            value={filterDate}
-            onChange={(e) => setFilterDate(e.target.value)}
+            <input
+              className="form-control"
+              placeholder="Search By Any Field..."
+              value={searchText}
+                type="search"
+              onChange={(e) => setSearchText(e.target.value)}
+              style={{
+                width: 220,
+                minWidth: 220,
+                padding: "10px 14px",
+                borderRadius: 8,
+                height: 40,
+              }}
+            />
+          </div>
+
+          <div
             style={{
-              width: 280,
-              padding: "10px 14px",
-              borderRadius: 8,
-              border: "1px solid #ddd",
-              height: "40px",
-              ...(isMobile && {
-                marginLeft: "40px",
-              }),
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              flexWrap: "nowrap",
             }}
-          />
+          >
+            <b
+              style={{
+                color: "#3A5FBE",
+                width: 50,
+                minWidth: 50,
+                textAlign: "left",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Filter
+            </b>
+
+            <input
+              className="form-control"
+              type="date"
+              value={filterDate}
+              onChange={(e) => setFilterDate(e.target.value)}
+              style={{
+                width: 220,
+                minWidth: 220,
+                padding: "10px 14px",
+                borderRadius: 8,
+              }}
+            />
+          </div>
         </div>
 
         <div
           style={{
             display: "flex",
             gap: 10,
-            ...(isMobile && {
-              marginLeft: "150px",
-            }),
+            flexWrap: "wrap",
+            marginLeft: "auto",
+            justifyContent: "flex-end",
+            alignItems: "center",
           }}
         >
           <button
             onClick={handleFilter}
-            style={{ minWidth: 90 }}
             className="btn btn-sm custom-outline-btn"
+            style={{ minWidth: 90 }}
           >
             Filter
           </button>
 
           <button
-            style={{ minWidth: 90 }}
             onClick={handleReset}
             className="btn btn-sm custom-outline-btn"
+            style={{ minWidth: 90 }}
           >
             Reset
           </button>
@@ -675,7 +806,7 @@ const EmployeeTasklog = ({ user }) => {
       <div
         style={{
           background: "#fff",
-          borderRadius: 10,
+         
           boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
           overflowX: "auto",
         }}
@@ -709,9 +840,9 @@ const EmployeeTasklog = ({ user }) => {
                 <th
                   key={h}
                   style={{
-                    padding: "14px 16px",
+                     padding: "12px",
                     textAlign: "left",
-                    fontSize: 14,
+                    fontSize: "14px",
                     fontWeight: 600,
                     color: "#475569",
                     whiteSpace: "nowrap",
@@ -727,7 +858,7 @@ const EmployeeTasklog = ({ user }) => {
             {tableData.length === 0 ? (
               <tr>
                 <td
-                  colSpan="7"
+                  colSpan="8"
                   style={{
                     padding: "18px",
                     textAlign: "center",
@@ -755,15 +886,33 @@ const EmployeeTasklog = ({ user }) => {
                     (e.currentTarget.style.background = "transparent")
                   }
                 >
-                  <td style={{ padding: "14px 16px", fontSize: 14 }}>
+                  <td style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                    }}>
                     {formatDate(l.date)}
                   </td>
 
-                  <td style={{ padding: "14px 16px", fontSize: 14 }}>
+                  <td style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",textTransform:"capitalize"
+                    }}>
                     {l?.task?.taskName || l.task}
                   </td>
 
-                  <td style={{ padding: "14px 16px", fontSize: 14 }}>
+                  <td style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                    }}>
                     {l?.task?.dateOfTaskAssignment &&
                     l?.task?.dateOfExpectedCompletion ? (
                       <>
@@ -807,7 +956,13 @@ const EmployeeTasklog = ({ user }) => {
                       "—"
                     )}
                   </td>
-                  <td style={{ padding: "14px 16px", fontSize: 14 }}>
+                  <td style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                    }}>
                     {l?.task?.dateOfTaskAssignment &&
                     l?.task?.dateOfExpectedCompletion
                       ? getWorkingDays(
@@ -817,33 +972,44 @@ const EmployeeTasklog = ({ user }) => {
                       : "—"}
                   </td>
 
-                  <td style={{ padding: "14px 16px", fontSize: 14 }}>
+                  <td style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                    }}>
                     {formatDisplayHours(l.totalHours)} hrs
                   </td>
 
                   <td
                     style={{
-                      padding: "14px 16px",
-                      fontSize: 14,
-                      maxWidth: "300px",
+                      padding: "12px",
+                      fontSize:"14px",
+                      width: "300px",  
+                      height: "60px",  
+                      overflow: "auto",
+                      wordWrap: "break-word",
+                      display: "block"
                     }}
                   >
                     {l.workDescription}
                   </td>
 
                   {/* STATUS */}
-                  <td style={{ padding: "14px 16px" }}>
-                    <span style={getStatusColor(l.status)}>
+                  <td style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                    }}>
+                    {/* ///harshda code change */}
+                    <span>
                       {l.status}
-                      {l.status === "InProgress" && (
+                      {(l.status === "InProgress" || l.status === "In Progress")&& (
                         <span
-                          style={{
-                            color: "#92400e",
-                            borderRadius: 4,
-                            padding: "2px 6px",
-                            fontSize: 11,
-                            fontWeight: 600,
-                          }}
+                          style={{ marginLeft: "5px" }} ///harshda code change
                         >
                           {l.progressToday}%
                         </span>
@@ -852,12 +1018,16 @@ const EmployeeTasklog = ({ user }) => {
                   </td>
 
                   {/* ACTION */}
-                  <td style={{ padding: "14px 16px" }}>
+                  <td style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                    }}>
                     <button
                       style={{
-                        fontSize: "12px",
-                        padding: "4px 20px",
-                        borderRadius: "4px",
+                        
                         minWidth: 90,
                       }}
                       onClick={(e) => {
@@ -902,9 +1072,9 @@ const EmployeeTasklog = ({ user }) => {
             cursor: "pointer",
           }}
         >
-          <option value={3}>3</option>
-          <option value={6}>6</option>
-          <option value={9}>9</option>
+          <option value={5}>5</option>
+          <option value={10}>10</option>
+          <option value={25}>25</option>
         </select>
 
         {/* Count */}
@@ -950,6 +1120,9 @@ const EmployeeTasklog = ({ user }) => {
       {/* MODAL */}
       {showModal && (
         <div
+          ref={modalRef}
+          tabIndex="-1"
+          onKeyDown={trapFocus(modalRef)}
           className="modal fade show"
           style={{
             display: "flex",
@@ -1008,7 +1181,7 @@ const EmployeeTasklog = ({ user }) => {
                 <div className="row g-3">
                   {/* Select Task */}
                   <div className="col-12">
-                    <label className="form-label">Select Task</label>
+                    <label className="form-label mb-0">Select Task</label>
                     <select
                       className="form-select"
                       disabled={isViewMode}
@@ -1030,6 +1203,17 @@ const EmployeeTasklog = ({ user }) => {
                       ))}
                     </select>
                   </div>
+                  <div className="col-12">
+  <label className="form-label">Date</label>
+  <input
+    type="date"
+    className="form-control"
+    disabled={isViewMode}
+    value={form.date}
+    onChange={(e) => setForm({ ...form, date: e.target.value })}
+    required
+  />
+</div>
                   <div className="col-md-6 col-12">
                     <label className="form-label">Start Time</label>
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -1180,12 +1364,12 @@ const EmployeeTasklog = ({ user }) => {
                     >
                       <option value="">Select Status</option>
                       <option value="Submitted">Submitted</option>
-                      <option value="InProgress">In Progress</option>
+                      <option value="In Progress">In Progress</option>
                     </select>
                   </div>
 
                   {/* Show Progress Today input only if InProgress */}
-                  {form.status === "InProgress" && (
+                  {form.status === "InProgress" || form.status === "In Progress" && (
                     <div className="col-12">
                       <label>Progress Today (%)</label>
                       <input
@@ -1240,6 +1424,9 @@ const EmployeeTasklog = ({ user }) => {
       {/* rutuja code start */}
       {showViewModal && viewData && (
         <div
+          ref={viewModalRef}
+          tabIndex="-1"
+          onKeyDown={trapFocus(viewModalRef)}
           className="modal fade show"
           style={{
             display: "flex",
@@ -1250,7 +1437,7 @@ const EmployeeTasklog = ({ user }) => {
             inset: 0,
             zIndex: 1050,
           }}
-          onClick={() => setShowViewModal(false)}
+         // onClick={() => setShowViewModal(false)}  //comment by harshada
         >
           <div
             className="modal-dialog"
@@ -1373,17 +1560,13 @@ const EmployeeTasklog = ({ user }) => {
                       Status
                     </div>
                     <div className="col-7 col-sm-9">
-                      <span style={getStatusColor(viewData.status)}>
+                      <span >
                         {viewData.status}
-                        {viewData.status === "InProgress" && (
+                        {(viewData.status === "InProgress" || viewData.status === "In Progress") && (
                           <span
                             style={{
-                              color: "#92400e",
-                              borderRadius: 4,
-                              padding: "2px 6px",
-                              fontSize: 11,
-                              fontWeight: 600,
-                              marginLeft: "6px",
+              
+                              marginLeft: "6px",   //remove colore harshada
                             }}
                           >
                             {viewData.progressToday}%

@@ -100,6 +100,7 @@ function App() {
                 "ceo",
                 "coo",
                 "md",
+                "IT_Support",
               ]}
             >
               <TMSDashboard />

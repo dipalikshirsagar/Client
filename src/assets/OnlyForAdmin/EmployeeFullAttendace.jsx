@@ -28,7 +28,7 @@ function EmployeeFullAttendance() {
         setLoading(true);
         const token = localStorage.getItem("accessToken");
         const authAxios = axios.create({
-          baseURL: " https://server-backend-nu.vercel.app",
+          baseURL: "https://server-backend-nu.vercel.app",
           headers: { Authorization: `Bearer ${token}` },
         });
 

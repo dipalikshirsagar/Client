@@ -6,7 +6,9 @@ function AdminAllEmployeeTMS() {
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [loading, setLoading] = useState(true);
-
+///snehal filter code
+// Search state
+const [searchText, setSearchText] = useState("");
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
@@ -85,19 +87,145 @@ function AdminAllEmployeeTMS() {
 
     fetchEmployees();
   }, []);
+  
 
   if (loading) return <div style={{ padding: 20 }}>Loading employees...</div>;
 
   const handleRowClick = (emp) => {
     setSelectedEmployee(emp);
   };
+  /////snehal filter code
+const handleSearch = () => {
+  const value = searchText.toLowerCase().trim();
 
+  if (!value) {
+    setFilteredTasks(employees);
+    setCurrentPage(1);
+    return;
+  }
+
+  const filtered = employees.filter((emp) => {
+    const id = emp.employeeId?.toString().toLowerCase() || "";
+    const name = emp.name?.toLowerCase() || "";
+    const email = emp.email?.toLowerCase() || "";
+    const mobile = emp.contact?.toLowerCase() || "";
+    const designation = emp.designation?.toLowerCase() || "";
+    const doj = emp.doj
+      ? new Date(emp.doj).toLocaleDateString("en-GB").toLowerCase()
+      : "";
+
+    return (
+      id.includes(value) ||
+      name.includes(value) ||
+      email.includes(value) ||
+      mobile.includes(value) ||
+      designation.includes(value) ||
+      doj.includes(value)
+    );
+  });
+
+  setFilteredTasks(filtered);
+  setCurrentPage(1);
+};
+
+const handleResetSearch = () => {
+  setSearchText("");
+  setFilteredTasks(employees);
+  setCurrentPage(1);
+};
+
+  /////snehal filter code
   return (
-    <div className="container mt-4">
-      <h4 className="mb-3" style={{ fontWeight: "600", color: "#212529" }}>
+    <div className="container-fluid">
+      <h4 className="mb-3" style={{fontSize:"25px", color: "#3A5FBE" }}>
         All Employees Details
       </h4>
+{/* Filter section addes by snehal*/}
+<div
+className="shadow-sm"
+    style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 14,
+      padding: 16,
+      background: "#fff",
+      marginBottom: 18,
+      flexWrap: "wrap",
+    }}
+  >
+    {/* LEFT SIDE */}
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 14,
+        flexWrap: "wrap",
+        flex: "1 1 auto",
+        minWidth: 0,
+      }}
+    >
+      {/* Search pair */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "nowrap" }}>
+        <b
+          style={{
+            color: "#3A5FBE",
+            width: 55,
+            minWidth: 55,
+            textAlign: "left",
+            whiteSpace: "nowrap",
+          }}
+        >
+          Search
+        </b>
 
+        <input
+          placeholder="Search by any field..."
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          style={{
+            width: "260px",
+            minWidth: "260px",
+            padding: "10px 14px",
+            borderRadius: 8,
+            border: "1px solid #ddd",
+            height: 40,
+          }}
+        />
+      </div>
+
+      
+    </div>
+
+    {/* RIGHT SIDE BUTTONS */}
+    <div
+      style={{
+        display: "flex",
+        gap: 10,
+        flexWrap: "wrap",
+        marginLeft: "auto",
+        justifyContent: "flex-end",
+        alignItems: "center",
+      }}
+    >
+      <button
+        onClick={handleSearch}
+        className="btn btn-sm custom-outline-btn"
+        style={{ minWidth: 90 }}
+      >
+        Filter
+      </button>
+
+      <button
+        onClick={handleResetSearch}
+        className="btn btn-sm custom-outline-btn"
+        style={{ minWidth: 90 }}
+      >
+        Reset
+      </button>
+    </div>
+  </div>
+{/* Filter section */}
       <div className="card shadow-sm border-0">
         <div className="table-responsive bg-white">
           <table className="table table-hover mb-0">
@@ -268,8 +396,13 @@ function AdminAllEmployeeTMS() {
                         color: "#212529",
                       }}
                     >
+                      {/* //added by harshada */}
                       {emp.doj
-                        ? new Date(emp.doj).toLocaleDateString("en-GB")
+                        ? new Date(emp.doj).toLocaleDateString("en-GB", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })
                         : "-"}
                     </td>
                   </tr>
@@ -353,10 +486,10 @@ function AdminAllEmployeeTMS() {
             inset: 0,
             zIndex: 1050,
           }}
-          onClick={() => setSelectedEmployee(null)}
+          // onClick={() => setSelectedEmployee(null)}
         >
           <div
-            className="modal-dialog modal-dialog-scrollable"
+            className="modal-dialog "
             style={{ maxWidth: "650px", width: "95%", marginTop: "120px" }}
           >
             <div className="modal-content">
@@ -419,12 +552,23 @@ function AdminAllEmployeeTMS() {
                     >
                       Email
                     </div>
-                    <div
+                    {/* <div
                       className="col-7 col-sm-9"
                       style={{ color: "#212529" }}
                     >
                       {selectedEmployee?.email || ""}
-                    </div>
+                    </div> */}
+                    <div
+                  className="col-7 col-sm-9"
+                  style={{
+                    color: "#212529",
+                    wordBreak: "break-all",
+                    overflowWrap: "anywhere",
+                    minWidth: 0,
+                  }}
+                >
+                  {selectedEmployee?.email || ""}
+                </div>
                   </div>
                 </div>
               </div>
@@ -480,10 +624,13 @@ function AdminAllEmployeeTMS() {
                       className="col-7 col-sm-9"
                       style={{ color: "#212529" }}
                     >
+                     {/* //added by harshada */}
                       {selectedEmployee?.doj
-                        ? new Date(selectedEmployee.doj).toLocaleDateString(
-                            "en-GB",
-                          )
+                        ? new Date(selectedEmployee.doj).toLocaleDateString("en-GB", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })
                         : ""}
                     </div>
                   </div>
@@ -492,7 +639,7 @@ function AdminAllEmployeeTMS() {
 
               <div className="modal-footer border-0 pt-0">
                 <button
-                  className="btn btn-sm custom-outline-btn"
+                  className="btn btn-sm custom-outline-btn"  style={{minWidth:"90px"}}
                   onClick={() => setSelectedEmployee(null)}
                 >
                   Close

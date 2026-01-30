@@ -246,7 +246,7 @@ export default function EmployeeDashbordTMS({ user }) {
                     wordBreak: "break-word",
                   }}
                 >
-                  Total Task
+                  Total Tasks
                 </p>
               </div>
             </div>
@@ -394,10 +394,14 @@ export default function EmployeeDashbordTMS({ user }) {
         </div>
 
         {/* Progress Card */}
-        <div
-          className="card shadow-sm p-4 h-500 border-0"
-          style={{ borderRadius: "12px" }}
-        >
+       <div
+  className="card shadow-sm p-4 border-0"
+  style={{
+    borderRadius: "12px",
+    minHeight: "182px",   
+  }}
+>
+
           <div>
             <h4
               style={{
@@ -519,6 +523,7 @@ export default function EmployeeDashbordTMS({ user }) {
 
                   <button
                     className="btn btn-sm custom-outline-btn"
+                    style={{minWidth:"90px"}}
                     onClick={() => handleViewTask(task)}
                   >
                     View
@@ -530,100 +535,91 @@ export default function EmployeeDashbordTMS({ user }) {
         </div>
       </div>
 
-      <div className="right-section">
-        <div className="right-content-container">
-          {/* Calendar */}
-          <div className="calendar-container">
-            <TaskCalendar employeeId={employeeId} />
-          </div>
+     <div className="right-section" >
+   <div
+       className="task-calendar-wrapper"
 
-          {/* upcomming tasks  */}
-          <div className="upcoming-wrapper">
-            <h3
-              className="upcoming-title"
+      style={{ borderRadius: "14px" , marginTop:"-10px",}}
+    >
+    
+        <TaskCalendar employeeId={employeeId} />
+    
+    </div>
+<h3
+  style={{
+    color: "#3A5FBE",
+    fontSize: "25px",
+    fontWeight: "500",
+    marginTop: "30px",
+    textAlign: "left",   
+  }}
+>
+  Upcoming Tasks
+</h3>
+
+    <div
+  className="card shadow-sm border-0"
+  style={{
+    borderRadius: "14px",
+    marginTop: "14px",
+    minHeight: "180px", 
+  }}
+>
+
+
+      <div className="card-body text-center">
+
+       <div
+        style={{
+             maxHeight: "260px",   
+              overflowY: "auto",
+                 }}
+              >
+
+        {loading ? (
+          <div className="spinner-border text-primary" />
+        ) : upcomingTasks.length === 0 ? (
+          <p>No upcoming tasks.</p>
+        ) : (
+          upcomingTasks.map((task, index) => (
+            <div
+              key={task._id || index}
               style={{
-                color: "#3A5FBE",
-                fontSize: "25px",
-                fontWeight: "500px",
+                border: "1px solid #3A5FBE",
+                borderRadius: "10px",
+                padding: "12px",
+                marginBottom: "10px",
+                textAlign: "left",
               }}
             >
-              Upcoming Tasks{" "}
-              {upcomingTasks.length > 0 && `(${upcomingTasks.length})`}
-            </h3>
+              <strong>{task.taskName}</strong>
+              <p style={{ fontSize: "13px", margin: "6px 0" }}>
+                {task.description || "No description"}
+              </p>
 
-            {loading ? (
-              <div className="text-center p-4">
-                <div className="spinner-border text-primary" role="status">
-                  <span className="visually-hidden">Loading...</span>
-                </div>
+              <div style={{ fontSize: "12px", color: "#3A5FBE" }}>
+                Assigned: {formatAssignDate(task.dateOfTaskAssignment)}
               </div>
-            ) : upcomingTasks.length === 0 ? (
-              <div className="text-center p-4">
-                <p>No upcoming tasks.</p>
+
+              <div className="text-end mt-2">
+                <button
+                  className="btn btn-sm custom-outline-btn"
+                  onClick={() => handleViewTask(task)}
+                >
+                  View
+                </button>
               </div>
-            ) : (
-              <div className="upcoming-grid">
-                {upcomingTasks.map((task, index) => (
-                  <div
-                    key={task._id || index}
-                    className="upcoming-card"
-                    style={{ border: "1px solid #3A5FBE", padding: "15px" }}
-                  >
-                    <h4
-                      className="upcoming-card-title mb-2"
-                      style={{ fontSize: "16px", color: "#3A5FBE" }}
-                    >
-                      {task.taskName}
-                    </h4>
-
-                    <p
-                      className="upcoming-card-desc mb-2"
-                      style={{ fontSize: "14px", color: "#666" }}
-                    >
-                      {task.description
-                        ? task.description.length > 60
-                          ? `${task.description.substring(0, 60)}...`
-                          : task.description
-                        : "No description available"}
-                    </p>
-
-                    <div className="d-flex justify-content-between align-items-center mb-2">
-                      <span
-                        className="task-date"
-                        style={{ fontSize: "12px", color: "#3A5FBE" }}
-                      >
-                        <strong>Assigned On:</strong>{" "}
-                        {formatAssignDate(task.dateOfTaskAssignment)}
-                      </span>
-                    </div>
-
-                    {task.dateOfExpectedCompletion && (
-                      <span
-                        className="task-date mb-4"
-                        style={{ fontSize: "12px", color: "#3A5FBE" }}
-                      >
-                        <strong>Due:</strong>{" "}
-                        {formatTaskDate(task.dateOfExpectedCompletion)}
-                      </span>
-                    )}
-
-                    <div className="d-flex justify-content-end">
-                      <button
-                        type="button"
-                        className="btn btn-sm custom-outline-btn"
-                        style={{ minWidth: 90 }}
-                        onClick={() => handleViewTask(task)}
-                      >
-                        View
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+            </div>
+          ))
+        )}
         </div>
       </div>
+    </div>
+
+
+   
+
+  </div>
       {/* pop-up code */}
       {showTaskModal && selectedTask && (
         <div
@@ -782,6 +778,7 @@ export default function EmployeeDashbordTMS({ user }) {
               <div className="modal-footer border-0 pt-0">
                 <button
                   className="btn btn-sm custom-outline-btn"
+                  style={{minWidth:"90px"}}
                   onClick={() => setShowTaskModal(false)}
                 >
                   Close

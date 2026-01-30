@@ -22,7 +22,7 @@ function isWeeklyOff(date, weeklyOffs = { saturdays: [], sundayOff: true }) {
 }
 const API_URL = "https://server-backend-nu.vercel.app/api/projects";
 
-function AdminProjectTMS() {
+function AdminProjectTMS({ userData }) {
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProjectId, setSelectedProjectId] = useState(null);
@@ -50,12 +50,15 @@ function AdminProjectTMS() {
     managers: [],
     clientName: "",
     startDate: "",
-    endDate: "",
+    // endDate: "",
     due: "",
     status: "",
     priority: "P1",
   });
-
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editingCommentText, setEditingCommentText] = useState("");
+  const currentUserId =
+    JSON.parse(localStorage.getItem("activeUser"))?._id || userData?._id;
   //added by harshada
   const [commentModalProject, setCommentModalProject] = useState(null);
   const [newComment, setNewComment] = useState("");
@@ -230,7 +233,7 @@ function AdminProjectTMS() {
       managers: [],
       clientName: "",
       startDate: "",
-      endDate: "",
+      // endDate: "",
       due: "",
       priority: "P1",
     });
@@ -275,7 +278,7 @@ function AdminProjectTMS() {
       newErrors.managers = "Select at least one manager";
 
     if (!form.startDate) newErrors.startDate = "Start date is required";
-    if (!form.endDate) newErrors.endDate = "End date is required";
+    // if (!form.endDate) newErrors.endDate = "End date is required";
     if (!form.due) newErrors.due = "Due date is required";
 
     if (form.startDate && form.endDate) {
@@ -316,7 +319,7 @@ function AdminProjectTMS() {
       });
     const dateFields = [
       { label: "Start Date", value: form.startDate },
-      { label: "End Date", value: form.endDate },
+      // { label: "End Date", value: form.endDate },
       { label: "Due Date", value: form.due },
     ];
     for (let field of dateFields) {
@@ -359,7 +362,7 @@ function AdminProjectTMS() {
       description: form.desc,
       clientName: form.clientName,
       startDate: form.startDate,
-      endDate: form.endDate,
+      // endDate: form.endDate,
       dueDate: form.due,
       status: form.status,
       priority: form.priority,
@@ -393,7 +396,7 @@ function AdminProjectTMS() {
       managers: uniqueManagerIds,
       clientName: item.clientName || "",
       startDate: item.startDate?.slice(0, 10),
-      endDate: item.endDate?.slice(0, 10),
+      // endDate: item.endDate?.slice(0, 10),
       due: item.dueDate?.slice(0, 10),
       status: item.status || "",
       priority: item.priority,
@@ -540,7 +543,7 @@ function AdminProjectTMS() {
     // Validate dates
     const dateFields = [
       { label: "Start Date", value: form.startDate },
-      { label: "End Date", value: form.endDate },
+      // { label: "End Date", value: form.endDate },
       { label: "Due Date", value: form.due },
     ];
 
@@ -573,7 +576,7 @@ function AdminProjectTMS() {
         description: form.desc,
         clientName: form.clientName,
         startDate: form.startDate,
-        endDate: form.endDate,
+        // endDate: form.endDate,
         dueDate: form.due,
         priority: form.priority,
         managers: [...new Set(form.managers)],
@@ -736,6 +739,74 @@ function AdminProjectTMS() {
     setNewComment("");
     fetchProjectComments(project._id);
   };
+  const handleDeleteComment = async (commentId, projectId) => {
+    if (!commentId || !projectId) {
+      alert("Cannot delete comment: Missing ID");
+      return;
+    }
+
+    if (!window.confirm("Are you sure you want to delete this comment?")) {
+      return;
+    }
+
+    try {
+      const res = await axios.delete(
+        `https://server-backend-nu.vercel.app/project/${projectId}/comment/${commentId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        },
+      );
+
+      if (res.data.success) {
+        await fetchProjectComments(projectId);
+        alert("Comment deleted successfully");
+      }
+    } catch (error) {
+      console.error("Delete comment error:", error);
+      alert(error?.response?.data?.message || "Failed to delete comment");
+    }
+  };
+
+  const handleEditComment = async (commentId, projectId, newText) => {
+    if (!commentId || !projectId || !newText.trim()) {
+      alert("Cannot edit comment");
+      return;
+    }
+
+    try {
+      const res = await axios.put(
+        `https://server-backend-nu.vercel.app/project/${projectId}/comment/${commentId}`,
+        { comment: newText },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        },
+      );
+
+      if (res.data.success) {
+        await fetchProjectComments(projectId);
+        setEditingCommentId(null);
+        setEditingCommentText("");
+        alert("Comment updated successfully");
+      }
+    } catch (error) {
+      console.error("Edit comment error:", error);
+      alert(error?.response?.data?.message || "Failed to edit comment");
+    }
+  };
+
+  const startEditingComment = (comment) => {
+    setEditingCommentId(comment._id);
+    setEditingCommentText(comment.text);
+  };
+
+  const cancelEditing = () => {
+    setEditingCommentId(null);
+    setEditingCommentText("");
+  };
 
   useEffect(() => {
     const handleOutsideClick = (e) => {
@@ -791,23 +862,23 @@ function AdminProjectTMS() {
           { title: "Total Projects", count: total, bg: "#D1ECF1" }, ////Changes in all color dip
           { title: "In Progress", count: inProgress, bg: "#D1E7FF" },
           { title: "Delayed", count: delayed, bg: "#FFB3B3" },
-          { title: "On Track", count: onTrack, bg: "#D7F5E4" },
+          { title: "On Track", count: onTrack, bg: "#e9f5d7" },
           {
             title: "Today is last date",
             count: todayLastDate,
             bg: "#FFE493",
           },
-          { title: "Upcoming Project", count: upcoming, bg: "#E7DDF7" },
+          { title: "Upcoming Projects", count: upcoming, bg: "#E7DDF7" },
           { title: "Completed", count: completed, bg: "#D7F5E4" },
           { title: "Cancelled", count: cancelled, bg: "#F8D7DA" },
         ].map((card, index) => (
-          <div className="col-md-3 " key={index}>
+          <div className="col-12 col-md-6 col-lg-3" key={index}>
             <div className="card shadow-sm h-100 border-0">
               <div
                 className="card-body d-flex align-items-center"
                 style={{ gap: "20px" }}
               >
-                <h4
+                <h4 className="mb-0"
                   style={{
                     fontSize: "32px",
                     backgroundColor: card.bg,
@@ -835,14 +906,14 @@ function AdminProjectTMS() {
       </div>
 
       {/* komal  cards */}
-      {/* Filter  Dip */}
+      {/* Filter  */}
       <div className="card shadow-sm border-0 mb-3">
         <div className="card-body p-3">
           {/* Search Input */}
-          <div className="d-flex align-items-center gap-2 flex-grow-1 flex-md-grow-0 w-md-100">
+          <div className="d-flex align-items-center gap-3 flex-wrap">
             <div
-              className="d-flex align-items-center gap-2"
-              style={{ minWidth: "300px" }}
+              className="d-flex align-items-center gap-2 flex-grow-1 flex-md-grow-0 w-md-100"
+              
             >
               <label
                 className="mb-0 fw-bold"
@@ -855,7 +926,7 @@ function AdminProjectTMS() {
                 type="text"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Search by any field..."
+                placeholder="Search By Any Field..."
                 className="form-control form-control-sm"
               />
             </div>
@@ -962,6 +1033,19 @@ function AdminProjectTMS() {
                 >
                   Status
                 </th>
+                
+                <th
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    color: "#6c757d",
+                    borderBottom: "2px solid #dee2e6",
+                    padding: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Priority
+                </th>
                 {/* //added by harshada */}
                 <th
                   style={{
@@ -974,18 +1058,6 @@ function AdminProjectTMS() {
                   }}
                 >
                   Comments
-                </th>
-                <th
-                  style={{
-                    fontWeight: "500",
-                    fontSize: "14px",
-                    color: "#6c757d",
-                    borderBottom: "2px solid #dee2e6",
-                    padding: "12px",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  Priority
                 </th>
                 {isAdmin && (
                   <th
@@ -1033,7 +1105,7 @@ function AdminProjectTMS() {
                         verticalAlign: "middle",
                         fontSize: "14px",
                         borderBottom: "1px solid #dee2e6",
-                        whiteSpace: "nowrap",
+                        whiteSpace: "nowrap",textTransform: "capitalize",
                       }}
                     >
                       {item.projectCode}
@@ -1044,7 +1116,7 @@ function AdminProjectTMS() {
                         verticalAlign: "middle",
                         fontSize: "14px",
                         borderBottom: "1px solid #dee2e6",
-                        whiteSpace: "nowrap",
+                        whiteSpace: "nowrap",textTransform: "capitalize",
                       }}
                     >
                       {item.project || item.name}
@@ -1055,7 +1127,7 @@ function AdminProjectTMS() {
                         verticalAlign: "middle",
                         fontSize: "14px",
                         borderBottom: "1px solid #dee2e6",
-                        whiteSpace: "nowrap",
+                        whiteSpace: "nowrap",textTransform: "capitalize",
                       }}
                     >
                       {getManagerNames(item.managers).join(", ") || "-"}
@@ -1089,7 +1161,7 @@ function AdminProjectTMS() {
                         verticalAlign: "middle",
                         fontSize: "14px",
                         borderBottom: "1px solid #dee2e6",
-                        whiteSpace: "nowrap",
+                        whiteSpace: "nowrap",textTransform: "capitalize",
                       }}
                     >
                       {item.status || "—"}
@@ -1105,14 +1177,26 @@ function AdminProjectTMS() {
                     >
                       {item.manualStatusUpdatedBy?.name}
                     </td> */}
-                    {/* //added by harshada */}
+                   
                     <td
                       style={{
                         padding: "12px",
                         verticalAlign: "middle",
                         fontSize: "14px",
                         borderBottom: "1px solid #dee2e6",
-                        whiteSpace: "nowrap",
+                        whiteSpace: "nowrap",textTransform: "capitalize",
+                      }}
+                    >
+                      {item.priority}
+                    </td>
+                     {/* //added by harshada */}
+                    <td
+                      style={{
+                        padding: "12px",
+                        verticalAlign: "middle",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",textTransform: "capitalize",
                       }}
                     >
                       <button
@@ -1126,17 +1210,6 @@ function AdminProjectTMS() {
                       >
                         Add Comment
                       </button>
-                    </td>
-                    <td
-                      style={{
-                        padding: "12px",
-                        verticalAlign: "middle",
-                        fontSize: "14px",
-                        borderBottom: "1px solid #dee2e6",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {item.priority}
                     </td>
                     {isAdmin && (
                       <td>
@@ -1179,7 +1252,10 @@ function AdminProjectTMS() {
       </div>
 
       {/* ✅ PAGINATION */}
-      <nav className="d-flex align-items-center justify-content-end mt-3 text-muted">
+      <nav
+        className="d-flex align-items-center justify-content-end mt-3 text-muted"
+        style={{ userSelect: "none" }}
+      >
         <div className="d-flex align-items-center gap-3">
           <div className="d-flex align-items-center">
             <span style={{ fontSize: "14px", marginRight: "8px" }}>
@@ -1210,6 +1286,7 @@ function AdminProjectTMS() {
             <button
               className="btn btn-sm"
               onClick={() => handlePageChange(currentPage - 1)}
+              onMouseDown={(e) => e.preventDefault()}
               disabled={currentPage === 1}
             >
               ‹
@@ -1217,6 +1294,7 @@ function AdminProjectTMS() {
             <button
               className="btn btn-sm"
               onClick={() => handlePageChange(currentPage + 1)}
+              onMouseDown={(e) => e.preventDefault()}
               disabled={currentPage === totalPages}
             >
               ›
@@ -1295,13 +1373,13 @@ function AdminProjectTMS() {
               </div>
 
               {/* Project Code */}
-              <div className="mb-1 row align-items-center">
-                <label className="col-4 form-label fw-semibold">
+              <div className="mb-2 row ">
+                <label className="col-4 form-label fw-semibold mb-0">
                   Project Code
                 </label>
                 <div className="col-8">
                   {popupMode === "view" ? (
-                    <p>{form.projectCode}</p>
+                    <p  className="mb-0">{form.projectCode}</p>
                   ) : (
                     <>
                       <input
@@ -1327,13 +1405,13 @@ function AdminProjectTMS() {
                 </div>
               </div>
               {/* Project Title */}
-              <div className="mb-1 row align-items-center ">
-                <label className="col-4 form-label fw-semibold">
+             <div className="mb-2 row ">
+               <label className="col-4 form-label fw-semibold mb-0">
                   Project Title
                 </label>
                 <div className="col-8">
                   {popupMode === "view" ? (
-                    <p>{form.project}</p>
+                    <p  className="mb-0">{form.project}</p>
                   ) : (
                     <>
                       <input
@@ -1370,13 +1448,21 @@ function AdminProjectTMS() {
               </div>
 
               {/* Description */}
-              <div className="mb-1 row align-items-center">
-                <label className="col-4 form-label fw-semibold">
+              <div className="mb-2 row ">
+               <label className="col-4 form-label fw-semibold mb-0">
                   Description
                 </label>
                 <div className="col-8">
                   {popupMode === "view" ? (
-                    <p>{form.desc}</p>
+                    <p  className="mb-0"
+                    style={{
+          whiteSpace: "pre-wrap",    //  Preserve line breaks
+          wordWrap: "break-word",    //  Break long words
+          overflowWrap: "break-word", //  Modern browser support
+          lineHeight: "1.5",         //  Readable spacing
+          maxHeight: "100px",        //  Limit height
+          overflowY: "auto"          //  Scroll if too long
+        }}>{form.desc}</p>
                   ) : (
                     <>
                       <textarea
@@ -1402,22 +1488,23 @@ function AdminProjectTMS() {
                           fontSize: "12px",
                           color: "#6c757d",
                           marginTop: "4px",
+                           whiteSpace: "nowrap", 
                         }}
                       >
-                        {form.desc.length}/200
+                        {form.desc.length}/200 
                       </div>
                     </>
                   )}
                 </div>
               </div>
               {/* Client Name */}
-              <div className="mb-1 row align-items-center">
-                <label className="col-4 form-label fw-semibold">
+              <div className="mb-2 row ">
+               <label className="col-4 form-label fw-semibold mb-0">
                   Client Name
                 </label>
                 <div className="col-8">
                   {popupMode === "view" ? (
-                    <p>{form.clientName}</p>
+                    <p className="mb-0">{form.clientName}</p>
                   ) : (
                     <>
                       <input
@@ -1445,14 +1532,14 @@ function AdminProjectTMS() {
               </div>
               {/* Managers */}
               <div
-                className="mb-1 row align-items-center manager-dropdown-area"
+                className="mb-2 row align-items-center manager-dropdown-area"
                 style={{ position: "relative" }}
                 ref={managerRef} //added by rutuja
               >
-                <label className="col-4 form-label fw-semibold">Managers</label>
+                <label className="col-4 form-label fw-semibold mb-0">Managers</label>
                 <div className="col-8 " style={{ position: "relative" }}>
                   {popupMode === "view" ? (
-                    <p>{getManagerNames(form.managers).join(", ") || "—"}</p>
+                    <p  className="mb-0">{getManagerNames(form.managers).join(", ") || "—"}</p>
                   ) : (
                     <>
                       <div
@@ -1521,13 +1608,13 @@ function AdminProjectTMS() {
               </div>
               {/* Dates */}
 
-              <div className="mb-1 row align-items-center">
-                <label className="col-4 form-label fw-semibold">
+             <div className="mb-2 row ">
+                <label className="col-4 form-label fw-semibold mb-0">
                   Start Date
                 </label>
                 <div className="col-8">
                   {popupMode === "view" ? (
-                    <p>{formatDateDisplay(form.startDate)}</p>
+                    <p  className="mb-0">{formatDateDisplay(form.startDate)}</p>
                   ) : (
                     <>
                       <input
@@ -1552,7 +1639,7 @@ function AdminProjectTMS() {
                   )}
                 </div>
               </div>
-              <div className="mb-1 row align-items-center">
+              {/* <div className="mb-1 row align-items-center">
                 <label className="col-4 form-label fw-semibold">End Date</label>
                 <div className="col-8">
                   {popupMode === "view" ? (
@@ -1578,20 +1665,20 @@ function AdminProjectTMS() {
                     </>
                   )}
                 </div>
-              </div>
+              </div> */}
 
               {/* Due Date */}
-              <div className="mb-1 row align-items-center">
-                <label className="col-4 form-label fw-semibold">Due Date</label>
+              <div className="mb-2 row ">
+                <label className="col-4 form-label fw-semibold mb-0">Due Date</label>
                 <div className="col-8">
                   {popupMode === "view" ? (
-                    <p>{formatDateDisplay(form.due)}</p>
+                    <p  className="mb-0">{formatDateDisplay(form.due)}</p>
                   ) : (
                     <>
                       <input
                         type="date"
                         className="form-control"
-                        min={form.endDate || form.startDate || today}
+                        min={form.startDate || today}
                         value={form.due}
                         onChange={(e) => {
                           setForm({ ...form, due: e.target.value });
@@ -1608,22 +1695,22 @@ function AdminProjectTMS() {
                 </div>
               </div>
               {/* ----------------------------------------------------------------------------------------------------- */}
-              <div className="mb-1 row align-items-center">
+             <div className="mb-2 row ">
                 {popupMode === "view" ? (
-                  <label className="col-4 fw-semibold">Status</label>
+                  <label className="col-4 form-label fw-semibold mb-0">Status</label>
                 ) : (
                   <></>
                 )}
                 <div className="col-8">
-                  {popupMode === "view" ? <p>{form.status}</p> : <></>}
+                  {popupMode === "view" ? <p className="mb-0">{form.status}</p> : <></>}
                 </div>
               </div>
               {/* --------------------------------------------------------------------------------------------------------- */}
 
               {/* STATUS (EDIT ONLY) */}
               {popupMode === "edit" && (
-                <div className="mb-1 row align-items-center">
-                  <label className="col-4 form-label fw-semibold">Status</label>
+                <div className="mb-2 row ">
+                  <label className="col-4 form-label fw-semibold mb-0">Status</label>
                   <div className="col-8">
                     <select
                       className="form-control"
@@ -1633,7 +1720,9 @@ function AdminProjectTMS() {
                       }
                     >
                       <option value="">-- Select Status --</option>
-                      <option value="Completed">Completed</option>
+                      {form.status !== "Upcoming Project" && (
+                          <option value="Completed">Completed</option>
+                        )}
                       <option value="Cancelled">Cancelled</option>
                     </select>
                   </div>
@@ -1641,11 +1730,11 @@ function AdminProjectTMS() {
               )}
 
               {/* Priority */}
-              <div className="mb-1 row align-items-center">
-                <label className="col-4 form-label fw-semibold">Priority</label>
+              <div className="mb-2 row ">
+                <label className="col-4 form-label fw-semibold mb-0">Priority</label>
                 <div className="col-8">
                   {popupMode === "view" ? (
-                    <p>{form.priority}</p>
+                    <p  className="mb-0">{form.priority}</p>
                   ) : (
                     <select
                       className="form-control"
@@ -1663,9 +1752,9 @@ function AdminProjectTMS() {
                 </div>
               </div>
 
-              <div className="mb-1 row align-items-center">
+              <div className="mb-2 row ">
                 {popupMode === "view" ? (
-                  <label className="col-4 fw-semibold">Status Updated by</label>
+                  <label className="col-4 form-label fw-semibold mb-0">Status Updated by</label>
                 ) : (
                   <></>
                 )}
@@ -1680,34 +1769,113 @@ function AdminProjectTMS() {
               {/* comments added by harshada*/}
               {popupMode === "view" && (
                 <div className="row mb-2">
-                  <label className="col-4 fw-semibold">Comments</label>
-
+                  <label className="col-4 form-label fw-semibold mb-0">Comments</label>
                   <div className="col-8">
                     <div style={{ maxHeight: "200px", overflowY: "auto" }}>
                       {projectComments.length > 0 ? (
-                        projectComments.map((c, i) => (
-                          <div key={i} className="mb-2 p-2 border rounded">
-                            {/* rutuja code start */}
-                            <div className="d-flex justify-content-between align-items-start mb-1">
-                              <div>
-                                <strong>
-                                  {c.user?.name || "Unknown User"}
-                                </strong>
-                                <small className="text-muted ms-2">
-                                  ({c.user?.role || "No role"})
-                                </small>
+                        projectComments.map((c, i) => {
+                          const isCommentCreator =
+                            c.user?._id === currentUserId;
+                          const isEditing = editingCommentId === c._id;
+
+                          if (isEditing) {
+                            return (
+                              <div key={i} className="mb-2 p-2 border rounded">
+                                <div className="mt-2">
+                                  <textarea
+                                    className="form-control form-control-sm"
+                                    rows="2"
+                                    value={editingCommentText}
+                                    onChange={(e) =>
+                                      setEditingCommentText(e.target.value)
+                                    }
+                                    maxLength={300}
+                                  />
+                                  <div className="d-flex justify-content-end gap-2 mt-2">
+                                    <button
+                                      className="btn btn-sm custom-outline-btn"
+                                      onClick={cancelEditing}
+                                    >
+                                      Cancel
+                                    </button>
+                                    <button
+                                      className="btn btn-sm custom-outline-btn"
+                                      style={{minWidth:"90px"}}
+                                      onClick={() =>
+                                        handleEditComment(
+                                          c._id,
+                                          selectedProjectId,
+                                          editingCommentText,
+                                        )
+                                      }
+                                    >
+                                      Save
+                                    </button>
+                                  </div>
+                                </div>
                               </div>
-                              <small className="text-muted">
-                                {c.createdAt &&
-                                  new Date(c.createdAt).toLocaleDateString(
-                                    "en-GB",
+                            );
+                          }
+
+                          return (
+                            <div key={i} className="mb-2 p-2 border rounded">
+                              <div className="d-flex justify-content-between align-items-start mb-1">
+                                <div>
+                                  <strong>
+                                    {c.user?.name || "Unknown User"}
+                                  </strong>
+                                  <small className="text-muted ms-2">
+                                    ({c.user?.role || "No role"})
+                                  </small>
+                                </div>
+                                <div className="d-flex align-items-center gap-2">
+                                  <small className="text-muted">
+                                    {c.createdAt &&
+                                      new Date(c.createdAt).toLocaleDateString(
+                                        "en-GB",
+                                      )}
+                                  </small>
+                                  {isCommentCreator && (
+                                    <div className="d-flex align-items-center gap-1">
+                                      <button
+                                        className="btn btn-sm custom-outline-btn p-0"
+                                        style={{
+                                          width: "20px",
+                                          height: "20px",
+                                        }}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          startEditingComment(c);
+                                        }}
+                                        title="Edit comment"
+                                      >
+                                        <i class="bi bi-pencil-square"></i>
+                                      </button>
+                                      <button
+                                        className="btn btn-sm btn-outline-danger p-0"
+                                        style={{
+                                          width: "20px",
+                                          height: "20px",
+                                        }}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDeleteComment(
+                                            c._id,
+                                            selectedProjectId,
+                                          );
+                                        }}
+                                        title="Delete comment"
+                                      >
+                                        <i class="bi bi-trash3"></i>
+                                      </button>
+                                    </div>
                                   )}
-                              </small>
+                                </div>
+                              </div>
+                              <div className="mt-1">{c.text}</div>
                             </div>
-                            {/* rutuja code end */}
-                            <div className="mt-1">{c.text}</div>
-                          </div>
-                        ))
+                          );
+                        })
                       ) : (
                         <div className="text-muted">No comments</div>
                       )}

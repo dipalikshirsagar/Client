@@ -35,6 +35,7 @@ import AdminAllEmployeeTMS from "./AdminAllEmployeeTMS";
 import AdminTasklog from "../TaskLogs/AdminTasklog";
 import ManagerTasklog from "../TaskLogs/ManagerTasklog";
 import EmployeeTasklog from "../TaskLogs/EmployeeTasklog";
+import EmployeeProfileForAdmin from "../../OnlyForAdmin/EmployeeMyProfileForAdmin";
 
 function TMSDashboard() {
   const { role } = useParams();
@@ -303,6 +304,10 @@ function TMSDashboard() {
                 }
               />
               <Route path="myprofile" element={<MyProfile user={user} />} />
+              <Route
+                path="myprofile/:empId"
+                element={<EmployeeProfileForAdmin user={user} />}
+              />
               <Route
                 path="report"
                 element={

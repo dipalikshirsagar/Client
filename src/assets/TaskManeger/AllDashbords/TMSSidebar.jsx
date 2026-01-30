@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect} from "react";
 import { NavLink, useParams } from "react-router-dom";
+
 import {
   HouseDoorFill,
   ListCheck,
@@ -15,11 +16,37 @@ import "./TMSSidebar.css";
 function TMSSidebar() {
   const { role, username, id } = useParams();
   const [isOpen, setIsOpen] = useState(false);
+const sidebarRef = useRef(null);
+  
 
+
+useEffect(() => {
+  if (window.innerWidth >= 768) {
+    
+  }
+}, []);
   const handleLinkClick = () => {
     if (window.innerWidth <= 768) setIsOpen(false);
   };
+useEffect(() => {
+  const handleOutsideClick = (event) => {
+    if (
+      isOpen &&
+      sidebarRef.current &&
+      !sidebarRef.current.contains(event.target)
+    ) {
+      setIsOpen(false);
+    }
+  };
 
+  document.addEventListener("mousedown", handleOutsideClick);
+  document.addEventListener("touchstart", handleOutsideClick);
+
+  return () => {
+    document.removeEventListener("mousedown", handleOutsideClick);
+    document.removeEventListener("touchstart", handleOutsideClick);
+  };
+}, [isOpen]);
   return (
     <>
       {/* Toggle button for small screens (same as EMS) */}
@@ -36,7 +63,7 @@ function TMSSidebar() {
         ☰
       </button>
 
-      <div className={`sidebar text-white ${isOpen ? "open" : ""}`}>
+      <div ref={sidebarRef} className={`sidebar text-white ${isOpen ? "open" : ""}`}>
         <ul className="nav flex-column text-center mt-4">
           <li className="nav-item">
             <NavLink

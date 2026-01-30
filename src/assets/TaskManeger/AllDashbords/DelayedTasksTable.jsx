@@ -171,7 +171,11 @@ function DelayedTasksTable({ delayedTasks, allEmployees, onClose }) {
         >
           Delayed Tasks
         </h5>
-        <button className="btn btn-sm custom-outline-btn" onClick={onClose}>
+        <button
+          className="btn btn-sm custom-outline-btn"
+          style={{ minWidth: "90px" }}
+          onClick={onClose}
+        >
           Close
         </button>
       </div>
@@ -194,7 +198,7 @@ function DelayedTasksTable({ delayedTasks, allEmployees, onClose }) {
               <input
                 type="text"
                 className="form-control form-control-sm"
-                placeholder="Search by any field..."
+                placeholder="Search By Any Field..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -211,12 +215,14 @@ function DelayedTasksTable({ delayedTasks, allEmployees, onClose }) {
               </button>
               <button
                 className="btn btn-sm custom-outline-btn"
+                style={{ minWidth: "90px" }}
                 onClick={handleFilter}
               >
                 Filter
               </button>
               <button
                 className="btn btn-sm custom-outline-btn"
+                style={{ minWidth: "90px" }}
                 onClick={handleReset}
               >
                 Reset
@@ -359,45 +365,38 @@ function DelayedTasksTable({ delayedTasks, allEmployees, onClose }) {
         </div>
       </div>
 
-      {showPopup && selectedDelayedTasks && (
+     {showPopup && selectedDelayedTasks && (
         <div
           ref={popupRef}
-          tabIndex="-1"
+          tabIndex="0"
           autoFocus
           onKeyDown={trapFocus}
-          className="popup-overlay"
+          className="modal fade show"
           style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.5)",
             position: "fixed",
             inset: 0,
-            background: "rgba(0,0,0,0.5)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 1000,
-            padding: "20px",
+            zIndex: 1050,
           }}
         >
+          
           <div
-            className="popup-box bg-white p-4 shadow"
-            style={{
-              width: "600px",
-              borderRadius: "10px",
-              maxHeight: "68vh",
-              overflowY: "auto",
-            }}
+            className="modal-dialog"
+            style={{ maxWidth: "650px", width: "95%" }}
+          >
+          <div
+            className="modal-content"
+            
           >
             {/* HEADER */}
             <div
-              className="modal-header"
-              style={{
-                backgroundColor: "#3A5FBE",
-                padding: "10px",
-                color: "#fff",
-                margin: "-25px -24px 15px -24px",
-                borderTopLeftRadius: "10px",
-              }}
+              className="modal-header text-white"
+              style={{ backgroundColor: "#3A5FBE" }}
             >
-              <h5 className="fw-bold">Delayed Tasks Details</h5>
+              <h5 className="modal-title mb-0">Delayed Tasks Details</h5>
               <button
                 className="btn-close btn-close-white"
                 onClick={() => setShowPopup(false)}
@@ -405,44 +404,51 @@ function DelayedTasksTable({ delayedTasks, allEmployees, onClose }) {
             </div>
 
             {/* DETAILS (VIEW ONLY) */}
-            <div className="mb-2 row">
-              <label className="col-4 fw-semibold">Task</label>
-              <div className="col-8">{selectedDelayedTasks.title}</div>
+            <div className="modal-body">
+                <div className="container-fluid">
+            <div className="row mb-2">
+              <div  className="col-5 col-sm-3 fw-semibold">Task</div>
+              <div  className="col-7 col-sm-9">{selectedDelayedTasks.title}</div>
             </div>
 
-            <div className="mb-2 row">
-              <label className="col-4 fw-semibold">Employee Name</label>
-              <div className="col-8"> {selectedEmployee?.name ?? "-"}</div>
+            <div className="row mb-2">
+              <div className="col-5 col-sm-3 fw-semibold">Employee Name</div>
+              <div className="col-7 col-sm-9">{selectedEmployee?.name ?? "-"}</div>
             </div>
 
-            <div className="mb-2 row">
-              <label className="col-4 fw-semibold">Project</label>
-              <div className="col-8">{selectedDelayedTasks.project}</div>
+            <div className="row mb-2">
+              <div className="col-5 col-sm-3 fw-semibold">Project</div>
+              <div className="col-7 col-sm-9">{selectedDelayedTasks.project}</div>
             </div>
 
-            <div className="mb-2 row">
-              <label className="col-4 fw-semibold">Due Date</label>
-              <div className="col-8">
-                {formatDate(selectedDelayedTasks.dueDate)}
+            <div className="row mb-2">
+              <div className="col-5 col-sm-3 fw-semibold">Due Date</div>
+              <div className="col-7 col-sm-9">
+                 {formatDate(selectedDelayedTasks.dueDate)}
               </div>
             </div>
-
+</div>
+</div>
             {/* CLOSE BUTTON */}
-            <div className="d-flex justify-content-end mt-3">
+            <div className="modal-footer border-0 pt-0">
               <button
                 className="btn btn-sm custom-outline-btn"
+                style={{ minWidth: 90 }}
                 onClick={() => setShowPopup(false)}
               >
                 Close
               </button>
             </div>
           </div>
+          </div>
         </div>
       )}
-
       {/* Inline Pagination */}
       <div className="d-flex justify-content-end mt-3">
-        <nav className="d-flex align-items-center justify-content-end text-muted">
+        <nav
+          className="d-flex align-items-center justify-content-end text-muted"
+          style={{ userSelect: "none" }}
+        >
           <div className="d-flex align-items-center gap-3">
             <div className="d-flex align-items-center">
               <span
@@ -483,6 +489,7 @@ function DelayedTasksTable({ delayedTasks, allEmployees, onClose }) {
                 className="btn btn-sm focus-ring"
                 type="button"
                 onClick={() => goTo(delayedPage - 1)}
+                onMouseDown={(e) => e.preventDefault()}
                 disabled={isPrevDisabled}
                 style={{
                   fontSize: "18px",
@@ -498,6 +505,7 @@ function DelayedTasksTable({ delayedTasks, allEmployees, onClose }) {
                 type="button"
                 onClick={() => goTo(delayedPage + 1)}
                 disabled={isNextDisabled}
+                onMouseDown={(e) => e.preventDefault()}
                 style={{
                   fontSize: "18px",
                   padding: "2px 8px",

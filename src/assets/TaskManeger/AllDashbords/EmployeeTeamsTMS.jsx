@@ -250,7 +250,7 @@ const EmployeeTeamsTMS = ({ user }) => {
       {/* Stat Cards */}
       <div className="row g-3 mb-4">
         {taskStats.map((team, i) => (
-          <div className="col-12 col-md-3" key={i}>
+          <div className="col-12 col-md-6 col-lg-3" key={i}>
             <div
               className="p-3 rounded shadow-sm border-0"
               style={{
@@ -317,7 +317,7 @@ const EmployeeTeamsTMS = ({ user }) => {
                 id="searchQuery"
                 type="text"
                 className="form-control"
-                placeholder="Search by any field..."
+                placeholder="Search By Any Field..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={handleSearchKeyPress}
@@ -418,7 +418,7 @@ const EmployeeTeamsTMS = ({ user }) => {
               {currentTeams.length === 0 ? (
                 <tr>
                   <td
-                    colSpan="4"
+                    colSpan="5"
                     className="text-center py-4"
                     style={{ color: "#212529" }}
                   >
@@ -501,7 +501,10 @@ const EmployeeTeamsTMS = ({ user }) => {
       </div>
 
       {/* Pagination */}
-      <nav className="d-flex align-items-center justify-content-end mt-3 text-muted">
+      <nav
+        className="d-flex align-items-center justify-content-end mt-3 text-muted"
+        style={{ userSelect: "none" }}
+      >
         <div className="d-flex align-items-center gap-3">
           <div className="d-flex align-items-center">
             <span
@@ -542,6 +545,7 @@ const EmployeeTeamsTMS = ({ user }) => {
               className="btn btn-sm focus-ring "
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
+              onMouseDown={(e) => e.preventDefault()}
               style={{ fontSize: "18px", padding: "2px 8px", color: "#212529" }}
             >
               ‹
@@ -550,6 +554,7 @@ const EmployeeTeamsTMS = ({ user }) => {
               className="btn btn-sm focus-ring "
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
+              onMouseDown={(e) => e.preventDefault()}
               style={{ fontSize: "18px", padding: "2px 8px", color: "#212529" }}
             >
               ›

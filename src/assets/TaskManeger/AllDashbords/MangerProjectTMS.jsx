@@ -21,6 +21,10 @@ function ManagerProjectTMS({ user }) {
     sundayOff: true,
   });
 
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editingCommentText, setEditingCommentText] = useState("");
+  const currentUserId =
+    JSON.parse(localStorage.getItem("activeUser"))?._id || user?._id;
   //added by harshada
   const [commentModalProject, setCommentModalProject] = useState(null);
   const [newComment, setNewComment] = useState("");
@@ -204,6 +208,7 @@ function ManagerProjectTMS({ user }) {
           item._id === projectId ? { ...item, status: newStatus } : item,
         ),
       );
+      alert(`Project status update successfully!`);
     } catch (err) {
       console.error(err);
       alert("Failed to update status");
@@ -310,18 +315,47 @@ function ManagerProjectTMS({ user }) {
     // console.log("form",form)  get empty
     setShowPopup(true);
   };
-
+////added by shivani 28-01-2026
   const filteredData =
-    searchQuery.trim() === ""
-      ? projectData
-      : projectData.filter(
-          (item) =>
-            (item.project || item.name || "")
-              .toLowerCase()
-              .includes(searchQuery.toLowerCase()) ||
-            item.projectCode?.toLowerCase().includes(searchQuery.toLowerCase()),
-        );
+  searchQuery.trim() === ""
+    ? projectData
+    : projectData.filter((item) => {
+        const query = searchQuery.toLowerCase();
 
+        const projectName =
+          (item.project || item.name || "").toLowerCase();
+
+        const projectCode =
+          item.projectCode?.toLowerCase() || "";
+
+        const status =
+          item.status?.toLowerCase() || "";
+
+        const priority =
+          item.priority?.toLowerCase() || "";
+
+        const managers =
+          getManagerNames(item.managers)
+            .join(", ")
+            .toLowerCase();
+
+        const startDate =
+          formatDateDisplay(item.startDate).toLowerCase();
+
+        const dueDate =
+          formatDateDisplay(item.dueDate).toLowerCase();
+
+        return (
+          projectName.includes(query) ||
+          projectCode.includes(query) ||
+          status.includes(query) ||
+          priority.includes(query) ||   
+          managers.includes(query) ||
+          startDate.includes(query) ||
+          dueDate.includes(query)
+        );
+      });
+////added by shivani 28-01-2026
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const paginatedData = filteredData.slice(indexOfFirstItem, indexOfLastItem);
@@ -514,6 +548,76 @@ function ManagerProjectTMS({ user }) {
     setNewComment("");
     fetchProjectComments(project._id);
   };
+
+  const handleDeleteComment = async (commentId, projectId) => {
+    if (!commentId || !projectId) {
+      alert("Cannot delete comment: Missing ID");
+      return;
+    }
+
+    if (!window.confirm("Are you sure you want to delete this comment?")) {
+      return;
+    }
+
+    try {
+      const res = await axios.delete(
+        `https://server-backend-nu.vercel.app/project/${projectId}/comment/${commentId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        },
+      );
+
+      if (res.data.success) {
+        await fetchProjectComments(projectId);
+        alert("Comment deleted successfully");
+      }
+    } catch (error) {
+      console.error("Delete comment error:", error);
+      alert(error?.response?.data?.message || "Failed to delete comment");
+    }
+  };
+
+  const handleEditComment = async (commentId, projectId, newText) => {
+    if (!commentId || !projectId || !newText.trim()) {
+      alert("Cannot edit comment");
+      return;
+    }
+
+    try {
+      const res = await axios.put(
+        `https://server-backend-nu.vercel.app/project/${projectId}/comment/${commentId}`,
+        { comment: newText },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        },
+      );
+
+      if (res.data.success) {
+        await fetchProjectComments(projectId);
+        setEditingCommentId(null);
+        setEditingCommentText("");
+        alert("Comment updated successfully");
+      }
+    } catch (error) {
+      console.error("Edit comment error:", error);
+      alert(error?.response?.data?.message || "Failed to edit comment");
+    }
+  };
+
+  const startEditingComment = (comment) => {
+    setEditingCommentId(comment._id);
+    setEditingCommentText(comment.comment || comment.text);
+  };
+
+  const cancelEditing = () => {
+    setEditingCommentId(null);
+    setEditingCommentText("");
+  };
+
   const isAnyPopupOpen = !!showPopup;
   useEffect(() => {
     if (isAnyPopupOpen) {
@@ -540,23 +644,23 @@ function ManagerProjectTMS({ user }) {
           { title: "Total Projects", count: total, bg: "#D1ECF1" }, ////Changes in all color dip
           { title: "In Progress", count: inProgress, bg: "#D1E7FF" },
           { title: "Delayed", count: delayed, bg: "#FFB3B3" },
-          { title: "On Track", count: onTrack, bg: "#D7F5E4" },
+          { title: "On Track", count: onTrack, bg: "#e9f5d7" },
           {
             title: "Today is last date",
             count: todayLastDate,
             bg: "#FFE493",
           },
-          { title: "Upcoming Project", count: upcoming, bg: "#E7DDF7" },
+          { title: "Upcoming Projects", count: upcoming, bg: "#E7DDF7" },
           { title: "Completed", count: completed, bg: "#D7F5E4" },
           { title: "Cancelled", count: cancelled, bg: "#F8D7DA" },
         ].map((card, index) => (
-          <div className="col-md-3 " key={index}>
+          <div className="col-12 col-md-4 col-lg-3" key={index}>
             <div className="card shadow-sm h-100 border-0">
               <div
                 className="card-body d-flex align-items-center"
                 style={{ gap: "20px" }}
               >
-                <h4
+                <h4 className="mb-0"
                   style={{
                     fontSize: "32px",
                     backgroundColor: card.bg,
@@ -585,7 +689,7 @@ function ManagerProjectTMS({ user }) {
 
       {/* komal  cards */}
 
-      {/* Filter dip */}
+      {/* Filter  */}
       <div className="card shadow-sm border-0 mb-3">
         <div className="card-body p-3">
           {/* Search Input */}
@@ -602,7 +706,7 @@ function ManagerProjectTMS({ user }) {
                 type="text"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Search by any field..."
+                placeholder="Search By Any Field..."
                 className="form-control form-control-sm"
                 style={{ flex: 1 }}
               />
@@ -733,7 +837,7 @@ function ManagerProjectTMS({ user }) {
                     whiteSpace: "nowrap",
                   }}
                 >
-                  comments
+                  Comments
                 </th>
               </tr>
             </thead>
@@ -959,6 +1063,18 @@ function ManagerProjectTMS({ user }) {
                         whiteSpace: "nowrap",
                       }}
                     >
+                      {/* <button
+                        className="btn btn-sm custom-outline-btn"
+                        style={{
+                          fontSize: "12px",
+                          padding: "4px 12px",
+                          borderRadius: "4px",
+                        }}
+                        onClick={(e) => handleAddComment(e, item)}
+                      >
+                        Add Comment
+                      </button> */}
+                      {item.status !== "Cancelled" && (
                       <button
                         className="btn btn-sm custom-outline-btn"
                         style={{
@@ -970,6 +1086,7 @@ function ManagerProjectTMS({ user }) {
                       >
                         Add Comment
                       </button>
+                      )}
                     </td>
                   </tr>
                 ))
@@ -986,7 +1103,10 @@ function ManagerProjectTMS({ user }) {
       </div>
 
       {/* ✅ PAGINATION */}
-      <nav className="d-flex align-items-center justify-content-end mt-3 text-muted">
+      <nav
+        className="d-flex align-items-center justify-content-end mt-3 text-muted"
+        style={{ userSelect: "none" }}
+      >
         <div className="d-flex align-items-center gap-3">
           <div className="d-flex align-items-center">
             <span style={{ fontSize: "14px", marginRight: "8px" }}>
@@ -1018,13 +1138,17 @@ function ManagerProjectTMS({ user }) {
               className="btn btn-sm"
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
+              onMouseDown={(e) => e.preventDefault()}
+              style={{ userSelect: "none" }}
             >
               ‹
             </button>
             <button
               className="btn btn-sm"
               onClick={() => handlePageChange(currentPage + 1)}
+              onMouseDown={(e) => e.preventDefault()}
               disabled={currentPage === totalPages}
+              style={{ userSelect: "none" }}
             >
               ›
             </button>
@@ -1355,7 +1479,7 @@ function ManagerProjectTMS({ user }) {
                   )}
                 </div>
               </div>
-              <div className="mb-1 row align-items-center">
+              {/* <div className="mb-1 row align-items-center">
                 <label className="col-4 form-label fw-semibold">End Date</label>
                 <div className="col-8">
                   {popupMode === "view" ? (
@@ -1381,7 +1505,7 @@ function ManagerProjectTMS({ user }) {
                     </>
                   )}
                 </div>
-              </div>
+              </div> */}
 
               {/* Due Date */}
               <div className="mb-1 row align-items-center">
@@ -1453,29 +1577,109 @@ function ManagerProjectTMS({ user }) {
                   <div className="col-8">
                     <div style={{ maxHeight: "200px", overflowY: "auto" }}>
                       {projectComments.length > 0 ? (
-                        projectComments.map((c, i) => (
-                          <div key={i} className="mb-2 p-2 border rounded">
-                            {/* rutuja code start */}
-                            <div className="d-flex justify-content-between align-items-start mb-1">
-                              <div>
-                                <strong>
-                                  {c.user?.name || "Unknown User"}
-                                </strong>
-                                <small className="text-muted ms-2">
-                                  ({c.user?.role || "No role"})
-                                </small>
+                        projectComments.map((c, i) => {
+                          const isCommentCreator =
+                            c.user?._id === currentUserId;
+                          const isEditing = editingCommentId === c._id;
+                          if (isEditing) {
+                            return (
+                              <div key={i} className="mb-2 p-2 border rounded">
+                                <div className="mt-2">
+                                  <textarea
+                                    className="form-control form-control-sm"
+                                    rows="2"
+                                    value={editingCommentText}
+                                    onChange={(e) =>
+                                      setEditingCommentText(e.target.value)
+                                    }
+                                    maxLength={300}
+                                  />
+                                  <div className="d-flex justify-content-end gap-2 mt-2">
+                                    <button
+                                      type="button"
+                                      className="btn btn-sm custom-outline-btn"
+                                      onClick={cancelEditing}
+                                    >
+                                      Cancel
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="btn btn-sm custom-outline-btn"
+                                      onClick={() =>
+                                        handleEditComment(
+                                          c._id,
+                                          selectedProjectId,
+                                          editingCommentText,
+                                        )
+                                      }
+                                    >
+                                      Save
+                                    </button>
+                                  </div>
+                                </div>
                               </div>
-                              <small className="text-muted">
-                                {c.createdAt &&
-                                  new Date(c.createdAt).toLocaleDateString(
-                                    "en-GB",
+                            );
+                          }
+
+                          return (
+                            <div key={i} className="mb-2 p-2 border rounded">
+                              <div className="d-flex justify-content-between align-items-start mb-1">
+                                <div>
+                                  <strong>
+                                    {c.user?.name || "Unknown User"}
+                                  </strong>
+                                  <small className="text-muted ms-2">
+                                    ({c.user?.role || "No role"})
+                                  </small>
+                                </div>
+                                <div className="d-flex align-items-center gap-2">
+                                  <small className="text-muted">
+                                    {c.createdAt &&
+                                      new Date(c.createdAt).toLocaleDateString(
+                                        "en-GB",
+                                      )}
+                                  </small>
+                                  {isCommentCreator && (
+                                    <div className="d-flex align-items-center gap-1">
+                                      <button
+                                        className="btn btn-sm custom-outline-btn p-0"
+                                        style={{
+                                          width: "20px",
+                                          height: "20px",
+                                        }}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          startEditingComment(c);
+                                        }}
+                                        title="Edit comment"
+                                      >
+                                        <i className="bi bi-pencil-square "></i>
+                                      </button>
+                                      <button
+                                        className="btn btn-sm btn-outline-danger p-0"
+                                        style={{
+                                          width: "20px",
+                                          height: "20px",
+                                        }}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDeleteComment(
+                                            c._id,
+                                            selectedProjectId,
+                                          );
+                                        }}
+                                        title="Delete comment"
+                                      >
+                                        <i className="bi bi-trash3"></i>
+                                      </button>
+                                    </div>
                                   )}
-                              </small>
+                                </div>
+                              </div>
+                              <div>{c.comment || c.text}</div>
                             </div>
-                            {/* rutuja code end */}
-                            <div>{c.comment || c.text}</div>
-                          </div>
-                        ))
+                          );
+                        })
                       ) : (
                         <div className="text-muted">No comments</div>
                       )}

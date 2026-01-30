@@ -514,13 +514,20 @@ function EmployeeReportTMS({ employeeId }) {
             String(item.employeeCount).includes(q)
           );
 
-        case "myProjects":
-          return (
-            item.name?.toLowerCase().includes(q) ||
-            item.status?.name?.toLowerCase().includes(q) ||
-            formatDate(item.endDate).toLowerCase().includes(q)
-          );
+       case "myProjects": {
+  const statusText =
+    item.isDelayed
+      ? "delayed"
+      : typeof item.status === "string"
+      ? item.status.toLowerCase()
+      : item.status?.name?.toLowerCase();
 
+  return (
+    item.name?.toLowerCase().includes(q) ||
+    statusText?.includes(q) ||
+    formatDate(item.endDate).toLowerCase().includes(q)
+  );
+}
         case "delayedTasks":
           return (
             item.project?.toLowerCase().includes(q) ||
@@ -696,7 +703,7 @@ function EmployeeReportTMS({ employeeId }) {
                 id="searchQuery"
                 type="text"
                 className="form-control"
-                placeholder="Search by any field..."
+                placeholder="Search By Any Field..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyPress={handleSearchKeyPress}
@@ -877,7 +884,7 @@ function EmployeeReportTMS({ employeeId }) {
                 textAlign: "left",
               }}
             >
-              Delivery Date
+              Due Date
             </th>
           </>
         );
@@ -925,7 +932,7 @@ function EmployeeReportTMS({ employeeId }) {
                 textAlign: "left",
               }}
             >
-              {formatDate(proj.endDate)}
+              {formatDate(proj.dueDate)}
             </td>
           </tr>
         ));
@@ -1298,7 +1305,10 @@ function EmployeeReportTMS({ employeeId }) {
           </div>
         </div>
 
-        <nav className="d-flex align-items-center justify-content-end mt-3 text-muted">
+        <nav
+          className="d-flex align-items-center justify-content-end mt-3 text-muted"
+          style={{ userSelect: "none" }}
+        >
           <div className="d-flex align-items-center gap-3">
             <div className="d-flex align-items-center">
               <span
@@ -1342,6 +1352,7 @@ function EmployeeReportTMS({ employeeId }) {
               <button
                 className="btn btn-sm focus-ring"
                 onClick={() => handlePageChange(currentPage - 1)}
+                onMouseDown={(e) => e.preventDefault()}
                 disabled={currentPage === 1}
                 style={{
                   fontSize: "18px",
@@ -1354,6 +1365,7 @@ function EmployeeReportTMS({ employeeId }) {
               <button
                 className="btn btn-sm focus-ring"
                 onClick={() => handlePageChange(currentPage + 1)}
+                onMouseDown={(e) => e.preventDefault()}
                 disabled={currentPage === totalPages}
                 style={{
                   fontSize: "18px",
@@ -1378,7 +1390,7 @@ function EmployeeReportTMS({ employeeId }) {
 
       <div className="row g-3 mb-4">
         {/* My Team Members */}
-        <div className="col-md-3 col-sm-6 col-12">
+         <div className="col-12 col-md-6 col-lg-3">
           <div
             className="card shadow-sm h-100 border-0"
             style={{ borderRadius: "7px", cursor: "pointer" }}
@@ -1417,7 +1429,7 @@ function EmployeeReportTMS({ employeeId }) {
         </div>
 
         {/* My Projects */}
-        <div className="col-md-3 col-sm-6 col-12">
+         <div className="col-12 col-md-6 col-lg-3">
           <div
             className="card shadow-sm h-100 border-0"
             style={{ borderRadius: "7px", cursor: "pointer" }}
@@ -1456,7 +1468,7 @@ function EmployeeReportTMS({ employeeId }) {
         </div>
 
         {/* Delayed Tasks */}
-        <div className="col-md-3 col-sm-6 col-12">
+         <div className="col-12 col-md-6 col-lg-3">
           <div
             className="card shadow-sm h-100 border-0"
             style={{ borderRadius: "7px", cursor: "pointer" }}
@@ -1495,7 +1507,7 @@ function EmployeeReportTMS({ employeeId }) {
         </div>
 
         {/* Upcoming Tasks */}
-        <div className="col-md-3 col-sm-6 col-12">
+         <div className="col-12 col-md-6 col-lg-3">
           <div
             className="card shadow-sm h-100 border-0"
             style={{ borderRadius: "7px", cursor: "pointer" }}
@@ -1534,7 +1546,7 @@ function EmployeeReportTMS({ employeeId }) {
         </div>
       </div>
 
-      {/* ✅ Title & Close button BELOW cards */}
+      {/*  Title & Close button BELOW cards */}
       {showCardList && (
         <div className=" mb-3  border-0">
           <div className=" d-flex justify-content-between align-items-center">
@@ -1547,6 +1559,7 @@ function EmployeeReportTMS({ employeeId }) {
 
             <button
               className="btn btn-sm custom-outline-btn"
+              style={{minWidth:"90px"}}
               onClick={() => setShowCardList(null)}
             >
               Close
@@ -1758,8 +1771,8 @@ function EmployeeReportTMS({ employeeId }) {
           }}
         >
           <div
-            className="modal-dialog modal-dialog-scrollable"
-            style={{ maxWidth: "750px", width: "95%" }}
+            className="modal-dialog modal-lg modal-dialog-scrollable"
+             style={{maxWidth:"750px",width:"95%",maxHeight:"650px",marginTop:"100px"}}
           >
             <div className="modal-content">
               <div
@@ -1811,6 +1824,7 @@ function EmployeeReportTMS({ employeeId }) {
               <div className="modal-footer border-0">
                 <button
                   className="btn btn-sm custom-outline-btn"
+                  style={{minWidth:"90px"}}
                   onClick={() => {
                     setDonutStatus(null);
                     setDonutTasks([]);
@@ -1839,13 +1853,16 @@ function EmployeeReportTMS({ employeeId }) {
             inset: 0,
             zIndex: 1050,
           }}
-          onClick={() => setSelectedItem(null)}
+          // onClick={() => setSelectedItem(null)} // backdrop click
         >
           <div
-            className="modal-dialog modal-dialog"
+            className="modal-dialog modal-xl"
             style={{ maxWidth: "650px", width: "95%", marginTop: "120px" }}
           >
-            <div className="modal-content">
+            <div
+              className="modal-content"
+              onClick={(e) => e.stopPropagation()} // ✅ IMPORTANT
+            >
               <div
                 className="modal-header text-white"
                 style={{ backgroundColor: "#3A5FBE" }}
@@ -1858,7 +1875,7 @@ function EmployeeReportTMS({ employeeId }) {
                 />
               </div>
 
-              <div className="modal-body">
+              <div className="modal-body overflow-auto">
                 <div className="container-fluid">
                   {showCardList === "teamMembers" &&
                     selectedItem?.members &&
@@ -1885,12 +1902,12 @@ function EmployeeReportTMS({ employeeId }) {
                           >
                             Email
                           </div>
-                          <div
-                            className="col-7 col-sm-8"
-                            style={{ color: "#212529" }}
-                          >
-                            {emp.email}
+                          <div className="col-7 col-sm-8">
+                            <div className="overflow-auto text-nowrap">
+                              {emp.email}
+                            </div>
                           </div>
+
                           <div
                             className="col-5 col-sm-4 fw-semibold"
                             style={{ color: "#212529" }}
@@ -1921,11 +1938,11 @@ function EmployeeReportTMS({ employeeId }) {
 
                       <div className="row mb-2">
                         <div className="col-5 col-sm-4 fw-semibold">
-                          Delivery Date
+                          Due Date
                         </div>
                         <div className="col-7 col-sm-8">
-                          {selectedItem.endDate
-                            ? new Date(selectedItem.endDate).toLocaleDateString(
+                          {selectedItem.dueDate
+                            ? new Date(selectedItem.dueDate).toLocaleDateString(
                                 "en-GB",
                                 {
                                   day: "2-digit",
@@ -2044,6 +2061,7 @@ function EmployeeReportTMS({ employeeId }) {
               <div className="modal-footer border-0 pt-0">
                 <button
                   className="btn btn-sm custom-outline-btn"
+                  style={{minWidth:"90px"}}
                   onClick={() => setSelectedItem(null)}
                 >
                   Close

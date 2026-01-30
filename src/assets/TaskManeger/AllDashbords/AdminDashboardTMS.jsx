@@ -17,6 +17,7 @@ function AdminDashboardTMS() {
   const [teams, setTeams] = useState([]); //added by harshada
 
   const navigate = useNavigate();
+  const userRole = localStorage.getItem("role");
   const { role, username, id } = useParams();
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -331,7 +332,7 @@ function AdminDashboardTMS() {
                     className="mb-0 fw-semibold"
                     style={{ color: "#3A5FBE", fontSize: "18px" }}
                   >
-                    Total Project
+                    Total Projects
                   </p>
                 </div>
                 <button
@@ -699,8 +700,10 @@ function AdminDashboardTMS() {
                       <button
                         className="btn btn-sm custom-outline-btn"
                         onClick={() => {
-                          setSelectedEmployee(emp);
-                          setShowProfile(true);
+                          const encodedName = encodeURIComponent(emp.name);
+                          navigate(
+                            `/tms-dashboard/${userRole}/${username}/${id}/myprofile/${emp._id}`,
+                          );
                         }}
                       >
                         View Profile

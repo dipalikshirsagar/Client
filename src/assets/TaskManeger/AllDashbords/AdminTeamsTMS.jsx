@@ -127,7 +127,8 @@ const AdminTeamsTMS = () => {
         (team.name || "").toLowerCase().includes(query) ||
         (team.teamLead || "").toLowerCase().includes(query) ||
         (team.department || "").toLowerCase().includes(query) ||
-        (team.assignToProject?.length || 0).toString().includes(query),
+        (team.assignToProject?.length || 0).toString().includes(query)||
+        (team.project?.name || "").toLowerCase().includes(query)
     );
     setFilteredTeams(temp);
   };
@@ -213,7 +214,7 @@ const AdminTeamsTMS = () => {
       {/* Stat Cards */}
       <div className="row  mb-4 g-3">
         {taskStats.map((task, i) => (
-          <div className="col-12 col-md-3" key={i}>
+          <div className="col-12 col-md-6 col-lg-3" key={i}>
             <div
               className="p-3 rounded shadow-sm border-0"
               style={{
@@ -282,7 +283,7 @@ const AdminTeamsTMS = () => {
                 id="searchQuery"
                 type="text"
                 className="form-control"
-                placeholder="Search by any field..."
+                placeholder="Search By Any Field..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={(e) => {
@@ -400,7 +401,7 @@ const AdminTeamsTMS = () => {
                         color: "#212529",
                       }}
                     >
-                      <h6 className="mb-0 fw-normal">{team?.name || "-"}</h6>
+                        <span className="mb-0 fw-normal">{team?.name || "-"}</span>
                     </td>
                     <td
                       style={{
@@ -453,7 +454,10 @@ const AdminTeamsTMS = () => {
       </div>
 
       {/* Pagination */}
-      <nav className="d-flex align-items-center justify-content-end mt-3 text-muted">
+      <nav
+        className="d-flex align-items-center justify-content-end mt-3 text-muted"
+        style={{ userSelect: "none" }}
+      >
         <div className="d-flex align-items-center gap-3">
           <div className="d-flex align-items-center">
             <span
@@ -494,6 +498,7 @@ const AdminTeamsTMS = () => {
               className="btn btn-sm focus-ring "
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
+              onMouseDown={(e) => e.preventDefault()}
               style={{ fontSize: "18px", padding: "2px 8px", color: "#212529" }}
             >
               ‹
@@ -527,7 +532,7 @@ const AdminTeamsTMS = () => {
             inset: 0,
             zIndex: 1050,
           }}
-          onClick={() => setSelectedTeam(null)}
+          // onClick={() => setSelectedTeam(null)}
         >
           <div
             className="modal-dialog "
@@ -613,6 +618,7 @@ const AdminTeamsTMS = () => {
                 <button
                   className="btn btn-sm custom-outline-btn"
                   onClick={() => setSelectedTeam(null)}
+                  style={{minWidth:"90px"}}
                 >
                   Close
                 </button>

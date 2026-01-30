@@ -119,9 +119,7 @@ function AllProjectsTable({ projects, onClose }) {
       "Delivery Date": proj?.deliveryDate ? formatDate(proj.deliveryDate) : "-",
     }));
 
-    const worksheet = XLSX.utils.sheet_add_json([], excelData, {
-      origin: "A1",
-    });
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
 
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "All Projects");
@@ -154,7 +152,11 @@ function AllProjectsTable({ projects, onClose }) {
         >
           All Projects
         </h5>
-        <button className="btn btn-sm custom-outline-btn" onClick={onClose}>
+        <button
+          className="btn btn-sm custom-outline-btn"
+          style={{ minWidth: "90px" }}
+          onClick={onClose}
+        >
           Close
         </button>
       </div>
@@ -177,7 +179,7 @@ function AllProjectsTable({ projects, onClose }) {
               <input
                 type="text"
                 className="form-control form-control-sm"
-                placeholder="Search by any field..."
+                placeholder="Search By Any Field..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -217,12 +219,14 @@ function AllProjectsTable({ projects, onClose }) {
 
               <button
                 className="btn btn-sm custom-outline-btn"
+                style={{ minWidth: "90px" }}
                 onClick={handleFilter}
               >
                 Filter
               </button>
               <button
                 className="btn btn-sm custom-outline-btn"
+                style={{ minWidth: "90px" }}
                 onClick={handleReset}
               >
                 Reset
@@ -369,45 +373,38 @@ function AllProjectsTable({ projects, onClose }) {
           </div>
         </div>
       </div>
-      {showPopup && selectedProject && (
+    {showPopup && selectedProject && (
         <div
           ref={popupRef}
-          tabIndex="-1"
+          tabIndex="0"
           autoFocus
           onKeyDown={trapFocus}
-          className="popup-overlay"
+          className="modal fade show"
           style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.5)",
             position: "fixed",
             inset: 0,
-            background: "rgba(0,0,0,0.5)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 1000,
-            padding: "20px",
+            zIndex: 1050,
           }}
         >
+          
           <div
-            className="popup-box bg-white p-4 shadow"
-            style={{
-              width: "600px",
-              borderRadius: "10px",
-              maxHeight: "68vh",
-              overflowY: "auto",
-            }}
+            className="modal-dialog"
+            style={{ maxWidth: "650px", width: "95%" }}
+          >
+          <div
+            className="modal-content"
+            
           >
             {/* HEADER */}
             <div
-              className="modal-header"
-              style={{
-                backgroundColor: "#3A5FBE",
-                padding: "10px",
-                color: "#fff",
-                margin: "-25px -24px 15px -24px",
-                borderTopLeftRadius: "10px",
-              }}
+              className="modal-header text-white"
+              style={{ backgroundColor: "#3A5FBE" }}
             >
-              <h5 className="fw-bold">Project Details</h5>
+              <h5 className="modal-title mb-0">Project Details</h5>
               <button
                 className="btn-close btn-close-white"
                 onClick={() => setShowPopup(false)}
@@ -415,44 +412,52 @@ function AllProjectsTable({ projects, onClose }) {
             </div>
 
             {/* DETAILS (VIEW ONLY) */}
-            <div className="mb-2 row">
-              <label className="col-4 fw-semibold">Project Name</label>
-              <div className="col-8">{selectedProject.name}</div>
+            <div className="modal-body">
+                <div className="container-fluid">
+            <div className="row mb-2">
+              <div  className="col-5 col-sm-3 fw-semibold">Project Name</div>
+              <div  className="col-7 col-sm-9">{selectedProject.name}</div>
             </div>
 
-            <div className="mb-2 row">
-              <label className="col-4 fw-semibold">Status</label>
-              <div className="col-8">{selectedProject.status}</div>
+            <div className="row mb-2">
+              <div className="col-5 col-sm-3 fw-semibold">Status</div>
+              <div className="col-7 col-sm-9">{selectedProject.status}</div>
             </div>
 
-            <div className="mb-2 row">
-              <label className="col-4 fw-semibold">Manager</label>
-              <div className="col-8">{selectedProject.managerName}</div>
+            <div className="row mb-2">
+              <div className="col-5 col-sm-3 fw-semibold">Manager</div>
+              <div className="col-7 col-sm-9">{selectedProject.managerName}</div>
             </div>
 
-            <div className="mb-2 row">
-              <label className="col-4 fw-semibold">Delivery Date</label>
-              <div className="col-8">
+            <div className="row mb-2">
+              <div className="col-5 col-sm-3 fw-semibold">Delivery Date</div>
+              <div className="col-7 col-sm-9">
                 {formatDate(selectedProject.deliveryDate)}
               </div>
             </div>
-
+</div>
+</div>
             {/* CLOSE BUTTON */}
-            <div className="d-flex justify-content-end mt-3">
+            <div className="modal-footer border-0 pt-0">
               <button
                 className="btn btn-sm custom-outline-btn"
+                style={{ minWidth: 90 }}
                 onClick={() => setShowPopup(false)}
               >
                 Close
               </button>
             </div>
           </div>
+          </div>
         </div>
       )}
 
       {/* Inline Pagination */}
       <div className="d-flex justify-content-end mt-3">
-        <nav className="d-flex align-items-center justify-content-end text-muted">
+        <nav
+          className="d-flex align-items-center justify-content-end text-muted"
+          style={{ userSelect: "none" }}
+        >
           <div className="d-flex align-items-center gap-3">
             <div className="d-flex align-items-center">
               <span
@@ -494,6 +499,7 @@ function AllProjectsTable({ projects, onClose }) {
                 type="button"
                 onClick={() => goTo(projPage - 1)}
                 disabled={isPrevDisabled}
+                onMouseDown={(e) => e.preventDefault()}
                 style={{
                   fontSize: "18px",
                   padding: "2px 8px",
@@ -508,6 +514,7 @@ function AllProjectsTable({ projects, onClose }) {
                 type="button"
                 onClick={() => goTo(projPage + 1)}
                 disabled={isNextDisabled}
+                onMouseDown={(e) => e.preventDefault()}
                 style={{
                   fontSize: "18px",
                   padding: "2px 8px",

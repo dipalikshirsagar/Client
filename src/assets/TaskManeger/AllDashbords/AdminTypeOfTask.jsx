@@ -14,9 +14,17 @@ function AdminTypeOfTask() {
   const [newAssignedDept, setNewAssignedDept] = useState("");
   const [isEditMode, setIsEditMode] = useState(false);
   const [editId, setEditId] = useState(null);
-
+  const [departments, setDepartments] = useState([]);
   const [errors, setErrors] = useState({});
+  //Added by harshada 27-01-2026
+  const [showPopup, setShowPopup] = useState(false);
+  const [selectedProject, setSelectedProject] = useState(null);
 
+  //Added by harshada 27-01-2026
+  const handleRowClick = (item) => {
+    setSelectedProject(item);
+    setShowPopup(true);
+  };
   const openEdit = (item) => {
     setIsEditMode(true);
     setEditId(item._id);
@@ -33,7 +41,11 @@ function AdminTypeOfTask() {
   const fetchTaskTypes = async () => {
     try {
       const res = await axios.get("https://server-backend-nu.vercel.app/api/task-types");
-      setItems(res.data || []);
+      // setItems(res.data || []);
+      const sorted = (res.data || []).sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+      ); ////snehal sort changes
+      setItems(sorted);
     } catch (error) {
       console.error("Failed to fetch task types", error);
     }
@@ -58,7 +70,27 @@ function AdminTypeOfTask() {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+  ////
+  ///snehal code
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const res = await axios.get("https://server-backend-nu.vercel.app/getAllDepartments");
 
+        console.log("Departments API:", res.data);
+
+        if (res.data.success) {
+          setDepartments(res.data.departments);
+        }
+      } catch (error) {
+        console.error("Failed to fetch departments", error);
+      }
+    };
+
+    fetchDepartments();
+  }, []);
+
+  ////
   const handleCreate = async (e) => {
     e.preventDefault();
     if (!newName.trim()) return;
@@ -73,7 +105,7 @@ function AdminTypeOfTask() {
         isActive: newIsActive,
         assignedDepartment: newAssignedDept.trim(),
       });
-
+       alert("Task type created successfully");
       resetForm();
       setShowModal(false);
       fetchTaskTypes(); // refresh table
@@ -103,6 +135,7 @@ function AdminTypeOfTask() {
         assignedDepartment: newAssignedDept?.trim() || "",
       });
 
+      alert("Task type updated successfully");
       setShowModal(false);
       setIsEditMode(false);
       setEditId(null);
@@ -172,6 +205,7 @@ function AdminTypeOfTask() {
 
     try {
       await axios.delete(`https://server-backend-nu.vercel.app/api/task-types/${id}`);
+       alert("Task type deleted successfully");
       fetchTaskTypes();
     } catch (error) {
       alert(error?.response?.data?.message || "Failed to delete task type");
@@ -270,7 +304,10 @@ function AdminTypeOfTask() {
     >
       {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-2">
-        <span className="fw-semibold" style={{ color: "#3A5FBE" }}>
+        <span
+          className="fw-semibold"
+          style={{ fontSize: "25px", color: "#3A5FBE" }}
+        >
           Type of Task
         </span>
         <button
@@ -364,8 +401,12 @@ function AdminTypeOfTask() {
               </tr>
             </thead>
             <tbody>
-              {items.map((item) => (
-                <tr key={item._id}>
+               {paginatedItems.map((item) =>  (
+                <tr
+                  key={item._id}
+                  onClick={() => handleRowClick(item)}
+                  style={{ cursor: "pointer" }}
+                >
                   <td
                     style={{
                       padding: "12px",
@@ -386,7 +427,13 @@ function AdminTypeOfTask() {
                       whiteSpace: "nowrap",
                     }}
                   >
-                    {item.description || "-"}
+                    {/* //Snehal Added 27-01-2026 start */}
+                    {item.description
+                      ? item.description.length > 40
+                        ? item.description.slice(0, 40) + "..."
+                        : item.description
+                      : "-"}
+                    {/* //Snehal Added 27-01-2026 start */}
                   </td>
                   <td
                     style={{
@@ -459,7 +506,95 @@ function AdminTypeOfTask() {
           </table>
         </div>
       </div>
-      {/* Pgination code start */}
+      {/* //added by harshada 27-01-2026 */}
+
+      {showPopup && selectedProject && (
+        <div
+          ref={popupRef}
+          tabIndex="-1"
+          autoFocus
+          onKeyDown={trapFocus}
+          className="popup-overlay"
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1000,
+            padding: "20px",
+          }}
+        >
+          <div
+            className="popup-box bg-white p-4 shadow"
+            style={{
+              width: "600px",
+              borderRadius: "10px",
+              maxHeight: "68vh",
+              overflowY: "auto",
+            }}
+          >
+            {/* HEADER */}
+            <div
+              className="modal-header"
+              style={{
+                backgroundColor: "#3A5FBE",
+                padding: "10px",
+                color: "#fff",
+                margin: "-25px -24px 15px -24px",
+                borderTopLeftRadius: "10px",
+              }}
+            >
+              <h5 className="fw-bold">Type Of Task Details</h5>
+              <button
+                className="btn-close btn-close-white"
+                onClick={() => setShowPopup(false)}
+              />
+            </div>
+
+            {/* DETAILS (VIEW ONLY) */}
+            <div className="mb-2 row">
+              <label className="col-4 fw-semibold">Task Name</label>
+              <div className="col-8">{selectedProject.name}</div>
+            </div>
+
+            <div className="mb-2 row">
+              <label className="col-4 fw-semibold">Description</label>
+              <div className="col-8">{selectedProject.description}</div>
+            </div>
+
+            <div className="mb-2 row">
+              <label className="col-4 fw-semibold">Priority</label>
+              <div className="col-8">{selectedProject.priority}</div>
+            </div>
+
+            <div className="mb-2 row">
+              <label className="col-4 fw-semibold">Active</label>
+              <div className="col-8">
+                {selectedProject.isActive ? "Yes" : "No"}
+              </div>
+            </div>
+
+            <div className="mb-2 row">
+              <label className="col-4 fw-semibold">Department</label>
+              <div className="col-8">{selectedProject.assignedDepartment}</div>
+            </div>
+
+            {/* CLOSE BUTTON */}
+            <div className="d-flex justify-content-end mt-3">
+              <button
+                className="btn btn-sm custom-outline-btn"
+                onClick={() => setShowPopup(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Pagination code start */}
       <nav className="d-flex align-items-center justify-content-end mt-3 text-muted">
         <div className="d-flex align-items-center gap-3">
           {/* Rows per page */}
@@ -506,6 +641,7 @@ function AdminTypeOfTask() {
               className="btn btn-sm border-0"
               type="button"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
+              onMouseDown={(e) => e.preventDefault()}
               disabled={page === 1}
               style={{
                 fontSize: "18px",
@@ -522,6 +658,7 @@ function AdminTypeOfTask() {
               type="button"
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
+              onMouseDown={(e) => e.preventDefault()}
               style={{
                 fontSize: "18px",
                 padding: "2px 8px",
@@ -660,13 +797,31 @@ function AdminTypeOfTask() {
 
                 <div className="row">
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Assigned Department</label>
+                    {/* <label className="form-label">Assigned Department</label>
                     <input
                       className="form-control"
                       value={newAssignedDept}
                       onChange={(e) => setNewAssignedDept(e.target.value)}
-                    />
+                    /> */}
+
+                    {/* Snehal code */}
+                    {/* //snehal adeed 27-01-2026 Department fetch start */}
+                    <label className="form-label">Assigned Departments</label>
+                    <select
+                      className="form-select"
+                      value={newAssignedDept}
+                      onChange={(e) => setNewAssignedDept(e.target.value)}
+                    >
+                      <option value="">Select Department</option>
+
+                      {departments.map((dept, index) => (
+                        <option key={index} value={dept}>
+                          {dept}
+                        </option>
+                      ))}
+                    </select>
                   </div>
+                  {/* //snehal adeed 27-01-2026 Department fetch start */}
 
                   <div className="col-md-3 d-flex align-items-center mb-3">
                     <div className="form-check mt-3">
@@ -705,7 +860,7 @@ function AdminTypeOfTask() {
 
       <div className="text-end mt-3">
         <button
-          className="btn  custom-outline-btn"
+          className="btn btn-sm custom-outline-btn"
           style={{ minWidth: 90 }}
           onClick={() => window.history.go(-1)}
         >

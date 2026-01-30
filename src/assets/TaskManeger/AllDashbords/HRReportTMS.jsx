@@ -53,8 +53,8 @@ function HRReportTMS() {
     Assigned: "#3A5FBE",
     "Assignment Pending": "#ffc107",
     "In Progress": "#0d6efd",
-    Hold: "#6c757d",
-    Cancelled: "#adb5bd",
+    Hold: "#adb5bd",
+    Cancelled: "#6c757d",
     Delayed: "#dc3545",
   };
 
@@ -703,13 +703,13 @@ function HRReportTMS() {
 
   return (
     <div className="container-fluid">
-      <h3 className="mb-3 " style={{ color: "#3A5FBE", fontSize: "25px" }}>
+      <h3 className="mb-4 " style={{ color: "#3A5FBE", fontSize: "25px" }}>
         Organization Reports
       </h3>
 
       {/* Top Cards */}
       <div className="row g-3 mb-4">
-        <div className="col-md-3">
+       <div className="col-12 col-md-6 col-lg-3">
           <div
             className="card shadow-sm h-100 border-0"
             style={{ borderRadius: "7px", cursor: "pointer" }}
@@ -750,7 +750,7 @@ function HRReportTMS() {
           </div>
         </div>
 
-        <div className="col-md-3">
+        <div className="col-12 col-md-6 col-lg-3">
           <div
             className="card shadow-sm h-100 border-0"
             style={{ borderRadius: "7px", cursor: "pointer" }}
@@ -791,7 +791,7 @@ function HRReportTMS() {
           </div>
         </div>
 
-        <div className="col-md-3">
+        <div className="col-12 col-md-6 col-lg-3">
           <div
             className="card shadow-sm h-100 border-0"
             style={{ borderRadius: "7px", cursor: "pointer" }}
@@ -832,7 +832,7 @@ function HRReportTMS() {
           </div>
         </div>
 
-        <div className="col-md-3">
+       <div className="col-12 col-md-6 col-lg-3">
           <div
             className="card shadow-sm h-100 border-0"
             style={{ borderRadius: "7px", cursor: "pointer" }}
@@ -920,7 +920,7 @@ function HRReportTMS() {
           <div className="card shadow-sm border-0 rounded-4 h-100">
             <div className="card-body d-flex flex-column justify-content-center">
               <div className="d-flex justify-content-between align-items-center mb-3">
-                <h6 className="fw-semibold mb-0 text-primary">
+                <h6 className="fw-semibold mb-0 " style={{color: "#3A5FBE"}}>
                   📊 Task Status Overview
                 </h6>
 
@@ -1055,7 +1055,7 @@ function HRReportTMS() {
             <div className="card-body p-4">
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <div className="d-flex flex-column align-items-start">
-                  <h6 className="fw-semibold text-primary mb-1">
+                  <h6 className="fw-semibold  mb-1" style={{color: "#3A5FBE"}}>
                     📈 Project Status Trend
                   </h6>
                   <span
@@ -1177,20 +1177,31 @@ function HRReportTMS() {
       </div>
 
       {/* Shivani */}
-      {selectedDonutStatus && (
+     {selectedDonutStatus && (
         <div
           className="modal fade show"
-          style={{
-            display: "block",
+         style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.5)",
             position: "fixed",
             inset: 0,
             zIndex: 1050,
-            backgroundColor: "rgba(0,0,0,0.5)",
           }}
           onClick={() => setSelectedDonutStatus(null)}
         >
-          <div className="modal-dialog " onClick={(e) => e.stopPropagation()}>
-            <div className="modal-content">
+          <div
+            className="modal-dialog"
+            style={{ maxWidth: "650px", width: "95%" , marginTop:"40px"}}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-content"
+             style={{
+              maxHeight: "75vh",     
+              display: "flex",
+              flexDirection: "column",
+            }}>
               {/* HEADER */}
               <div
                 className="modal-header text-white"
@@ -1279,7 +1290,7 @@ function HRReportTMS() {
               {/* FOOTER */}
               <div className="modal-footer">
                 <button
-                  className="btn btn-sm custom-outline-btn"
+                  className="btn btn-sm custom-outline-btn" style={{ minWidth: 90 }}
                   onClick={() => setSelectedDonutStatus(null)}
                 >
                   Close
@@ -1290,23 +1301,32 @@ function HRReportTMS() {
         </div>
       )}
 
-      {selectedProjectMonth && (
+
+     {selectedProjectMonth && (
         <div
           className="modal fade show"
           style={{
-            display: "block",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.5)",
             position: "fixed",
             inset: 0,
             zIndex: 1050,
-            backgroundColor: "rgba(0,0,0,0.5)",
           }}
           onClick={() => setSelectedProjectMonth(null)}
         >
           <div
-            className="modal-dialog modal-lg modal-dialog-scrollable"
+            className="modal-dialog "
+            style={{ maxWidth: "650px", width: "95%" , marginTop:"40px"}}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="modal-content">
+            <div className="modal-content"
+             style={{
+              maxHeight: "75vh",     
+              display: "flex",
+              flexDirection: "column",
+            }}>
               <div
                 className="modal-header text-white"
                 style={{ background: "#3A5FBE" }}
@@ -1375,7 +1395,7 @@ function HRReportTMS() {
 
               <div className="modal-footer">
                 <button
-                  className="btn btn-sm custom-outline-btn"
+                  className="btn btn-sm custom-outline-btn" style={{ minWidth: 90 }}
                   onClick={() => setSelectedProjectMonth(null)}
                 >
                   Close

@@ -37,7 +37,7 @@ const MangerTaskTMS = ({ role }) => {
   const [assignDateFromFilter, setAssignDateFromFilter] = useState("");
   const [assignDateToFilter, setAssignDateToFilter] = useState("");
   const [documentFile, setDocumentFile] = useState(null);
-
+const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
   const uniqueProjects = [
     "All",
     ...new Set(allTasks.map((task) => task.projectName)),
@@ -68,6 +68,11 @@ const MangerTaskTMS = ({ role }) => {
   const [existingTaskNames, setExistingTaskNames] = useState([]);
   const [activeTimers, setActiveTimers] = useState({});
   const [timerSeconds, setTimerSeconds] = useState({});
+  const [currentUser, setCurrentUser] = useState(null);
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editingCommentText, setEditingCommentText] = useState("");
+  const currentUserId =
+    currentUser?._id || JSON.parse(localStorage.getItem("activeUser"))?._id;
 
   const handleEditSave = async (task) => {
     try {
@@ -285,6 +290,8 @@ const MangerTaskTMS = ({ role }) => {
   };
 
   const handleSubmitComment = async () => {
+    if (isCommentSubmitting) return;////shivani 28-01-2026
+    setIsCommentSubmitting(true);
     if (!newComment.trim()) {
       alert("Please enter a comment");
       return;
@@ -317,6 +324,80 @@ const MangerTaskTMS = ({ role }) => {
       console.error("Add comment error:", error);
       alert(error?.response?.data?.message || "Failed to add comment");
     }
+    finally {                           
+    setIsCommentSubmitting(false); /////shivani
+  }
+  };
+
+  const handleDeleteComment = async (commentId, taskId) => {
+    if (!commentId || !taskId) {
+      alert("Cannot delete comment: Missing ID");
+      return;
+    }
+
+    if (!window.confirm("Are you sure you want to delete this comment?")) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("accessToken");
+      const res = await axios.delete(
+        `https://server-backend-nu.vercel.app/task/${taskId}/comment/${commentId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (res.data.success) {
+        await fetchTaskComments(taskId);
+        alert("Comment deleted successfully");
+      }
+    } catch (error) {
+      console.error("Delete comment error:", error);
+      alert(error?.response?.data?.message || "Failed to delete comment");
+    }
+  };
+
+  const handleEditComment = async (commentId, taskId, newText) => {
+    if (!commentId || !taskId || !newText.trim()) {
+      alert("Cannot edit comment");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("accessToken");
+      const res = await axios.put(
+        `https://server-backend-nu.vercel.app/task/${taskId}/comment/${commentId}`,
+        { comment: newText },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (res.data.success) {
+        await fetchTaskComments(taskId);
+        setEditingCommentId(null);
+        setEditingCommentText("");
+        alert("Comment updated successfully");
+      }
+    } catch (error) {
+      console.error("Edit comment error:", error);
+      alert(error?.response?.data?.message || "Failed to edit comment");
+    }
+  };
+
+  const startEditingComment = (comment) => {
+    setEditingCommentId(comment._id);
+    setEditingCommentText(comment.comment || comment.text);
+  };
+
+  const cancelEditing = () => {
+    setEditingCommentId(null);
+    setEditingCommentText("");
   };
 
   // comment end ----------------------------------------------
@@ -345,6 +426,23 @@ const MangerTaskTMS = ({ role }) => {
     }
   }
 
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const token = localStorage.getItem("accessToken");
+        if (token) {
+          const response = await axios.get("https://server-backend-nu.vercel.app/me", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setCurrentUser(response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching current user:", error);
+      }
+    };
+
+    fetchCurrentUser();
+  }, []);
   // const getStatusColor = (status) => ({
   //   backgroundColor: STATUS_COLORS[status?.name] || "#E2E3E5",
   //   padding: "6px 14px",
@@ -442,7 +540,12 @@ const MangerTaskTMS = ({ role }) => {
     try {
       const res = await axios.get(`https://server-backend-nu.vercel.app/unique`);
       if (res.data.success) {
-        setUniqueStatus(res.data.data);
+         const normalized = res.data.data.map(s => ({
+        _id: s._id || s.id,   
+        name: s.name,
+      }));
+      setUniqueStatus(normalized);
+    
       }
     } catch (error) {
       console.error("Failed to fetch statuses:", error);
@@ -556,6 +659,7 @@ const MangerTaskTMS = ({ role }) => {
         const projectRes = await axios.get(
           `https://server-backend-nu.vercel.app/api/projects/unique-names/${user._id}`,
         );
+        const teamsRes = await axios.get("https://server-backend-nu.vercel.app/api/teams");
         const departments = res.data.departments;
         const employeesNames = empRes.data.employees;
         const taskTypeNames = taskTypeRes.data.taskTypes;
@@ -564,7 +668,14 @@ const MangerTaskTMS = ({ role }) => {
           normalizeDepartment(d),
         );
         const uniqueDepartments = [...new Set(normalizedDepartments)];
-        setProject(projectNames);
+
+        const teamProjectSet = new Set(
+          teamsRes.data.data.map((team) => team.project?.name?.trim()),
+        );
+        const filteredProjects = projectNames.filter((projectName) =>
+          teamProjectSet.has(projectName),
+        );
+        setProject(filteredProjects);
         setDepartment(uniqueDepartments);
         setTaskType(taskTypeNames);
         setEmployees(employeesNames);
@@ -825,18 +936,44 @@ const MangerTaskTMS = ({ role }) => {
 
       const token = localStorage.getItem("accessToken");
 
-      if (editTaskId) {
-        await axios.put(`https://server-backend-nu.vercel.app/task/${editTaskId}`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-      } else {
-        await axios.post("https://server-backend-nu.vercel.app/task/create", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-      }
+      // if (editTaskId) {
+      //   await axios.put(`https://server-backend-nu.vercel.app/task/${editTaskId}`, formData, {
+      //     headers: { "Content-Type": "multipart/form-data" },
+      //   });
+      // } else {
+      //   await axios.post("https://server-backend-nu.vercel.app/task/create", formData, {
+      //     headers: {
+      //       "Content-Type": "multipart/form-data",
+      //       Authorization: `Bearer ${token}`,
+      //     },
+      //   });
+      // }
+
+      //snehalcode
+if (editTaskId) {
+  await axios.put(
+    `https://server-backend-nu.vercel.app/task/${editTaskId}`,
+    formData,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`, //  REQUIRED
+        //  DO NOT SET Content-Type
+      },
+    }
+  );
+} else {
+  await axios.post(
+    "https://server-backend-nu.vercel.app/task/create",
+    formData,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`, //  REQUIRED
+        //  DO NOT SET Content-Type
+      },
+    }
+  );
+}
+//snehalcode
 
       await fetchTasks();
 
@@ -1027,6 +1164,7 @@ const MangerTaskTMS = ({ role }) => {
       await axios.delete(`https://server-backend-nu.vercel.app/task/${id}`);
       setAllTasks((prev) => prev.filter((t) => t._id !== id));
       setFilteredTasks((prev) => prev.filter((t) => t._id !== id));
+      alert("Task deleted Successfuly!");
     } catch (error) {
       alert("Failed to delete task");
       console.log("error", error.message);
@@ -1060,6 +1198,8 @@ const MangerTaskTMS = ({ role }) => {
   //   whiteSpace: "normal",
   //   wordBreak: "break-word",
   // });
+console.log("newTask.status:", newTask.status);
+console.log("Status object:", uniqueStatus.find(s => s.id === newTask.status));
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -1127,6 +1267,7 @@ const MangerTaskTMS = ({ role }) => {
       document.documentElement.style.overflow = "";
     };
   }, [isAnyPopupOpen]);
+
   return (
     <div className="container-fluid ">
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -1453,17 +1594,19 @@ const MangerTaskTMS = ({ role }) => {
                     </td>
                     {/* comment start---------------------- */}
                     <td style={tdStyle}>
-                      <button
-                        className="btn btn-sm custom-outline-btn"
-                        style={{
-                          fontSize: "12px",
-                          padding: "4px 12px",
-                          borderRadius: "4px",
-                        }}
-                        onClick={(e) => handleAddCommentClick(e, t)}
-                      >
-                        Add Comment
-                      </button>
+                      {currentUser && (
+                        <button
+                          className="btn btn-sm custom-outline-btn"
+                          style={{
+                            fontSize: "12px",
+                            padding: "4px 12px",
+                            borderRadius: "4px",
+                          }}
+                          onClick={(e) => handleAddCommentClick(e, t)}
+                        >
+                          Add Comment
+                        </button>
+                      )}
                     </td>
                     {/* comment end---------------------- */}
                     <td style={tdStyle}>
@@ -1832,7 +1975,7 @@ const MangerTaskTMS = ({ role }) => {
                               )
 
                               .map((status) => (
-                                <option key={status.id} value={status.id}>
+                                <option key={status._id} value={status._id}> {/* changes to_id */}
                                   {/* Show "Unassigned" instead of "Assignment Pending" */}
                                   {status.name === "Assignment Pending"
                                     ? "Unassigned"
@@ -1842,7 +1985,7 @@ const MangerTaskTMS = ({ role }) => {
                           : uniqueStatus
                               .filter((status) => status.name !== "Cancelled")
                               .map((status) => (
-                                <option key={status.id} value={status.id}>
+                                <option key={status._id} value={status._id}> {/* changes to_id */}
                                   {/* Show "Unassigned" instead of "Assignment Pending" */}
                                   {status.name === "Assignment Pending"
                                     ? "Unassigned"
@@ -2414,20 +2557,22 @@ const MangerTaskTMS = ({ role }) => {
                           className="form-control"
                           value={selectedTask.status?._id || ""}
                           onChange={(e) => {
+                            const statusId = e.target.value;///// Dip
                             const selectedStatus = uniqueStatus.find(
-                              (s) => s._id === e.target.value,
+                              (s) => s._id === statusId  ////Dip
                             );
                             setSelectedTask({
                               ...selectedTask,
-                              status: e.target.value,
+                              status:  selectedStatus,///// Dip
                             });
                           }}
                           disabled={
                             !selectedTask.assignedTo ||
-                            !selectedTask.assignedTo._id
+                            !selectedTask.assignedTo._id ||
+                            selectedTask.status?.name === "In Progress"/////harshda
                           }
                         >
-                          <option value="">Select Status</option>
+                          <option value="" disabled>Select Status</option>
                           {!selectedTask.assignedTo ||
                           !selectedTask.assignedTo._id
                             ? uniqueStatus
@@ -2557,25 +2702,127 @@ const MangerTaskTMS = ({ role }) => {
                       <div className="col-7 col-sm-9">
                         <div style={{ maxHeight: "200px", overflowY: "auto" }}>
                           {taskComments && taskComments.length > 0 ? (
-                            taskComments.map((comment, index) => (
-                              <div
-                                key={index}
-                                className="mb-2 p-2 border rounded"
-                              >
-                                <div className="d-flex justify-content-between">
-                                  <small className="text-muted">
-                                    {comment.createdAt
-                                      ? new Date(
-                                          comment.createdAt,
-                                        ).toLocaleDateString("en-GB")
-                                      : ""}
-                                  </small>
+                            taskComments.map((comment, index) => {
+                              const isCommentCreator =
+                                comment.user?._id === currentUserId;
+                              const isEditing =
+                                editingCommentId === comment._id;
+
+                              if (isEditing) {
+                                return (
+                                  <div
+                                    key={index}
+                                    className="mb-2 p-2 border rounded"
+                                  >
+                                    <div className="mt-2">
+                                      <textarea
+                                        className="form-control form-control-sm"
+                                        rows="2"
+                                        value={editingCommentText}
+                                        onChange={(e) =>
+                                          setEditingCommentText(e.target.value)
+                                        }
+                                        maxLength={300}
+                                      />
+                                      <div className="d-flex justify-content-end gap-2 mt-2">
+                                        <button
+                                          type="button"
+                                          className="btn custom-outline-btn"
+                                          onClick={cancelEditing}
+                                        >
+                                          Cancel
+                                        </button>
+                                        <button
+                                          type="button"
+                                          className="btn custom-outline-btn"
+                                          onClick={() =>
+                                            handleEditComment(
+                                              comment._id,
+                                              selectedTask._id,
+                                              editingCommentText,
+                                            )
+                                          }
+                                        >
+                                          Save
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              }
+
+                              return (
+                                <div
+                                  key={index}
+                                  className="mb-2 p-2 border rounded"
+                                >
+                                  <div className="d-flex justify-content-between align-items-center mb-1">
+                                    <div>
+                                      <strong>
+                                        {comment.user?.name || "Unknown"}
+                                        {comment.user?.role && (
+                                          <span
+                                            style={{
+                                              fontWeight: "normal",
+                                              marginLeft: "4px",
+                                            }}
+                                          >
+                                            ({comment.user.role})
+                                          </span>
+                                        )}
+                                      </strong>
+                                    </div>
+                                    <div className="d-flex align-items-center gap-2">
+                                      <small className="text-muted">
+                                        {comment.createdAt
+                                          ? new Date(
+                                              comment.createdAt,
+                                            ).toLocaleDateString("en-GB")
+                                          : ""}
+                                      </small>
+                                      {isCommentCreator && (
+                                        <div className="d-flex align-items-center gap-1">
+                                          <button
+                                            className="btn btn-sm btn custom-outline-btn p-0"
+                                            style={{
+                                              width: "20px",
+                                              height: "20px",
+                                            }}
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              startEditingComment(comment);
+                                            }}
+                                            title="Edit comment"
+                                          >
+                                            <i className="bi bi-pencil-square"></i>
+                                          </button>
+                                          <button
+                                            className="btn btn-sm btn-outline-danger p-0"
+                                            style={{
+                                              width: "20px",
+                                              height: "20px",
+                                            }}
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleDeleteComment(
+                                                comment._id,
+                                                selectedTask._id,
+                                              );
+                                            }}
+                                            title="Delete comment"
+                                          >
+                                            <i className="bi bi-trash3"></i>
+                                          </button>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="mt-1">
+                                    {comment.text || comment.comment}
+                                  </div>
                                 </div>
-                                <div className="mt-1">
-                                  {comment.comment || comment.text}
-                                </div>
-                              </div>
-                            ))
+                              );
+                            })
                           ) : (
                             <div className="text-muted">No comments</div>
                           )}
@@ -2662,6 +2909,7 @@ const tdStyle = {
   fontSize: "14px",
   borderBottom: "1px solid #dee2e6",
   whiteSpace: "nowrap",
+  textTransform:"capitalize"
 };
 
 // const statusStyle = (bg) => ({

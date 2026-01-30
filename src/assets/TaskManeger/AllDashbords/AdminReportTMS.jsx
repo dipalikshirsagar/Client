@@ -920,7 +920,7 @@ function AdminReportTMS() {
 
   return (
     <div className="container-fluid ">
-      <h2 style={{ color: "#3A5FBE", fontSize: "25px" }}>Reports</h2>
+      <h2 className="mb-4" style={{ color: "#3A5FBE", fontSize: "25px" }}>Reports</h2>
 
       {/* Top cards row */}
       <div className="row g-3 mb-4">
@@ -1840,7 +1840,7 @@ function AdminReportTMS() {
               {/* FOOTER */}
               <div className="modal-footer">
                 <button
-                  className="btn btn-sm custom-outline-btn"
+                  className="btn btn-sm custom-outline-btn" style={{minWidth:"90px"}}
                   onClick={() => setSelectedDonutStatus(null)}
                 >
                   Close
@@ -1930,7 +1930,7 @@ function AdminReportTMS() {
 
               <div className="modal-footer">
                 <button
-                  className="btn btn-sm custom-outline-btn"
+                  className="btn btn-sm custom-outline-btn" style={{minWidth:"90px"}}
                   onClick={() => setSelectedProjectMonth(null)}
                 >
                   Close

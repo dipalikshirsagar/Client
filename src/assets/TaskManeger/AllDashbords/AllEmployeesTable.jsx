@@ -132,7 +132,11 @@ function AllEmployeesTable({ employees, onClose, onViewTasks }) {
         >
           All Employees
         </h5>
-        <button className="btn btn-sm custom-outline-btn" onClick={onClose}>
+        <button
+          className="btn btn-sm custom-outline-btn"
+          style={{ minWidth: "90px" }}
+          onClick={onClose}
+        >
           Close
         </button>
       </div>
@@ -155,7 +159,7 @@ function AllEmployeesTable({ employees, onClose, onViewTasks }) {
               <input
                 type="text"
                 className="form-control form-control-sm"
-                placeholder="Search by any field..."
+                placeholder="Search By Any Field..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -196,12 +200,14 @@ function AllEmployeesTable({ employees, onClose, onViewTasks }) {
               </button>
               <button
                 className="btn btn-sm custom-outline-btn"
+                style={{ minWidth: "90px" }}
                 onClick={handleFilter}
               >
                 Filter
               </button>
               <button
                 className="btn btn-sm custom-outline-btn"
+                style={{ minWidth: "90px" }}
                 onClick={handleReset}
               >
                 Reset
@@ -366,7 +372,10 @@ function AllEmployeesTable({ employees, onClose, onViewTasks }) {
 
       {/* Inline Pagination */}
       <div className="d-flex justify-content-end mt-3">
-        <nav className="d-flex align-items-center justify-content-end text-muted">
+        <nav
+          className="d-flex align-items-center justify-content-end text-muted"
+          style={{ userSelect: "none" }}
+        >
           <div className="d-flex align-items-center gap-3">
             <div className="d-flex align-items-center">
               <span
@@ -408,6 +417,7 @@ function AllEmployeesTable({ employees, onClose, onViewTasks }) {
                 type="button"
                 onClick={() => goTo(empPage - 1)}
                 disabled={isPrevDisabled}
+                onMouseDown={(e) => e.preventDefault()}
                 style={{
                   fontSize: "18px",
                   padding: "2px 8px",
@@ -422,6 +432,7 @@ function AllEmployeesTable({ employees, onClose, onViewTasks }) {
                 type="button"
                 onClick={() => goTo(empPage + 1)}
                 disabled={isNextDisabled}
+                onMouseDown={(e) => e.preventDefault()}
                 style={{
                   fontSize: "18px",
                   padding: "2px 8px",

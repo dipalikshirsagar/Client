@@ -172,72 +172,58 @@ const AdminTaskTMS = () => {
   ////
 
   //  Updated applyFilters function
-  const applyFilters = () => {
-    let temp = [...allTasks];
+ const applyFilters = () => {
+  let temp = [...allTasks];
 
-    //  Search filter
-    //  Search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
+  //  Search filter
+  if (searchQuery.trim()) {
+    const query = searchQuery.toLowerCase();
 
-      temp = temp.filter((task) => {
-        const assignDateStr = task.assignDate
-          ? new Date(task.assignDate).toISOString().split("T")[0]
-          : "";
+    temp = temp.filter((task) => {
+      const searchableFields = [
+        task.projectName,
+        task.title,
+        task.assignedTo,
+        task.description,
+        task.status,
+        task.createdBy,
+        task.time,
+        task.assignDate,
+        task.deadline,
+      ];
 
-        const deadlineStr = task.deadline
-          ? new Date(task.deadline).toISOString().split("T")[0]
-          : "";
+      return searchableFields
+        .join(" ")
+        .toLowerCase()
+        .includes(query);
+    });
+  }
 
-        return (
-          task.projectName?.toLowerCase().includes(query) ||
-          task.title?.toLowerCase().includes(query) ||
-          task.assignedTo?.toLowerCase().includes(query) ||
-          task.description?.toLowerCase().includes(query) ||
-          task.status?.toLowerCase().includes(query) ||
-          task.assignedTo?.toLowerCase().includes(query) ||
-          task.createdBy?.toLowerCase().includes(query) ||
-          task.time?.toLowerCase().includes(query) ||
-          assignDateStr.includes(query) ||
-          deadlineStr.includes(query)
-        );
-      });
-    }
+  //  Assign Date range filter (NO Date object usage)
+  if (assignDateFromFilter || assignDateToFilter) {
+    temp = temp.filter((task) => {
+      if (!task.assignDate) return false;
 
-    //  Date range filter
-    if (assignDateFromFilter || assignDateToFilter) {
-      const fromDate = assignDateFromFilter
-        ? new Date(assignDateFromFilter)
-        : null;
-      const toDate = assignDateToFilter ? new Date(assignDateToFilter) : null;
+      const taskDateStr = task.assignDate.slice(0, 10); // YYYY-MM-DD
 
-      temp = temp.filter((task) => {
-        const isDateInRange = (dateStr) => {
-          if (!dateStr) return true;
+      return (
+        (!assignDateFromFilter ||
+          taskDateStr >= assignDateFromFilter) &&
+        (!assignDateToFilter || taskDateStr <= assignDateToFilter)
+      );
+    });
+  }
 
-          const taskDate = new Date(dateStr);
-          if (isNaN(taskDate)) return false;
+  //  Sort by deadline (safe)
+  temp.sort(
+    (a, b) =>
+      new Date(a.deadline || "9999-12-31") -
+      new Date(b.deadline || "9999-12-31")
+  );
 
-          taskDate.setHours(0, 0, 0, 0);
-
-          if (fromDate && taskDate < new Date(fromDate.setHours(0, 0, 0, 0)))
-            return false;
-          if (toDate && taskDate > new Date(toDate.setHours(23, 59, 59, 999)))
-            return false;
-
-          return true;
-        };
-
-        return isDateInRange(task.assignDate) || isDateInRange(task.deadline);
-      });
-    }
-
-    //  Sort by deadline
-    temp.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
-
-    setFilteredTasks(temp);
-    setCurrentPage(1);
-  };
+  setFilteredTasks(temp);
+  setCurrentPage(1);
+};
   const resetFilters = () => {
     setSearchQuery("");
     setAssignDateFromFilter("");
@@ -368,18 +354,19 @@ const AdminTaskTMS = () => {
   }, [isAnyPopupOpen]);
   return (
     <div className="container-fluid ">
-      <h2 style={{ color: "#3A5FBE", fontSize: "25px" }}>Tasks</h2>
+      <h2 className="mb-4" style={{ color: "#3A5FBE", fontSize: "25px" }}>Tasks</h2>
 
       {/* Stat Cards */}
       <div className="row g-3 mb-4">
         {/* Row 1 - 4 Cards */}
-        <div className="col-md-3">
+         <div className="col-12 col-md-6 col-lg-3">
           <div className="card shadow-sm h-100 border-0">
             <div
               className="card-body d-flex align-items-center"
               style={{ gap: "16px" }}
             >
               <h4
+              className="mb-0"
                 style={{
                   fontSize: "32px",
                   backgroundColor: "#D1ECF1",
@@ -403,13 +390,13 @@ const AdminTaskTMS = () => {
           </div>
         </div>
 
-        <div className="col-md-3">
+         <div className="col-12 col-md-6 col-lg-3">
           <div className="card shadow-sm h-100 border-0">
             <div
               className="card-body d-flex align-items-center"
               style={{ gap: "16px" }}
             >
-              <h4
+              <h4 className="mb-0"
                 style={{
                   fontSize: "32px",
                   backgroundColor: "#D7F5E4",
@@ -432,13 +419,13 @@ const AdminTaskTMS = () => {
             </div>
           </div>
         </div>
-        <div className="col-md-3">
+         <div className="col-12 col-md-6 col-lg-3">
           <div className="card shadow-sm h-100 border-0">
             <div
               className="card-body d-flex align-items-center"
               style={{ gap: "16px" }}
             >
-              <h4
+              <h4 className="mb-0"
                 style={{
                   fontSize: "32px",
                   backgroundColor: "#FFE493",
@@ -462,13 +449,14 @@ const AdminTaskTMS = () => {
           </div>
         </div>
 
-        <div className="col-md-3">
+        <div className="col-12 col-md-6 col-lg-3">
           <div className="card shadow-sm h-100 border-0">
             <div
               className="card-body d-flex align-items-center"
               style={{ gap: "16px" }}
             >
               <h4
+              className="mb-0"
                 style={{
                   fontSize: "32px",
                   backgroundColor: "#F1F3F5",
@@ -491,13 +479,13 @@ const AdminTaskTMS = () => {
             </div>
           </div>
         </div>
-        <div className="col-md-3">
+         <div className="col-12 col-md-6 col-lg-3">
           <div className="card shadow-sm h-100 border-0">
             <div
               className="card-body d-flex align-items-center"
               style={{ gap: "16px" }}
             >
-              <h4
+              <h4 className="mb-0"
                 style={{
                   fontSize: "32px",
                   backgroundColor: "#D1E7FF",
@@ -521,13 +509,13 @@ const AdminTaskTMS = () => {
           </div>
         </div>
 
-        <div className="col-md-3">
+         <div className="col-12 col-md-6 col-lg-3">
           <div className="card shadow-sm h-100 border-0">
             <div
               className="card-body d-flex align-items-center"
               style={{ gap: "16px" }}
             >
-              <h4
+              <h4 className="mb-0"
                 style={{
                   fontSize: "32px",
                   backgroundColor: "#FFF1CC",
@@ -551,13 +539,13 @@ const AdminTaskTMS = () => {
           </div>
         </div>
 
-        <div className="col-md-3">
+        <div className="col-12 col-md-6 col-lg-3">
           <div className="card shadow-sm h-100 border-0">
             <div
               className="card-body d-flex align-items-center"
               style={{ gap: "16px" }}
             >
-              <h4
+              <h4 className="mb-0"
                 style={{
                   fontSize: "32px",
                   backgroundColor: "#F2C2C2",
@@ -581,13 +569,13 @@ const AdminTaskTMS = () => {
           </div>
         </div>
 
-        <div className="col-md-3">
+         <div className="col-12 col-md-6 col-lg-3">
           <div className="card shadow-sm h-100 border-0">
             <div
               className="card-body d-flex align-items-center"
               style={{ gap: "16px" }}
             >
-              <h4
+              <h4 className="mb-0"
                 style={{
                   fontSize: "32px",
                   backgroundColor: "#FFB3B3",
@@ -755,7 +743,7 @@ const AdminTaskTMS = () => {
                     whiteSpace: "nowrap",
                   }}
                 >
-                  Created by
+                  Created By
                 </th>
                 <th
                   style={{
@@ -848,7 +836,7 @@ const AdminTaskTMS = () => {
                         color: "#212529",
                       }}
                     >
-                      <h6 className="mb-0 fw-normal">{task.projectName}</h6>
+                      <span className="mb-0 fw-normal">{task.projectName}</span>
                     </td>
                     <td
                       style={{
@@ -860,7 +848,7 @@ const AdminTaskTMS = () => {
                         color: "#212529",
                       }}
                     >
-                      <h6 className="mb-0 fw-normal">{task.title}</h6>
+                      <span className="mb-0 fw-normal">{task.title}</span>
                     </td>
                     <td
                       style={{
@@ -872,7 +860,7 @@ const AdminTaskTMS = () => {
                         color: "#212529",
                       }}
                     >
-                      <h6 className="mb-0 fw-normal">{task.createdBy}</h6>
+                      <span className="mb-0 fw-normal">{task.createdBy}</span>
                     </td>
                     <td
                       style={{
@@ -980,7 +968,10 @@ const AdminTaskTMS = () => {
         </div>
       </div>
 
-      <nav className="d-flex align-items-center justify-content-end mt-3 text-muted">
+      <nav
+        className="d-flex align-items-center justify-content-end mt-3 text-muted"
+        style={{ userSelect: "none" }}
+      >
         <div className="d-flex align-items-center gap-3">
           {/* Rows per page */}
           <div className="d-flex align-items-center">
@@ -1024,6 +1015,7 @@ const AdminTaskTMS = () => {
               className="btn btn-sm focus-ring "
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
+              onMouseDown={(e) => e.preventDefault()}
               style={{ fontSize: "18px", padding: "2px 8px", color: "#212529" }}
             >
               ‹
@@ -1032,6 +1024,7 @@ const AdminTaskTMS = () => {
               className="btn btn-sm focus-ring "
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
+              onMouseDown={(e) => e.preventDefault()}
               style={{ fontSize: "18px", padding: "2px 8px", color: "#212529" }}
             >
               ›
@@ -1056,7 +1049,7 @@ const AdminTaskTMS = () => {
             inset: 0,
             zIndex: 1050,
           }}
-          onClick={() => setSelectedTask(null)}
+         // onClick={() => setSelectedTask(null)}   //comment by harshada
         >
           <div
             className="modal-dialog "

@@ -14,7 +14,8 @@ import {
   CartesianGrid,
 } from "recharts";
 import "./ReportTMSGraph.css";
-
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 const formatDate = (date) => {
   if (!date) return "-";
   return new Date(date).toLocaleDateString("en-GB", {
@@ -71,23 +72,25 @@ function TableRowModal({ show, onClose, title, fields }) {
 
   if (!show) return null;
 
-  return (
+ return (
     <div
       ref={popupRef}
-      tabIndex="-1"
+      tabIndex="0"
       onKeyDown={trapFocus}
       className="modal fade show"
-      style={{
-        display: "block",
-        position: "fixed",
-        inset: 0,
-        zIndex: 1050,
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
-      }}
+     style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.5)",
+            position: "fixed",
+            inset: 0,
+            zIndex: 1050,
+          }}
       onClick={onClose}
     >
       <div
-        className="modal-dialog modal-dialog-centered"
+        className="modal-dialog "
         style={{ maxWidth: "650px", width: "95%" }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -107,24 +110,81 @@ function TableRowModal({ show, onClose, title, fields }) {
 
           {/* BODY */}
           <div className="modal-body">
+            <div className="container-fluid">
             {fields.map(({ label, value }) => (
               <div className="row mb-2" key={label}>
-                <div className="col-4 fw-semibold">{label}</div>
-                <div className="col-8">{value || "-"}</div>
+                <div className="col-5 col-sm-3 fw-semibold">{label}</div>
+                <div className="col-7 col-sm-8">{value || "-"}</div>
               </div>
             ))}
           </div>
 
           {/* FOOTER */}
-          <div className="modal-footer">
-            <button className="btn btn-sm custom-outline-btn" onClick={onClose}>
+          <div className="modal-footer border-0 pt-0">
+            <button className="btn btn-sm custom-outline-btn"  
+            style={{ minWidth: 90 }} 
+            onClick={onClose}>
               Close
             </button>
           </div>
         </div>
+        </div>
       </div>
     </div>
-  );
+  );/////added by shivani 28-01-2026
+  //   <div
+  //     ref={popupRef}
+  //     tabIndex="-1"
+  //     onKeyDown={trapFocus}
+  //     className="modal fade show"
+  //     style={{
+  //       display: "block",
+  //       position: "fixed",
+  //       inset: 0,
+  //       zIndex: 1050,
+  //       backgroundColor: "rgba(0, 0, 0, 0.5)",
+  //     }}
+  //     onClick={onClose}
+  //   >
+  //     <div
+  //       className="modal-dialog modal-dialog-centered"
+  //       style={{ maxWidth: "650px", width: "95%" }}
+  //       onClick={(e) => e.stopPropagation()}
+  //     >
+  //       <div className="modal-content">
+  //         {/* HEADER */}
+  //         <div
+  //           className="modal-header text-white"
+  //           style={{ backgroundColor: "#3A5FBE" }}
+  //         >
+  //           <h5 className="modal-title mb-0">{title}</h5>
+  //           <button
+  //             type="button"
+  //             className="btn-close btn-close-white"
+  //             onClick={onClose}
+  //           />
+  //         </div>
+
+  //         {/* BODY */}
+  //         <div className="modal-body">
+  //           {fields.map(({ label, value }) => (
+  //             <div className="row mb-2" key={label}>
+  //               <div className="col-4 fw-semibold">{label}</div>
+  //               <div className="col-8">{value || "-"}</div>
+  //             </div>
+  //           ))}
+  //         </div>
+
+  //         {/* FOOTER */}
+  //         <div className="modal-footer">
+  //           <button className="btn btn-sm custom-outline-btn" onClick={onClose}>
+  //             Close
+  //           </button>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   </div>
+  // );
 }
 // Mock data
 const MOCK_TEAM_EMPLOYEES = [
@@ -158,7 +218,10 @@ function PaginationFooter({
   const isNextDisabled = currentPage >= totalPages || totalItems === 0;
 
   return (
-    <nav className="d-flex align-items-center justify-content-end text-muted">
+    <nav
+      className="d-flex align-items-center justify-content-end text-muted"
+      style={{ userSelect: "none" }}
+    >
       <div className="d-flex align-items-center gap-3">
         <div className="d-flex align-items-center">
           <span
@@ -196,6 +259,7 @@ function PaginationFooter({
             type="button"
             onClick={() => goTo(currentPage - 1)}
             disabled={isPrevDisabled}
+            onMouseDown={(e) => e.preventDefault()}
             style={{
               fontSize: "18px",
               padding: "2px 8px",
@@ -211,6 +275,7 @@ function PaginationFooter({
             type="button"
             onClick={() => goTo(currentPage + 1)}
             disabled={isNextDisabled}
+            onMouseDown={(e) => e.preventDefault()}
             style={{
               fontSize: "18px",
               padding: "2px 8px",
@@ -967,7 +1032,7 @@ function ManagerReportTMS({ user }) {
 
     const search = appliedSearch.toString().toLowerCase();
 
-    return delayedTasks.filter((t) => {
+    return upcomingTasks.filter((t) => {
       const searchableText = `
       ${t.taskName}
       ${t.assignedTo?.name}
@@ -1082,7 +1147,7 @@ function ManagerReportTMS({ user }) {
   const isAnyPopupOpen =
     !!selectedDonutStatus ||
     !!selectedProjectMonth ||
-    !!selectedEmployee ||
+   
     showRowModal;
   useEffect(() => {
     if (isAnyPopupOpen) {
@@ -1098,10 +1163,166 @@ function ManagerReportTMS({ user }) {
       document.documentElement.style.overflow = "";
     };
   }, [isAnyPopupOpen]);
+/////
+//Rushikesh added
+const downloadManagerProjectsExcel = (data, fileName = "My_Projects") => {
+  if (!data || !data.length) {
+    alert("No projects available");
+    return;
+  }
+  const excelData = data.map((p, index) => ({
+    "Sr No": index + 1,
+    "Project Name": p.name || "-",
+    Status: p.status?.name || p.status || "-",
+    "Start Date": p.startDate
+      ? new Intl.DateTimeFormat("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        }).format(new Date(p.startDate))
+      : "-",
+    "Due Date": p.dueDate
+      ? new Intl.DateTimeFormat("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        }).format(new Date(p.dueDate))
+      : "-",
+  }));
 
+  const worksheet = XLSX.utils.json_to_sheet(excelData);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "My Projects");
+
+  const excelBuffer = XLSX.write(workbook, {
+    bookType: "xlsx",
+    type: "array",
+  });
+
+  const blob = new Blob([excelBuffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+
+  saveAs(blob, `${fileName}.xlsx`);
+};
+
+const downloadExcel = (excelData, fileName, sheetName = "Sheet1") => {
+  if (!excelData || !excelData.length) {
+    alert("No data available");
+    return;
+  }
+
+  const worksheet = XLSX.utils.json_to_sheet(excelData);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+
+  const excelBuffer = XLSX.write(workbook, {
+    bookType: "xlsx",
+    type: "array",
+  });
+
+  const blob = new Blob([excelBuffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+
+  saveAs(blob, `${fileName}.xlsx`);
+};
+
+const exportMyTeamExcel = (data) => {
+  const excelData = data.map((emp, index) => ({
+    "Sr No": index + 1,
+    Name: emp.name || "-",
+    Role: emp.designation || emp.role || "-",
+  }));
+
+  downloadExcel(excelData, "My_Team", "My Team");
+};
+
+
+
+const exportMyProjectsExcel = (data) => {
+  const excelData = data.map((p, index) => ({
+    "Sr No": index + 1,
+    "Project Name": p.name || "-",
+    Status: p.status?.name || p.status || "-",
+    "Delivery Date": formatDate(p.dueDate),
+  }));
+
+  downloadExcel(excelData, "My_Projects", "My Projects");
+};
+
+// const exportDelayedTasksExcel = (data) => {
+//   const excelData = data.map((t, i) => ({
+//     "Sr No": i + 1,
+//     Task: t.taskName || "-",
+//     Employee: t.assignedTo?.name || "-",
+//     "Due Date": formatDate(t.dateOfExpectedCompletion),
+//   }));
+
+//   downloadExcel(excelData, "Delayed_Tasks", "Delayed Tasks");
+// };
+const exportDelayedTasksExcel = (data) => {
+  const excelData = data.map((t, index) => ({
+    "Sr No": index + 1,
+    "Task Name": t.taskName || "-",
+    Employee: t.assignedTo?.name || "-",
+    "Due Date": formatDate(t.dateOfExpectedCompletion),
+  }));
+
+  downloadExcel(excelData, "Delayed_Tasks", "Delayed Tasks");
+};
+
+
+
+// const exportUpcomingTasksExcel = (data) => {
+//   const excelData = data.map((t, i) => ({
+//     "Sr No": i + 1,
+//     Task: t.taskName || "-",
+//     Employee: t.assignedTo?.name || "-",
+//     "Due Date": formatDate(t.dateOfExpectedCompletion),
+//   }));
+
+//   downloadExcel(excelData, "Upcoming_Tasks", "Upcoming Tasks");
+// };
+const exportUpcomingTasksExcel = (data) => {
+  const excelData = data.map((t, index) => ({
+    "Sr No": index + 1,
+    "Task Name": t.taskName || "-",
+    Employee: t.assignedTo?.name || "-",
+    "Due Date": formatDate(t.dateOfExpectedCompletion),
+  }));
+
+  downloadExcel(excelData, "Upcoming_Tasks", "Upcoming Tasks");
+};
+
+const handleDownloadExcel = () => {
+  if (showCardList === "teamMembers") {
+    exportMyTeamExcel(filteredTeamEmployees); //  FULL DATA
+    return;
+  }
+
+  if (showCardList === "myProjects") {
+    exportMyProjectsExcel(filteredProjects); //  FULL DATA
+    return;
+  }
+
+  if (showCardList === "delayedTasks") {
+    exportDelayedTasksExcel(filteredDelayedTasks); //  FULL DATA
+    return;
+  }
+
+  if (showCardList === "upcomingTasks") {
+    exportUpcomingTasksExcel(filteredUpcomingTasks); //  FULL DATA
+    return;
+  }
+
+  alert("Please select a report");
+};
+//Rushikesh
+/////
   return (
     <div className="container-fluid ">
-      <h2 style={{ color: "#3A5FBE", fontSize: "25px" }}>Reports</h2>
+      <h2 className="mb-4" style={{ color: "#3A5FBE", fontSize: "25px" }}>Reports</h2>
 
       {/* Top Cards */}
       <div className="row mb-4 g-3">
@@ -1301,7 +1522,7 @@ function ManagerReportTMS({ user }) {
                 {/* //added by harshada  23-01-2026*/}
                 {showCardList === "teamMembers" &&
                   isMainCardView &&
-                  "My Team Membersss"}
+                  "My Team Members"}
                 {showCardList === "myProjects" &&
                   isMainCardView &&
                   "My Projects"}
@@ -1310,13 +1531,14 @@ function ManagerReportTMS({ user }) {
                   "Delayed Tasks"}
                 {showCardList === "upcomingTasks" &&
                   isMainCardView &&
-                  "Upcoming Tasks"}
+                  "Upcoming Tasks (Next 7 Days)"}
               </span>
 
               {/* //added by harshada  23-01-2026*/}
               {isMainCardView && (
                 <button
                   className="btn btn-sm custom-outline-btn"
+                  style={{ minWidth: "90px" }}
                   onClick={() => setShowCardList(null)}
                 >
                   Close
@@ -1369,7 +1591,7 @@ function ManagerReportTMS({ user }) {
 
                 <input
                   className="form-control"
-                  placeholder="Search by any field..."
+                  placeholder="Search By Any Field..."
                   value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
                 />
@@ -1378,6 +1600,14 @@ function ManagerReportTMS({ user }) {
               <div className="col-auto ms-auto d-flex gap-2 mt-2">
                 <button
                   className="btn btn-sm custom-outline-btn"
+                  onClick={handleDownloadExcel}
+                  disabled={!showCardList}
+                >
+                  Download Excel
+                </button>
+                <button
+                  className="btn btn-sm custom-outline-btn"
+                  style={{ minWidth: "90px" }}
                   onClick={handleFilter}
                 >
                   Filter
@@ -1385,6 +1615,7 @@ function ManagerReportTMS({ user }) {
 
                 <button
                   className="btn btn-sm custom-outline-btn"
+                  style={{ minWidth: "90px" }}
                   onClick={handleReset}
                 >
                   Reset
@@ -2228,10 +2459,10 @@ function ManagerReportTMS({ user }) {
       <div className="row g-4 mt-4 align-items-stretch">
         {/* TASK STATUS (DONUT) */}
         <div className="col-lg-4 col-md-5">
-          <div className="card shadow-sm border-0 h-100 rounded-4">
+          <div className="card shadow border-0 h-100 rounded-4">
             <div className="card-body d-flex flex-column justify-content-center">
               <div className="d-flex justify-content-between align-items-center mb-3">
-                <h6 className="fw-semibold mb-0 text-primary">
+                <h6 className="fw-semibold mb-0 " style={{color: "#3A5FBE"}}>
                   📊 Task Status Overview
                 </h6>
 
@@ -2360,7 +2591,7 @@ function ManagerReportTMS({ user }) {
             <div className="card-body p-4">
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <div className="d-flex flex-column align-items-start">
-                  <h6 className="fw-semibold text-primary mb-1">
+                  <h6 className="fw-semibold  mb-1" style={{color: "#3A5FBE"}}>
                     📈 Project Status Trend
                   </h6>
                   <span
@@ -2484,26 +2715,34 @@ function ManagerReportTMS({ user }) {
       {selectedDonutStatus && (
         <div
           className="modal fade show"
-          style={{
-            display: "block",
+           style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.5)",
             position: "fixed",
             inset: 0,
             zIndex: 1050,
-            backgroundColor: "rgba(0,0,0,0.5)",
           }}
           onClick={() => setSelectedDonutStatus(null)}
         >
           <div
-            className="modal-dialog modal-lg modal-dialog-scrollable"
+            className="modal-dialog "
+             style={{ maxWidth: "650px", width: "95%" , marginTop:"40px"}}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="modal-content">
+            <div className="modal-content" 
+            style={{
+              maxHeight: "75vh",     
+              display: "flex",
+              flexDirection: "column",
+            }}>
               {/* HEADER */}
               <div
                 className="modal-header text-white"
                 style={{ backgroundColor: "#3A5FBE" }}
               >
-                <h5 className="modal-title">{selectedDonutStatus} Tasks</h5>
+                <h5 className="modal-title mb-0">{selectedDonutStatus} Tasks</h5>
                 <button
                   className="btn-close btn-close-white"
                   onClick={() => setSelectedDonutStatus(null)}
@@ -2511,7 +2750,7 @@ function ManagerReportTMS({ user }) {
               </div>
 
               {/* BODY */}
-              <div className="modal-body">
+              <div className="modal-body" style={{ overflowY: "auto", flex: 1 }}>
                 {Object.entries(donutTasksByEmployee).length > 0 ? (
                   Object.entries(donutTasksByEmployee).map(
                     ([empName, tasks]) => (
@@ -2584,44 +2823,56 @@ function ManagerReportTMS({ user }) {
               </div>
 
               {/* FOOTER */}
-              <div className="modal-footer">
+              <div className="modal-footer border-0 pt-0">
                 <button
                   className="btn btn-sm custom-outline-btn"
+                  style={{ minWidth: 90 }}
                   onClick={() => setSelectedDonutStatus(null)}
                 >
                   Close
                 </button>
               </div>
             </div>
+            
           </div>
         </div>
       )}
 
-      {selectedProjectMonth && (
+
+     {selectedProjectMonth && (
         <div
           className="modal fade show"
           style={{
-            display: "block",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.5)",
             position: "fixed",
             inset: 0,
             zIndex: 1050,
-            backgroundColor: "rgba(0,0,0,0.5)",
           }}
           onClick={() => setSelectedProjectMonth(null)}
         >
           <div
-            className="modal-dialog modal-lg modal-dialog-scrollable"
+            className="modal-dialog "
+           style={{ maxWidth: "650px", width: "95%" , marginTop:"40px"}}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="modal-content">
+            <div className="modal-content" 
+             style={{
+              maxHeight: "75vh",     
+              display: "flex",
+              flexDirection: "column",
+            }}>
               <div
                 className="modal-header text-white"
                 style={{ background: "#3A5FBE" }}
               >
-                <h5 className="modal-title">
+                <h5 className="modal-title mb-0">
                   Projects – {selectedProjectMonth}
                 </h5>
                 <button
+                type="button"
                   className="btn-close btn-close-white"
                   onClick={() => setSelectedProjectMonth(null)}
                 />
@@ -2679,9 +2930,10 @@ function ManagerReportTMS({ user }) {
                 )}
               </div>
 
-              <div className="modal-footer">
+              <div className="modal-footer border-0 pt-0">
                 <button
                   className="btn btn-sm custom-outline-btn"
+                  style={{ minWidth: 90 }}
                   onClick={() => setSelectedProjectMonth(null)}
                 >
                   Close

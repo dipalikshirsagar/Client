@@ -376,7 +376,7 @@ function EmployeeProjectTMS({ employeeId }) {
 
       <div className="row g-3 mb-4">
         {/* Total Projects */}
-        <div className="col-6 col-md-3">
+        <div className="col-12 col-md-4 col-lg-3">
           <div className="card shadow-sm h-100 border-0">
             <div
               className="card-body d-flex align-items-center"
@@ -409,7 +409,7 @@ function EmployeeProjectTMS({ employeeId }) {
         </div>
 
         {/* In progress Projects */}
-        <div className="col-6 col-md-3">
+        <div className="col-12 col-md-4 col-lg-3">
           <div className="card shadow-sm h-100 border-0">
             <div
               className="card-body d-flex align-items-center"
@@ -442,7 +442,7 @@ function EmployeeProjectTMS({ employeeId }) {
         </div>
 
         {/* Ongoing Projects */}
-        <div className="col-6 col-md-3">
+        <div className="col-12 col-md-4 col-lg-3">
           <div className="card shadow-sm h-100 border-0">
             <div
               className="card-body d-flex align-items-center"
@@ -475,7 +475,7 @@ function EmployeeProjectTMS({ employeeId }) {
         </div>
 
         {/* Delayed Projects */}
-        <div className="col-6 col-md-3">
+        <div className="col-12 col-md-4 col-lg-3">
           <div className="card shadow-sm h-100 border-0">
             <div
               className="card-body d-flex align-items-center"
@@ -508,7 +508,7 @@ function EmployeeProjectTMS({ employeeId }) {
         </div>
 
         {/* Completed Projects */}
-        <div className="col-6 col-md-3">
+        <div className="col-12 col-md-4 col-lg-3">
           <div className="card shadow-sm h-100 border-0">
             <div
               className="card-body d-flex align-items-center"
@@ -541,7 +541,7 @@ function EmployeeProjectTMS({ employeeId }) {
         </div>
 
         {/* cancelled Projects */}
-        <div className="col-6 col-md-3">
+        <div className="col-12 col-md-4 col-lg-3">
           <div className="card shadow-sm h-100 border-0">
             <div
               className="card-body d-flex align-items-center"
@@ -574,7 +574,7 @@ function EmployeeProjectTMS({ employeeId }) {
         </div>
 
         {/* upcomming Projects */}
-        <div className="col-6 col-md-3">
+        <div className="col-12 col-md-4 col-lg-3">
           <div className="card shadow-sm h-100 border-0">
             <div
               className="card-body d-flex align-items-center"
@@ -606,7 +606,7 @@ function EmployeeProjectTMS({ employeeId }) {
           </div>
         </div>
         {/* todday is last day Projects */}
-        <div className="col-6 col-md-3">
+        <div className="col-12 col-md-4 col-lg-3">
           <div className="card shadow-sm h-100 border-0">
             <div
               className="card-body d-flex align-items-center"
@@ -656,7 +656,7 @@ function EmployeeProjectTMS({ employeeId }) {
               onKeyPress={(e) =>
                 e.key === "Enter" && setSearchQuery(searchInput)
               }
-              placeholder="Search by any field..."
+              placeholder="Search By Any Field..."
               className="form-control"
             />
           </div>
@@ -760,7 +760,7 @@ function EmployeeProjectTMS({ employeeId }) {
                     whiteSpace: "nowrap",
                   }}
                 >
-                  End Date
+                  Due Date
                 </th>
                 <th
                   style={{
@@ -858,7 +858,7 @@ function EmployeeProjectTMS({ employeeId }) {
                       }}
                     >
                       <span className="fw-normal">
-                        {formatDateDisplay(item.endDate)}
+                        {formatDateDisplay(item.due)}
                       </span>
                     </td>
                     <td
@@ -894,7 +894,10 @@ function EmployeeProjectTMS({ employeeId }) {
 
       {/* Pagination */}
       {projectData.length > 0 && (
-        <nav className="d-flex align-items-center justify-content-end mt-3 text-muted">
+        <nav
+          className="d-flex align-items-center justify-content-end mt-3 text-muted"
+          style={{ userSelect: "none" }}
+        >
           <div className="d-flex align-items-center gap-3">
             {/* Rows per page */}
             <div className="d-flex align-items-center">
@@ -941,6 +944,7 @@ function EmployeeProjectTMS({ employeeId }) {
                 className="btn btn-sm border-0"
                 type="button"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
+                onMouseDown={(e) => e.preventDefault()}
                 disabled={page === 1}
                 style={{
                   fontSize: "18px",
@@ -955,6 +959,7 @@ function EmployeeProjectTMS({ employeeId }) {
                 className="btn btn-sm border-0"
                 type="button"
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                onMouseDown={(e) => e.preventDefault()}
                 disabled={page === totalPages || totalItems === 0}
                 style={{
                   fontSize: "18px",
@@ -1096,7 +1101,7 @@ function EmployeeProjectTMS({ employeeId }) {
                     </div>
                   </div>
 
-                  <div className="row mb-2">
+                  {/* <div className="row mb-2">
                     <div
                       className="col-5 col-sm-4 fw-semibold"
                       style={{ color: "#212529" }}
@@ -1109,7 +1114,7 @@ function EmployeeProjectTMS({ employeeId }) {
                     >
                       {formatDateDisplay(selectedProject.endDate)}
                     </div>
-                  </div>
+                  </div> */}
 
                   <div className="row mb-2">
                     <div
@@ -1172,7 +1177,7 @@ function EmployeeProjectTMS({ employeeId }) {
 
               <div className="modal-footer border-0 pt-0">
                 <button
-                  className="btn btn-sm custom-outline-btn"
+                  className="btn btn-sm custom-outline-btn" style={{minWidth:"90px"}}
                   onClick={() => setShowPopup(false)}
                 >
                   Close
