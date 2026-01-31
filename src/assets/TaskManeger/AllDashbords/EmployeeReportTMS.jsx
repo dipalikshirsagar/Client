@@ -349,8 +349,8 @@ function EmployeeReportTMS({ employeeId }) {
       case "myProjects":
         excelData = filteredListData.map((item) => ({
           "Project Name": item.name,
-          Status: item.isDelayed ? "Delayed" : item.status?.name,
-          "Delivery Date": formatDate(item.endDate),
+          Status: item.isDelayed ? "Delayed" : item.status,
+          "Due Date": formatDate(item.dueDate),
         }));
         break;
 

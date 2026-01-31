@@ -310,6 +310,8 @@ const EmployeeTasklog = ({ user }) => {
     }
   };
 
+
+
   useEffect(() => {
     if (tasks.length > 0) {
       setTodayTasks(getTodayAssignedTaskIds());
@@ -678,6 +680,23 @@ const handleFilterSubmit = (e) => {
     e.preventDefault();
     applyFilters();
   };
+
+  useEffect(() => {
+    if (showModal ||showViewModal ){
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+  
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [showModal,showViewModal]);
+
+
   return (
      <div className="container-fluid">
        <style>
@@ -987,10 +1006,16 @@ const handleFilterSubmit = (e) => {
                       height: "60px",  
                       overflow: "auto",
                       wordWrap: "break-word",
-                      display: "block"
+                      // display: "block",
+                      verticalAlign: "middle",
                     }}
                   >
-                    {l.workDescription}
+                    <div style={{
+                      maxHeight: "60px",
+                      overflowY: "auto",
+                      wordBreak: "break-word",
+                      whiteSpace: "normal",
+                    }}>{l.workDescription}</div>
                   </td>
 
                   {/* STATUS */}
@@ -1082,6 +1107,7 @@ const handleFilterSubmit = (e) => {
 
         {/* Prev */}
         <button
+        className="btn btn-sm focus-ring "
           onClick={() => setPage((p) => Math.max(p - 1, 0))}
           disabled={page === 0}
           style={{
@@ -1097,6 +1123,7 @@ const handleFilterSubmit = (e) => {
 
         {/* Next */}
         <button
+        className="btn btn-sm focus-ring "
           onClick={() =>
             setPage((p) => ((p + 1) * rowsPerPage >= totalRows ? p : p + 1))
           }
@@ -1129,6 +1156,7 @@ const handleFilterSubmit = (e) => {
             position: "fixed",
             inset: 0,
             zIndex: 1050,
+           
           }}
           onClick={() => setShowModal(false)}
         >
@@ -1137,6 +1165,7 @@ const handleFilterSubmit = (e) => {
             style={{
               maxWidth: "600px",
               width: "95%",
+               marginTop:"50px"
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -1268,8 +1297,7 @@ const handleFilterSubmit = (e) => {
                   <div className="col-12">
                     {/* rutuja code only label */}
                     <label className="form-label">
-                      Work Description ({countChars(form.workDescription)}/
-                      {CHAR_LIMITS.workDescription} characters)
+                      Work Description 
                     </label>
 
                     <textarea
@@ -1292,14 +1320,26 @@ const handleFilterSubmit = (e) => {
 
                       // rutuja code end
                     />
+                    <div
+                    className="char-count"
+                    style={{
+                      display: "flex",
+                      justifyContent: "flex-end",
+                      fontSize: "12px",
+                      color: "#6c757d",
+                      marginTop: "4px",
+                    }}
+                  >
+                    ({countChars(form.workDescription)}/
+                      {CHAR_LIMITS.workDescription} characters)
+                  </div>
                   </div>
 
                   {/* Challenges */}
                   <div className="col-12">
                     {/* rutuja code update only label */}
                     <label className="form-label">
-                      Challenges Faced ({countChars(form.challengesFaced)}/
-                      {CHAR_LIMITS.challengesFaced} characters)
+                      Challenges Faced 
                     </label>
                     <textarea
                       className="form-control"
@@ -1319,14 +1359,26 @@ const handleFilterSubmit = (e) => {
                       }}
                       // rutuja code end
                     />
+                    <div
+                    className="char-count"
+                    style={{
+                      display: "flex",
+                      justifyContent: "flex-end",
+                      fontSize: "12px",
+                      color: "#6c757d",
+                      marginTop: "4px",
+                    }}
+                  >
+                    ({countChars(form.challengesFaced)}/
+                      {CHAR_LIMITS.challengesFaced} characters)
+                  </div>
                   </div>
 
                   {/* Learned */}
                   <div className="col-12">
                     {/* rutuja code updated only label */}
                     <label className="form-label">
-                      What I Learned Today ({countChars(form.whatLearnedToday)}/
-                      {CHAR_LIMITS.whatLearnedToday} characters)
+                      What I Learned Today 
                     </label>
                     <textarea
                       className="form-control"
@@ -1345,7 +1397,21 @@ const handleFilterSubmit = (e) => {
                         minHeight: "60px",
                       }}
                       // rutuja code end
+
                     />
+                    <div
+                    className="char-count"
+                    style={{
+                      display: "flex",
+                      justifyContent: "flex-end",
+                      fontSize: "12px",
+                      color: "#6c757d",
+                      marginTop: "4px",
+                    }}
+                  >
+                    ({countChars(form.whatLearnedToday)}/
+                      {CHAR_LIMITS.whatLearnedToday} characters)
+                  </div>
                   </div>
 
                   {/* Status */}

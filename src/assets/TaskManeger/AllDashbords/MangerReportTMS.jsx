@@ -2462,7 +2462,7 @@ const handleDownloadExcel = () => {
           <div className="card shadow border-0 h-100 rounded-4">
             <div className="card-body p-4">
               <div className="d-flex justify-content-between align-items-center mb-3">
-                <h6 className="fw-semibold mb-0 " style={{color: "#3A5FBE"}}>
+                <h6 className="fw-semibold mb-4 " style={{color: "#3A5FBE"}}>
                   📊 Task Status Overview
                 </h6>
 

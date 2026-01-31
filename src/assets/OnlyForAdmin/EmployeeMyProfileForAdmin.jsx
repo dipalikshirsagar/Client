@@ -725,7 +725,7 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
 
         <div>
           <div className="card-body">
-            <h6 className="fw-bold text-primary mb-3">Personal Details:</h6>
+            <h6 className="fw-bold text-primary mb-3">Personal Details</h6>
 
             <div className="row g-3">
               {[

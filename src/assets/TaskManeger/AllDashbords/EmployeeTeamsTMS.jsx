@@ -700,6 +700,7 @@ const EmployeeTeamsTMS = ({ user }) => {
               <div className="modal-footer border-0 pt-0">
                 <button
                   className="btn btn-sm custom-outline-btn"
+                  style={{minWidth:"90px"}}
                   onClick={() => setSelectedTeam(null)}
                 >
                   Close

@@ -1346,7 +1346,58 @@ const getFileType = (file) => {
     return '#';
   };
 ////
+//////komal code
 
+const getDerivedStatus = (task) => {
+  const statusName = task.status?.name || task.status || "";
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const assignDate = task.dateOfTaskAssignment
+    ? new Date(task.dateOfTaskAssignment)
+    : null;
+
+  const dueDate = task.dateOfExpectedCompletion
+    ? new Date(task.dateOfExpectedCompletion)
+    : null;
+
+  const updatedAt = task.updatedAt ? new Date(task.updatedAt) : null;
+
+  if (assignDate) assignDate.setHours(0, 0, 0, 0);
+  if (dueDate) dueDate.setHours(0, 0, 0, 0);
+  if (updatedAt) updatedAt.setHours(0, 0, 0, 0);
+
+  /* ✅ COMPLETED */
+  if (statusName === "Completed") {
+    if (dueDate && updatedAt && updatedAt > dueDate) {
+      const diffTime = updatedAt - dueDate;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return `Completed (Delayed by ${diffDays} days)`;
+    }
+    return "Completed";
+  }
+
+  /* ✅ IN PROGRESS */
+  if (statusName === "In Progress") {
+    if (dueDate && today > dueDate) {
+      return "Delayed (In Progress)";
+    }
+    return "In Progress";
+  }
+
+  /* ✅ ASSIGNED → AUTO CHECK */
+  if (statusName === "Assigned" && assignDate) {
+    // same day or past, but not started
+    if (today >= assignDate) {
+      return "Assigned";
+    }
+    return "Assigned";
+  }
+
+  return statusName || "-";
+};
+
+/////
   return (
     <div className="container-fluid ">
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -1661,16 +1712,8 @@ const getFileType = (file) => {
                       )}
                     </td>
                     <td style={tdStyle}>
-                      {t.status?.name ? (
-                        <span>
-                          {t.status.name === "Assignment Pending"
-                            ? "Unassigned"
-                            : t.status.name}
-                        </span>
-                      ) : (
-                        "-"
-                      )}
-                    </td>
+                    <span>{getDerivedStatus(t)}</span>
+                  </td>
                     {/* comment start---------------------- */}
                     <td style={tdStyle}>
                       {currentUser && (
@@ -1741,6 +1784,7 @@ const getFileType = (file) => {
             position: "fixed",
             inset: 0,
             zIndex: 1050,
+            marginTop:"40px"
           }}
         >
           <div className="modal-dialog modal-lg">

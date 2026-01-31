@@ -400,6 +400,7 @@ function AdminProjectTMS({ userData }) {
       due: item.dueDate?.slice(0, 10),
       status: item.status || "",
       priority: item.priority,
+      manualStatusUpdatedBy: item.manualStatusUpdatedBy || null,
     });
     // console.log("form",form)  get empty
     setShowPopup(true);
@@ -1084,23 +1085,24 @@ function AdminProjectTMS({ userData }) {
                   // <tr key={item._id || index} onClick={() => openRowPopup(item, index)}>
                   // snehal code      
                   <tr
-                    key={item._id || index}
-                    onClick={() => {
-                      openRowPopup(item, index);
-                      setPopupMode("view"); //  force view mode
-                    }}
-                    style={{
-                      opacity: item.status === "Cancelled" ? 0.6 : 1,
-                      cursor: "pointer",
-                      backgroundColor:
-                        item.status === "Cancelled" ? "#f8d7da" : "inherit",
-                    }}
-                    title={
-                      item.status === "Cancelled"
-                        ? "This project is cancelled. View only."
-                        : ""
-                    }
-                  >
+                      key={item._id || index}
+                      onClick={() => {
+                        if (item.status === "Cancelled") return; // ❌ click block
+                        openRowPopup(item, index);
+                        setPopupMode("view");
+                      }}
+                      style={{
+                        opacity: item.status === "Cancelled" ? 0.6 : 1,
+                        cursor: item.status === "Cancelled" ? "not-allowed" : "pointer",
+                        backgroundColor:
+                          item.status === "Cancelled" ? "#f8d7da" : "inherit",
+                      }}
+                      title={
+                        item.status === "Cancelled"
+                          ? "This project is cancelled. View only."
+                          : ""
+                      }
+                    >
                     <td
                       style={{
                         padding: "12px",
@@ -1389,7 +1391,8 @@ function AdminProjectTMS({ userData }) {
                 </h5>
 
                 <button
-                  className="btn-close btn-close-white"
+                
+                  className="btn-close btn-close-white p-1"
                   onClick={() => {
                     setShowPopup(false);
                     resetProjectForm();
@@ -1586,9 +1589,9 @@ function AdminProjectTMS({ userData }) {
                           className="shadow bg-white p-2"
                           style={{
                             position: "absolute",
-                            width: "100%",
+                            width: "94%",
                             top: "40px",
-                            left: "0",
+                            left: "12px",
                             borderRadius: "6px",
                             border: "1px solid #ccc",
                             maxHeight: "150px",

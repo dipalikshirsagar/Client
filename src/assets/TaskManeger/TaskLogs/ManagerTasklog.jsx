@@ -635,6 +635,31 @@ const handleFilterSubmit = (e) => {
         {activeTab === "task" ? "Task Logs" : "Work Load"}
       </h4>
 
+      <div className="d-flex gap-2 justify-content-center mt-3 mb-3">
+        <button
+          onClick={() => {
+            setActiveTab("task");
+            setCurrentPage(1);
+          }}
+          className="btn btn-sm custom-outline-btn"
+          style={{ minWidth: 120 }}
+        >
+          Task Log
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveTab("work");
+            setCurrentPage(1);
+          }}
+          className="btn btn-sm custom-outline-btn "
+          style={{ minWidth: 120 }}
+        >
+          Work Load
+        </button>
+      </div>
+
+
       {/* SEARCH / FILTER BAR */}
       {activeTab === "task" && (
   <div className="card mb-4 shadow-sm border-0">
@@ -757,10 +782,10 @@ const handleFilterSubmit = (e) => {
         </div>
 
         {/* MONTH */}
-        <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
+        <div className="col-12 col-md-auto d-flex align-items-center  mb-1">
           <label
             className="fw-bold mb-0"
-            style={{ fontSize: "16px", color: "#3A5FBE", minWidth: 50 }}
+            style={{ fontSize: "16px", color: "#3A5FBE", minWidth:60}}
           >
             Month
           </label>
@@ -803,30 +828,7 @@ const handleFilterSubmit = (e) => {
   </div>
 )}
 
-      <div className="d-flex gap-2 justify-content-center mt-3 mb-3">
-        <button
-          onClick={() => {
-            setActiveTab("task");
-            setCurrentPage(1);
-          }}
-          className="btn btn-sm custom-outline-btn"
-          style={{ minWidth: 120 }}
-        >
-          Task Log
-        </button>
-
-        <button
-          onClick={() => {
-            setActiveTab("work");
-            setCurrentPage(1);
-          }}
-          className="btn btn-sm custom-outline-btn "
-          style={{ minWidth: 120 }}
-        >
-          Work Load
-        </button>
-      </div>
-
+      
       {/* TABLE */}
 
       {activeTab === "task" && (
@@ -1524,6 +1526,7 @@ const handleFilterSubmit = (e) => {
               }}
             >
               Approve Task Log
+              
             </div>
 
             <div style={{ padding: 16 }}>
@@ -1791,11 +1794,18 @@ const handleFilterSubmit = (e) => {
 
       {/* Rutuja code end  */}
 
-      <div className="text-end mt-3">
+      <div className="d-flex justify-content-end mt-3">
         <button
           className="btn btn-sm custom-outline-btn"
           style={{ minWidth: 90 }}
-          onClick={() => window.history.go(-1)}
+          onClick={() => {
+            if (activeTab === "work") {
+              setActiveTab("task");
+              setCurrentPage(1);
+            } else {
+              window.history.go(-1);
+            }
+          }}
         >
           Back
         </button>
