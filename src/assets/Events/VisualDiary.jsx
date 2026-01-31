@@ -9,7 +9,7 @@
 //   const [popupItem, setPopupItem] = useState(null);
 
 //   useEffect(() => {
-//     axios.get("http://localhost:8000/api/gallery")
+//     axios.get("https://server-backend-nu.vercel.app/api/gallery")
 //       .then((res) => {
 //         setGallery(res.data);
 //         setLoading(false);
@@ -126,7 +126,7 @@ const VisualDiary = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:8000/api/gallery")
+      .get("https://server-backend-nu.vercel.app/api/gallery")
       .then((res) => {
         setGallery(res.data || []);
         setLoading(false);

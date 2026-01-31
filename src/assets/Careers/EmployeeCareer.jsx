@@ -41,7 +41,7 @@ const EmployeeCareer = ({ user }) => {
 
   const fetchJobs = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/jobs/");
+      const res = await fetch("https://server-backend-nu.vercel.app/api/jobs/");
       const data = await res.json();
       setJobs(data);
     } catch (err) {
@@ -52,7 +52,7 @@ const EmployeeCareer = ({ user }) => {
   const fetchAppliedJobs = async () => {
     try {
       const res = await fetch(
-        `http://localhost:8000/api/apply/employee/${user._id}?applicantType=inhouse`,
+        `https://server-backend-nu.vercel.app/api/apply/employee/${user._id}?applicantType=inhouse`,
       );
 
       if (!res.ok) throw new Error("Failed to fetch applied jobs");
@@ -68,7 +68,7 @@ const EmployeeCareer = ({ user }) => {
   const fetchRefferedJobs = async () => {
     try {
       const res = await fetch(
-        `http://localhost:8000/api/apply/employee/${user._id}?applicantType=referral`,
+        `https://server-backend-nu.vercel.app/api/apply/employee/${user._id}?applicantType=referral`,
       );
 
       if (!res.ok) throw new Error("Failed to fetch applied jobs");
@@ -82,7 +82,7 @@ const EmployeeCareer = ({ user }) => {
     }
   };
   const createApplication = (formData) =>
-    axios.post("http://localhost:8000/api/apply", formData, {
+    axios.post("https://server-backend-nu.vercel.app/api/apply", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
 

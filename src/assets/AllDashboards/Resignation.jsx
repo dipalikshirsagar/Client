@@ -21,7 +21,7 @@ function Resignation() {
   const fetchResignations = async () => {
     try {
       const token = getToken();
-      const response = await axios.get("http://localhost:8000/resignation", {
+      const response = await axios.get("https://server-backend-nu.vercel.app/resignation", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -88,7 +88,7 @@ function Resignation() {
       };
 
       const response = await axios.put(
-        `http://localhost:8000/resignation/${selected.originalData.resignationId}`,
+        `https://server-backend-nu.vercel.app/resignation/${selected.originalData.resignationId}`,
         payload,
         {
           headers: {

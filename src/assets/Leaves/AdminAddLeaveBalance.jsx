@@ -29,7 +29,7 @@ function AdminAddLeaveBalance() {
   //NEW CODE
   useEffect(() => {
     axios
-      .get("http://localhost:8000/leaves")
+      .get("https://server-backend-nu.vercel.app/leaves")
       .then((res) => {
         const now = new Date();
 
@@ -66,7 +66,7 @@ function AdminAddLeaveBalance() {
     if (!token) return;
 
     axios
-      .get("http://localhost:8000/me", {
+      .get("https://server-backend-nu.vercel.app/me", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => setUser(res.data))
@@ -76,7 +76,7 @@ function AdminAddLeaveBalance() {
   // 🔹 Fetch all leaves
   useEffect(() => {
     axios
-      .get("http://localhost:8000/leaves")
+      .get("https://server-backend-nu.vercel.app/leaves")
       .then((res) => {
         const sortedLeaves = res.data.sort(
           (a, b) => new Date(b.appliedAt) - new Date(a.appliedAt),
@@ -95,7 +95,7 @@ function AdminAddLeaveBalance() {
   //   if (!user?._id) return;
 
   //   try {
-  //     await axios.put(`http://localhost:8000/leave/${leaveId}/status`, {
+  //     await axios.put(`https://server-backend-nu.vercel.app/leave/${leaveId}/status`, {
   //       status,
   //       userId: user._id,
   //       role: "admin",
@@ -117,7 +117,7 @@ function AdminAddLeaveBalance() {
     if (!user?._id) return;
 
     try {
-      await axios.put(`http://localhost:8000/leave/${leaveId}/status`, {
+      await axios.put(`https://server-backend-nu.vercel.app/leave/${leaveId}/status`, {
         status,
         userId: user._id,
         role: "admin",
@@ -144,7 +144,7 @@ function AdminAddLeaveBalance() {
 
   // const grantYearly = async () => {
   //   try {
-  //     const res = await axios.post("http://localhost:8000/leave/grant-yearly", {
+  //     const res = await axios.post("https://server-backend-nu.vercel.app/leave/grant-yearly", {
   //       sl,
   //       cl,
   //     });
@@ -161,7 +161,7 @@ function AdminAddLeaveBalance() {
   const fetchYearlySettings = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:8000/leave/yearly-settings",
+        "https://server-backend-nu.vercel.app/leave/yearly-settings",
       );
       setData(res.data);
     } catch (err) {
@@ -175,7 +175,7 @@ function AdminAddLeaveBalance() {
 
   const grantYearly = async () => {
     try {
-      const res = await axios.post("http://localhost:8000/leave/grant-yearly", {
+      const res = await axios.post("https://server-backend-nu.vercel.app/leave/grant-yearly", {
         sl,
         cl,
       });
@@ -206,7 +206,7 @@ function AdminAddLeaveBalance() {
   const grantMonthly = async () => {
     try {
       const res = await axios.post(
-        "http://localhost:8000/leave/grant-monthly",
+        "https://server-backend-nu.vercel.app/leave/grant-monthly",
         {
           sl,
           cl,
@@ -223,7 +223,7 @@ function AdminAddLeaveBalance() {
 
   const fetchLeaveBalance = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/leave/balance");
+      const res = await axios.get("https://server-backend-nu.vercel.app/leave/balance");
       console.log("data", res.data);
       // if (res.data) {
       //   setSl(res.data.sl);
@@ -274,7 +274,7 @@ function AdminAddLeaveBalance() {
     if (!confirmDelete) return;
 
     try {
-      await axios.delete(`http://localhost:8000/leave/${leaveId}`);
+      await axios.delete(`https://server-backend-nu.vercel.app/leave/${leaveId}`);
 
       // ✅ Remove the deleted leave from state
       setLeaves((prev) => prev.filter((l) => l._id !== leaveId));
@@ -292,7 +292,7 @@ function AdminAddLeaveBalance() {
   //   }
 
   //   try {
-  //     const res = await axios.post("http://localhost:8000/leave/reset-all");
+  //     const res = await axios.post("https://server-backend-nu.vercel.app/leave/reset-all");
   //     setMessage(`${res.data.message} (${res.data.count} employees affected) ✅`);
   //   } catch (err) {
   //     console.error("Error resetting leave balances:", err);
@@ -312,7 +312,7 @@ function AdminAddLeaveBalance() {
     }
 
     try {
-      const res = await axios.delete("http://localhost:8000/leave/reset-all");
+      const res = await axios.delete("https://server-backend-nu.vercel.app/leave/reset-all");
       alert(res.data.message);
       setData([]); // clear yearly table instantly
     } catch (err) {

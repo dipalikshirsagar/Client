@@ -48,7 +48,7 @@ const AdminTaskTMS = () => {
 
   const fetchAllTasks = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/task/getall");
+      const res = await axios.get("https://server-backend-nu.vercel.app/task/getall");
 
       const mappedTasks = res.data.map((task) => ({
         _id: task._id,

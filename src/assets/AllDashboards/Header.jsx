@@ -183,7 +183,7 @@ function Header({ user, handleLogout }) {
             src={
               user?.image
                 ? ` 
-http://localhost:8000/uploads/${user.image}`
+https://server-backend-nu.vercel.app/uploads/${user.image}`
                 : "/myprofile.jpg"
             }
             alt="Profile"
@@ -205,14 +205,14 @@ http://localhost:8000/uploads/${user.image}`
               <img
                 // src={
                 //   user?.image
-                //     ?`http://localhost:8000/image/uploads/${user.image}`
+                //     ?`https://server-backend-nu.vercel.app/image/uploads/${user.image}`
                 //     : "/myprofile.jpg"
                 // }
                 src={
                   user?.image
                     ? user.image.startsWith("http")
                       ? user.image
-                      : `http://localhost:8000/uploads/${user.image}`
+                      : `https://server-backend-nu.vercel.app/uploads/${user.image}`
                     : "/myprofile.jpg"
                 }
                 alt="Profile"
@@ -233,7 +233,7 @@ http://localhost:8000/uploads/${user.image}`
                   <img
                     // src={
                     //   user?.image
-                    //     ? `http://localhost:8000/image/uploads/${user.image}`
+                    //     ? `https://server-backend-nu.vercel.app/image/uploads/${user.image}`
                     //     : "/myprofile.jpg"
                     // }
 
@@ -241,7 +241,7 @@ http://localhost:8000/uploads/${user.image}`
                       user?.image
                         ? user.image.startsWith("http")
                           ? user.image
-                          : `http://localhost:8000/uploads/${user.image}`
+                          : `https://server-backend-nu.vercel.app/uploads/${user.image}`
                         : "/myprofile.jpg"
                     }
                     alt="Profile"

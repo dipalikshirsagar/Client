@@ -31,7 +31,7 @@ function AllHolidays() {
 
     try {
       const token = localStorage.getItem("accessToken");
-      await axios.delete(`http://localhost:8000/holidays/${id}`, {
+      await axios.delete(`https://server-backend-nu.vercel.app/holidays/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

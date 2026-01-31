@@ -33,7 +33,7 @@ const [searchText, setSearchText] = useState("");
         const headers = { Authorization: `Bearer ${token}` };
 
         // Fetch logged in user
-        const userRes = await axios.get("http://localhost:8000/me", {
+        const userRes = await axios.get("https://server-backend-nu.vercel.app/me", {
           headers,
         });
         const user = userRes.data;
@@ -46,9 +46,9 @@ const [searchText, setSearchText] = useState("");
         let url;
 
         if (role === "manager") {
-          url = `http://localhost:8000/managers/${managerId}/assigned-employees`;
+          url = `https://server-backend-nu.vercel.app/managers/${managerId}/assigned-employees`;
         } else {
-          url = "http://localhost:8000/getAllEmployees";
+          url = "https://server-backend-nu.vercel.app/getAllEmployees";
         }
 
         const employeesRes = await axios.get(url, { headers });

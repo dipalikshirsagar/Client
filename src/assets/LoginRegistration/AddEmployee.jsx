@@ -426,7 +426,7 @@ const AddEmployee = () => {
       });
 
       const res = await axios.post(
-        "http://localhost:8000/admin/add-employee",
+        "https://server-backend-nu.vercel.app/admin/add-employee",
         payload,
         {
           headers: { "Content-Type": "multipart/form-data" },

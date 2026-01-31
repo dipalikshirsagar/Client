@@ -13,7 +13,7 @@ function EmployeeTeams() {
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/employees/teams");
+        const res = await axios.get("https://server-backend-nu.vercel.app/employees/teams");
         setEmployees(res.data.employees || []);
       } catch (err) {
         console.error("Error fetching employees", err);

@@ -28,7 +28,7 @@ function AllEmployeeRegularizationRequestForAdmin({ showBackButton = true }) {
     try {
       const token = localStorage.getItem("accessToken");
       const res = await axios.get(
-        "http://localhost:8000/attendance/regularization/all",
+        "https://server-backend-nu.vercel.app/attendance/regularization/all",
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -66,7 +66,7 @@ function AllEmployeeRegularizationRequestForAdmin({ showBackButton = true }) {
     try {
       const token = localStorage.getItem("accessToken");
       await axios.put(
-        `http://localhost:8000/attendance/regularization/${id}/status`,
+        `https://server-backend-nu.vercel.app/attendance/regularization/${id}/status`,
         { status },
         { headers: { Authorization: `Bearer ${token}` } },
       );

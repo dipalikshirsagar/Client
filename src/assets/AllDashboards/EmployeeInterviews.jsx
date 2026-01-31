@@ -62,7 +62,7 @@ const EmployeeInterviews = () => {
     }
     try {
       const res = await fetch(
-        `http://localhost:8000/interviews/employee/${employeeId}`,
+        `https://server-backend-nu.vercel.app/interviews/employee/${employeeId}`,
         {
           headers: {
             role: "employee",
@@ -88,7 +88,7 @@ const EmployeeInterviews = () => {
   const handleUpdate = async () => {
     try {
       const res = await fetch(
-        `http://localhost:8000/interviews/employee/${selected._id}`,
+        `https://server-backend-nu.vercel.app/interviews/employee/${selected._id}`,
         {
           method: "PUT",
           headers: {
@@ -373,7 +373,7 @@ const EmployeeInterviews = () => {
                       <td>
                         {item.resumeUrl ? (
                           <a
-                            href={`http://localhost:8000${item.resumeUrl}`}
+                            href={`https://server-backend-nu.vercel.app${item.resumeUrl}`}
                             target="_blank"
                             rel="noreferrer"
                           >
@@ -579,7 +579,7 @@ const EmployeeInterviews = () => {
                   <div className="col-8">
                     {selected?.resumeUrl ? (
                       <a
-                        href={`http://localhost:8000${selected.resumeUrl}`}
+                        href={`https://server-backend-nu.vercel.app${selected.resumeUrl}`}
                         target="_blank"
                         rel="noreferrer"
                         className="btn custom-outline-btn"

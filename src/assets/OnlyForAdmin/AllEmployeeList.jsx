@@ -29,7 +29,7 @@
 
 //     try {
 //       const token = localStorage.getItem("accessToken");
-//       await axios.delete(`http://localhost:8000/soft/deleteEmployee/${id}`, {
+//       await axios.delete(`https://server-backend-nu.vercel.app/soft/deleteEmployee/${id}`, {
 //         headers: { Authorization: `Bearer ${token}` },
 //       });
 
@@ -49,7 +49,7 @@
 
 //   //   try {
 //   //     const token = localStorage.getItem("accessToken");
-//   //     const res = await axios.delete(`http://localhost:8000/deleteEmployee/${id}`, {
+//   //     const res = await axios.delete(`https://server-backend-nu.vercel.app/deleteEmployee/${id}`, {
 //   //       headers: { Authorization: `Bearer ${token}` },
 //   //     });
 
@@ -77,7 +77,7 @@
 
 //   try {
 //     const token = localStorage.getItem("accessToken");
-//     const res = await axios.delete(`http://localhost:8000/deleteEmployee/${id}`, {
+//     const res = await axios.delete(`https://server-backend-nu.vercel.app/deleteEmployee/${id}`, {
 //       headers: { Authorization: `Bearer ${token}` },
 //     });
 
@@ -106,7 +106,7 @@
 //     const fetchEmployees = async () => {
 //       try {
 //         const token = localStorage.getItem("accessToken");
-//         const res = await axios.get("http://localhost:8000/getAllEmployees", {
+//         const res = await axios.get("https://server-backend-nu.vercel.app/getAllEmployees", {
 //           headers: { Authorization: `Bearer ${token}` },
 //         });
 //         setEmployees(res.data || []);
@@ -140,7 +140,7 @@
 //     try {
 //       const token = localStorage.getItem("accessToken");
 //       await axios.put(
-//         `http://localhost:8000/users/${selectedEmployee._id}/assign-manager`,
+//         `https://server-backend-nu.vercel.app/users/${selectedEmployee._id}/assign-manager`,
 //         { managerId: selectedManagerId },
 //         { headers: { Authorization: `Bearer ${token}` } }
 //       );
@@ -496,7 +496,7 @@ function AllEmployeeDetails() {
 
     try {
       const token = localStorage.getItem("accessToken");
-      await axios.delete(`http://localhost:8000/soft/deleteEmployee/${id}`, {
+      await axios.delete(`https://server-backend-nu.vercel.app/soft/deleteEmployee/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -524,7 +524,7 @@ function AllEmployeeDetails() {
     try {
       const token = localStorage.getItem("accessToken");
       const res = await axios.delete(
-        `http://localhost:8000/deleteEmployee/${id}`,
+        `https://server-backend-nu.vercel.app/deleteEmployee/${id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -553,7 +553,7 @@ function AllEmployeeDetails() {
     const fetchEmployees = async () => {
       try {
         const token = localStorage.getItem("accessToken");
-        const res = await axios.get("http://localhost:8000/getAllEmployees", {
+        const res = await axios.get("https://server-backend-nu.vercel.app/getAllEmployees", {
           headers: { Authorization: `Bearer ${token}` },
         });
         //Geetanjali
@@ -605,7 +605,7 @@ function AllEmployeeDetails() {
     try {
       const token = localStorage.getItem("accessToken");
       await axios.put(
-        `http://localhost:8000/users/${selectedEmployee._id}/assign-manager`,
+        `https://server-backend-nu.vercel.app/users/${selectedEmployee._id}/assign-manager`,
         { managerId: selectedManagerId },
         { headers: { Authorization: `Bearer ${token}` } },
       );

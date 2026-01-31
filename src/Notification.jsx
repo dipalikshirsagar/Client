@@ -13,7 +13,7 @@ function Notification({ userId }) {
 
     try {
       const res = await axios.get(
-        `http://localhost:8000/notifications/${userId}`,
+        `https://server-backend-nu.vercel.app/notifications/${userId}`,
       );
 
       // Filter last 15 days notifications
@@ -34,7 +34,7 @@ function Notification({ userId }) {
   const handleNotificationClick = async (n) => {
     try {
       // Mark as read in backend
-      await axios.put(`http://localhost:8000/notifications/${n._id}/read`);
+      await axios.put(`https://server-backend-nu.vercel.app/notifications/${n._id}/read`);
 
       // Update state locally for instant UI feedback
       setNotifications((prev) =>
@@ -122,7 +122,7 @@ function Notification({ userId }) {
   //   const fetchNotifications = async () => {
   //     try {
   //       const res = await axios.get(
-  //         `http://localhost:8000/notifications/${userId}`
+  //         `https://server-backend-nu.vercel.app/notifications/${userId}`
   //       );
 
   //       // Filter last 15 days notifications

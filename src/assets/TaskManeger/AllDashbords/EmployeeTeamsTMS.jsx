@@ -90,7 +90,7 @@ const EmployeeTeamsTMS = ({ user }) => {
 
       try {
         const empCountRes = await axios.get(
-          "http://localhost:8000/getEmployeeCount",
+          "https://server-backend-nu.vercel.app/getEmployeeCount",
           { headers },
         );
         totalMembers = empCountRes.data?.totalEmployees || 0;
@@ -100,9 +100,9 @@ const EmployeeTeamsTMS = ({ user }) => {
 
       Promise.all([
         fetch(
-          `http://localhost:8000/api/teams/employee/${user._id}/teams`,
+          `https://server-backend-nu.vercel.app/api/teams/employee/${user._id}/teams`,
         ).then((res) => res.json()),
-        axios.get("http://localhost:8000/getAllDepartments"),
+        axios.get("https://server-backend-nu.vercel.app/getAllDepartments"),
       ])
         .then(([teamRes, deptRes]) => {
           if (!teamRes.success) return;

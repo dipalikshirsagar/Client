@@ -60,7 +60,7 @@ function AdminCareer({ user }) {
 
   const fetchJobs = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/jobs/");
+      const res = await fetch("https://server-backend-nu.vercel.app/api/jobs/");
       const data = await res.json();
       setJobs(data);
     } catch (err) {
@@ -110,14 +110,14 @@ function AdminCareer({ user }) {
       let res;
       if (editJobId) {
         res = await axios.put(
-          `http://localhost:8000/api/jobs/${editJobId}`,
+          `https://server-backend-nu.vercel.app/api/jobs/${editJobId}`,
           payload,
           { headers: { "Content-Type": "application/json" } },
         );
         await fetchJobs();
       } else {
         const res = await axios.post(
-          "http://localhost:8000/api/jobs/",
+          "https://server-backend-nu.vercel.app/api/jobs/",
           payload,
           { headers: { "Content-Type": "application/json" } },
         );
@@ -197,7 +197,7 @@ function AdminCareer({ user }) {
   async function handleDelete(id) {
     if (!window.confirm("Are you sure you want to delete this job?")) return;
     try {
-      await axios.delete(`http://localhost:8000/api/jobs/${id}`);
+      await axios.delete(`https://server-backend-nu.vercel.app/api/jobs/${id}`);
       setJobs((prev) => prev.filter((t) => t._id !== id));
       setFilteredJobs((prev) => prev.filter((t) => t._id !== id));
     } catch (error) {
@@ -267,7 +267,7 @@ function AdminCareer({ user }) {
   const getApplicantsInfo = async (jobId) => {
     try {
       setLoadingApplicants(true);
-      const res = await fetch(`http://localhost:8000/api/apply/job/${jobId}`, {
+      const res = await fetch(`https://server-backend-nu.vercel.app/api/apply/job/${jobId}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -333,7 +333,7 @@ function AdminCareer({ user }) {
   console.log("applicants ", applicants);
   async function handleStatusChange(applicationId, newStatus) {
     try {
-      await axios.put(`http://localhost:8000/api/apply/${applicationId}`, {
+      await axios.put(`https://server-backend-nu.vercel.app/api/apply/${applicationId}`, {
         status: newStatus,
       });
 

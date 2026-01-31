@@ -35,7 +35,7 @@ function TodaysEmployeeDetails() {
       const today = new Date().toISOString().split("T")[0];
 
       const res = await axios.get(
-        `http://localhost:8000/api/break/admin/${emp._id}?date=${today}`,
+        `https://server-backend-nu.vercel.app/api/break/admin/${emp._id}?date=${today}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -131,7 +131,7 @@ function TodaysEmployeeDetails() {
         setLoading(true);
         const token = localStorage.getItem("accessToken");
         const authAxios = axios.create({
-          baseURL: "http://localhost:8000",
+          baseURL: "https://server-backend-nu.vercel.app",
           headers: { Authorization: `Bearer ${token}` },
         });
 

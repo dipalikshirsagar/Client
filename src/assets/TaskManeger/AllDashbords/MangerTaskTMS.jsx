@@ -134,7 +134,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
 
       const token = localStorage.getItem("accessToken");
 
-      await axios.put(`http://localhost:8000/task/${task._id}`, formData, {
+      await axios.put(`https://server-backend-nu.vercel.app/task/${task._id}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,
@@ -271,7 +271,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
     setCommentLoading(true);
     try {
       const response = await axios.get(
-        `http://localhost:8000/task/${taskId}/comments`,
+        `https://server-backend-nu.vercel.app/task/${taskId}/comments`,
       );
       setTaskComments(response.data.comments || []);
     } catch (error) {
@@ -305,7 +305,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
     try {
       const token = localStorage.getItem("accessToken");
       const res = await axios.post(
-        `http://localhost:8000/task/${commentModalTask._id}/comment`,
+        `https://server-backend-nu.vercel.app/task/${commentModalTask._id}/comment`,
         { comment: newComment },
         {
           headers: {
@@ -342,7 +342,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
     try {
       const token = localStorage.getItem("accessToken");
       const res = await axios.delete(
-        `http://localhost:8000/task/${taskId}/comment/${commentId}`,
+        `https://server-backend-nu.vercel.app/task/${taskId}/comment/${commentId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -369,7 +369,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
     try {
       const token = localStorage.getItem("accessToken");
       const res = await axios.put(
-        `http://localhost:8000/task/${taskId}/comment/${commentId}`,
+        `https://server-backend-nu.vercel.app/task/${taskId}/comment/${commentId}`,
         { comment: newText },
         {
           headers: {
@@ -416,7 +416,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
   async function fetchUser() {
     try {
       const token = localStorage.getItem("accessToken");
-      const response = await axios.get("http://localhost:8000/me", {
+      const response = await axios.get("https://server-backend-nu.vercel.app/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const user = response.data;
@@ -431,7 +431,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
       try {
         const token = localStorage.getItem("accessToken");
         if (token) {
-          const response = await axios.get("http://localhost:8000/me", {
+          const response = await axios.get("https://server-backend-nu.vercel.app/me", {
             headers: { Authorization: `Bearer ${token}` },
           });
           setCurrentUser(response.data);
@@ -458,7 +458,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
       const user = await fetchUser();
       const managerId = user._id;
 
-      const res = await axios.get(`http://localhost:8000/tasks/${managerId}`, {
+      const res = await axios.get(`https://server-backend-nu.vercel.app/tasks/${managerId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -538,7 +538,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
 
   const fetchStatuses = async () => {
     try {
-      const res = await axios.get(`http://localhost:8000/unique`);
+      const res = await axios.get(`https://server-backend-nu.vercel.app/unique`);
       if (res.data.success) {
          const normalized = res.data.data.map(s => ({
         _id: s._id || s.id,   
@@ -560,7 +560,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
     try {
       const token = localStorage.getItem("accessToken");
       const projectsRes = await axios.get(
-        "http://localhost:8000/api/projects",
+        "https://server-backend-nu.vercel.app/api/projects",
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -571,7 +571,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
 
       if (selectedProject && selectedProject._id) {
         const empRes = await axios.get(
-          `http://localhost:8000/projects/employees/${selectedProject._id}`,
+          `https://server-backend-nu.vercel.app/projects/employees/${selectedProject._id}`,
         );
 
         if (empRes.data.success) {
@@ -648,18 +648,18 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
       try {
         const token = localStorage.getItem("accessToken");
         console.log("token is " + token);
-        const res = await axios.get("http://localhost:8000/getAllDepartments");
+        const res = await axios.get("https://server-backend-nu.vercel.app/getAllDepartments");
         const user = await fetchUser();
         const empRes = await axios.get(
-          `http://localhost:8000/employees/manager/${user._id}`,
+          `https://server-backend-nu.vercel.app/employees/manager/${user._id}`,
         );
         const taskTypeRes = await axios.get(
-          `http://localhost:8000/api/task-types/unique-names`,
+          `https://server-backend-nu.vercel.app/api/task-types/unique-names`,
         );
         const projectRes = await axios.get(
-          `http://localhost:8000/api/projects/unique-names/${user._id}`,
+          `https://server-backend-nu.vercel.app/api/projects/unique-names/${user._id}`,
         );
-        const teamsRes = await axios.get("http://localhost:8000/api/teams");
+        const teamsRes = await axios.get("https://server-backend-nu.vercel.app/api/teams");
         const departments = res.data.departments;
         const employeesNames = empRes.data.employees;
         const taskTypeNames = taskTypeRes.data.taskTypes;
@@ -775,7 +775,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
     const fetchWeeklyOffs = async () => {
       try {
         const res = await axios.get(
-          `http://localhost:8000/admin/weeklyoff/${new Date().getFullYear()}`,
+          `https://server-backend-nu.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`,
         );
 
         const weeklyData = res.data?.data || {};
@@ -832,7 +832,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
 
       // Fetch employee leave
       const leaveRes = await axios.get(
-        `http://localhost:8000/leave/manager/${user._id}`,
+        `https://server-backend-nu.vercel.app/leave/manager/${user._id}`,
       );
 
       const leaves = leaveRes.data.data || [];
@@ -860,7 +860,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
         return;
       }
 
-      const holidaysRes = await axios.get("http://localhost:8000/getHolidays");
+      const holidaysRes = await axios.get("https://server-backend-nu.vercel.app/getHolidays");
       const holidays = holidaysRes.data || [];
 
       const isHoliday = holidays.some((holiday) => {
@@ -937,11 +937,11 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
       const token = localStorage.getItem("accessToken");
 
       // if (editTaskId) {
-      //   await axios.put(`http://localhost:8000/task/${editTaskId}`, formData, {
+      //   await axios.put(`https://server-backend-nu.vercel.app/task/${editTaskId}`, formData, {
       //     headers: { "Content-Type": "multipart/form-data" },
       //   });
       // } else {
-      //   await axios.post("http://localhost:8000/task/create", formData, {
+      //   await axios.post("https://server-backend-nu.vercel.app/task/create", formData, {
       //     headers: {
       //       "Content-Type": "multipart/form-data",
       //       Authorization: `Bearer ${token}`,
@@ -952,7 +952,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
       //snehalcode
 if (editTaskId) {
   await axios.put(
-    `http://localhost:8000/task/${editTaskId}`,
+    `https://server-backend-nu.vercel.app/task/${editTaskId}`,
     formData,
     {
       headers: {
@@ -963,7 +963,7 @@ if (editTaskId) {
   );
 } else {
   await axios.post(
-    "http://localhost:8000/task/create",
+    "https://server-backend-nu.vercel.app/task/create",
     formData,
     {
       headers: {
@@ -1029,7 +1029,7 @@ if (editTaskId) {
 
   //     if (editTaskId) {
   //       res = await axios.put(
-  //         `http://localhost:8000/task/${editTaskId}`,
+  //         `https://server-backend-nu.vercel.app/task/${editTaskId}`,
   //         formData,
   //         { headers: { "Content-Type": "multipart/form-data" } }
   //       );
@@ -1037,7 +1037,7 @@ if (editTaskId) {
   //         task._id === editTaskId ? { ...newTask, taskId: editTaskId } : task
   //       );
   //     } else {
-  //       res = await axios.post("http://localhost:8000/task/create", formData, {
+  //       res = await axios.post("https://server-backend-nu.vercel.app/task/create", formData, {
   //         headers: {
   //           "Content-Type": "multipart/form-data",
   //           Authorization: `Bearer ${token}`,
@@ -1161,7 +1161,7 @@ if (editTaskId) {
     if (!window.confirm("Are you sure you want to delete this task?")) return;
 
     try {
-      await axios.delete(`http://localhost:8000/task/${id}`);
+      await axios.delete(`https://server-backend-nu.vercel.app/task/${id}`);
       setAllTasks((prev) => prev.filter((t) => t._id !== id));
       setFilteredTasks((prev) => prev.filter((t) => t._id !== id));
       alert("Task deleted Successfuly!");

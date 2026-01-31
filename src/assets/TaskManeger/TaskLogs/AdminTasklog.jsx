@@ -165,7 +165,7 @@ const [isFiltered, setIsFiltered] = useState(false);////samiksha
         const dateStr = d.toISOString().split("T")[0];
 
         const res = await axios.get(
-          `http://localhost:8000/api/tasklogs/daily-workload?date=${dateStr}`,
+          `https://server-backend-nu.vercel.app/api/tasklogs/daily-workload?date=${dateStr}`,
           { headers: { Authorization: `Bearer ${token}` } },
         );
 
@@ -228,7 +228,7 @@ const [isFiltered, setIsFiltered] = useState(false);////samiksha
       const token = localStorage.getItem("accessToken");
 
       const res = await axios.get(
-        `http://localhost:8000/api/tasklogs/daily-workload?date=${selectedDate}`,
+        `https://server-backend-nu.vercel.app/api/tasklogs/daily-workload?date=${selectedDate}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -250,14 +250,14 @@ const [isFiltered, setIsFiltered] = useState(false);////samiksha
       let url = "";
 
       if (workloadDate) {
-        url = `http://localhost:8000/api/tasklogs/daily-workload?date=${workloadDate}`;
+        url = `https://server-backend-nu.vercel.app/api/tasklogs/daily-workload?date=${workloadDate}`;
       } else if (workloadWeek) {
         const weekStartDate = getStartDateOfWeek(workloadWeek);
-        url = `http://localhost:8000/api/tasklogs/workload/weekly?date=${weekStartDate}`;
+        url = `https://server-backend-nu.vercel.app/api/tasklogs/workload/weekly?date=${weekStartDate}`;
       } else if (workloadMonth) {
         // Monthly API
         const [year, month] = workloadMonth.split("-");
-        url = `http://localhost:8000/api/tasklogs/workload/monthly?year=${year}&month=${month}`;
+        url = `https://server-backend-nu.vercel.app/api/tasklogs/workload/monthly?year=${year}&month=${month}`;
       } else {
         console.warn("No filter selected");
         return;
@@ -410,7 +410,7 @@ const [isFiltered, setIsFiltered] = useState(false);////samiksha
   }, []);
   const fetchLogs = async () => {
     try {
-      const logRes = await fetch(`http://localhost:8000/api/tasklogs/`);
+      const logRes = await fetch(`https://server-backend-nu.vercel.app/api/tasklogs/`);
       const logsData = await logRes.json();
       setLogs(logsData);
     } catch (err) {

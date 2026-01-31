@@ -35,7 +35,7 @@ function ManagerResignation({ user }) {
 
       // Use the manager-specific endpoint with authentication
       const response = await axios.get(
-        `http://localhost:8000/resignation/manager/${managerId}`,
+        `https://server-backend-nu.vercel.app/resignation/manager/${managerId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -110,7 +110,7 @@ function ManagerResignation({ user }) {
       };
 
       const response = await axios.put(
-        `http://localhost:8000/resignation/${selected.originalData.resignationId}`,
+        `https://server-backend-nu.vercel.app/resignation/${selected.originalData.resignationId}`,
         payload,
         {
           headers: {

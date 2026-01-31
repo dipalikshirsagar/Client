@@ -50,7 +50,7 @@ function MyAttendance({ employeeId }) {
     if (selectedRecord?.leaveRef?.reportingManager) {
       axios
         .get(
-          `http://localhost:8000/users/${selectedRecord.leaveRef.reportingManager}`,
+          `https://server-backend-nu.vercel.app/users/${selectedRecord.leaveRef.reportingManager}`,
         )
         .then((res) => setManager(res.data))
         .catch((err) => console.error("Error fetching manager:", err));
@@ -63,14 +63,14 @@ function MyAttendance({ employeeId }) {
       try {
         const [attRes, leaveRes, weeklyRes, holidayRes, regRes] =
           await Promise.all([
-            axios.get(`http://localhost:8000/attendance/${employeeId}`),
-            axios.get(`http://localhost:8000/leave/my/${employeeId}`),
+            axios.get(`https://server-backend-nu.vercel.app/attendance/${employeeId}`),
+            axios.get(`https://server-backend-nu.vercel.app/leave/my/${employeeId}`),
             axios.get(
-              `http://localhost:8000/admin/weeklyoff/${new Date().getFullYear()}`,
+              `https://server-backend-nu.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`,
             ),
-            axios.get(`http://localhost:8000/getHolidays`),
+            axios.get(`https://server-backend-nu.vercel.app/getHolidays`),
             axios.get(
-              `http://localhost:8000/attendance/regularization/my/${employeeId}`,
+              `https://server-backend-nu.vercel.app/attendance/regularization/my/${employeeId}`,
             ),
           ]);
 
@@ -454,7 +454,7 @@ function MyAttendance({ employeeId }) {
     try {
       const token = localStorage.getItem("accessToken");
       const authAxios = axios.create({
-        baseURL: "http://localhost:8000",
+        baseURL: "https://server-backend-nu.vercel.app",
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -574,7 +574,7 @@ function MyAttendance({ employeeId }) {
     try {
       const token = localStorage.getItem("accessToken");
       const authAxios = axios.create({
-        baseURL: "http://localhost:8000",
+        baseURL: "https://server-backend-nu.vercel.app",
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -643,7 +643,7 @@ function MyAttendance({ employeeId }) {
   const token = localStorage.getItem("accessToken");
 
   const authAxios = axios.create({
-    baseURL: "http://localhost:8000",
+    baseURL: "https://server-backend-nu.vercel.app",
     headers: { Authorization: `Bearer ${token}` },
   });
 
@@ -775,7 +775,7 @@ function MyAttendance({ employeeId }) {
     const fetchBreaks = async () => {
       try {
         const token = localStorage.getItem("accessToken");
-        const res = await axios.get("http://localhost:8000/api/break/my", {
+        const res = await axios.get("https://server-backend-nu.vercel.app/api/break/my", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setBreakData(res.data);

@@ -21,11 +21,11 @@
 //     const fetchData = async () => {
 //       try {
 //         const [attRes, leaveRes, weeklyRes, holidayRes, regRes] = await Promise.all([
-//           axios.get(`http://localhost:8000/attendance/${employeeId}`),
-//           axios.get(`http://localhost:8000/leave/my/${employeeId}`),
-//           axios.get(`http://localhost:8000/admin/weeklyoff/${new Date().getFullYear()}`),
-//           axios.get(`http://localhost:8000/getHolidays`),
-//           axios.get(`http://localhost:8000/attendance/regularization/my/${employeeId}`),
+//           axios.get(`https://server-backend-nu.vercel.app/attendance/${employeeId}`),
+//           axios.get(`https://server-backend-nu.vercel.app/leave/my/${employeeId}`),
+//           axios.get(`https://server-backend-nu.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`),
+//           axios.get(`https://server-backend-nu.vercel.app/getHolidays`),
+//           axios.get(`https://server-backend-nu.vercel.app/attendance/regularization/my/${employeeId}`),
 //         ]);
 
 //         setWeeklyOff(weeklyRes.data.data?.saturdays || []);
@@ -250,14 +250,14 @@ function MyAttendanceCalendar({ employeeId }) {
       try {
         const [attRes, leaveRes, weeklyRes, holidayRes, regRes] =
           await Promise.all([
-            axios.get(`http://localhost:8000/attendance/${employeeId}`),
-            axios.get(`http://localhost:8000/leave/my/${employeeId}`),
+            axios.get(`https://server-backend-nu.vercel.app/attendance/${employeeId}`),
+            axios.get(`https://server-backend-nu.vercel.app/leave/my/${employeeId}`),
             axios.get(
-              `http://localhost:8000/admin/weeklyoff/${new Date().getFullYear()}`,
+              `https://server-backend-nu.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`,
             ),
-            axios.get(`http://localhost:8000/getHolidays`),
+            axios.get(`https://server-backend-nu.vercel.app/getHolidays`),
             axios.get(
-              `http://localhost:8000/attendance/regularization/my/${employeeId}`,
+              `https://server-backend-nu.vercel.app/attendance/regularization/my/${employeeId}`,
             ),
           ]);
         setWeeklyOff(weeklyRes.data.data?.saturdays || []);

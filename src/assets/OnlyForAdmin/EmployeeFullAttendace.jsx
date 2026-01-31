@@ -28,12 +28,12 @@ function EmployeeFullAttendance() {
         setLoading(true);
         const token = localStorage.getItem("accessToken");
         const authAxios = axios.create({
-          baseURL: "http://localhost:8000",
+          baseURL: "https://server-backend-nu.vercel.app",
           headers: { Authorization: `Bearer ${token}` },
         });
 
         const empRes = await axios.get(
-          `http://localhost:8000/employees/${empId}`,
+          `https://server-backend-nu.vercel.app/employees/${empId}`,
         );
         setEmployee(empRes.data);
 
@@ -272,7 +272,7 @@ function EmployeeFullAttendance() {
       console.log("Fetching breaks for:", formattedDate);
 
       const res = await axios.get(
-        `http://localhost:8000/api/break/admin/${empId}`,
+        `https://server-backend-nu.vercel.app/api/break/admin/${empId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { date: formattedDate },

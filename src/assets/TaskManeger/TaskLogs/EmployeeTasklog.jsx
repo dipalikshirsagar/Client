@@ -204,7 +204,7 @@ const EmployeeTasklog = ({ user }) => {
       const token = localStorage.getItem("accessToken");
 
       const logRes = await fetch(
-        `http://localhost:8000/api/tasklogs/employee/${user._id}`,
+        `https://server-backend-nu.vercel.app/api/tasklogs/employee/${user._id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -215,7 +215,7 @@ const EmployeeTasklog = ({ user }) => {
       const logsData = await logRes.json();
 
       const taskRes = await fetch(
-        `http://localhost:8000/tasks/assigned/${user._id}`,
+        `https://server-backend-nu.vercel.app/tasks/assigned/${user._id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -395,7 +395,7 @@ const EmployeeTasklog = ({ user }) => {
   //       let res;
   //       if (editIndex !== null) {
   //         res = await axios.put(
-  //           `http://localhost:8000/api/tasklogs/${editIndex}`,
+  //           `https://server-backend-nu.vercel.app/api/tasklogs/${editIndex}`,
   //           payload,
   //           {
   //           headers: {
@@ -407,7 +407,7 @@ const EmployeeTasklog = ({ user }) => {
   //          await fetchLogs();
   //       } else {
   //         const res = await axios.post(
-  //           "http://localhost:8000/api/tasklogs/",
+  //           "https://server-backend-nu.vercel.app/api/tasklogs/",
   //           payload,
   //           {
   //           headers: {
@@ -473,8 +473,8 @@ const EmployeeTasklog = ({ user }) => {
 
       const endpoint =
         editIndex !== null
-          ? `http://localhost:8000/api/tasklogs/${editIndex}`
-          : "http://localhost:8000/api/tasklogs/";
+          ? `https://server-backend-nu.vercel.app/api/tasklogs/${editIndex}`
+          : "https://server-backend-nu.vercel.app/api/tasklogs/";
 
       const method = editIndex !== null ? "PUT" : "POST";
 

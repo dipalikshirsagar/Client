@@ -98,7 +98,7 @@ const ManagerTeamsTMS = ({ role }) => {
   async function fetchUser() {
     try {
       const token = localStorage.getItem("accessToken");
-      const response = await axios.get("http://localhost:8000/me", {
+      const response = await axios.get("https://server-backend-nu.vercel.app/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const user = response.data;
@@ -114,13 +114,13 @@ const ManagerTeamsTMS = ({ role }) => {
       const user = await fetchUser();
       const [teamsRes, managersRes, employeesRes, departmentsRes] =
         await Promise.all([
-          axios.get(`http://localhost:8000/api/teams/createdBy/${user._id}`),
-          axios.get("http://localhost:8000/managers", {
+          axios.get(`https://server-backend-nu.vercel.app/api/teams/createdBy/${user._id}`),
+          axios.get("https://server-backend-nu.vercel.app/managers", {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get("http://localhost:8000/getEmployeeCount", {}),
+          axios.get("https://server-backend-nu.vercel.app/getEmployeeCount", {}),
 
-          axios.get("http://localhost:8000/getAllDepartments"),
+          axios.get("https://server-backend-nu.vercel.app/getAllDepartments"),
         ]);
 
       const normalizedDepartments = departmentsRes.data.departments.map((d) =>
@@ -146,7 +146,7 @@ const ManagerTeamsTMS = ({ role }) => {
     try {
       const user = await fetchUser();
       const res = await axios.get(
-        `http://localhost:8000/api/teams/createdBy/${user._id}`,
+        `https://server-backend-nu.vercel.app/api/teams/createdBy/${user._id}`,
       );
 
       setAllTeams(res.data.data || []);
@@ -163,13 +163,13 @@ const ManagerTeamsTMS = ({ role }) => {
     const fetchAddTaskRequiredDetails = async () => {
       try {
         const token = localStorage.getItem("accessToken");
-        const res = await axios.get("http://localhost:8000/getAllDepartments");
+        const res = await axios.get("https://server-backend-nu.vercel.app/getAllDepartments");
         const user = await fetchUser();
         const empRes = await axios.get(
-          `http://localhost:8000/employees/manager/${user._id}`,
+          `https://server-backend-nu.vercel.app/employees/manager/${user._id}`,
         );
         const projectRes = await axios.get(
-          `http://localhost:8000/api/projects/manager/${user._id}`,
+          `https://server-backend-nu.vercel.app/api/projects/manager/${user._id}`,
         );
         const departments = res.data.departments;
         const employeesNames = empRes.data.employees;
@@ -241,14 +241,14 @@ const ManagerTeamsTMS = ({ role }) => {
       let res;
       if (editTaskId) {
         res = await axios.put(
-          `http://localhost:8000/api/teams/${editTaskId}`,
+          `https://server-backend-nu.vercel.app/api/teams/${editTaskId}`,
           payload,
           { headers: { "Content-Type": "application/json" } },
         );
         await fetchTeams();
       } else {
         const res = await axios.post(
-          "http://localhost:8000/api/teams",
+          "https://server-backend-nu.vercel.app/api/teams",
           payload,
           { headers: { "Content-Type": "application/json" } },
         );
@@ -402,7 +402,7 @@ const projectStatus = team?.project?.status?.toLowerCase() || "";
     if (!window.confirm("Are you sure you want to delete this task?")) return;
 
     try {
-      await axios.delete(`http://localhost:8000/api/teams/${id}`);
+      await axios.delete(`https://server-backend-nu.vercel.app/api/teams/${id}`);
       setAllTeams((prev) => prev.filter((t) => t._id !== id));
       setFilteredTeams((prev) => prev.filter((t) => t._id !== id));
       alert("Team deleted Successfully!!");
