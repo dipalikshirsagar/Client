@@ -31,7 +31,7 @@ function EmployeeResignation({ user }) {
 
   async function fetchUser() {
     try {
-      const response = await axios.get("https://server-backend-nu.vercel.app/me", {
+      const response = await axios.get("http://localhost:8000/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
       return response.data;
@@ -47,7 +47,7 @@ function EmployeeResignation({ user }) {
       if (!userData) return;
 
       const response = await axios.get(
-        `https://server-backend-nu.vercel.app/emp/info/${userData.employeeId}`,
+        `http://localhost:8000/emp/info/${userData.employeeId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -72,7 +72,7 @@ function EmployeeResignation({ user }) {
       if (!userData) return;
 
       const response = await axios.get(
-        `https://server-backend-nu.vercel.app/resignation/${userData.employeeId}`,
+        `http://localhost:8000/resignation/${userData.employeeId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -119,7 +119,7 @@ function EmployeeResignation({ user }) {
       };
 
       const response = await axios.post(
-        "https://server-backend-nu.vercel.app/resignation/apply",
+        "http://localhost:8000/resignation/apply",
         payload,
         {
           headers: {
@@ -151,7 +151,7 @@ function EmployeeResignation({ user }) {
 
     try {
       const response = await axios.delete(
-        `https://server-backend-nu.vercel.app/cancel/resignation/${resignationId}`,
+        `http://localhost:8000/cancel/resignation/${resignationId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },

@@ -37,7 +37,7 @@ function AdminDashboard({ user }) {
       try {
         const token = localStorage.getItem("accessToken");
         const authAxios = axios.create({
-          baseURL: "https://server-backend-nu.vercel.app",
+          baseURL: "http://localhost:8000",
           headers: { Authorization: `Bearer ${token}` },
         });
 

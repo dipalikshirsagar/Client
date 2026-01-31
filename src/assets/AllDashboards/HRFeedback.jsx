@@ -60,7 +60,7 @@ const HRFeedback = () => {
       if (!token) return;
 
       const response = await axios.get(
-        "https://server-backend-nu.vercel.app/getAllEmployees",
+        "http://localhost:8000/getAllEmployees",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -88,7 +88,7 @@ const HRFeedback = () => {
       }
 
       const response = await axios.get(
-        `https://server-backend-nu.vercel.app/feedback/employee/${currentUser._id}`,
+        `http://localhost:8000/feedback/employee/${currentUser._id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -169,7 +169,7 @@ const HRFeedback = () => {
       }
 
       const response = await axios.put(
-        `https://server-backend-nu.vercel.app/feedback/view/${feedbackId}`,
+        `http://localhost:8000/feedback/view/${feedbackId}`,
         {},
         {
           headers: {
@@ -377,7 +377,7 @@ const HRFeedback = () => {
 
       if (editId) {
         response = await axios.put(
-          `https://server-backend-nu.vercel.app/feedback/edit/${editId}`,
+          `http://localhost:8000/feedback/edit/${editId}`,
           {
             title: formData.title,
             message: formData.message,
@@ -391,7 +391,7 @@ const HRFeedback = () => {
         );
       } else {
         response = await axios.post(
-          "https://server-backend-nu.vercel.app/feedback/send",
+          "http://localhost:8000/feedback/send",
           {
             receiverId: formData.receiverId,
             title: formData.title,
@@ -453,7 +453,7 @@ const HRFeedback = () => {
     try {
       const token = localStorage.getItem("accessToken");
       if (token) {
-        await axios.delete(`https://server-backend-nu.vercel.app/feedback/delete/${id}`, {
+        await axios.delete(`http://localhost:8000/feedback/delete/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 

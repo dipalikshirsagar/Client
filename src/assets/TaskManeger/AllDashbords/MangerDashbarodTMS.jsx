@@ -26,7 +26,7 @@
 //   const fetchUser = async () => {
 //     try {
 //       const token = localStorage.getItem("accessToken");
-//       const res = await axios.get("https://server-backend-nu.vercel.app/me", {
+//       const res = await axios.get("http://localhost:8000/me", {
 //         headers: { Authorization: `Bearer ${token}` },
 //       });
 //       return res.data;
@@ -47,23 +47,23 @@
 
 //         /* EMPLOYEES */
 //         const empRes = await axios.get(
-//           `https://server-backend-nu.vercel.app/employees/manager/${user._id}`
+//           `http://localhost:8000/employees/manager/${user._id}`
 //         );
 
 //         /* PROJECTS */
 //         const projectRes = await axios.get(
-//           `https://server-backend-nu.vercel.app/api/projects/manager/${user._id}`
+//           `http://localhost:8000/api/projects/manager/${user._id}`
 //         );
 
 //         /* TEAMS */
 //         const teamRes = await axios.get(
-//           "https://server-backend-nu.vercel.app/api/teams",
+//           "http://localhost:8000/api/teams",
 //           { headers: { Authorization: `Bearer ${token}` } }
 //         );
 
 //         /* TASKS */
 //         const taskRes = await axios.get(
-//           "https://server-backend-nu.vercel.app/task/getall",
+//           "http://localhost:8000/task/getall",
 //           { headers: { Authorization: `Bearer ${token}` } }
 //         );
 //         const tasks = Array.isArray(taskRes.data)
@@ -186,7 +186,7 @@
 //         setLoadingEmployees(true);
 
 //         const res = await axios.get(
-//           `https://server-backend-nu.vercel.app/managers/${id}/assigned-employees`
+//           `http://localhost:8000/managers/${id}/assigned-employees`
 //         );
 
 //         if (res.data.success) {
@@ -825,7 +825,7 @@ function MangerDashbarodTMS() {
   const fetchUser = async () => {
     try {
       const token = localStorage.getItem("accessToken");
-      const res = await axios.get("https://server-backend-nu.vercel.app/me", {
+      const res = await axios.get("http://localhost:8000/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
       return res.data;
@@ -891,23 +891,23 @@ function MangerDashbarodTMS() {
 
         /* EMPLOYEES */
         const empRes = await axios.get(
-          `https://server-backend-nu.vercel.app/employees/manager/${user._id}`,
+          `http://localhost:8000/employees/manager/${user._id}`,
         );
 
         /* PROJECTS */
         const projectRes = await axios.get(
-          `https://server-backend-nu.vercel.app/api/projects/manager/${user._id}`,
+          `http://localhost:8000/api/projects/manager/${user._id}`,
         );
 
         /* TEAMS */
         const teamRes = await axios.get(
-          `https://server-backend-nu.vercel.app/api/teams/createdBy/${user._id}`,
+          `http://localhost:8000/api/teams/createdBy/${user._id}`,
           { headers: { Authorization: `Bearer ${token}` } },
         );
 
         /* TASKS */
         const taskRes = await axios.get(
-          `https://server-backend-nu.vercel.app/tasks/${user._id}`,
+          `http://localhost:8000/tasks/${user._id}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           },
@@ -1066,7 +1066,7 @@ function MangerDashbarodTMS() {
 
         const token = localStorage.getItem("accessToken");
 
-        const res = await axios.get(`https://server-backend-nu.vercel.app/bench-employees`, {
+        const res = await axios.get(`http://localhost:8000/bench-employees`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

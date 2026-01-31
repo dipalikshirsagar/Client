@@ -282,7 +282,7 @@ function AdminTypeOfTask() {
       }
     }
   };
-  const isAnyPopupOpen = !!showModal;
+  const isAnyPopupOpen = showModal || showPopup;
   useEffect(() => {
     if (isAnyPopupOpen) {
       document.body.style.overflow = "hidden";
@@ -299,8 +299,8 @@ function AdminTypeOfTask() {
   }, [isAnyPopupOpen]);
   return (
     <div
-      className="container-fluid p-3 p-md-4"
-      style={{ backgroundColor: "#f5f7fb", minHeight: "100vh" }}
+      className="container-fluid "
+     
     >
       {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-2">
@@ -516,7 +516,7 @@ function AdminTypeOfTask() {
           onKeyDown={trapFocus}
           className="popup-overlay"
           style={{
-            position: "fixed",
+            // position: "fixed",
             inset: 0,
             background: "rgba(0,0,0,0.5)",
             display: "flex",
@@ -584,7 +584,7 @@ function AdminTypeOfTask() {
             {/* CLOSE BUTTON */}
             <div className="d-flex justify-content-end mt-3">
               <button
-                className="btn btn-sm custom-outline-btn"
+                className="btn btn-sm custom-outline-btn"  style={{minWidth:"90px"}}
                 onClick={() => setShowPopup(false)}
               >
                 Close

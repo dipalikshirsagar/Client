@@ -25,7 +25,7 @@ export default function EmployeeDashbordTMS({ user }) {
       try {
         setLoading(true);
         const [tasksRes] = await Promise.all([
-          axios.get(`https://server-backend-nu.vercel.app/tasks/assigned/${employeeId}`),
+          axios.get(`http://localhost:8000/tasks/assigned/${employeeId}`),
         ]);
 
         if (tasksRes.data.tasks) {
@@ -77,7 +77,7 @@ export default function EmployeeDashbordTMS({ user }) {
       try {
         setLoading(true);
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/tasks/assigned/${user._id}`,
+          `http://localhost:8000/tasks/assigned/${user._id}`,
         );
 
         const tasks = res.data.tasks || [];

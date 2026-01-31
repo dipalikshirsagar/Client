@@ -152,7 +152,7 @@ function Dashboard() {
 
     let isMounted = true;
     axios
-      .get("https://server-backend-nu.vercel.app/me", {
+      .get("http://localhost:8000/me", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
@@ -196,7 +196,7 @@ function Dashboard() {
     }
 
     axios
-      .get(`https://server-backend-nu.vercel.app/me`, {
+      .get(`http://localhost:8000/me`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => setUser(res.data))
@@ -213,7 +213,7 @@ function Dashboard() {
       setIsLoggingOut(true);
       const refreshToken = localStorage.getItem("refreshToken");
       // call backend to invalidate refresh token (optional)
-      await axios.post("https://server-backend-nu.vercel.app/logout", { refreshToken });
+      await axios.post("http://localhost:8000/logout", { refreshToken });
 
       // clear everything
       // ❗ Clear active browser session

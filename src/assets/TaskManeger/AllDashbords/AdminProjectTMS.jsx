@@ -20,7 +20,7 @@ function isWeeklyOff(date, weeklyOffs = { saturdays: [], sundayOff: true }) {
   }
   return null;
 }
-const API_URL = "https://server-backend-nu.vercel.app/api/projects";
+const API_URL = "http://localhost:8000/api/projects";
 
 function AdminProjectTMS({ userData }) {
   const [searchInput, setSearchInput] = useState("");
@@ -108,7 +108,7 @@ function AdminProjectTMS({ userData }) {
 
   useEffect(() => {
     axios
-      .get("https://server-backend-nu.vercel.app/managers/list")
+      .get("http://localhost:8000/managers/list")
       .then((res) => {
         console.log("Managers fetched:", res.data);
         setManagerList(res.data);
@@ -124,7 +124,7 @@ function AdminProjectTMS({ userData }) {
     const fetchWeeklyOffs = async () => {
       try {
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`,
+          `http://localhost:8000/admin/weeklyoff/${new Date().getFullYear()}`,
         );
 
         const weeklyData = res.data?.data || {};
@@ -246,9 +246,9 @@ function AdminProjectTMS({ userData }) {
       let apiUrl;
       // Change API for specific statuses
       if (newStatus === "Completed") {
-        apiUrl = `https://server-backend-nu.vercel.app/api/projects/${projectId}/complete`;
+        apiUrl = `http://localhost:8000/api/projects/${projectId}/complete`;
       } else if (newStatus === "Cancelled") {
-        apiUrl = `https://server-backend-nu.vercel.app/api/projects/${projectId}/cancel`;
+        apiUrl = `http://localhost:8000/api/projects/${projectId}/cancel`;
       }
 
       await axios.put(apiUrl, { status: newStatus });
@@ -307,7 +307,7 @@ function AdminProjectTMS({ userData }) {
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
 
-    const holidaysRes = await axios.get("https://server-backend-nu.vercel.app/getHolidays");
+    const holidaysRes = await axios.get("http://localhost:8000/getHolidays");
     const holidays = holidaysRes.data?.data || holidaysRes.data || [];
     const isHoliday = (date) =>
       holidays.some((holiday) => {
@@ -404,7 +404,7 @@ function AdminProjectTMS({ userData }) {
     // console.log("form",form)  get empty
     setShowPopup(true);
   };
-  /////Change by dip
+  /////Change 
   const filteredData =
     searchQuery.trim() === ""
       ? projectData
@@ -435,8 +435,10 @@ function AdminProjectTMS({ userData }) {
 
           // Search in status
           const matchesStatus = (item.status || "")
-            .toLowerCase()
-            .includes(query);
+           .toString()
+          .toLowerCase()
+          .trim()
+          .includes(query);
 
           // Search in priority
           const matchesPriority = (item.priority || "")
@@ -528,7 +530,7 @@ function AdminProjectTMS({ userData }) {
 
   const handleEditSave = async (e) => {
     e.preventDefault();
-    const holidaysRes = await axios.get("https://server-backend-nu.vercel.app/getHolidays");
+    const holidaysRes = await axios.get("http://localhost:8000/getHolidays");
     const holidays = holidaysRes.data?.data || holidaysRes.data || [];
 
     const isHoliday = (date) =>
@@ -689,7 +691,7 @@ function AdminProjectTMS({ userData }) {
     setCommentLoading(true);
     try {
       const response = await axios.get(
-        `https://server-backend-nu.vercel.app/project/${projectId}/comments`,
+        `http://localhost:8000/project/${projectId}/comments`,
       );
       setProjectComments(response.data.comments || []);
     } catch (error) {
@@ -713,7 +715,7 @@ function AdminProjectTMS({ userData }) {
 
     try {
       const res = await axios.post(
-        `https://server-backend-nu.vercel.app/project/${commentModalProject._id}/comment`,
+        `http://localhost:8000/project/${commentModalProject._id}/comment`,
         { comment: newComment },
         {
           headers: {
@@ -751,7 +753,7 @@ function AdminProjectTMS({ userData }) {
 
     try {
       const res = await axios.delete(
-        `https://server-backend-nu.vercel.app/project/${projectId}/comment/${commentId}`,
+        `http://localhost:8000/project/${projectId}/comment/${commentId}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
@@ -777,7 +779,7 @@ function AdminProjectTMS({ userData }) {
 
     try {
       const res = await axios.put(
-        `https://server-backend-nu.vercel.app/project/${projectId}/comment/${commentId}`,
+        `http://localhost:8000/project/${projectId}/comment/${commentId}`,
         { comment: newText },
         {
           headers: {
@@ -1080,22 +1082,22 @@ function AdminProjectTMS({ userData }) {
               {paginatedData.length > 0 ? (
                 paginatedData.map((item, index) => (
                   // <tr key={item._id || index} onClick={() => openRowPopup(item, index)}>
+                  // snehal code      
                   <tr
                     key={item._id || index}
                     onClick={() => {
-                      if (item.status === "Cancelled") return;
                       openRowPopup(item, index);
+                      setPopupMode("view"); //  force view mode
                     }}
                     style={{
                       opacity: item.status === "Cancelled" ? 0.6 : 1,
-                      cursor:
-                        item.status === "Cancelled" ? "not-allowed" : "pointer",
+                      cursor: "pointer",
                       backgroundColor:
                         item.status === "Cancelled" ? "#f8d7da" : "inherit",
                     }}
                     title={
                       item.status === "Cancelled"
-                        ? "This project is cancelled. Status will be auto-managed based on dates when enabled."
+                        ? "This project is cancelled. View only."
                         : ""
                     }
                   >
@@ -1199,36 +1201,59 @@ function AdminProjectTMS({ userData }) {
                         whiteSpace: "nowrap",textTransform: "capitalize",
                       }}
                     >
-                      <button
-                        className="btn btn-sm custom-outline-btn"
-                        style={{
-                          fontSize: "12px",
-                          padding: "4px 12px",
-                          borderRadius: "4px",
-                        }}
-                        onClick={(e) => handleAddComment(e, item)}
-                      >
-                        Add Comment
-                      </button>
+                     {/* snehal code             */}
+                                        <button
+                      className="btn btn-sm custom-outline-btn"
+                      disabled={item.status === "Cancelled"}
+                      style={{
+                        fontSize: "12px",
+                        padding: "4px 12px",
+                        borderRadius: "4px",
+                        opacity: item.status === "Cancelled" ? 0.5 : 1,
+                        cursor: item.status === "Cancelled" ? "not-allowed" : "pointer",
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (item.status === "Cancelled") return;
+                        handleAddComment(e, item);
+                      }}
+                    >
+                      Add Comment
+                    </button>
+   {/* snehal code             */}
+                    {/* snehal code             */}
                     </td>
                     {isAdmin && (
                       <td>
                         <div className="d-flex gap-2">
                           <button
-                            className="btn btn-sm custom-outline-btn"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openRowPopup(item, index);
-                              setPopupMode("edit");
-                            }}
-                          >
-                            Edit
-                          </button>
+                              className="btn btn-sm custom-outline-btn"
+                              disabled={item.status === "Cancelled"}
+                              style={{
+                                opacity: item.status === "Cancelled" ? 0.5 : 1,
+                                cursor: item.status === "Cancelled" ? "not-allowed" : "pointer",
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (item.status === "Cancelled") return;
+                                openRowPopup(item, index);
+                                setPopupMode("edit");
+                              }}
+                            >
+                              Edit
+                            </button>
 
+                         {/* snehal code */}
                           <button
                             className="btn btn-sm btn-outline-danger"
+                            disabled={item.status === "Cancelled"}
+                            style={{
+                              opacity: item.status === "Cancelled" ? 0.5 : 1,
+                              cursor: item.status === "Cancelled" ? "not-allowed" : "pointer",
+                            }}
                             onClick={(e) => {
                               e.stopPropagation();
+                              if (item.status === "Cancelled") return;
                               handleDeleteProject(item._id);
                             }}
                           >
@@ -1284,7 +1309,7 @@ function AdminProjectTMS({ userData }) {
 
           <div>
             <button
-              className="btn btn-sm"
+              className="btn btn-sm focus-ring"
               onClick={() => handlePageChange(currentPage - 1)}
               onMouseDown={(e) => e.preventDefault()}
               disabled={currentPage === 1}
@@ -1292,7 +1317,7 @@ function AdminProjectTMS({ userData }) {
               ‹
             </button>
             <button
-              className="btn btn-sm"
+              className="btn btn-sm focus-ring"
               onClick={() => handlePageChange(currentPage + 1)}
               onMouseDown={(e) => e.preventDefault()}
               disabled={currentPage === totalPages}
@@ -1328,8 +1353,8 @@ function AdminProjectTMS({ userData }) {
               width: "600px",
               borderRadius: "10px",
               maxHeight: "91vh",
-              overflowX: "auto",
-              marginTop: "75px",
+              overflowY: "auto",
+              marginTop: "140px",
             }}
           >
             <form
@@ -1886,10 +1911,12 @@ function AdminProjectTMS({ userData }) {
 
               {/* Buttons */}
               <div className="d-flex justify-content-end gap-2 ">
+                {/* snehal code */}
                 {popupMode === "view" &&
                   userRole === "admin" &&
                   userRole !== "ceo" &&
-                  userRole !== "employee" && (
+                  userRole !== "employee" &&
+                  form.status !== "Cancelled" && (
                     <button
                       className="btn btn-sm custom-outline-btn"
                       style={{ minWidth: "90px" }}
@@ -1897,7 +1924,7 @@ function AdminProjectTMS({ userData }) {
                     >
                       Edit
                     </button>
-                  )}
+                )}
 
                 {popupMode === "edit" && userRole === "admin" && (
                   <button

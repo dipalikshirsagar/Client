@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import * as XLSX from "xlsx"; // ✅ Import xlsx
+import * as XLSX from "xlsx"; //  Import xlsx
 
 function EmployeeFullAttendance() {
   const { empId } = useParams();
@@ -28,12 +28,12 @@ function EmployeeFullAttendance() {
         setLoading(true);
         const token = localStorage.getItem("accessToken");
         const authAxios = axios.create({
-          baseURL: "https://server-backend-nu.vercel.app",
+          baseURL: "http://localhost:8000",
           headers: { Authorization: `Bearer ${token}` },
         });
 
         const empRes = await axios.get(
-          `https://server-backend-nu.vercel.app/employees/${empId}`,
+          `http://localhost:8000/employees/${empId}`,
         );
         setEmployee(empRes.data);
 
@@ -272,7 +272,7 @@ function EmployeeFullAttendance() {
       console.log("Fetching breaks for:", formattedDate);
 
       const res = await axios.get(
-        `https://server-backend-nu.vercel.app/api/break/admin/${empId}`,
+        `http://localhost:8000/api/break/admin/${empId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { date: formattedDate },

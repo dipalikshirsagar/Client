@@ -33,7 +33,7 @@ const [searchText, setSearchText] = useState("");
         const headers = { Authorization: `Bearer ${token}` };
 
         // Fetch logged in user
-        const userRes = await axios.get("https://server-backend-nu.vercel.app/me", {
+        const userRes = await axios.get("http://localhost:8000/me", {
           headers,
         });
         const user = userRes.data;
@@ -46,9 +46,9 @@ const [searchText, setSearchText] = useState("");
         let url;
 
         if (role === "manager") {
-          url = `https://server-backend-nu.vercel.app/managers/${managerId}/assigned-employees`;
+          url = `http://localhost:8000/managers/${managerId}/assigned-employees`;
         } else {
-          url = "https://server-backend-nu.vercel.app/getAllEmployees";
+          url = "http://localhost:8000/getAllEmployees";
         }
 
         const employeesRes = await axios.get(url, { headers });
@@ -141,90 +141,49 @@ const handleResetSearch = () => {
         All Employees Details
       </h4>
 {/* Filter section addes by snehal*/}
-<div
-className="shadow-sm"
-    style={{
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: 14,
-      padding: 16,
-      background: "#fff",
-      marginBottom: 18,
-      flexWrap: "wrap",
-    }}
-  >
-    {/* LEFT SIDE */}
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 14,
-        flexWrap: "wrap",
-        flex: "1 1 auto",
-        minWidth: 0,
-      }}
-    >
-      {/* Search pair */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "nowrap" }}>
-        <b
-          style={{
-            color: "#3A5FBE",
-            width: 55,
-            minWidth: 55,
-            textAlign: "left",
-            whiteSpace: "nowrap",
-          }}
-        >
-          Search
-        </b>
+<div className="card shadow-sm border-0 mb-3">
+        <div className="card-body p-3">
+          {/* Search Input */}
+          <div className="d-flex align-items-center gap-3 flex-wrap">
+            <div className="d-flex align-items-center gap-2 flex-grow-1 flex-md-grow-0 w-md-100">
+              <label
+                className="mb-0 fw-bold"
+                style={{ fontSize: 14, color: "#3A5FBE", whiteSpace: "nowrap" }}
+              >
+                Search
+              </label>
 
-        <input
-          placeholder="Search by any field..."
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          style={{
-            width: "260px",
-            minWidth: "260px",
-            padding: "10px 14px",
-            borderRadius: 8,
-            border: "1px solid #ddd",
-            height: 40,
-          }}
-        />
+              <input
+                type="text"
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                placeholder="Search By Any Field..."
+                className="form-control form-control-sm"
+                style={{ flex: 1 }}
+              />
+            </div>
+
+            {/* Buttons */}
+            <div className="d-flex gap-2 ms-auto">
+              <button
+                className="btn btn-sm custom-outline-btn"
+                style={{ minWidth: 90 }}
+                onClick={handleSearch}
+              >
+                Filter
+              </button>
+
+              <button
+                className="btn btn-sm custom-outline-btn"
+                style={{ minWidth: 90 }}
+                onClick={handleResetSearch}
+              >
+                Reset
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
-
-      
-    </div>
-
-    {/* RIGHT SIDE BUTTONS */}
-    <div
-      style={{
-        display: "flex",
-        gap: 10,
-        flexWrap: "wrap",
-        marginLeft: "auto",
-        justifyContent: "flex-end",
-        alignItems: "center",
-      }}
-    >
-      <button
-        onClick={handleSearch}
-        className="btn btn-sm custom-outline-btn"
-        style={{ minWidth: 90 }}
-      >
-        Filter
-      </button>
-
-      <button
-        onClick={handleResetSearch}
-        className="btn btn-sm custom-outline-btn"
-        style={{ minWidth: 90 }}
-      >
-        Reset
-      </button>
-    </div>
-  </div>
 {/* Filter section */}
       <div className="card shadow-sm border-0">
         <div className="table-responsive bg-white">

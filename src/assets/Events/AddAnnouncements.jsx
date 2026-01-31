@@ -84,7 +84,7 @@ function AddAnnouncements({ onAdd }) {
       formData.append("image", image);
 
       const response = await axios.post(
-        "https://server-backend-nu.vercel.app/announcements/",
+        "http://localhost:8000/announcements/",
         formData,
         {
           headers: {

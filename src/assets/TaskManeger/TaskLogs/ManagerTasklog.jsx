@@ -39,7 +39,11 @@ const ManagerTasklog = ({ user }) => {
   const viewPopupRef = useRef(null);
   const workloadPopupRef = useRef(null);
   const approvePopupRef = useRef(null);
-
+{/* //snehal 29 Disable  */}
+  const isRowLocked = (status) => {
+  return status === "Approved" || status === "Rejected";
+};
+ {/* //snehal 29 Disable  */}
   useEffect(() => {
     if (viewOpen && viewPopupRef.current) {
       viewPopupRef.current.focus();
@@ -206,7 +210,7 @@ const ManagerTasklog = ({ user }) => {
         const dateStr = d.toISOString().split("T")[0];
 
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/api/tasklogs/daily-workload?date=${dateStr}`,
+          `http://localhost:8000/api/tasklogs/daily-workload?date=${dateStr}`,
           { headers: { Authorization: `Bearer ${token}` } },
         );
 
@@ -269,7 +273,7 @@ const ManagerTasklog = ({ user }) => {
       const token = localStorage.getItem("accessToken");
 
       const res = await axios.get(
-        `https://server-backend-nu.vercel.app/api/tasklogs/daily-workload?date=${selectedDate}`,
+        `http://localhost:8000/api/tasklogs/daily-workload?date=${selectedDate}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -384,7 +388,7 @@ const ManagerTasklog = ({ user }) => {
   console.log(user._id);
   const fetchLogs = async () => {
     try {
-      const logRes = await fetch(`https://server-backend-nu.vercel.app/api/tasklogs/`);
+      const logRes = await fetch(`http://localhost:8000/api/tasklogs/`);
       const logsData = await logRes.json();
       const managerLogs = logsData.filter(
         (log) => String(log.task?.createdBy) === String(user._id),
@@ -400,26 +404,44 @@ const ManagerTasklog = ({ user }) => {
   const handleFilter = () => {
     let data = [...logs];
 
-    if (searchText) {
-      const text = searchText.toLowerCase();
+     if (searchText) {
+  const text = searchText.toLowerCase();
 
-      data = data.filter(
-        (l) =>
-          l.employee?.name?.toLowerCase().includes(text) ||
-          l.task?.taskName?.toLowerCase().includes(text) ||
-          l.status?.toLowerCase().includes(text) ||
-          l.workDescription?.toLowerCase().includes(text),
-      );
-    }
+  data = data.filter((l) => {
+    const workingDays =
+      l?.task?.dateOfTaskAssignment && l?.task?.dateOfExpectedCompletion
+        ? String(
+            getWorkingDays(
+              l.task.dateOfTaskAssignment,
+              l.task.dateOfExpectedCompletion
+            )
+          )
+        : "";
+
+    return (
+      l.employee?.name?.toLowerCase().includes(text) ||
+      l.task?.taskName?.toLowerCase().includes(text) ||
+      l.status?.toLowerCase().includes(text) ||
+      l.workDescription?.toLowerCase().includes(text) ||
+      workingDays.includes(text) // ✅ KEY FIX
+    );
+  });
+}
+  //snehal code 30-01-2026
+    //snehal code 30-01-2026
     if (filterDate) {
-      data = data.filter((l) => {
-        const date = new Date(l.date);
-        const logDate = `${date.getFullYear()}-${String(
-          date.getMonth() + 1,
-        ).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-        return logDate === filterDate;
-      });
-    }
+  data = data.filter((l) => {
+    const logDate = l.date?.split("T")[0];
+    const startDate = l.task?.dateOfTaskAssignment?.split("T")[0];
+    const endDate = l.task?.dateOfExpectedCompletion?.split("T")[0];
+
+    return (
+      logDate === filterDate ||
+      startDate === filterDate ||
+      endDate === filterDate
+    );
+  });
+}
 
     setFilteredLogs(data);
   };
@@ -433,7 +455,10 @@ const ManagerTasklog = ({ user }) => {
     setFilterDate("");
     setFilteredLogs(logs);
   };
-
+const handleFilterSubmit = (e) => {
+    e.preventDefault();
+    applyFilters();
+  };
   // rutuja code start
   const handleWorkloadReset = () => {
     setWorkloadDate("");
@@ -453,7 +478,7 @@ const ManagerTasklog = ({ user }) => {
       const token = localStorage.getItem("accessToken");
 
       const res = await axios.put(
-        `https://server-backend-nu.vercel.app/api/tasklogs/approve/${logId}`,
+        `http://localhost:8000/api/tasklogs/approve/${logId}`,
         {
           status: "Approved",
           rating: Number(rating),
@@ -483,7 +508,7 @@ const ManagerTasklog = ({ user }) => {
       const token = localStorage.getItem("accessToken");
 
       await axios.put(
-        `https://server-backend-nu.vercel.app/api/tasklogs/approve/${logId}`,
+        `http://localhost:8000/api/tasklogs/approve/${logId}`,
         { status: "Rejected", rating: "", remarks: "" },
         { headers: { Authorization: `Bearer ${token}` } },
       );
@@ -504,14 +529,14 @@ const ManagerTasklog = ({ user }) => {
       let url = "";
 
       if (workloadDate) {
-        url = `https://server-backend-nu.vercel.app/api/tasklogs/daily-workload?date=${workloadDate}`;
+        url = `http://localhost:8000/api/tasklogs/daily-workload?date=${workloadDate}`;
       } else if (workloadWeek) {
         const weekStartDate = getStartDateOfWeek(workloadWeek);
-        url = `https://server-backend-nu.vercel.app/api/tasklogs/workload/weekly?date=${weekStartDate}`;
+        url = `http://localhost:8000/api/tasklogs/workload/weekly?date=${weekStartDate}`;
       } else if (workloadMonth) {
         // Monthly API
         const [year, month] = workloadMonth.split("-");
-        url = `https://server-backend-nu.vercel.app/api/tasklogs/workload/monthly?year=${year}&month=${month}`;
+        url = `http://localhost:8000/api/tasklogs/workload/monthly?year=${year}&month=${month}`;
       } else {
         console.warn("No filter selected");
         return;
@@ -612,114 +637,56 @@ const ManagerTasklog = ({ user }) => {
 
       {/* SEARCH / FILTER BAR */}
       {activeTab === "task" && (
-        <div
-          className="shadow-sm"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 14,
-            padding: 16,
-            background: "#fff",
-            marginBottom: 18,
-            flexWrap: "wrap",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 14,
-              flexWrap: "wrap",
-              flex: "1 1 auto",
-              minWidth: 0,
-            }}
+  <div className="card mb-4 shadow-sm border-0">
+        <div className="card-body">
+          <form
+            className="row g-2 align-items-center"
+            onSubmit={handleFilterSubmit}
+            style={{ justifyContent: "space-between" }}
           >
-            <div 
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                flexWrap: "nowrap",
-              }}
-            >
-              <b
-                style={{
-                  color: "#3A5FBE",
-                  width: 55,
-                  minWidth: 55,
-                  textAlign: "left",
-                  whiteSpace: "nowrap",
-                }}
+            {/*  SEARCH */}
+            <div className="col-12 col-md-auto d-flex align-items-center gap-2  mb-1">
+              <label
+                htmlFor="searchFilter"
+                className="fw-bold mb-0"
+                style={{ fontSize: "16px", color: "#3A5FBE" }}
               >
                 Search
-              </b>
-
+              </label>
               <input
-                className="form-control"
+               className="form-control"
                 placeholder="Search By Any Field..."
                 value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
                 type="search"
-                style={{
-                  width: 220,
-                  minWidth: 220,
-                  padding: "10px 14px",
-                  borderRadius: 8,
-                  // border: "1px solid #ddd",
-                  height: 40,
-                }}
+                onChange={(e) => setSearchText(e.target.value)}
+                style={{ minWidth: 150 }}
               />
             </div>
-
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                flexWrap: "nowrap",
-              }}
-            >
-              <b
+            <div className="col-12 col-md-auto d-flex align-items-center  mb-1">
+              <label
+               
+                className="fw-bold mb-0 text-start text-md-end"
                 style={{
+                  fontSize: "16px",
                   color: "#3A5FBE",
-                  width: 55,
-                  minWidth: 55,
-                  textAlign: "left",
-                  whiteSpace: "nowrap",
+                  width: "50px",
+                  minWidth: "50px",
+                  marginRight: "8px",
                 }}
               >
-                Filter
-              </b>
-
+                Date
+              </label>
               <input
                 className="form-control"
                 type="date"
                 value={filterDate}
                 onChange={(e) => setFilterDate(e.target.value)}
-                style={{
-                  width: 220,
-                  minWidth: 220,
-                  padding: "10px 14px",
-                  borderRadius: 8,
-                  // border: "1px solid #ddd",
-                  height: 40,
-                }}
+                
+                style={{ minWidth: 150 }}
               />
             </div>
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              gap: 10,
-              flexWrap: "wrap",
-              marginLeft: "auto",
-              justifyContent: "flex-end",
-              alignItems: "center",
-            }}
-          >
-            <button
+             <div className="col-auto ms-auto d-flex gap-2">
+              <button
               onClick={handleFilter}
               className="btn btn-sm custom-outline-btn"
               style={{ minWidth: 90 }}
@@ -734,179 +701,107 @@ const ManagerTasklog = ({ user }) => {
             >
               Reset
             </button>
-          </div>
+            </div>
+          </form>
         </div>
-      )}
+      </div>
+
+)}
 
       {activeTab === "work" && (
-        <div
-          className="shadow-sm"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 14,
-            padding: 16,
-            background: "#fff",
-            marginBottom: 18,
-            flexWrap: "wrap",
-          }}
-        >
-          {/* LEFT */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 14,
-              flexWrap: "wrap",
-              flex: "1 1 auto",
-              minWidth: 0,
-            }}
+  <div className="card mb-4 shadow-sm border-0">
+    <div className="card-body">
+      <div className="row g-2 align-items-center">
+
+        {/* DATE */}
+        <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
+          <label
+            className="fw-bold mb-0"
+            style={{ fontSize: "16px", color: "#3A5FBE", minWidth: 50 }}
           >
-            {/* Date */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                flexWrap: "nowrap",
-              }}
-            >
-              <b
-                style={{
-                  color: "#3A5FBE",
-                  width: 50,
-                  minWidth: 50,
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Date
-              </b>
-              <input
+            Date
+          </label>
+          <input
+           
                 type="date"
                 value={workloadDate}
+                className="form-control"
                 onChange={(e) => {
                   setWorkloadDate(e.target.value);
                   setWorkloadWeek("");
                   setWorkloadMonth("");
                 }}
-                style={{
-                  width: isMobile ? 220 : 130,
-                  minWidth: isMobile ? 180 : 220,
-                  padding: "10px 14px",
-                  borderRadius: 8,
-                  border: "1px solid #ddd",
-                  height: 40,
-                }}
-              />
-            </div>
-
-            {/* Week */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                flexWrap: "nowrap",
-              }}
-            >
-              <b
-                style={{
-                  color: "#3A5FBE",
-                  width: 50,
-                  minWidth: 50,
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Week
-              </b>
-              <input
-                type="week"
-                value={workloadWeek}
-                onChange={(e) => {
-                  setWorkloadWeek(e.target.value);
-                  setWorkloadDate("");
-                  setWorkloadMonth("");
-                }}
-                style={{
-                  width: 220,
-                  minWidth: isMobile ? 180 : 220,
-                  padding: "10px 14px",
-                  borderRadius: 8,
-                  border: "1px solid #ddd",
-                  height: 40,
-                }}
-              />
-            </div>
-
-            {/* Month */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                flexWrap: "nowrap",
-              }}
-            >
-              <b
-                style={{
-                  color: "#3A5FBE",
-                  width: 50,
-                  minWidth: 50,
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Month
-              </b>
-              <input
-                type="month"
-                value={workloadMonth}
-                onChange={(e) => {
-                  setWorkloadMonth(e.target.value);
-                  setWorkloadDate("");
-                  setWorkloadWeek("");
-                }}
-                style={{
-                  width: 220,
-                  minWidth: isMobile ? 180 : 220,
-                  padding: "10px 14px",
-                  borderRadius: 8,
-                  border: "1px solid #ddd",
-                  height: 40,
-                }}
-              />
-            </div>
-          </div>
-
-          {/* RIGHT BUTTON */}
-          <div
-            style={{
-              display: "flex",
-              gap: 12,
-              marginLeft: "auto",
-              justifyContent: "flex-end",
-              alignItems: "center",
-            }}
-          >
-            <button
-              onClick={gettingWorkload}
-              className="btn btn-sm custom-outline-btn"
-              style={{ minWidth: 110 }}
-            >
-              Get Workload
-            </button>
-            {/* //Snehal COde added 29-01-2016 reset button start*/}
-            <button
-              onClick={handleWorkloadReset}
-              className="btn btn-sm custom-outline-btn"
-              style={{ minWidth: 90 }}
-            >
-              Reset
-            </button>
-     {/* //Snehal COde added 29-01-2016 reset button end*/}
-          </div>
+            style={{ minWidth: 150 }}
+          />
         </div>
-      )}
+
+        {/* WEEK */}
+        <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
+          <label
+            className="fw-bold mb-0"
+            style={{ fontSize: "16px", color: "#3A5FBE", minWidth: 50 }}
+          >
+            Week
+          </label>
+          <input
+            type="week"
+            className="form-control"
+            value={workloadWeek}
+            onChange={(e) => {
+              setWorkloadWeek(e.target.value);
+              setWorkloadDate("");
+              setWorkloadMonth("");
+            }}
+            style={{ minWidth: 150 }}
+          />
+        </div>
+
+        {/* MONTH */}
+        <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
+          <label
+            className="fw-bold mb-0"
+            style={{ fontSize: "16px", color: "#3A5FBE", minWidth: 50 }}
+          >
+            Month
+          </label>
+          <input
+            type="month"
+            className="form-control"
+            value={workloadMonth}
+            onChange={(e) => {
+              setWorkloadMonth(e.target.value);
+              setWorkloadDate("");
+              setWorkloadWeek("");
+            }}
+            style={{ minWidth: 150 }}
+          />
+        </div>
+
+        {/* BUTTONS */}
+        <div className="col-auto ms-auto d-flex gap-2">
+          <button
+            type="button"
+            onClick={gettingWorkload}
+            className="btn btn-sm custom-outline-btn"
+            style={{ minWidth: 110 }}
+          >
+            Get Workload
+          </button>
+
+          <button
+            type="button"
+            onClick={handleWorkloadReset}
+            className="btn btn-sm custom-outline-btn"
+            style={{ minWidth: 90 }}
+          >
+            Reset
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+)}
 
       <div className="d-flex gap-2 justify-content-center mt-3 mb-3">
         <button
@@ -1107,7 +1002,7 @@ const ManagerTasklog = ({ user }) => {
                           whiteSpace: "nowrap",
                         }}
                       >
-                        {formatDisplayHours(log.totalHours)} hrs
+                        {formatDisplayHours(log.totalHours)} Hrs
                       </td>
                       <td
                         style={{
@@ -1140,38 +1035,40 @@ const ManagerTasklog = ({ user }) => {
                           whiteSpace: "nowrap",
                         }}
                       >
+                       {/* //snehal 29 Disable  */}
                         <button
-                          disabled={log.approved}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedRow({ ...log, index: absoluteIndex });
-                            setApproveOpen(true);
-                          }}
-                          className="btn btn-sm custom-outline-btn"
-                          style={{
-                            opacity: log.approved ? 0.6 : 1,
-                            cursor: log.approved ? "not-allowed" : "pointer",
-                          }}
-                        >
-                          {log.approved ? "Approved" : "Approve"}
-                        </button>
-                        <button
-                          onClick={async (e) => {
-                            e.stopPropagation();
-                            try {
+                            disabled={isRowLocked(log.status)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedRow({ ...log, index: absoluteIndex });
+                              setApproveOpen(true);
+                            }}
+                            className="btn btn-sm custom-outline-btn"
+                            style={{
+                              opacity: isRowLocked(log.status) ? 0.6 : 1,
+                              cursor: isRowLocked(log.status) ? "not-allowed" : "pointer",
+                            }}
+                          >
+                            {log.status === "Approved" ? "Approved" : "Approved"}
+                          </button>
+                          {/* //snehal 29 Disable  */}
+                        {/* //snehal 29 Disable  */}
+                            <button
+                            disabled={isRowLocked(log.status)}
+                            onClick={async (e) => {
+                              e.stopPropagation();
                               await rejectTaskLog(log, absoluteIndex);
-                              console.log("Task Log rejected successfully");
-                            } catch (error) {
-                              console.error("Error rejecting task:", error);
-                            }
-                          }}
-                          className="btn btn-outline-danger btn-sm"
-                          style={{
-                            marginLeft: "10px",
-                          }}
-                        >
-                          Reject
-                        </button>
+                            }}
+                            className="btn btn-outline-danger btn-sm"
+                            style={{
+                              marginLeft: "10px",
+                              opacity: isRowLocked(log.status) ? 0.6 : 1,
+                              cursor: isRowLocked(log.status) ? "not-allowed" : "pointer",
+                            }}
+                          >
+                            Reject
+                          </button>
+                          {/* //snehal 29 Disable  */}
                       </td>
 
                       <td

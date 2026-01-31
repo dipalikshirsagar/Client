@@ -15,7 +15,7 @@
 //   // Fetch existing office location from backend
 //   useEffect(() => {
 //     axios
-//       .get("https://server-backend-nu.vercel.app/admin/office-location")
+//       .get("http://localhost:8000/admin/office-location")
 //       .then((res) => {
 //         if (res.data.length) setLocation(res.data[0]);
 //       })
@@ -32,7 +32,7 @@
 //   const handleSave = async () => {
 //   setLoading(true);
 //   try {
-//     await axios.post("https://server-backend-nu.vercel.app/admin/office-location", location);
+//     await axios.post("http://localhost:8000/admin/office-location", location);
 
 //     // ✅ Use a built-in alert OR SweetAlert if available
 //     alert("Office location saved successfully!");
@@ -353,7 +353,7 @@ function OfficeLocationSetup() {
   // ✅ Fetch existing office location
   useEffect(() => {
     axios
-      .get("https://server-backend-nu.vercel.app/admin/office-location")
+      .get("http://localhost:8000/admin/office-location")
       .then((res) => {
         if (res.data.length) setLocation(res.data[0]);
       })
@@ -413,7 +413,7 @@ function OfficeLocationSetup() {
     setLoading(true);
 
     axios
-      .post("https://server-backend-nu.vercel.app/admin/office-location", editLocation)
+      .post("http://localhost:8000/admin/office-location", editLocation)
       .then(() => {
         setLocation(editLocation); // ✅ Update page only now
         alert("Office location saved");

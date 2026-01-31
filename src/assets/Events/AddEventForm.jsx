@@ -34,7 +34,7 @@ function AddEventForm({ onAdd }) {
     try {
       const token = localStorage.getItem("accessToken");
       const res = await axios.post(
-        "https://server-backend-nu.vercel.app/addEvent",
+        "http://localhost:8000/addEvent",
         { name, date },
         { headers: { Authorization: `Bearer ${token}` } },
       );

@@ -134,7 +134,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
 
       const token = localStorage.getItem("accessToken");
 
-      await axios.put(`https://server-backend-nu.vercel.app/task/${task._id}`, formData, {
+      await axios.put(`http://localhost:8000/task/${task._id}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,
@@ -271,7 +271,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
     setCommentLoading(true);
     try {
       const response = await axios.get(
-        `https://server-backend-nu.vercel.app/task/${taskId}/comments`,
+        `http://localhost:8000/task/${taskId}/comments`,
       );
       setTaskComments(response.data.comments || []);
     } catch (error) {
@@ -305,7 +305,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
     try {
       const token = localStorage.getItem("accessToken");
       const res = await axios.post(
-        `https://server-backend-nu.vercel.app/task/${commentModalTask._id}/comment`,
+        `http://localhost:8000/task/${commentModalTask._id}/comment`,
         { comment: newComment },
         {
           headers: {
@@ -342,7 +342,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
     try {
       const token = localStorage.getItem("accessToken");
       const res = await axios.delete(
-        `https://server-backend-nu.vercel.app/task/${taskId}/comment/${commentId}`,
+        `http://localhost:8000/task/${taskId}/comment/${commentId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -369,7 +369,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
     try {
       const token = localStorage.getItem("accessToken");
       const res = await axios.put(
-        `https://server-backend-nu.vercel.app/task/${taskId}/comment/${commentId}`,
+        `http://localhost:8000/task/${taskId}/comment/${commentId}`,
         { comment: newText },
         {
           headers: {
@@ -416,7 +416,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
   async function fetchUser() {
     try {
       const token = localStorage.getItem("accessToken");
-      const response = await axios.get("https://server-backend-nu.vercel.app/me", {
+      const response = await axios.get("http://localhost:8000/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const user = response.data;
@@ -431,7 +431,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
       try {
         const token = localStorage.getItem("accessToken");
         if (token) {
-          const response = await axios.get("https://server-backend-nu.vercel.app/me", {
+          const response = await axios.get("http://localhost:8000/me", {
             headers: { Authorization: `Bearer ${token}` },
           });
           setCurrentUser(response.data);
@@ -458,7 +458,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
       const user = await fetchUser();
       const managerId = user._id;
 
-      const res = await axios.get(`https://server-backend-nu.vercel.app/tasks/${managerId}`, {
+      const res = await axios.get(`http://localhost:8000/tasks/${managerId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -538,7 +538,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
 
   const fetchStatuses = async () => {
     try {
-      const res = await axios.get(`https://server-backend-nu.vercel.app/unique`);
+      const res = await axios.get(`http://localhost:8000/unique`);
       if (res.data.success) {
          const normalized = res.data.data.map(s => ({
         _id: s._id || s.id,   
@@ -560,7 +560,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
     try {
       const token = localStorage.getItem("accessToken");
       const projectsRes = await axios.get(
-        "https://server-backend-nu.vercel.app/api/projects",
+        "http://localhost:8000/api/projects",
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -571,7 +571,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
 
       if (selectedProject && selectedProject._id) {
         const empRes = await axios.get(
-          `https://server-backend-nu.vercel.app/projects/employees/${selectedProject._id}`,
+          `http://localhost:8000/projects/employees/${selectedProject._id}`,
         );
 
         if (empRes.data.success) {
@@ -648,18 +648,18 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
       try {
         const token = localStorage.getItem("accessToken");
         console.log("token is " + token);
-        const res = await axios.get("https://server-backend-nu.vercel.app/getAllDepartments");
+        const res = await axios.get("http://localhost:8000/getAllDepartments");
         const user = await fetchUser();
         const empRes = await axios.get(
-          `https://server-backend-nu.vercel.app/employees/manager/${user._id}`,
+          `http://localhost:8000/employees/manager/${user._id}`,
         );
         const taskTypeRes = await axios.get(
-          `https://server-backend-nu.vercel.app/api/task-types/unique-names`,
+          `http://localhost:8000/api/task-types/unique-names`,
         );
         const projectRes = await axios.get(
-          `https://server-backend-nu.vercel.app/api/projects/unique-names/${user._id}`,
+          `http://localhost:8000/api/projects/unique-names/${user._id}`,
         );
-        const teamsRes = await axios.get("https://server-backend-nu.vercel.app/api/teams");
+        const teamsRes = await axios.get("http://localhost:8000/api/teams");
         const departments = res.data.departments;
         const employeesNames = empRes.data.employees;
         const taskTypeNames = taskTypeRes.data.taskTypes;
@@ -775,7 +775,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
     const fetchWeeklyOffs = async () => {
       try {
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`,
+          `http://localhost:8000/admin/weeklyoff/${new Date().getFullYear()}`,
         );
 
         const weeklyData = res.data?.data || {};
@@ -832,7 +832,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
 
       // Fetch employee leave
       const leaveRes = await axios.get(
-        `https://server-backend-nu.vercel.app/leave/manager/${user._id}`,
+        `http://localhost:8000/leave/manager/${user._id}`,
       );
 
       const leaves = leaveRes.data.data || [];
@@ -860,7 +860,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
         return;
       }
 
-      const holidaysRes = await axios.get("https://server-backend-nu.vercel.app/getHolidays");
+      const holidaysRes = await axios.get("http://localhost:8000/getHolidays");
       const holidays = holidaysRes.data || [];
 
       const isHoliday = holidays.some((holiday) => {
@@ -937,11 +937,11 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
       const token = localStorage.getItem("accessToken");
 
       // if (editTaskId) {
-      //   await axios.put(`https://server-backend-nu.vercel.app/task/${editTaskId}`, formData, {
+      //   await axios.put(`http://localhost:8000/task/${editTaskId}`, formData, {
       //     headers: { "Content-Type": "multipart/form-data" },
       //   });
       // } else {
-      //   await axios.post("https://server-backend-nu.vercel.app/task/create", formData, {
+      //   await axios.post("http://localhost:8000/task/create", formData, {
       //     headers: {
       //       "Content-Type": "multipart/form-data",
       //       Authorization: `Bearer ${token}`,
@@ -952,7 +952,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
       //snehalcode
 if (editTaskId) {
   await axios.put(
-    `https://server-backend-nu.vercel.app/task/${editTaskId}`,
+    `http://localhost:8000/task/${editTaskId}`,
     formData,
     {
       headers: {
@@ -963,7 +963,7 @@ if (editTaskId) {
   );
 } else {
   await axios.post(
-    "https://server-backend-nu.vercel.app/task/create",
+    "http://localhost:8000/task/create",
     formData,
     {
       headers: {
@@ -1029,7 +1029,7 @@ if (editTaskId) {
 
   //     if (editTaskId) {
   //       res = await axios.put(
-  //         `https://server-backend-nu.vercel.app/task/${editTaskId}`,
+  //         `http://localhost:8000/task/${editTaskId}`,
   //         formData,
   //         { headers: { "Content-Type": "multipart/form-data" } }
   //       );
@@ -1037,7 +1037,7 @@ if (editTaskId) {
   //         task._id === editTaskId ? { ...newTask, taskId: editTaskId } : task
   //       );
   //     } else {
-  //       res = await axios.post("https://server-backend-nu.vercel.app/task/create", formData, {
+  //       res = await axios.post("http://localhost:8000/task/create", formData, {
   //         headers: {
   //           "Content-Type": "multipart/form-data",
   //           Authorization: `Bearer ${token}`,
@@ -1161,7 +1161,7 @@ if (editTaskId) {
     if (!window.confirm("Are you sure you want to delete this task?")) return;
 
     try {
-      await axios.delete(`https://server-backend-nu.vercel.app/task/${id}`);
+      await axios.delete(`http://localhost:8000/task/${id}`);
       setAllTasks((prev) => prev.filter((t) => t._id !== id));
       setFilteredTasks((prev) => prev.filter((t) => t._id !== id));
       alert("Task deleted Successfuly!");
@@ -1267,6 +1267,85 @@ console.log("Status object:", uniqueStatus.find(s => s.id === newTask.status));
       document.documentElement.style.overflow = "";
     };
   }, [isAnyPopupOpen]);
+////rutuja 30-01-2026 document
+const getFileType = (file) => {
+    if (!file) return null;
+  
+    if (typeof file === 'string') {
+      const clean = file.toLowerCase();
+      
+      if (clean.includes('/raw/upload/')) return "pdf";
+      if (clean.endsWith(".pdf")) return "pdf";
+      if (/\.(jpg|jpeg|png|gif|webp)$/i.test(clean)) return "image";
+      return "other";
+    }
+  
+    if (typeof file === 'object' && file.url) {
+      return getFileType(file.url);
+    }
+  
+    return null;
+  };
+  
+  const getFileName = (doc) => {
+    if (!doc) return 'No Document';
+    
+    if (typeof doc === 'string') {
+      if (doc.includes('cloudinary')) {
+        const parts = doc.split('/');
+        return parts[parts.length - 1] || 'Document';
+      }
+      
+      let fileName = doc;
+      if (fileName.includes('/')) {
+        fileName = fileName.split('/').pop();
+      }
+      
+      fileName = fileName.split('?')[0];
+      
+      return fileName || 'Document';
+    }
+    
+    if (typeof doc === 'object' && doc.url) {
+      return getFileName(doc.url);
+    }
+    
+    return 'Document';
+  };
+  
+  const getFileUrl = (doc) => {
+    if (!doc) return '#';
+    
+    if (typeof doc === 'string') {
+      if (doc.includes('res.cloudinary.com')) {
+        return doc;
+      }
+      
+      if (doc.includes('cloudinary') || doc.includes('/upload/')) {
+        // Check if it already has the full URL structure
+        if (doc.startsWith('http')) {
+          return doc;
+        }
+        
+        // Handle different Cloudinary URL formats
+        if (doc.includes('/raw/upload/')) {
+          return `https://res.cloudinary.com/dfvumzr0q/raw/upload/${doc}`;
+        }
+        
+        // For images
+        return `https://res.cloudinary.com/dfvumzr0q/image/upload/${doc}`;
+      }
+      
+      return '#';
+    }
+    
+    if (typeof doc === 'object' && doc.url) {
+      return getFileUrl(doc.url);
+    }
+    
+    return '#';
+  };
+////
 
   return (
     <div className="container-fluid ">
@@ -2660,35 +2739,71 @@ console.log("Status object:", uniqueStatus.find(s => s.id === newTask.status));
 
                   {/* Document */}
                   <div className="row mb-2">
-                    <div className="col-5 col-sm-3 fw-semibold">Document</div>
-                    <div className="col-7 col-sm-9">
-                      {popupMode === "view" ? (
-                        selectedTask.document ? (
-                          <a
-                            href={selectedTask.document}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            View Document
-                          </a>
+                      <div className="col-5 col-sm-3 fw-semibold">Document</div>
+                      <div className="col-7 col-sm-9">
+                        {popupMode === "view" ? (
+                          selectedTask.documentPath || selectedTask.document || selectedTask.documents ? (
+                            <div className="d-flex flex-column gap-2">
+                              {(() => {
+                                const doc = selectedTask.documentPath || selectedTask.document || selectedTask.documents;
+                                
+                                let documentToShow = doc;
+                                if (Array.isArray(doc) && doc.length > 0) {
+                                  documentToShow = doc[0];
+                                }
+                                
+                                const fileName = getFileName(documentToShow);
+                                const fileUrl = getFileUrl(documentToShow);
+
+                                return (
+                                  <div className="d-flex align-items-center justify-content-between p-2 border rounded">
+                                    <div className="d-flex align-items-center gap-2">
+                                      <span className="fw-semibold">{fileName}</span>
+                                    </div>
+                                    
+                                    <div className="ms-auto">
+                                      <a
+                                        href={fileUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        download={fileName}
+                                        className="btn btn-sm btn-link text-decoration-none"
+                                        title="Download"
+                                      >
+                                        <i className="bi bi-download fs-5"></i>
+                                      </a>
+                                    </div>
+                                  </div>
+                                );
+                              })()}
+                            </div>
+                          ) : (
+                            "-"
+                          )
                         ) : (
-                          "-"
-                        )
-                      ) : (
-                        <input
-                          type="file"
-                          className="form-control"
-                          onChange={(e) =>
-                            setSelectedTask({
-                              ...selectedTask,
-                              document: e.target.files[0],
-                            })
-                          }
-                          accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
-                        />
-                      )}
+                          <div>
+                            <input
+                              type="file"
+                              className="form-control"
+                              onChange={(e) => {
+                                if (e.target.files && e.target.files[0]) {
+                                  setSelectedTask({
+                                    ...selectedTask,
+                                    document: e.target.files[0],
+                                  });
+                                }
+                              }}
+                              accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
+                            />
+                            <small className="text-muted">
+                              {selectedTask.documentPath || selectedTask.document 
+                                ? "Upload a new file to replace the current document" 
+                                : "Upload a document"}
+                            </small>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
 
                   {/* Comments start----------------------------------------------------------*/}
                   {popupMode === "view" && (

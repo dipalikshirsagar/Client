@@ -26,7 +26,7 @@ function QuickApplyLeave({ user }) {
     const fetchWeeklyOffs = async () => {
       try {
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`,
+          `http://localhost:8000/admin/weeklyoff/${new Date().getFullYear()}`,
         );
 
         // 👇 Extract weekly off data safely
@@ -61,7 +61,7 @@ function QuickApplyLeave({ user }) {
       if (!user?.reportingManager) return;
       try {
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/users/${user.reportingManager}`,
+          `http://localhost:8000/users/${user.reportingManager}`,
         );
         setManager(res.data);
       } catch (err) {
@@ -116,7 +116,7 @@ function QuickApplyLeave({ user }) {
   //   }
 
   //   try {
-  //     await axios.post("https://server-backend-nu.vercel.app/leave/apply", {
+  //     await axios.post("http://localhost:8000/leave/apply", {
   //       employeeId: user._id,
   //       leaveType: form.leaveType,
   //       dateFrom: form.dateFrom,
@@ -223,7 +223,7 @@ function QuickApplyLeave({ user }) {
     try {
       // ✅ 1️⃣ Fetch existing leaves of employee
       const existingLeavesRes = await axios.get(
-        `https://server-backend-nu.vercel.app/leave/my/${user._id}`,
+        `http://localhost:8000/leave/my/${user._id}`,
       );
       const existingLeaves = existingLeavesRes.data || [];
 
@@ -256,7 +256,7 @@ function QuickApplyLeave({ user }) {
         return;
       }
 
-      await axios.post("https://server-backend-nu.vercel.app/leave/apply", {
+      await axios.post("http://localhost:8000/leave/apply", {
         employeeId: user._id,
         leaveType: form.leaveType,
         dateFrom: form.dateFrom,

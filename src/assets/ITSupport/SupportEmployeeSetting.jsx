@@ -1076,7 +1076,7 @@ function SupportEmployeeSetting() {
                         ? viewTicket.attachment.map((file, i) => (
                             <div key={i}>
                               <a
-                                href={`https://server-backend-nu.vercel.app/uploads/${file}`}
+                                href={`http://localhost:8000/uploads/${file}`}
                                 download
                                 className="btn btn-sm btn-outline-primary mb-1"
                               >

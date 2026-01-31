@@ -1,7 +1,7 @@
 // import React, { useEffect, useState } from "react";
 // import axios from "axios";
 
-// const API_URL = "https://server-backend-nu.vercel.app/api/gallery";
+// const API_URL = "http://localhost:8000/api/gallery";
 
 // const CATEGORY_OPTIONS = [
 //   "Rewards & Recognition",
@@ -487,7 +487,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 
-const API_URL = "https://server-backend-nu.vercel.app/api/gallery";
+const API_URL = "http://localhost:8000/api/gallery";
 
 const CATEGORY_OPTIONS = [
   "Rewards & Recognition",

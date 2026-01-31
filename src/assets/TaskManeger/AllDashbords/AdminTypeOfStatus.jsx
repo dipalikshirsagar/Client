@@ -24,7 +24,7 @@ function AdminTypeOfStatus() {
   //  Fetch all statuses
   const fetchStatuses = async () => {
     try {
-      const res = await axios.get("https://server-backend-nu.vercel.app/taskstatus/all");
+      const res = await axios.get("http://localhost:8000/taskstatus/all");
       setStatuses(res.data.statuses || []);
     } catch (error) {
       console.error("Failed to fetch statuses");
@@ -73,7 +73,7 @@ function AdminTypeOfStatus() {
     try {
       setLoading(true);
 
-      await axios.put(`https://server-backend-nu.vercel.app/taskstatus/update/${editId}`, {
+      await axios.put(`http://localhost:8000/taskstatus/update/${editId}`, {
         name: newName.trim(),
         description: newDesc?.trim() || "",
       });
@@ -97,7 +97,7 @@ function AdminTypeOfStatus() {
     if (!window.confirm("Are you sure you want to delete this status?")) return;
 
     try {
-      await axios.delete(`https://server-backend-nu.vercel.app/taskstatus/delete/${id}`);
+      await axios.delete(`http://localhost:8000/taskstatus/delete/${id}`);
       alert("Task status deleted successfully");
       fetchStatuses(); // refresh list
     } catch (error) {
@@ -118,7 +118,7 @@ function AdminTypeOfStatus() {
 
     try {
       setLoading(true);
-      await axios.post("https://server-backend-nu.vercel.app/taskstatus/add", {
+      await axios.post("http://localhost:8000/taskstatus/add", {
         name: newName,
         description: newDesc,
       });
@@ -183,7 +183,7 @@ function AdminTypeOfStatus() {
       }
     }
   };
-  const isAnyPopupOpen = !!showModal;
+ const isAnyPopupOpen = showModal || showPopup;
   useEffect(() => {
     if (isAnyPopupOpen) {
       document.body.style.overflow = "hidden";
@@ -200,8 +200,8 @@ function AdminTypeOfStatus() {
   }, [isAnyPopupOpen]);
   return (
     <div
-      className="container-fluid p-3 p-md-4"
-      style={{ backgroundColor: "#f5f7fb", minHeight: "100vh" }}
+      className="container-fluid "
+      
     >
       {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -270,8 +270,20 @@ function AdminTypeOfStatus() {
                   onClick={() => handleRowClick(s)}
                   style={{ cursor: "pointer" }}
                 >
-                  <td style={{ fontWeight: 500 }}>{s.name}</td>
-                  <td className="text-muted" style={{ fontSize: "14px" }}>
+                  <td style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                    }}>{s.name}</td>
+                  <td style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                    }}>
                     {s.description || "-"}
                   </td>
                   <td>
@@ -328,6 +340,7 @@ function AdminTypeOfStatus() {
             justifyContent: "center",
             alignItems: "center",
             zIndex: 1000,
+             overflowX: "auto",
             padding: "20px",
           }}
         >
@@ -372,7 +385,7 @@ function AdminTypeOfStatus() {
             {/* CLOSE BUTTON */}
             <div className="d-flex justify-content-end mt-3">
               <button
-                className="btn btn-sm custom-outline-btn"
+                className="btn btn-sm custom-outline-btn" style={{minWidth:"90px"}}
                 onClick={() => setShowPopup(false)}
               >
                 Close

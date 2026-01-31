@@ -43,7 +43,7 @@ function EventsAndHolidaysDashboard() {
     const fetchAnnouncements = async () => {
       try {
         const token = localStorage.getItem("accessToken");
-        const res = await axios.get("https://server-backend-nu.vercel.app/announcements/");
+        const res = await axios.get("http://localhost:8000/announcements/");
         console.log("Announcements response:", res.data); // 👀 check shape
         const sortedAnnouncements = res.data.data.sort(
           (a, b) => new Date(a.date) - new Date(b.date),
@@ -62,7 +62,7 @@ function EventsAndHolidaysDashboard() {
   useEffect(() => {
     const fetchHolidays = async () => {
       try {
-        const res = await axios.get("https://server-backend-nu.vercel.app/getHolidays");
+        const res = await axios.get("http://localhost:8000/getHolidays");
 
         // Sort by date and store all holidays
         const sorted = res.data.sort(
@@ -83,7 +83,7 @@ function EventsAndHolidaysDashboard() {
 
     try {
       const token = localStorage.getItem("accessToken");
-      await axios.delete(`https://server-backend-nu.vercel.app/holidays/${id}`, {
+      await axios.delete(`http://localhost:8000/holidays/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setHolidayList((prev) => prev.filter((h) => h._id !== id));
@@ -100,7 +100,7 @@ function EventsAndHolidaysDashboard() {
       try {
         const token = localStorage.getItem("accessToken");
         const res = await axios.get(
-          "https://server-backend-nu.vercel.app/events-for-employee",
+          "http://localhost:8000/events-for-employee",
           {
             headers: { Authorization: `Bearer ${token}` },
           },
@@ -124,7 +124,7 @@ function EventsAndHolidaysDashboard() {
 
     try {
       const token = localStorage.getItem("accessToken");
-      await axios.delete(`https://server-backend-nu.vercel.app/events/${id}`, {
+      await axios.delete(`http://localhost:8000/events/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setEventsList((prev) => prev.filter((h) => h._id !== id));

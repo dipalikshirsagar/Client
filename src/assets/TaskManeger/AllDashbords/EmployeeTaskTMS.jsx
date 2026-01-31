@@ -18,7 +18,7 @@ const EmployeeTaskTMS = ({ user }) => {
     if (!user?._id) return;
 
     axios
-      .get(`https://server-backend-nu.vercel.app/tasks/assigned/${user._id}`)
+      .get(`http://localhost:8000/tasks/assigned/${user._id}`)
       .then((res) => {
         const apiTasks = res.data.tasks
           .filter((task) => task.status?.name !== "Assignment Pending") //  Filter out Assignment Pending
@@ -34,6 +34,7 @@ const EmployeeTaskTMS = ({ user }) => {
             status: task.status?.name || "Unknown",
             description: task.taskDescription,
             // comments: Array.isArray(task.comments) ? task.comments : [],
+            documents: task.documents || null,
             comments: Array.isArray(task.comments)
               ? task.comments.map((comment) => ({
                   ...comment,
@@ -169,7 +170,7 @@ if (activeTask) {
       try {
         const token = localStorage.getItem("accessToken");
         if (token) {
-          const response = await axios.get("https://server-backend-nu.vercel.app/me", {
+          const response = await axios.get("http://localhost:8000/me", {
             headers: { Authorization: `Bearer ${token}` },
           });
           setCurrentUser(response.data);
@@ -186,7 +187,7 @@ if (activeTask) {
   }, [user]);
 
   useEffect(() => {
-    fetch("https://server-backend-nu.vercel.app/unique")
+    fetch("http://localhost:8000/unique")
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
@@ -233,7 +234,7 @@ if (activeTask) {
       }
 
       const res = await fetch(
-        `https://server-backend-nu.vercel.app/task/${selectedTask._id}/status`,
+        `http://localhost:8000/task/${selectedTask._id}/status`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -373,7 +374,7 @@ if (activeTask) {
     try {
       const token = localStorage.getItem("accessToken");
       const res = await axios.post(
-        `https://server-backend-nu.vercel.app/task/${commentModalTask._id}/comment`,
+        `http://localhost:8000/task/${commentModalTask._id}/comment`,
         { comment: newComment },
         {
           headers: {
@@ -434,7 +435,7 @@ if (activeTask) {
     try {
       const token = localStorage.getItem("accessToken");
       await axios.delete(
-        `https://server-backend-nu.vercel.app/task/${taskId}/comment/${commentId}`,
+        `http://localhost:8000/task/${taskId}/comment/${commentId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -481,7 +482,7 @@ if (activeTask) {
     try {
       const token = localStorage.getItem("accessToken");
       const res = await axios.put(
-        `https://server-backend-nu.vercel.app/task/${taskId}/comment/${commentId}`,
+        `http://localhost:8000/task/${taskId}/comment/${commentId}`,
         { comment: newText },
         {
           headers: {
@@ -578,7 +579,7 @@ if (activeTask) {
 
     try {
       const response = await axios.post(
-        `https://server-backend-nu.vercel.app/task/${taskId}/start`,
+        `http://localhost:8000/task/${taskId}/start`,
       );
       if (response.data.success) {
         // setActiveTimer({
@@ -609,7 +610,7 @@ setTimerSeconds(previousSeconds); //  prevents 000 flash
   // const handleStopTimer = async (taskId) => {
   //   try {
   //     const response = await axios.post(
-  //       `https://server-backend-nu.vercel.app/task/${taskId}/stop`,
+  //       `http://localhost:8000/task/${taskId}/stop`,
   //     );
   //     if (response.data.success) {
   //       setActiveTimer(null);
@@ -626,7 +627,7 @@ setTimerSeconds(previousSeconds); //  prevents 000 flash
   const handleStopTimer = async (taskId) => {
   try {
     const response = await axios.post(
-      `https://server-backend-nu.vercel.app/task/${taskId}/stop`
+      `http://localhost:8000/task/${taskId}/stop`
     );
 
     if (response.data.success) {
@@ -717,7 +718,7 @@ setTimerSeconds(previousSeconds); //  prevents 000 flash
 
     try {
       const statusRes = await fetch(
-        `https://server-backend-nu.vercel.app/task/${task._id}/status`,
+        `http://localhost:8000/task/${task._id}/status`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -769,7 +770,7 @@ setTimerSeconds(previousSeconds); //  prevents 000 flash
     }
 
     try {
-      const res = await fetch(`https://server-backend-nu.vercel.app/task/${task._id}/status`, {
+      const res = await fetch(`http://localhost:8000/task/${task._id}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: completedStatusId }),
@@ -900,7 +901,87 @@ setTimerSeconds(previousSeconds); //  prevents 000 flash
     // ✅ In Progress = On Track + Delayed
     inProgressTasks: onTrackTasks + delayedTasks,
   };
+  /////rutuja 30-01-2026 document upload code
+const getFileType = (file) => {
+    if (!file) return null;
+  
+    if (typeof file === 'string') {
+      const clean = file.toLowerCase();
+      
+      if (clean.includes('/raw/upload/')) return "pdf";
+      if (clean.endsWith(".pdf")) return "pdf";
+      if (/\.(jpg|jpeg|png|gif|webp)$/i.test(clean)) return "image";
+      return "other";
+    }
+  
+    if (typeof file === 'object' && file.url) {
+      return getFileType(file.url);
+    }
+  
+    return null;
+  };
 
+
+  const getFileName = (doc) => {
+    if (!doc) return 'No Document';
+    
+    if (typeof doc === 'string') {
+      if (doc.includes('cloudinary')) {
+        const parts = doc.split('/');
+        return parts[parts.length - 1] || 'Document';
+      }
+      
+      let fileName = doc;
+      if (fileName.includes('/')) {
+        fileName = fileName.split('/').pop();
+      }
+      
+      fileName = fileName.split('?')[0];
+      
+      return fileName || 'Document';
+    }
+    
+    if (typeof doc === 'object' && doc.url) {
+      return getFileName(doc.url);
+    }
+    
+    return 'Document';
+  };
+
+  const getFileUrl = (doc) => {
+    if (!doc) return '#';
+    
+    if (typeof doc === 'string') {
+      if (doc.includes('res.cloudinary.com')) {
+        return doc;
+      }
+      
+      if (doc.includes('cloudinary') || doc.includes('/upload/')) {
+        // Check if it already has the full URL structure
+        if (doc.startsWith('http')) {
+          return doc;
+        }
+        
+        // Handle different Cloudinary URL formats
+        if (doc.includes('/raw/upload/')) {
+          return `https://res.cloudinary.com/dfvumzr0q/raw/upload/${doc}`;
+        }
+        
+        // For images
+        return `https://res.cloudinary.com/dfvumzr0q/image/upload/${doc}`;
+      }
+      
+      return '#';
+    }
+    
+    if (typeof doc === 'object' && doc.url) {
+      return getFileUrl(doc.url);
+    }
+    
+    return '#';
+  };
+
+  /////rutuja 30-01-2026 document upload code
   return (
     <div className="container-fluid">
       <h2 className="mb-3" style={{ color: "#3A5FBE", fontSize: "25px" }}>
@@ -1105,7 +1186,7 @@ setTimerSeconds(previousSeconds); //  prevents 000 flash
                 className="mb-0"
                 style={{
                   fontSize: "32px",
-                  backgroundColor: "#D1E7FF",
+                  backgroundColor: "#daffd1",
                   minWidth: "70px",
                   minHeight: "70px",
                   display: "flex",
@@ -1233,7 +1314,7 @@ setTimerSeconds(previousSeconds); //  prevents 000 flash
                 className="mb-0"
                 style={{
                   fontSize: "32px",
-                  backgroundColor: "#FFB3B3",
+                  backgroundColor: "#D1E7FF",
                   minWidth: "70px",
                   minHeight: "70px",
                   display: "flex",
@@ -1355,7 +1436,7 @@ setTimerSeconds(previousSeconds); //  prevents 000 flash
                     whiteSpace: "nowrap",
                   }}
                 >
-                  Assign Date
+                  Assigned Date
                 </th>
                 <th
                   style={{
@@ -1473,7 +1554,7 @@ setTimerSeconds(previousSeconds); //  prevents 000 flash
                         textTransform: "capitalize",
                       }}
                     >
-                      <h6 className="mb-0 fw-normal">{task.taskName}</h6>
+                      <span className="mb-0 fw-normal">{task.taskName}</span>
                     </td>
                     <td
                       style={{
@@ -1611,7 +1692,7 @@ setTimerSeconds(previousSeconds); //  prevents 000 flash
 
                         {/* rutuja code start*/}
                         <button
-                          className={`btn btn-sm ${isTimerRunning(task._id) ? "btn-danger" : "btn-warning"}`}
+                          className={`btn btn-sm ${isTimerRunning(task._id) ? "btn-outline-danger" : "btn-outline-warning"}`}
                           style={{
                             fontSize: "12px",
                             padding: "4px 8px",
@@ -1641,7 +1722,7 @@ setTimerSeconds(previousSeconds); //  prevents 000 flash
 
                         {/* comp task button*/}
                         <button
-                          className={`btn btn-sm btn-success ${
+                          className={`btn btn-sm btn-outline-success ${
                             task.status === "Completed" ||
                             task.status !== "In Progress"
                               ? "disabled opacity-50"
@@ -1998,7 +2079,6 @@ setTimerSeconds(previousSeconds); //  prevents 000 flash
                             </option>
                           ))}
                       </select>
-
                       {/* Show restriction message */}
                       {selectedTask?.status === "Completed" && (
                         <small className="text-success d-block mt-1 fw-semibold">
@@ -2013,6 +2093,52 @@ setTimerSeconds(previousSeconds); //  prevents 000 flash
                     </div>
                   </div>
                   {/* Dipali code of status end*/}
+
+                       {/* document upload code rutuja 30-01-2026 */}
+                      {selectedTask.documents && (
+                        <div className="row mb-3">
+                          <div
+                            className="col-5 col-sm-3 fw-semibold"
+                            style={{ color: "#212529" }}
+                          >
+                            Document 
+                          </div>
+                          <div
+                            className="col-7 col-sm-9"
+                            style={{ color: "#212529" }}
+                          >
+                            <div className="d-flex flex-column gap-2">
+                              {(() => {
+                                const documents = selectedTask.documents;
+                                const fileName = getFileName(documents);
+                                const fileUrl = getFileUrl(documents);
+
+                                return (
+                                  <div className="d-flex align-items-center justify-content-between p-2 border rounded">
+                                    <div className="d-flex align-items-center gap-2">
+                                      <span className="fw-semibold">{fileName}</span>
+                                    </div>
+                                    
+                                    <div className="ms-auto">
+                                      <a
+                                        href={fileUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        download={fileName}
+                                        className="btn btn-sm btn-link text-decoration-none"
+                                        title="Download"
+                                      >
+                                        <i className="bi bi-download fs-5"></i>
+                                      </a>
+                                    </div>
+                                  </div>
+                                );
+                              })()}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                   {selectedTask.comments &&
                     selectedTask.comments.length > 0 && (
                       <div className="row mb-2">

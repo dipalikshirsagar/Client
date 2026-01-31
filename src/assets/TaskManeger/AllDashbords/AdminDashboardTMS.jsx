@@ -27,12 +27,12 @@ function AdminDashboardTMS() {
 
         /* EMPLOYEES */
         const empRes = await axios.get(
-          "https://server-backend-nu.vercel.app/getAllEmployees",
+          "http://localhost:8000/getAllEmployees",
           { headers },
         );
 
         const benchEmp = await axios.get(
-          "https://server-backend-nu.vercel.app/bench-employees",
+          "http://localhost:8000/bench-employees",
           { headers },
         );
 
@@ -55,7 +55,7 @@ function AdminDashboardTMS() {
 
         /* PROJECTS */
         const projectRes = await axios.get(
-          "https://server-backend-nu.vercel.app/api/projects",
+          "http://localhost:8000/api/projects",
           { headers },
         );
 
@@ -64,10 +64,10 @@ function AdminDashboardTMS() {
         setTotalProjects(projectList.length);
 
         /* TEAMS */
-        // const teamRes = await axios.get("https://server-backend-nu.vercel.app/api/teams", {
+        // const teamRes = await axios.get("http://localhost:8000/api/teams", {
         //   headers,
         // });
-        const teamRes = await axios.get("https://server-backend-nu.vercel.app/api/teams", {
+        const teamRes = await axios.get("http://localhost:8000/api/teams", {
           headers,
         });
         const teamList = teamRes.data?.data || [];
@@ -75,14 +75,14 @@ function AdminDashboardTMS() {
         setTotalTeams(teamList.length);
 
         /* TASKS */
-        const taskRes = await axios.get("https://server-backend-nu.vercel.app/task/getall", {
+        const taskRes = await axios.get("http://localhost:8000/task/getall", {
           headers,
         });
         const taskList = taskRes.data || [];
         setTasks(taskList);
         setTotalTasks(taskList.length);
 
-        /* 🔥 UPCOMING DUE DATES LOGIC */
+        /* UPCOMING DUE DATES LOGIC */
         //added by Teamlist in harshada
         prepareUpcomingItems(projectList, taskList, teamList);
       } catch (error) {
@@ -173,18 +173,35 @@ function AdminDashboardTMS() {
     .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
     .slice(0, 3); // show only 3
 
+  // const getActiveProjects = (projects) => {
+  //   const today = new Date();
+
+  //   return projects.filter((p) => {
+  //     // 1. Check if project status is not cancelled/completed
+  //   const status = p.status?.toLowerCase();
+  //   if (status === 'cancelled' || status === 'canceled' || status === 'completed') {
+  //     return false;
+  //   }
+  //     if (!p.startDate || !p.endDate) return false;
+
+  //     const start = new Date(p.startDate);
+  //     const end = new Date(p.endDate);
+
+  //     return start <= today && today <= end;
+  //   });
+  // };
   const getActiveProjects = (projects) => {
-    const today = new Date();
+  return projects.filter((p) => {
+    const status = p.status?.toLowerCase();
+    
+    // Exclude only cancelled and completed projects
+    return status !== 'cancelled' && 
+           status !== 'canceled' && 
+           status !== 'upcoming project' && 
+           status !== 'completed';
+  });
+};
 
-    return projects.filter((p) => {
-      if (!p.startDate || !p.endDate) return false;
-
-      const start = new Date(p.startDate);
-      const end = new Date(p.endDate);
-
-      return start <= today && today <= end;
-    });
-  };
   const getProgress = (startDate, endDate) => {
     const start = new Date(startDate);
     const end = new Date(endDate);

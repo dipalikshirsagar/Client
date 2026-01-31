@@ -24,7 +24,7 @@ function EmployeeMyLeave({ user, refreshKey }) {
     const fetchLeaves = async () => {
       try {
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/leave/my/${user._id}`,
+          `http://localhost:8000/leave/my/${user._id}`,
         );
 
         console.log("raw leaves from API:", res.data);
@@ -54,7 +54,7 @@ function EmployeeMyLeave({ user, refreshKey }) {
           if (!id) return "N/A";
           if (nameCache[id]) return nameCache[id];
           try {
-            const r = await axios.get(`https://server-backend-nu.vercel.app/users/${id}`);
+            const r = await axios.get(`http://localhost:8000/users/${id}`);
             nameCache[id] = r.data?.name || "N/A";
             return nameCache[id];
           } catch (e) {
@@ -218,7 +218,7 @@ function EmployeeMyLeave({ user, refreshKey }) {
     setLeaves((ls) => ls.filter((x) => x._id !== id));
 
     try {
-      const res = await fetch(`https://server-backend-nu.vercel.app/leave/${id}`, {
+      const res = await fetch(`http://localhost:8000/leave/${id}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
       });

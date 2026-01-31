@@ -12,7 +12,7 @@ const isToday = (date) => {
     today.getDate() === selected.getDate()
   );
 };
-const BASE_URL = "https://server-backend-nu.vercel.app";
+const BASE_URL = "http://localhost:8000";
 
 const HRScheduleInterview = () => {
   const [showForm, setShowForm] = useState(false);
@@ -62,7 +62,7 @@ const HRScheduleInterview = () => {
   /* ---------------- FETCH EMPLOYEES ---------------- */
   useEffect(() => {
     axios
-      .get("https://server-backend-nu.vercel.app/allEmp")
+      .get("http://localhost:8000/allEmp")
       .then((res) => {
         if (res.data.success) setEmployees(res.data.employees);
       })
@@ -72,7 +72,7 @@ const HRScheduleInterview = () => {
   /* ---------------- API FUNCTIONS ---------------- */
   const fetchAllInterviews = () => {
     axios
-      .get("https://server-backend-nu.vercel.app/interviews")
+      .get("http://localhost:8000/interviews")
       .then((res) => {
         if (res.data.success) {
           setAllInterviews(res.data.interviews);
@@ -113,7 +113,7 @@ const HRScheduleInterview = () => {
 
     try {
       const res = await axios.delete(
-        `https://server-backend-nu.vercel.app/interviewsDelete/${id}`,
+        `http://localhost:8000/interviewsDelete/${id}`,
       );
 
       if (res.data.success) {
@@ -145,7 +145,7 @@ const HRScheduleInterview = () => {
 
     try {
       const res = await axios.put(
-        `https://server-backend-nu.vercel.app/interviewsUpdate/${id}`,
+        `http://localhost:8000/interviewsUpdate/${id}`,
         formData, // 🔥 direct FormData bhejo
       );
 
@@ -382,7 +382,7 @@ const HRScheduleInterview = () => {
     }
 
     axios
-      .post("https://server-backend-nu.vercel.app/schedule-interview", formPayload, {
+      .post("http://localhost:8000/schedule-interview", formPayload, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -623,7 +623,7 @@ const HRScheduleInterview = () => {
                 {formData.resumeUrl && !formData.resume && (
                   <div className="mb-2">
                     <a
-                      href={`https://server-backend-nu.vercel.app${formData.resumeUrl}`}
+                      href={`http://localhost:8000${formData.resumeUrl}`}
                       target="_blank"
                       rel="noreferrer"
                       className="btn btn-sm custom-outline-btn mb-3"
@@ -864,7 +864,7 @@ const HRScheduleInterview = () => {
                       <td>
                         {item.resumeUrl ? (
                           <a
-                            href={`https://server-backend-nu.vercel.app${item.resumeUrl}`}
+                            href={`http://localhost:8000${item.resumeUrl}`}
                             target="_blank"
                             rel="noreferrer"
                           >

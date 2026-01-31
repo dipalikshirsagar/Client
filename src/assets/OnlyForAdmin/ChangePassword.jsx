@@ -55,7 +55,7 @@ function ChangePassword() {
       const accessToken = localStorage.getItem("accessToken"); // from your login response
 
       const res = await axios.post(
-        "https://server-backend-nu.vercel.app/change-password",
+        "http://localhost:8000/change-password",
         {
           currentPassword,
           newPassword,

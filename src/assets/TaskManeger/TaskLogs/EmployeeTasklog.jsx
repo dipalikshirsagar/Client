@@ -204,7 +204,7 @@ const EmployeeTasklog = ({ user }) => {
       const token = localStorage.getItem("accessToken");
 
       const logRes = await fetch(
-        `https://server-backend-nu.vercel.app/api/tasklogs/employee/${user._id}`,
+        `http://localhost:8000/api/tasklogs/employee/${user._id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -215,7 +215,7 @@ const EmployeeTasklog = ({ user }) => {
       const logsData = await logRes.json();
 
       const taskRes = await fetch(
-        `https://server-backend-nu.vercel.app/tasks/assigned/${user._id}`,
+        `http://localhost:8000/tasks/assigned/${user._id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -395,7 +395,7 @@ const EmployeeTasklog = ({ user }) => {
   //       let res;
   //       if (editIndex !== null) {
   //         res = await axios.put(
-  //           `https://server-backend-nu.vercel.app/api/tasklogs/${editIndex}`,
+  //           `http://localhost:8000/api/tasklogs/${editIndex}`,
   //           payload,
   //           {
   //           headers: {
@@ -407,7 +407,7 @@ const EmployeeTasklog = ({ user }) => {
   //          await fetchLogs();
   //       } else {
   //         const res = await axios.post(
-  //           "https://server-backend-nu.vercel.app/api/tasklogs/",
+  //           "http://localhost:8000/api/tasklogs/",
   //           payload,
   //           {
   //           headers: {
@@ -473,8 +473,8 @@ const EmployeeTasklog = ({ user }) => {
 
       const endpoint =
         editIndex !== null
-          ? `https://server-backend-nu.vercel.app/api/tasklogs/${editIndex}`
-          : "https://server-backend-nu.vercel.app/api/tasklogs/";
+          ? `http://localhost:8000/api/tasklogs/${editIndex}`
+          : "http://localhost:8000/api/tasklogs/";
 
       const method = editIndex !== null ? "PUT" : "POST";
 
@@ -553,32 +553,77 @@ const EmployeeTasklog = ({ user }) => {
   let data = [...logs];
 
   if (searchText) {
-    data = data.filter(
-      (l) =>
-        l?.task?.taskName
-          ?.toLowerCase()
-          .includes(searchText.toLowerCase()) ||
-        l?.workDescription
-          ?.toLowerCase()
-          .includes(searchText.toLowerCase()) ||
-        l?.status?.toLowerCase().includes(searchText.toLowerCase()),
-    );
+    const search = searchText.trim().toLowerCase();
+    const searchNumber = Number(search);
+    const isNumberSearch = !isNaN(searchNumber);
+
+
+    data = data.filter((l) => {
+      const taskName = l?.task?.taskName?.toLowerCase() || "";
+      const desc = l?.workDescription?.toLowerCase() || "";
+      const status = l?.status?.toLowerCase() || "";
+
+      // ✅ Time Spent (2, 2 hrs, 2.5)
+      const timeSpent = l?.totalHours !== undefined
+        ? `${l.totalHours} hrs`
+        : "";
+
+      // ✅ Working Days (calculated)
+      const workingDays =
+        l?.task?.dateOfTaskAssignment &&
+        l?.task?.dateOfExpectedCompletion
+          ? getWorkingDays(
+              l.task.dateOfTaskAssignment,
+              l.task.dateOfExpectedCompletion,
+            ).toString()
+          : "";
+
+     return (
+
+      (
+    !isNumberSearch &&
+    (
+        taskName.includes(search) ||
+        desc.includes(search) ||
+        status.includes(search) 
+ )
+  )||
+        // ✅ Time Spent (only when user types hr / hrs)
+        (
+          (search.includes("hr")) &&
+          timeSpent.toLowerCase().includes(search)
+        ) ||
+
+        // ✅ Working Days (ONLY exact number)
+        (
+           isNumberSearch &&
+    Number(workingDays) === searchNumber
+        )
+
+      );
+
+    });
   }
 
 if (filterDate) {
-  data = data.filter((l) => {
-    const d = new Date(l.date);
-    const localDate =
-      d.getFullYear() +
-      "-" +
-      String(d.getMonth() + 1).padStart(2, "0") +
-      "-" +
-      String(d.getDate()).padStart(2, "0");
+    const filter = new Date(filterDate);
 
-    return localDate === filterDate;
-  });
-}
+    data = data.filter((l) => {
+      // Use date range if available
+      const start =
+        l?.task?.dateOfTaskAssignment || l?.startDate || l?.date || "";
+      const end =
+        l?.task?.dateOfExpectedCompletion || l?.endDate || l?.date || "";
 
+      if (!start || !end) return false;
+
+      const startDate = new Date(start);
+      const endDate = new Date(end);
+
+      // check if filterDate is within the task date range
+      return filter >= startDate && filter <= endDate;
+    });
+  }
 
   setFilteredLogs(data);
   setIsFiltered(true);
@@ -629,7 +674,10 @@ if (filterDate) {
     setViewData(rowData);
     setShowViewModal(true);
   };
-
+const handleFilterSubmit = (e) => {
+    e.preventDefault();
+    applyFilters();
+  };
   return (
      <div className="container-fluid">
        <style>
@@ -680,125 +728,72 @@ if (filterDate) {
       </div>
 
       {/* SEARCH BAR */}
-      <div
-        className="shadow-sm"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 14,
-          padding: 16,
-          background: "#fff",
-          marginBottom: 18,
-          flexWrap: "wrap",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 14,
-            flexWrap: "wrap",
-            flex: "1 1 auto",
-            minWidth: 0,
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              flexWrap: "nowrap",
-            }}
+      <div className="card mb-4 shadow-sm border-0">
+        <div className="card-body">
+          <form
+            className="row g-2 align-items-center"
+            onSubmit={handleFilterSubmit}
+            style={{ justifyContent: "space-between" }}
           >
-            <b
-              style={{
-                color: "#3A5FBE",
-                width: 50,
-                minWidth: 50,
-                textAlign: "left",
-                whiteSpace: "nowrap",
-              }}
-            >
-              Search
-            </b>
-
-            <input
-              className="form-control"
-              placeholder="Search By Any Field..."
-              value={searchText}
+            {/*  SEARCH */}
+            <div className="col-12 col-md-auto d-flex align-items-center gap-2  mb-1">
+              <label
+                htmlFor="searchFilter"
+                className="fw-bold mb-0"
+                style={{ fontSize: "16px", color: "#3A5FBE" }}
+              >
+                Search
+              </label>
+              <input
+               className="form-control"
+                placeholder="Search By Any Field..."
+                value={searchText}
                 type="search"
-              onChange={(e) => setSearchText(e.target.value)}
-              style={{
-                width: 220,
-                minWidth: 220,
-                padding: "10px 14px",
-                borderRadius: 8,
-                height: 40,
-              }}
-            />
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              flexWrap: "nowrap",
-            }}
-          >
-            <b
-              style={{
-                color: "#3A5FBE",
-                width: 50,
-                minWidth: 50,
-                textAlign: "left",
-                whiteSpace: "nowrap",
-              }}
+                onChange={(e) => setSearchText(e.target.value)}
+                style={{ minWidth: 150 }}
+              />
+            </div>
+            <div className="col-12 col-md-auto d-flex align-items-center  mb-1">
+              <label
+               
+                className="fw-bold mb-0 text-start text-md-end"
+                style={{
+                  fontSize: "16px",
+                  color: "#3A5FBE",
+                  width: "50px",
+                  minWidth: "50px",
+                  marginRight: "8px",
+                }}
+              >
+                Date
+              </label>
+              <input
+                className="form-control"
+                type="date"
+                value={filterDate}
+                onChange={(e) => setFilterDate(e.target.value)}
+                
+                style={{ minWidth: 150 }}
+              />
+            </div>
+             <div className="col-auto ms-auto d-flex gap-2">
+              <button
+              onClick={handleFilter}
+              className="btn btn-sm custom-outline-btn"
+              style={{ minWidth: 90 }}
             >
               Filter
-            </b>
+            </button>
 
-            <input
-              className="form-control"
-              type="date"
-              value={filterDate}
-              onChange={(e) => setFilterDate(e.target.value)}
-              style={{
-                width: 220,
-                minWidth: 220,
-                padding: "10px 14px",
-                borderRadius: 8,
-              }}
-            />
-          </div>
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            gap: 10,
-            flexWrap: "wrap",
-            marginLeft: "auto",
-            justifyContent: "flex-end",
-            alignItems: "center",
-          }}
-        >
-          <button
-            onClick={handleFilter}
-            className="btn btn-sm custom-outline-btn"
-            style={{ minWidth: 90 }}
-          >
-            Filter
-          </button>
-
-          <button
-            onClick={handleReset}
-            className="btn btn-sm custom-outline-btn"
-            style={{ minWidth: 90 }}
-          >
-            Reset
-          </button>
+            <button
+              onClick={handleReset}
+              className="btn btn-sm custom-outline-btn"
+              style={{ minWidth: 90 }}
+            >
+              Reset
+            </button>
+            </div>
+          </form>
         </div>
       </div>
 
@@ -855,7 +850,9 @@ if (filterDate) {
           </thead>
 
           <tbody>
-            {tableData.length === 0 ? (
+            {/* {tableData.length === 0 ? ( */}
+            {/* samiksha */}
+            {paginatedData.length === 0 ?  (
               <tr>
                 <td
                   colSpan="8"
@@ -979,7 +976,7 @@ if (filterDate) {
                       borderBottom: "1px solid #dee2e6",
                       whiteSpace: "nowrap",
                     }}>
-                    {formatDisplayHours(l.totalHours)} hrs
+                    {formatDisplayHours(l.totalHours)} Hrs
                   </td>
 
                   <td

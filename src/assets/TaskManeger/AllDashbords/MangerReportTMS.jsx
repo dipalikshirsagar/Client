@@ -486,7 +486,7 @@ function ManagerReportTMS({ user }) {
 
   useEffect(() => {
     axios
-      .get("https://server-backend-nu.vercel.app/managers/list")
+      .get("http://localhost:8000/managers/list")
       .then((res) => setManagerList(res.data || []))
       .catch((err) => console.error(err));
   }, []);
@@ -745,14 +745,14 @@ function ManagerReportTMS({ user }) {
       const key = `${dueDate.getFullYear()}-${dueDate.getMonth()}`;
       if (!monthMap[key]) return;
 
-      // 🔴 DELAYED → crossed due date
+      //  DELAYED → crossed due date
       if (dueDate < today) {
         monthMap[key].Delayed++;
         monthMap[key]["In Progress"]++; // Delayed ⊂ In Progress
         return;
       }
 
-      // 🟢 ON TRACK
+      //  ON TRACK
       const isTodayLastDate = dueDate.getTime() === today.getTime();
       const isFutureDue = dueDate > today;
 
@@ -799,7 +799,7 @@ function ManagerReportTMS({ user }) {
 
     const fetchTasks = async () => {
       try {
-        const res = await axios.get(`https://server-backend-nu.vercel.app/tasks/${managerId}`);
+        const res = await axios.get(`http://localhost:8000/tasks/${managerId}`);
 
         setAllTasks(res.data.tasks || []);
       } catch (error) {
@@ -816,7 +816,7 @@ function ManagerReportTMS({ user }) {
         const token = localStorage.getItem("accessToken");
 
         // get logged-in manager
-        const userRes = await axios.get("https://server-backend-nu.vercel.app/me", {
+        const userRes = await axios.get("http://localhost:8000/me", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -825,7 +825,7 @@ function ManagerReportTMS({ user }) {
 
         // SAME API AS MANAGER PROJECT FILE
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/api/projects/manager/${managerId}`,
+          `http://localhost:8000/api/projects/manager/${managerId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           },
@@ -843,10 +843,10 @@ function ManagerReportTMS({ user }) {
   async function fetchRequiredDetails() {
     try {
       const empResponse = await axios.get(
-        `https://server-backend-nu.vercel.app/employees/manager/${user._id}`,
+        `http://localhost:8000/employees/manager/${user._id}`,
       );
       const employeeList = empResponse.data.employees;
-      const taskResponse = await axios.get("https://server-backend-nu.vercel.app/task/getall");
+      const taskResponse = await axios.get("http://localhost:8000/task/getall");
       const tasks = taskResponse.data.map(
         ({
           _id,
@@ -865,7 +865,7 @@ function ManagerReportTMS({ user }) {
         }),
       );
       const projectsResponse = await axios.get(
-        `https://server-backend-nu.vercel.app/api/projects/manager/${user._id}`,
+        `http://localhost:8000/api/projects/manager/${user._id}`,
       );
       const projects = projectsResponse.data.data;
       setEmployeesTasks(tasks);
@@ -2460,7 +2460,7 @@ const handleDownloadExcel = () => {
         {/* TASK STATUS (DONUT) */}
         <div className="col-lg-4 col-md-5">
           <div className="card shadow border-0 h-100 rounded-4">
-            <div className="card-body d-flex flex-column justify-content-center">
+            <div className="card-body p-4">
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <h6 className="fw-semibold mb-0 " style={{color: "#3A5FBE"}}>
                   📊 Task Status Overview

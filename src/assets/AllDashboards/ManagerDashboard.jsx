@@ -48,12 +48,12 @@ function ManagerDashboard({ user }) {
     const fetchData = async () => {
       try {
         const leavesRes = await axios.get(
-          `https://server-backend-nu.vercel.app/leaves/manager/${user._id}`,
+          `http://localhost:8000/leaves/manager/${user._id}`,
         );
         setLeaves(leavesRes.data);
 
         const regRes = await axios.get(
-          `https://server-backend-nu.vercel.app/regularization/manager/${user._id}`,
+          `http://localhost:8000/regularization/manager/${user._id}`,
         );
         setRegularizations(regRes.data);
       } catch (err) {
@@ -70,7 +70,7 @@ function ManagerDashboard({ user }) {
   const updateLeaveStatus = async (leaveId, status) => {
     try {
       const res = await axios.put(
-        `https://server-backend-nu.vercel.app/leave/${leaveId}/status`,
+        `http://localhost:8000/leave/${leaveId}/status`,
         {
           status,
           userId: user._id,
@@ -90,7 +90,7 @@ function ManagerDashboard({ user }) {
   const updateRegularizationStatus = async (attendanceId, status) => {
     try {
       const res = await axios.put(
-        `https://server-backend-nu.vercel.app/attendance/regularization/${attendanceId}/status`,
+        `http://localhost:8000/attendance/regularization/${attendanceId}/status`,
         {
           status,
           approvedBy: user._id,
