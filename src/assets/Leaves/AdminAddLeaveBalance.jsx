@@ -1365,23 +1365,23 @@ const getLeaveDurationText = (leave) => {
                     </div>
                   </div>
                   {/* //Added by Rutuja */}
-                  <div className="row mb-2">
-                    <div className="col-sm-3 fw-semibold">
-                      {selectedLeave.status === "approved" ? "Approved by" :
-                        selectedLeave.status === "rejected" ? "Rejected by" :
-                          ""}
+                  {selectedLeave.status !== "pending" && (
+                    <div className="row mb-2">
+                      <div className="col-sm-3 fw-semibold">
+                        {selectedLeave.status === "approved" ? "Approved by" : "Rejected by"}
+                      </div>
+                      <div className="col-sm-9">
+                        {selectedLeave.approvedBy ? (
+                          <>
+                            {selectedLeave.approvedBy.name}
+                            {selectedLeave.approvedBy.role && ` (${selectedLeave.approvedBy.role})`}
+                          </>
+                        ) : (
+                          "-"
+                        )}
+                      </div>
                     </div>
-                    <div className="col-sm-9">
-                      {selectedLeave.approvedBy ? (
-                        <>
-                          {selectedLeave.approvedBy.name}
-                          {selectedLeave.approvedBy.role && ` (${selectedLeave.approvedBy.role})`}
-                        </>
-                      ) : (
-                        "-"
-                      )}
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
 
