@@ -15,7 +15,7 @@
 //   // Fetch existing office location from backend
 //   useEffect(() => {
 //     axios
-//       .get("https://server-backend-nu.vercel.app/admin/office-location")
+//       .get("https://server-backend-ems.vercel.app/admin/office-location")
 //       .then((res) => {
 //         if (res.data.length) setLocation(res.data[0]);
 //       })
@@ -32,7 +32,7 @@
 //   const handleSave = async () => {
 //   setLoading(true);
 //   try {
-//     await axios.post("https://server-backend-nu.vercel.app/admin/office-location", location);
+//     await axios.post("https://server-backend-ems.vercel.app/admin/office-location", location);
 
 //     // ✅ Use a built-in alert OR SweetAlert if available
 //     alert("Office location saved successfully!");
@@ -353,7 +353,7 @@ function OfficeLocationSetup() {
   // ✅ Fetch existing office location
   useEffect(() => {
     axios
-      .get("https://server-backend-nu.vercel.app/admin/office-location")
+      .get("https://server-backend-ems.vercel.app/admin/office-location")
       .then((res) => {
         if (res.data.length) setLocation(res.data[0]);
       })
@@ -413,7 +413,7 @@ function OfficeLocationSetup() {
     setLoading(true);
 
     axios
-      .post("https://server-backend-nu.vercel.app/admin/office-location", editLocation)
+      .post("https://server-backend-ems.vercel.app/admin/office-location", editLocation)
       .then(() => {
         setLocation(editLocation); // ✅ Update page only now
         alert("Office location saved");
@@ -487,7 +487,7 @@ function OfficeLocationSetup() {
                           })
                         }
                         className="form-control"
-                        // style={{ backgroundColor: "#E9F5FF" }}
+                      // style={{ backgroundColor: "#E9F5FF" }}
                       />
                     </div>
 
@@ -629,6 +629,16 @@ function OfficeLocationSetup() {
             </div>
           </div>
         </div>
+      </div>
+      {/* //Added by Mahesh */}
+      <div className="text-end mt-3">
+        <button
+          className="btn btn-sm custom-outline-btn"
+          style={{ minWidth: 90 }}
+          onClick={() => window.history.go(-1)}
+        >
+          Back
+        </button>
       </div>
     </div>
   );

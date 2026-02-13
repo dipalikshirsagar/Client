@@ -20,7 +20,7 @@ function isWeeklyOff(date, weeklyOffs = { saturdays: [], sundayOff: true }) {
   }
   return null;
 }
-const API_URL = "https://server-backend-nu.vercel.app/api/projects";
+const API_URL = "https://server-backend-ems.vercel.app/api/projects";
 
 function AdminProjectTMS({ userData }) {
   const [searchInput, setSearchInput] = useState("");
@@ -108,7 +108,7 @@ function AdminProjectTMS({ userData }) {
 
   useEffect(() => {
     axios
-      .get("https://server-backend-nu.vercel.app/managers/list")
+      .get("https://server-backend-ems.vercel.app/managers/list")
       .then((res) => {
         console.log("Managers fetched:", res.data);
         setManagerList(res.data);
@@ -124,7 +124,7 @@ function AdminProjectTMS({ userData }) {
     const fetchWeeklyOffs = async () => {
       try {
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`,
+          `https://server-backend-ems.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`,
         );
 
         const weeklyData = res.data?.data || {};
@@ -246,9 +246,9 @@ function AdminProjectTMS({ userData }) {
       let apiUrl;
       // Change API for specific statuses
       if (newStatus === "Completed") {
-        apiUrl = `https://server-backend-nu.vercel.app/api/projects/${projectId}/complete`;
+        apiUrl = `https://server-backend-ems.vercel.app/api/projects/${projectId}/complete`;
       } else if (newStatus === "Cancelled") {
-        apiUrl = `https://server-backend-nu.vercel.app/api/projects/${projectId}/cancel`;
+        apiUrl = `https://server-backend-ems.vercel.app/api/projects/${projectId}/cancel`;
       }
 
       await axios.put(apiUrl, { status: newStatus });
@@ -307,7 +307,7 @@ function AdminProjectTMS({ userData }) {
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
 
-    const holidaysRes = await axios.get("https://server-backend-nu.vercel.app/getHolidays");
+    const holidaysRes = await axios.get("https://server-backend-ems.vercel.app/getHolidays");
     const holidays = holidaysRes.data?.data || holidaysRes.data || [];
     const isHoliday = (date) =>
       holidays.some((holiday) => {
@@ -400,6 +400,7 @@ function AdminProjectTMS({ userData }) {
       due: item.dueDate?.slice(0, 10),
       status: item.status || "",
       priority: item.priority,
+      manualStatusUpdatedBy: item.manualStatusUpdatedBy || null,
     });
     // console.log("form",form)  get empty
     setShowPopup(true);
@@ -530,7 +531,7 @@ function AdminProjectTMS({ userData }) {
 
   const handleEditSave = async (e) => {
     e.preventDefault();
-    const holidaysRes = await axios.get("https://server-backend-nu.vercel.app/getHolidays");
+    const holidaysRes = await axios.get("https://server-backend-ems.vercel.app/getHolidays");
     const holidays = holidaysRes.data?.data || holidaysRes.data || [];
 
     const isHoliday = (date) =>
@@ -691,7 +692,7 @@ function AdminProjectTMS({ userData }) {
     setCommentLoading(true);
     try {
       const response = await axios.get(
-        `https://server-backend-nu.vercel.app/project/${projectId}/comments`,
+        `https://server-backend-ems.vercel.app/project/${projectId}/comments`,
       );
       setProjectComments(response.data.comments || []);
     } catch (error) {
@@ -715,7 +716,7 @@ function AdminProjectTMS({ userData }) {
 
     try {
       const res = await axios.post(
-        `https://server-backend-nu.vercel.app/project/${commentModalProject._id}/comment`,
+        `https://server-backend-ems.vercel.app/project/${commentModalProject._id}/comment`,
         { comment: newComment },
         {
           headers: {
@@ -753,7 +754,7 @@ function AdminProjectTMS({ userData }) {
 
     try {
       const res = await axios.delete(
-        `https://server-backend-nu.vercel.app/project/${projectId}/comment/${commentId}`,
+        `https://server-backend-ems.vercel.app/project/${projectId}/comment/${commentId}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
@@ -779,7 +780,7 @@ function AdminProjectTMS({ userData }) {
 
     try {
       const res = await axios.put(
-        `https://server-backend-nu.vercel.app/project/${projectId}/comment/${commentId}`,
+        `https://server-backend-ems.vercel.app/project/${projectId}/comment/${commentId}`,
         { comment: newText },
         {
           headers: {
@@ -1084,23 +1085,24 @@ function AdminProjectTMS({ userData }) {
                   // <tr key={item._id || index} onClick={() => openRowPopup(item, index)}>
                   // snehal code      
                   <tr
-                    key={item._id || index}
-                    onClick={() => {
-                      openRowPopup(item, index);
-                      setPopupMode("view"); //  force view mode
-                    }}
-                    style={{
-                      opacity: item.status === "Cancelled" ? 0.6 : 1,
-                      cursor: "pointer",
-                      backgroundColor:
-                        item.status === "Cancelled" ? "#f8d7da" : "inherit",
-                    }}
-                    title={
-                      item.status === "Cancelled"
-                        ? "This project is cancelled. View only."
-                        : ""
-                    }
-                  >
+                      key={item._id || index}
+                      onClick={() => {
+                        if (item.status === "Cancelled") return; // ❌ click block
+                        openRowPopup(item, index);
+                        setPopupMode("view");
+                      }}
+                      style={{
+                        opacity: item.status === "Cancelled" ? 0.6 : 1,
+                        cursor: item.status === "Cancelled" ? "not-allowed" : "pointer",
+                        backgroundColor:
+                          item.status === "Cancelled" ? "#f8d7da" : "inherit",
+                      }}
+                      title={
+                        item.status === "Cancelled"
+                          ? "This project is cancelled. View only."
+                          : ""
+                      }
+                    >
                     <td
                       style={{
                         padding: "12px",
@@ -1389,7 +1391,8 @@ function AdminProjectTMS({ userData }) {
                 </h5>
 
                 <button
-                  className="btn-close btn-close-white"
+                
+                  className="btn-close btn-close-white p-1"
                   onClick={() => {
                     setShowPopup(false);
                     resetProjectForm();
@@ -1586,9 +1589,9 @@ function AdminProjectTMS({ userData }) {
                           className="shadow bg-white p-2"
                           style={{
                             position: "absolute",
-                            width: "100%",
+                            width: "94%",
                             top: "40px",
-                            left: "0",
+                            left: "12px",
                             borderRadius: "6px",
                             border: "1px solid #ccc",
                             maxHeight: "150px",

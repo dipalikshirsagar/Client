@@ -50,7 +50,7 @@ function MyAttendance({ employeeId }) {
     if (selectedRecord?.leaveRef?.reportingManager) {
       axios
         .get(
-          `https://server-backend-nu.vercel.app/users/${selectedRecord.leaveRef.reportingManager}`,
+          `https://server-backend-ems.vercel.app/users/${selectedRecord.leaveRef.reportingManager}`,
         )
         .then((res) => setManager(res.data))
         .catch((err) => console.error("Error fetching manager:", err));
@@ -63,14 +63,14 @@ function MyAttendance({ employeeId }) {
       try {
         const [attRes, leaveRes, weeklyRes, holidayRes, regRes] =
           await Promise.all([
-            axios.get(`https://server-backend-nu.vercel.app/attendance/${employeeId}`),
-            axios.get(`https://server-backend-nu.vercel.app/leave/my/${employeeId}`),
+            axios.get(`https://server-backend-ems.vercel.app/attendance/${employeeId}`),
+            axios.get(`https://server-backend-ems.vercel.app/leave/my/${employeeId}`),
             axios.get(
-              `https://server-backend-nu.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`,
+              `https://server-backend-ems.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`,
             ),
-            axios.get(`https://server-backend-nu.vercel.app/getHolidays`),
+            axios.get(`https://server-backend-ems.vercel.app/getHolidays`),
             axios.get(
-              `https://server-backend-nu.vercel.app/attendance/regularization/my/${employeeId}`,
+              `https://server-backend-ems.vercel.app/attendance/regularization/my/${employeeId}`,
             ),
           ]);
 
@@ -130,8 +130,8 @@ function MyAttendance({ employeeId }) {
             //     : "Pending Regularization",
             dayStatus:
               isToday &&
-              mergedAttendance[existingIndex]?.checkIn &&
-              !mergedAttendance[existingIndex]?.checkOut
+                mergedAttendance[existingIndex]?.checkIn &&
+                !mergedAttendance[existingIndex]?.checkOut
                 ? "Working"
                 : reg.regularizationRequest?.status === "Approved"
                   ? "Regularized"
@@ -454,7 +454,7 @@ function MyAttendance({ employeeId }) {
     try {
       const token = localStorage.getItem("accessToken");
       const authAxios = axios.create({
-        baseURL: "https://server-backend-nu.vercel.app",
+        baseURL: "https://server-backend-ems.vercel.app",
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -574,7 +574,7 @@ function MyAttendance({ employeeId }) {
     try {
       const token = localStorage.getItem("accessToken");
       const authAxios = axios.create({
-        baseURL: "https://server-backend-nu.vercel.app",
+        baseURL: "https://server-backend-ems.vercel.app",
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -643,7 +643,7 @@ function MyAttendance({ employeeId }) {
   const token = localStorage.getItem("accessToken");
 
   const authAxios = axios.create({
-    baseURL: "https://server-backend-nu.vercel.app",
+    baseURL: "https://server-backend-ems.vercel.app",
     headers: { Authorization: `Bearer ${token}` },
   });
 
@@ -775,7 +775,7 @@ function MyAttendance({ employeeId }) {
     const fetchBreaks = async () => {
       try {
         const token = localStorage.getItem("accessToken");
-        const res = await axios.get("https://server-backend-nu.vercel.app/api/break/my", {
+        const res = await axios.get("https://server-backend-ems.vercel.app/api/break/my", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setBreakData(res.data);
@@ -920,14 +920,12 @@ function MyAttendance({ employeeId }) {
                           >
                             Checked in at
                           </strong>{" "}
-                          {new Date(todayRecord.checkIn).toLocaleTimeString(
-                            [],
-                            {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              hour12: true,
-                            },
-                          )}
+                          {/* //Added by Jaicy */}
+                          {new Date(todayRecord.checkIn).toLocaleTimeString("en-US", {
+                            hour: "numeric",      // 6 instead of 06
+                            minute: "2-digit",    // 05, 30 etc.
+                            hourCycle: "h12",     // ensures 12-hour format with AM/PM
+                          })}
                         </p>
                       ) : (
                         <p
@@ -953,14 +951,11 @@ function MyAttendance({ employeeId }) {
                           >
                             Checked out at
                           </strong>{" "}
-                          {new Date(todayRecord.checkOut).toLocaleTimeString(
-                            [],
-                            {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              hour12: true,
-                            },
-                          )}
+                          {new Date(todayRecord.checkOut).toLocaleTimeString("en-US", {
+                            hour: "numeric",
+                            minute: "2-digit",
+                            hourCycle: "h12",
+                          })}
                         </p>
                       )}
                       {/* Checkout timing end */}
@@ -1014,7 +1009,8 @@ function MyAttendance({ employeeId }) {
                         type="checkbox"
                         checked={workMode === "WFO"}
                         onChange={() => setWorkMode("WFO")}
-                        // onChange={(e) => setWorkMode(e.target.value)}
+                        disabled={!!todayRecord?.checkIn}
+                      // onChange={(e) => setWorkMode(e.target.value)}
                       />
                       <label className="form-check-label ms-2">WFO</label>
                     </div>
@@ -1024,7 +1020,8 @@ function MyAttendance({ employeeId }) {
                         type="checkbox"
                         checked={workMode === "WFH"}
                         onChange={() => setWorkMode("WFH")}
-                        // onChange={(e) => setWorkMode(e.target.value)}
+                        disabled={!!todayRecord?.checkIn}
+                      // onChange={(e) => setWorkMode(e.target.value)}
                       />
                       <label className="form-check-label ms-2">WFH</label>
                     </div>
@@ -1037,9 +1034,8 @@ function MyAttendance({ employeeId }) {
                     style={{ display: "flex", gap: "15px", marginTop: "10px" }}
                   >
                     <button
-                      className={`btn px-4 ${
-                        todayRecord?.checkIn ? "btn-secondary" : "btn-success"
-                      }`}
+                      className={`btn px-4 ${todayRecord?.checkIn ? "btn-secondary" : "btn-success"
+                        }`}
                       onClick={handleCheckIn}
                       disabled={!!todayRecord?.checkIn}
                     >
@@ -1149,9 +1145,9 @@ function MyAttendance({ employeeId }) {
                         {Math.ceil(
                           (new Date(selectedRecord.leaveRef.dateTo) -
                             new Date(selectedRecord.leaveRef.dateFrom)) /
-                            (1000 * 60 * 60 * 24),
+                          (1000 * 60 * 60 * 24),
                         ) + 1}
-                         Day
+                        Day
                       </p>
                       {/* <p>
                         <strong>Duration:</strong>{" "}
@@ -1202,24 +1198,24 @@ function MyAttendance({ employeeId }) {
                             <strong>Check-in:</strong>{" "}
                             {selectedRecord?.checkIn
                               ? new Date(
-                                  selectedRecord.checkIn,
-                                ).toLocaleTimeString([], {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                  hour12: true,
-                                })
+                                selectedRecord.checkIn,
+                              ).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: true,
+                              })
                               : "N/A"}
                           </p>
                           <p style={{ fontSize: "14px", marginBottom: "20px" }}>
                             <strong>Check-out:</strong>{" "}
                             {selectedRecord?.checkOut
                               ? new Date(
-                                  selectedRecord.checkOut,
-                                ).toLocaleTimeString([], {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                  hour12: true,
-                                })
+                                selectedRecord.checkOut,
+                              ).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: true,
+                              })
                               : "N/A"}
                           </p>
                           {/* {selectedRecord?.checkIn && selectedRecord?.checkOut && (
@@ -1309,8 +1305,8 @@ function MyAttendance({ employeeId }) {
                                     <strong>End:</strong>{" "}
                                     {brk.endTime
                                       ? new Date(
-                                          brk.endTime,
-                                        ).toLocaleTimeString()
+                                        brk.endTime,
+                                      ).toLocaleTimeString()
                                       : "In Progress"}
                                   </p>
 
@@ -1427,13 +1423,13 @@ function MyAttendance({ employeeId }) {
                         checkIn ||
                         (selectedRecord?.checkIn
                           ? new Date(selectedRecord.checkIn).toLocaleTimeString(
-                              [],
-                              {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                hour12: false,
-                              },
-                            )
+                            [],
+                            {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: false,
+                            },
+                          )
                           : "")
                       }
                       onChange={(e) => setCheckIn(e.target.value)}
@@ -1456,12 +1452,12 @@ function MyAttendance({ employeeId }) {
                         checkOut ||
                         (selectedRecord?.checkOut
                           ? new Date(
-                              selectedRecord.checkOut,
-                            ).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              hour12: false,
-                            })
+                            selectedRecord.checkOut,
+                          ).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: false,
+                          })
                           : "")
                       }
                       onChange={(e) => setCheckOut(e.target.value)}

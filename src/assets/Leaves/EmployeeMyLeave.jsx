@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 
 function EmployeeMyLeave({ user, refreshKey }) {
@@ -19,92 +19,107 @@ function EmployeeMyLeave({ user, refreshKey }) {
   const [selectedLeave, setSelectedLeave] = useState(null);
 
   // ✅ Pagination logic
+  const modalRef = useRef(null);
 
+  //TANVI
+  useEffect(() => {
+    if (!selectedLeave || !modalRef.current) return;
+
+    const modal = modalRef.current;
+
+    const focusableElements = modal.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+
+    const firstEl = focusableElements[0];
+    const lastEl = focusableElements[focusableElements.length - 1];
+
+    // ⭐ modal open होताच focus
+    modal.focus();
+    firstEl?.focus();
+
+    const handleKeyDown = (e) => {
+      // ESC key → modal close
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setSelectedLeave(null);
+      }
+
+      // TAB key → focus trap
+      if (e.key === "Tab") {
+        if (e.shiftKey) {
+          if (document.activeElement === firstEl) {
+            e.preventDefault();
+            lastEl.focus();
+          }
+        } else {
+          if (document.activeElement === lastEl) {
+            e.preventDefault();
+            firstEl.focus();
+          }
+        }
+      }
+    };
+
+    modal.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      modal.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [selectedLeave]);
+
+  useEffect(() => {
+    const isModalOpen = selectedLeave;
+
+    if (isModalOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [selectedLeave]);
   useEffect(() => {
     const fetchLeaves = async () => {
       try {
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/leave/my/${user._id}`,
+          `https://server-backend-ems.vercel.app/leave/my/${user._id}`,
         );
 
         console.log("raw leaves from API:", res.data);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
 
-        const threeMonthsAgo = new Date(today);
-        threeMonthsAgo.setMonth(today.getMonth() - 3);
-
-        // ✅ FILTER FIRST
-        const filteredByDate = res.data.filter((l) => {
-          const appliedDate = new Date(l.appliedAt || l.createdAt);
-          appliedDate.setHours(0, 0, 0, 0);
-          return appliedDate >= threeMonthsAgo && appliedDate <= today;
-        });
-
-        // ✅ SORT AFTER FILTER
-        const leavesData = filteredByDate.sort(
+        const leavesData = res.data.sort(
           (a, b) =>
-            new Date(b.appliedAt || b.createdAt) -
-            new Date(a.appliedAt || a.createdAt),
+            new Date(b.createdAt || b.appliedAt) -
+            new Date(a.createdAt || a.appliedAt),
         );
 
         // small cache
-        const nameCache = {};
-        const getName = async (id) => {
-          if (!id) return "N/A";
-          if (nameCache[id]) return nameCache[id];
-          try {
-            const r = await axios.get(`https://server-backend-nu.vercel.app/users/${id}`);
-            nameCache[id] = r.data?.name || "N/A";
-            return nameCache[id];
-          } catch (e) {
-            console.error("getName error for id", id, e);
-            return "N/A";
-          }
-        };
-        const leavesWithNames = await Promise.all(
-          leavesData.map(async (leave) => {
-            // Try multiple common field names (adjust to what your API actually returns)
-            const reportingManagerId =
-              leave.reportingManager || leave.reportingManagerId;
-            const approverId =
-              leave.approver || leave.approvedBy || leave.approvedById;
-            const rejectedById = leave.rejectedBy || leave.rejectedById;
-
-            const reportingManagerName = await getName(reportingManagerId);
-            const approverName = await getName(approverId);
-            const rejectedByName = await getName(rejectedById);
-
-            // Decide display: pending -> manager, approved -> approver/admin, rejected -> rejectedBy
-            let approverDisplay = "N/A";
-            const status = (leave.status || "").toLowerCase();
-            if (status === "pending") {
-              approverDisplay = reportingManagerName || "N/A";
-            } else if (status === "approved") {
-              approverDisplay =
-                approverName !== "N/A"
-                  ? approverName
-                  : reportingManagerName || "N/A";
-            } else if (status === "rejected") {
-              approverDisplay =
-                rejectedByName !== "N/A"
-                  ? rejectedByName
-                  : approverName !== "N/A"
-                    ? approverName
-                    : reportingManagerName || "N/A";
-            } else {
-              approverDisplay = approverName || reportingManagerName || "N/A";
-            }
-
-            return {
-              ...leave,
-              reportingManagerName,
-              approverName,
-              rejectedByName,
-              approverDisplay,
-            };
-          }),
-        );
+        // const nameCache = {};
+        // const getName = async (id) => {
+        //   if (!id) return "N/A";
+        //   if (nameCache[id]) return nameCache[id];
+        //   try {
+        //     const r = await axios.get(`https://server-backend-ems.vercel.app/users/${id}`);
+        //     nameCache[id] = r.data?.name || "N/A";
+        //     return nameCache[id];
+        //   } catch (e) {
+        //     console.error("getName error for id", id, e);
+        //     return "N/A";
+        //   }
+        // };
+        const leavesWithNames = leavesData.map((leave) => ({
+          ...leave,
+          reportingManagerName: leave.reportingManager?.name || "N/A",
+          approverName: leave.approvedBy?.name || "N/A",
+          rejectedByName: leave.rejectedBy?.name || "N/A",
+        }));
+        setFilteredLeaves(leavesWithNames);
 
         console.log("leavesWithNames (first 5):", leavesWithNames.slice(0, 5));
         setLeaves(leavesWithNames);
@@ -218,7 +233,7 @@ function EmployeeMyLeave({ user, refreshKey }) {
     setLeaves((ls) => ls.filter((x) => x._id !== id));
 
     try {
-      const res = await fetch(`https://server-backend-nu.vercel.app/leave/${id}`, {
+      const res = await fetch(`https://server-backend-ems.vercel.app/leave/${id}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
       });
@@ -229,8 +244,10 @@ function EmployeeMyLeave({ user, refreshKey }) {
         const data = await res.json().catch(() => ({}));
         // throw new Error(data?.error || "Failed to delete leave");
       }
+      alert("Leave Request deleted Successfully!!")
       // success -> nothing else to do
-    } catch (err) {
+    }
+    catch (err) {
       console.error(err);
       alert(err.message || "Something went wrong while deleting.");
     } finally {
@@ -253,7 +270,12 @@ function EmployeeMyLeave({ user, refreshKey }) {
               <label
                 htmlFor="statusFilter"
                 className="fw-bold mb-0 text-start text-md-end"
-                style={{ fontSize: "16px", color: "#3A5FBE" }}
+                style={{
+                  fontSize: "16px",
+                  color: "#3A5FBE",
+                  width: "50px",
+                  minWidth: "50px",
+                }}
               >
                 Status
               </label>
@@ -316,7 +338,6 @@ function EmployeeMyLeave({ user, refreshKey }) {
                 onChange={(e) => setDateToFilter(e.target.value)}
                 style={{ minWidth: "140px" }}
               />
-                        
             </div>
 
             <div className="col-auto ms-auto d-flex gap-2">
@@ -549,9 +570,9 @@ function EmployeeMyLeave({ user, refreshKey }) {
                     {l.duration === "half"
                       ? 0.5
                       : Math.floor(
-                          (new Date(l.dateTo) - new Date(l.dateFrom)) /
-                            (1000 * 60 * 60 * 24),
-                        ) + 1}
+                        (new Date(l.dateTo) - new Date(l.dateFrom)) /
+                        (1000 * 60 * 60 * 24),
+                      ) + 1}
                   </td>
                   <td
                     style={{
@@ -623,6 +644,7 @@ function EmployeeMyLeave({ user, refreshKey }) {
                   >
                     {l.reason}
                   </td>
+                  {/* //Added by Rutuja */}
                   <td
                     style={{
                       padding: "12px",
@@ -633,7 +655,14 @@ function EmployeeMyLeave({ user, refreshKey }) {
                       textTransform: "capitalize",
                     }}
                   >
-                    {l.approverDisplay || "N/A"}
+                    {l.status === "pending"
+                      ? (l.reportingManager?.name || "N/A")
+                      : l.status === "approved"
+                        ? (l.approvedBy?.name || l.reportingManager?.name || "N/A")
+                        : l.status === "rejected"
+                          ? (l.rejectedBy?.name || l.approvedBy?.name || l.reportingManager?.name || "N/A")
+                          : "N/A"
+                    }
                   </td>
 
                   <td
@@ -643,14 +672,12 @@ function EmployeeMyLeave({ user, refreshKey }) {
                       fontSize: "14px",
                       borderBottom: "1px solid #dee2e6",
                       whiteSpace: "nowrap",
-                      cursor: "pointer",
                     }}
                   >
-                    {l.status === "pending" && (
+                    {l.status === "pending" ? (
                       <button
                         type="button"
                         className="btn btn-sm btn-outline-danger"
-                        aria-label="Delete"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDelete(l._id);
@@ -658,6 +685,11 @@ function EmployeeMyLeave({ user, refreshKey }) {
                       >
                         Delete
                       </button>
+                    ) : (
+                      //jaicy
+                      <div>
+                        <span style={{ fontSize: "13px" }}>-</span>
+                      </div>
                     )}
                   </td>
                 </tr>
@@ -673,13 +705,15 @@ function EmployeeMyLeave({ user, refreshKey }) {
         <div
           className="modal fade show"
           style={{ display: "block", background: "rgba(0,0,0,0.5)" }}
+          ref={modalRef}
+          tabIndex="-1"
         >
           <div
-            className="modal-dialog modal-dialog-scrollable"
+            className="modal-dialog"
             style={{
               maxWidth: "650px",
               width: "95%",
-              marginTop: "60px",
+              marginTop: "160px",
               marginLeft: "auto",
               marginRight: "auto",
             }}
@@ -737,29 +771,50 @@ function EmployeeMyLeave({ user, refreshKey }) {
                     </div>
                   </div>
 
+                  {/* Duration change in popup by dip 11-02-2026 */}
                   <div className="row mb-2">
                     <div className="col-5 col-sm-3 fw-semibold">Duration</div>
-                    <div className="col-sm-9 col-7">
-                      {selectedLeave.duration}
-                    </div>
+                     <div className="col-sm-9 col-7">
+                    {selectedLeave.duration === "half"
+                      ? "0.5 day"
+                      : (() => {
+                          const days =
+                            Math.floor(
+                              (new Date(selectedLeave.dateTo) -
+                                new Date(selectedLeave.dateFrom)) /
+                                (1000 * 60 * 60 * 24)
+                            ) + 1;
+
+                          return `${days} ${days === 1 ? "day" : "days"}`;
+                        })()}
+                  </div>
                   </div>
 
-                  <div className="row mb-2">
-                    <div className="col-5 col-sm-3 fw-semibold">
-                      Approved By
-                    </div>
-                    <div
-                      className="col-sm-9 col-7"
-                      style={{
-                        whiteSpace: "normal",
-                        wordBreak: "break-word",
-                        overflowWrap: "break-word",
-                        textTransform: "capitalize",
-                      }}
-                    >
-                      {selectedLeave.approverName || "-"}
-                    </div>
-                  </div>
+                  {/* <div className="row mb-2"> */}
+                    {/* <div className="col-5 col-sm-3 fw-semibold">
+                      Approved Byt
+                    </div> */}
+                    {selectedLeave.status !== "pending" && (
+                      <div className="row mb-2">
+                        <div className="col-5 col-sm-3 fw-semibold">
+                          {selectedLeave.status === "approved" ? "Approved by" :
+                            selectedLeave.status === "rejected" ? "Rejected by" :
+                              ""}
+                        </div>
+                        <div className="col-sm-9 col-5">
+                          {selectedLeave.status === "approved"
+                            ? (selectedLeave.approvedBy?.name || "N/A")
+                            : selectedLeave.status === "rejected"
+                              ? (selectedLeave.rejectedBy?.name || selectedLeave.approvedBy?.name || "N/A")
+                              : "N/A"
+                          }
+                          {selectedLeave.status === "approved" && selectedLeave.approvedBy?.role &&
+                            ` (${selectedLeave.approvedBy.role})`
+                          }
+                        </div>
+                      </div>
+                    )}
+                  {/* </div> */}
 
                   <div className="row mb-2">
                     <div className="col-5 col-sm-3 fw-semibold">Reason</div>
@@ -848,10 +903,7 @@ function EmployeeMyLeave({ user, refreshKey }) {
           <span style={{ fontSize: "14px", marginLeft: "16px" }}>
             {filteredLeaves.length === 0
               ? "0–0 of 0"
-              : `${indexOfFirstItem + 1}-${Math.min(
-                  indexOfLastItem,
-                  filteredLeaves.length,
-                )} of ${filteredLeaves.length}`}
+              : `${indexOfFirstItem + 1}-${Math.min(indexOfLastItem, filteredLeaves.length)} of ${filteredLeaves.length}`}
           </span>
 
           {/* Navigation arrows */}
@@ -860,7 +912,7 @@ function EmployeeMyLeave({ user, refreshKey }) {
             style={{ marginLeft: "16px" }}
           >
             <button
-              className="btn btn-sm border-0"
+               className="btn btn-sm focus-ring"
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
               style={{ fontSize: "18px", padding: "2px 8px" }}
@@ -868,7 +920,7 @@ function EmployeeMyLeave({ user, refreshKey }) {
               ‹
             </button>
             <button
-              className="btn btn-sm border-0"
+               className="btn btn-sm focus-ring"
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
               style={{ fontSize: "18px", padding: "2px 8px" }}

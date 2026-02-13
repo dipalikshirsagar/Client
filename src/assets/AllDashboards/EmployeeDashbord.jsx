@@ -48,7 +48,7 @@ function EmployeeDashboard({ user }) {
   const token = localStorage.getItem("accessToken");
 
   const authAxios = axios.create({
-    baseURL: "https://server-backend-nu.vercel.app",
+    baseURL: "https://server-backend-ems.vercel.app",
     headers: { Authorization: `Bearer ${token}` },
   });
 
@@ -338,7 +338,7 @@ function EmployeeDashboard({ user }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("https://server-backend-nu.vercel.app/leave/apply", {
+      await axios.post("https://server-backend-ems.vercel.app/leave/apply", {
         employeeId: user._id,
         ...form,
       });
@@ -354,9 +354,9 @@ function EmployeeDashboard({ user }) {
     const fetchData = async () => {
       try {
         const [leaveRes, regRes] = await Promise.all([
-          axios.get(`https://server-backend-nu.vercel.app/leave/my/${user._id}`),
+          axios.get(`https://server-backend-ems.vercel.app/leave/my/${user._id}`),
           axios.get(
-            `https://server-backend-nu.vercel.app/attendance/regularization/my/${user._id}`,
+            `https://server-backend-ems.vercel.app/attendance/regularization/my/${user._id}`,
           ),
         ]);
 
@@ -556,7 +556,7 @@ function EmployeeDashboard({ user }) {
 
   return (
     <>
-      <div
+      {/* <div
         className="container-fluid pt-1 px-3"
         style={{ marginTop: "-25px", backgroundColor: "#f5f7fb" }}
       >
@@ -567,7 +567,7 @@ function EmployeeDashboard({ user }) {
               style={{ borderRadius: "12px" }}
             >
               <div className="row align-items-center">
-                {/* Left: Attendance Info */}
+ 
                 <div className="col-md-6 text-center text-md-start ">
                   <h6
                     style={{
@@ -581,9 +581,8 @@ function EmployeeDashboard({ user }) {
                   </h6>
                   <div className="ms-lg-5 ms-0 text-center text-md-start ">
                     <p
-                      className={`mb-1 ${
-                        attendance?.checkIn ? "text-success" : "text-danger"
-                      }`}
+                      className={`mb-1 ${attendance?.checkIn ? "text-success" : "text-danger"
+                        }`}
                     >
                       {attendance?.checkIn ? (
                         <>
@@ -645,7 +644,7 @@ function EmployeeDashboard({ user }) {
                         type="checkbox"
                         checked={workMode === "WFO"}
                         onChange={() => setWorkMode("WFO")}
-                        // onChange={(e) => setWorkMode(e.target.value)}
+   
                       />
                       <label className="form-check-label ms-2">WFO</label>
                     </div>
@@ -655,7 +654,7 @@ function EmployeeDashboard({ user }) {
                         type="checkbox"
                         checked={workMode === "WFH"}
                         onChange={() => setWorkMode("WFH")}
-                        // onChange={(e) => setWorkMode(e.target.value)}
+  
                       />
                       <label className="form-check-label ms-2">WFH</label>
                     </div>
@@ -666,9 +665,531 @@ function EmployeeDashboard({ user }) {
                   <div className="mt-3 d-flex flex-row gap-2 justify-content-center justify-content-md-start align-items-center ms-lg-5 ms-0 ">
                     {" "}
                     <button
-                      className={`btn px-4 ${
-                        attendance?.checkIn ? "btn-secondary" : "btn-success"
-                      }`}
+                      className={`btn px-4 ${attendance?.checkIn ? "btn-secondary" : "btn-success"
+                        }`}
+                      onClick={handleCheckIn}
+                      disabled={!!attendance?.checkIn}
+                    >
+                      Check-In
+                    </button>
+                    <button
+                      className="btn btn-danger px-4"
+                      onClick={handleCheckOut}
+                      disabled={!attendance?.checkIn || !!attendance?.checkOut}
+                    >
+                      Check-Out
+                    </button>
+                  </div>
+                </div>
+
+
+                <div className="col-md-6 " style={{ paddingTop: "10px" }}>
+               
+
+                  <div
+                    className="mt-2"
+                    style={{
+                      backgroundColor: "#fff",
+                      color: "#3A5FBE",
+                      padding: "10px",
+                      textTransform: "capitalize",
+                      textAlign: "center",
+                      borderRadius: "25px",
+                      border: "1px solid #3A5FBE",
+                    }}
+                  >
+                    <strong>Status:</strong> {getProbationStatus(user)}
+                  </div>
+
+             
+                  <div
+                    className="d-flex align-items-center"
+                    style={{ paddingTop: "15px", gap: "20px" }}
+                  >
+                    <p style={{ marginBottom: 0, display: "flex" }}>
+                      <strong
+                        style={{ whiteSpace: "nowrap", color: "#3A5FBE" }}
+                      >
+                        {attendance?.mode === "WFH"
+                          ? "WFH Location"
+                          : "Office Location"}
+                      </strong>{" "}
+                      <span style={{ marginLeft: "5px" }}>
+                        {attendance?.checkIn
+                          ? attendance?.mode === "WFH"
+                            ? attendance?.employeeCheckInLocation?.address ||
+                            "Not checked in yet"
+                            : attendance?.checkInLocation?.address ||
+                            "Not checked in yet"
+                          : "Not checked in yet"}
+                      </span>
+                    </p>
+
+      
+                  </div>
+
+                  <div className="d-flex justify-content-center mt-3">
+                    <style>
+                      {`
+                      .custom-outline-btn {
+                        color: #3A5FBE;
+                        border-color: #3A5FBE;
+                        background-color: transparent;
+                        transition: background-color 0.3s, color 0.3s;
+                      }
+                      .custom-outline-btn:hover {
+                        color: #fff !important;
+                        background-color: #3A5FBE !important;
+                        border-color: #3A5FBE !important;
+                      }
+                    `}
+                    </style>
+
+                    <button
+                      className="btn btn-sm custom-outline-btn me-2"
+                      style={{
+                        whiteSpace: "nowrap",
+                        height: "31px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                      onClick={handleSeeLocation}
+                    >
+                      See Location
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-md-4 mb-3 mt-2">
+            <HolidaysCard />
+          </div>
+
+          <div className="col-md-8 mt-2">
+            <div className="row">
+              <div className="col-md-6 mb-2">
+                <div className="card shadow-sm h-100 border-0">
+                  <div className="card-body d-flex justify-content-between align-items-center">
+
+                    <div style={{ color: "#3A5FBE", fontSize: "25px" }}>
+                      <h6
+                        className="mb-2 ms-2"
+                        style={{ color: "#3A5FBE", fontSize: "25px" }}
+                      >
+                        Leave Balance
+                      </h6>
+                      <p
+                        className="mb-1 ms-2"
+                        style={{
+                          color: "#3A5FBE",
+                          fontSize: "18px",
+                          fontWeight: 500,
+                        }}
+                      >
+                        {user.casualLeaveBalance} Casual
+                      </p>
+                      <p
+                        className="mb-0 ms-2"
+                        style={{
+                          color: "#3A5FBE",
+                          fontSize: "18px",
+                          fontWeight: 500,
+                        }}
+                      >
+                        {user.sickLeaveBalance} Sick
+                      </p>
+                    </div>
+
+
+                    <div
+                      className=" d-flex justify-content-center align-items-center"
+                      style={{ width: "70px", height: "70px" }}
+                    >
+                      <i
+                        className="bi bi-file-earmark-text-fill"
+                        style={{ color: "#3A5FBE", fontSize: "50px" }}
+                      ></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="col-md-6 mb-2">
+                <div className="card shadow-sm h-100 border-0">
+                  <div className="card-body d-flex justify-content-between align-items-center">
+                 
+
+                    <div style={{ color: "#3A5FBE", fontSize: "25px" }}>
+                      <h6
+                        className="mb-2 ms-2"
+                        style={{ color: "#3A5FBE", fontSize: "25px" }}
+                      >
+                        Pending Request
+                      </h6>
+
+                     
+                      <p
+                        className="mb-1 ms-2"
+                        style={{
+                          color: "#3A5FBE",
+                          fontSize: "18px",
+                          fontWeight: 500,
+                          cursor: "pointer",
+                        }}
+                        onClick={() =>
+                          navigate(
+                            `/dashboard/${role}/${username}/${id}/leavebalance`,
+                          )
+                        }
+                      >
+                        {pendingCount} : Leave
+                      </p>
+
+                     
+                      <p
+                        className="mb-0 ms-2"
+                        style={{
+                          color: "#3A5FBE",
+                          fontSize: "18px",
+                          fontWeight: 500,
+                          cursor: "pointer",
+                        }}
+                        onClick={() =>
+                          navigate(
+                            `/dashboard/${role}/${username}/${id}/regularization`,
+                          )
+                        }
+                      >
+                        {pendingRegularization} : Regularization
+                      </p>
+                    </div>
+
+                  
+                    <div
+                      className="rounded-3 d-flex justify-content-center align-items-center me-3"
+                      style={{ width: "70px", height: "70px" }}
+                    >
+                      <i
+                        className="bi bi-stopwatch"
+                        style={{ color: "#3A5FBE", fontSize: "50px" }}
+                      ></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="row mt-3">
+              <div className="col-md-6 mb-2">
+                <QuickApplyLeave user={user} />
+              </div>
+              <div className="col-md-6 mb-2">
+                {" "}
+                <EventCard />
+              </div>
+            </div>
+
+           
+            <div className="row mt-3">
+              <div className="col-md-6 mb-2 mt-3">
+                <div
+                  className="card shadow-sm p-4 border-0 h-100"
+                  style={{ borderRadius: "12px", minHeight: "260px" }}
+                >
+                  <div className="row align-items-center">
+                    <div className="col-md-12">
+                     
+                      <div className="d-flex align-items-center justify-content-between mb-3">
+                        <h6
+                          style={{
+                            fontSize: "25px",
+                            color: "#3A5FBE",
+                            fontWeight: 600,
+                            margin: 0,
+                          }}
+                        >
+                          Break
+                        </h6>
+
+                       
+                        <i
+                          className={`bi ${currentIcon}`}
+                          style={{
+                            fontSize: "28px",
+                            color: "#3A5FBE",
+                            opacity: 0.35,
+                          }}
+                        ></i>
+                      </div>
+                      <hr
+                        style={{
+                          width: "100%",
+                          margin: "10px 0",
+                          opacity: "0.2",
+                        }}
+                      />
+                      <div className="ms-0">
+                   
+                        <div className="d-flex align-items-center gap-2 mb-2">
+                          <span
+                            style={{
+                              minWidth: "80px",
+                              color: "#3A5FBE",
+                              fontWeight: "600",
+                              fontSize: "18px",
+                            }}
+                          >
+                            Type :
+                          </span>
+                          <select
+                            className="form-select form-select-sm"
+                            style={{ maxWidth: "200px" }}
+                            value={breakType}
+                            disabled={onBreak}
+                            onChange={(e) => setBreakType(e.target.value)}
+                          >
+                            <option value="Tea">Tea</option>
+                            <option value="Lunch">Lunch</option>
+                            <option value="Personal">Personal</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+
+                        {breakType === "Other" && (
+                          <div className="d-flex align-items-center mb-2">
+                            <span
+                              style={{
+                                minWidth: "88px",
+                                color: "#3A5FBE",
+                                fontWeight: "600",
+                                fontSize: "18px",
+                              }}
+                            >
+                              Reason :
+                            </span>
+                            <input
+                              type="text"
+                              className="form-control form-control-sm"
+                              style={{ maxWidth: "200px" }}
+                              placeholder="Enter reason"
+                              value={otherReason}
+                              disabled={onBreak}
+                              onChange={(e) => setOtherReason(e.target.value)}
+                            />
+                          </div>
+                        )}
+
+                   
+                        <div className="d-flex align-items-center mb-2">
+                          <span
+                            style={{
+                              minWidth: "89px",
+                              color: "#3A5FBE",
+                              fontWeight: "600",
+                              fontSize: "18px",
+                            }}
+                          >
+                            Time :
+                          </span>
+                          <span
+                            style={{
+                              fontSize: "18px",
+                              fontWeight: "500",
+                              color: onBreak ? "#dc3545" : "#6c757d",
+                            }}
+                          >
+                            {onBreak ? breakTimer : "00:00"}
+                          </span>
+                        </div>
+
+                       
+                        <div className="d-flex align-items-center mt-1">
+                          <span
+                            style={{
+                              minWidth: "120px",
+                              color: "#3A5FBE",
+                              fontWeight: "600",
+                              fontSize: "18px",
+                            }}
+                          >
+                            Total Hours :
+                          </span>
+                          <span
+                            style={{
+                              fontSize: "18px",
+                              fontWeight: "600",
+                              color: "#3A5FBE",
+                            }}
+                          >
+                            {formatTotalBreakTime()}
+                          </span>
+                        </div>
+
+ 
+                        <hr
+                          style={{
+                            width: "100%",
+                            margin: "10px 0",
+                            opacity: "0.2",
+                          }}
+                        />
+                        <div className="d-flex gap-2 mt-3">
+                          <button
+                            className="btn btn-outline-success action-btn"
+                            style={{ minWidth: 90, height: 35 }}  
+                            onClick={handleStartBreak}
+                            disabled={onBreak}
+                          >
+                            Start Break
+                          </button>
+                          <button
+                            className="btn btn-outline-danger action-btn"  
+                            style={{ minWidth: 90, height: 35 }}
+                            disabled={
+                              !onBreak ||
+                              !attendance?.checkIn ||
+                              attendance?.checkOut
+                            }
+                            onClick={handleEndBreak}
+                          >
+                            End Break
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-md-4 mb-2 mt-3 mt-md-0">
+            <MyAttendanceCalender employeeId={user._id} />
+          </div>
+        </div>
+      </div> */}
+      <div
+        className="container-fluid pt-1 px-3"
+        style={{ marginTop: "-25px", backgroundColor: "#f5f7fb" }}
+      >
+        <div className="row">
+          <div className="col-md-8 mb-3 mt-2">
+            <div
+              className="card shadow-sm p-4 h-100 border-0"
+              style={{ borderRadius: "12px" }}
+            >
+              <div className="row align-items-center">
+                {/* Left: Attendance Info */}
+                <div className="col-md-6 text-center text-md-start ">
+                  <h6
+                    style={{
+                      fontSize: "25px",
+                      color: "#3A5FBE",
+                      fontWeight: "600",
+                      marginBottom: "15px",
+                    }}
+                  >
+                    Today's Attendance
+                  </h6>
+                  <div className="ms-lg-5 ms-0 text-center text-md-start ">
+                    <p
+                      className={`mb-1 ${attendance?.checkIn ? "text-success" : "text-danger"
+                        }`}
+                    >
+                      {attendance?.checkIn ? (
+                        <>
+                          <FontAwesomeIcon icon={faSquareCheck} />
+                          <span>
+                            Checked in at{" "}
+                            {/* {new Date(attendance.checkIn).toLocaleTimeString(
+                              [],
+                              { hour: "2-digit", minute: "2-digit" },
+                            )} */}
+                            {/* //Added by Jaicy */}
+                            {new Date(attendance.checkIn).toLocaleTimeString("en-US", {
+                              hour: "numeric",
+                              minute: "2-digit",
+                              hourCycle: "h12",
+                            })}
+                          </span>
+
+                          {attendance?.checkOut && (
+                            <>
+                              <span
+                                className="text-danger d-block mt-1"
+                                style={{ fontSize: "16px" }}
+                              >
+                                <FontAwesomeIcon icon={faSquareCheck} />
+                                Checked out at{" "}
+                                {/* //Added by Jaicy */}
+                                {new Date(attendance.checkOut).toLocaleTimeString("en-US", {
+                                  hour: "numeric",
+                                  minute: "2-digit",
+                                  hourCycle: "h12",
+                                })}
+                              </span>
+                            </>
+                          )}
+                        </>
+                      ) : (
+                        <span
+                          style={{
+                            fontSize: "16px",
+                            fontWeight: "500",
+                            color: "#1bce7b",
+                            marginBottom: "2px",
+                          }}
+                        >
+                          "Not Checked In"
+                        </span>
+                      )}
+                    </p>
+                    <p
+                      className="mb-1"
+                      style={{
+                        color: "#3A5FBE",
+                        fontSize: "15px",
+                        fontWeight: "400",
+                      }}
+                    >
+                      <strong>Total Hours:</strong> {calculateWorkedHours()}
+                    </p>
+                  </div>
+                  <div className="d-flex flex-row gap-5 justify-content-center justify-content-md-start align-items-center ms-lg-5 ms-0 mt-3">
+                    <div className="form-check form-switch">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        checked={workMode === "WFO"}
+                        //Added by Jaicy
+                        disabled={!!attendance?.checkIn}
+                        onChange={() => setWorkMode("WFO")}
+                      // onChange={(e) => setWorkMode(e.target.value)}
+                      />
+                      <label className="form-check-label ms-2">WFO</label>
+                    </div>
+                    <div className="form-check form-switch">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        checked={workMode === "WFH"}
+                        onChange={() => setWorkMode("WFH")}
+                        //Added by Jaicy
+                        disabled={!!attendance?.checkIn}
+                      // onChange={(e) => setWorkMode(e.target.value)}
+                      />
+                      <label className="form-check-label ms-2">WFH</label>
+                    </div>
+                  </div>
+                  <hr
+                    style={{ width: "100%", margin: "10px 0", opacity: "0.2" }}
+                  ></hr>
+                  <div className="mt-3 d-flex flex-row gap-2 justify-content-center justify-content-md-start align-items-center ms-lg-5 ms-0 ">
+                    {" "}
+                    <button
+                      className={`btn px-4 ${attendance?.checkIn ? "btn-secondary" : "btn-success"
+                        }`}
                       onClick={handleCheckIn}
                       disabled={!!attendance?.checkIn}
                     >
@@ -720,9 +1241,9 @@ function EmployeeDashboard({ user }) {
                         {attendance?.checkIn
                           ? attendance?.mode === "WFH"
                             ? attendance?.employeeCheckInLocation?.address ||
-                              "Not checked in yet"
+                            "Not checked in yet"
                             : attendance?.checkInLocation?.address ||
-                              "Not checked in yet"
+                            "Not checked in yet"
                           : "Not checked in yet"}
                       </span>
                     </p>
@@ -774,322 +1295,327 @@ function EmployeeDashboard({ user }) {
           </div>
 
           <div className="col-md-4 mb-3 mt-2">
-            <HolidaysCard />
-          </div>
-
-          <div className="col-md-8 mt-2">
-            <div className="row">
-              <div className="col-md-6 mb-2">
-                <div className="card shadow-sm h-100 border-0">
-                  <div className="card-body d-flex justify-content-between align-items-center">
-                    {/* Left Content */}
-                    <div style={{ color: "#3A5FBE", fontSize: "25px" }}>
-                      <h6
-                        className="mb-2 ms-2"
-                        style={{ color: "#3A5FBE", fontSize: "25px" }}
-                      >
-                        Leave Balance
-                      </h6>
-                      <p
-                        className="mb-1 ms-2"
-                        style={{
-                          color: "#3A5FBE",
-                          fontSize: "18px",
-                          fontWeight: 500,
-                        }}
-                      >
-                        {user.casualLeaveBalance} Casual
-                      </p>
-                      <p
-                        className="mb-0 ms-2"
-                        style={{
-                          color: "#3A5FBE",
-                          fontSize: "18px",
-                          fontWeight: 500,
-                        }}
-                      >
-                        {user.sickLeaveBalance} Sick
-                      </p>
-                    </div>
-
-                    {/* Right Icon */}
-                    <div
-                      className=" d-flex justify-content-center align-items-center"
-                      style={{ width: "70px", height: "70px" }}
+            <div
+              className="card shadow-sm p-4 border-0 h-100"
+              style={{ borderRadius: "12px", minHeight: "260px" }}
+            >
+              <div className="row align-items-center">
+                <div className="col-md-12">
+                  {/* Break Header */}
+                  <div className="d-flex align-items-center justify-content-between mb-3">
+                    <h6
+                      style={{
+                        fontSize: "25px",
+                        color: "#3A5FBE",
+                        fontWeight: 600,
+                        margin: 0,
+                      }}
                     >
-                      <i
-                        className="bi bi-file-earmark-text-fill"
-                        style={{ color: "#3A5FBE", fontSize: "50px" }}
-                      ></i>
-                    </div>
+                      Break
+                    </h6>
+
+                    {/* Icon */}
+                    <i
+                      className={`bi ${currentIcon}`}
+                      style={{
+                        fontSize: "28px",
+                        color: "#3A5FBE",
+                        opacity: 0.35,
+                      }}
+                    ></i>
                   </div>
-                </div>
-              </div>
-              <div className="col-md-6 mb-2">
-                <div className="card shadow-sm h-100 border-0">
-                  <div className="card-body d-flex justify-content-between align-items-center">
-                    {/* Left Content */}
-                    {/* <div style={{ color: "#3A5FBE", fontSize: "25px" }}>
-                      <h6 className="mb-2" style={{ color: "#3A5FBE", fontSize: "25px" }}>Pending Request</h6>
-                      <p className="mb-1" style={{ color: "#3A5FBE", fontSize: "18px", fontWeight: 500 }}>{pendingCount} : Leave</p>
-                      <p className="mb-0" style={{ color: "#3A5FBE", fontSize: "18px", fontWeight: 500 }}>{pendingRegularization} Regularization</p>
-                    </div> */}
-
-                    <div style={{ color: "#3A5FBE", fontSize: "25px" }}>
-                      <h6
-                        className="mb-2 ms-2"
-                        style={{ color: "#3A5FBE", fontSize: "25px" }}
-                      >
-                        Pending Request
-                      </h6>
-
-                      {/* Navigate to Leave Balance */}
-                      <p
-                        className="mb-1 ms-2"
+                  <hr
+                    style={{
+                      width: "100%",
+                      margin: "10px 0",
+                      opacity: "0.2",
+                    }}
+                  />
+                  <div className="ms-0">
+                    {/* Break Type */}
+                    <div className="d-flex align-items-center gap-2 mb-2">
+                      <span
                         style={{
+                          minWidth: "80px",
                           color: "#3A5FBE",
+                          fontWeight: "600",
                           fontSize: "18px",
-                          fontWeight: 500,
-                          cursor: "pointer",
                         }}
-                        onClick={() =>
-                          navigate(
-                            `/dashboard/${role}/${username}/${id}/leavebalance`,
-                          )
-                        }
                       >
-                        {pendingCount} : Leave
-                      </p>
-
-                      {/* Navigate to Regularization */}
-                      <p
-                        className="mb-0 ms-2"
-                        style={{
-                          color: "#3A5FBE",
-                          fontSize: "18px",
-                          fontWeight: 500,
-                          cursor: "pointer",
-                        }}
-                        onClick={() =>
-                          navigate(
-                            `/dashboard/${role}/${username}/${id}/regularization`,
-                          )
-                        }
+                        Type :
+                      </span>
+                      <select
+                        className="form-select form-select-sm"
+                        style={{ maxWidth: "200px" }}
+                        value={breakType}
+                        disabled={onBreak}
+                        onChange={(e) => setBreakType(e.target.value)}
                       >
-                        {pendingRegularization} : Regularization
-                      </p>
+                        <option value="Tea">Tea</option>
+                        <option value="Lunch">Lunch</option>
+                        <option value="Personal">Personal</option>
+                        <option value="Other">Other</option>
+                      </select>
                     </div>
 
-                    {/* Right Icon with margin */}
-                    <div
-                      className="rounded-3 d-flex justify-content-center align-items-center me-3"
-                      style={{ width: "70px", height: "70px" }}
-                    >
-                      <i
-                        className="bi bi-stopwatch"
-                        style={{ color: "#3A5FBE", fontSize: "50px" }}
-                      ></i>
+                    {breakType === "Other" && (
+                      <div className="d-flex align-items-center mb-2">
+                        <span
+                          style={{
+                            minWidth: "88px",
+                            color: "#3A5FBE",
+                            fontWeight: "600",
+                            fontSize: "18px",
+                          }}
+                        >
+                          Reason :
+                        </span>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          style={{ maxWidth: "200px" }}
+                          placeholder="Enter reason"
+                          value={otherReason}
+                          disabled={onBreak}
+                          onChange={(e) => setOtherReason(e.target.value)}
+                        />
+                      </div>
+                    )}
+
+                    {/* Break Timer */}
+                    <div className="d-flex align-items-center mb-2">
+                      <span
+                        style={{
+                          minWidth: "89px",
+                          color: "#3A5FBE",
+                          fontWeight: "600",
+                          fontSize: "18px",
+                        }}
+                      >
+                        Time :
+                      </span>
+                      <span
+                        style={{
+                          fontSize: "18px",
+                          fontWeight: "500",
+                          color: onBreak ? "#dc3545" : "#6c757d",
+                        }}
+                      >
+                        {onBreak ? breakTimer : "00:00"}
+                      </span>
+                    </div>
+
+                    {/* Total Break Time */}
+                    <div className="d-flex align-items-center mt-1">
+                      <span
+                        style={{
+                          minWidth: "120px",
+                          color: "#3A5FBE",
+                          fontWeight: "600",
+                          fontSize: "18px",
+                        }}
+                      >
+                        Total Hours :
+                      </span>
+                      <span
+                        style={{
+                          fontSize: "18px",
+                          fontWeight: "600",
+                          color: "#3A5FBE",
+                        }}
+                      >
+                        {formatTotalBreakTime()}
+                      </span>
+                    </div>
+
+                    {/* Buttons */}
+                    <hr
+                      style={{
+                        width: "100%",
+                        margin: "10px 0",
+                        opacity: "0.2",
+                      }}
+                    />
+                    <div className="d-flex gap-2 mt-3">
+                      <button
+                        className="btn btn-outline-success action-btn"
+                        style={{ minWidth: 90, height: 35 }} //Style And ClassName Added by Rushikesh
+                        onClick={handleStartBreak}
+                        disabled={onBreak}
+                      >
+                        Start Break
+                      </button>
+                      <button
+                        className="btn btn-outline-danger action-btn" //Style Added by Rushikesh
+                        style={{ minWidth: 90, height: 35 }}
+                        disabled={
+                          !onBreak ||
+                          !attendance?.checkIn ||
+                          attendance?.checkOut
+                        }
+                        onClick={handleEndBreak}
+                      >
+                        End Break
+                      </button>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="row mt-3">
-              <div className="col-md-6 mb-2">
+          </div>
+
+          <div className="col-md-8 mt-2">
+            <div className="row">
+              <div className="col-md-6 ">
+                <div>
+                  <div className="card shadow-sm border-0 mb-2">
+                    <div className="card-body d-flex justify-content-between align-items-center">
+                      {/* Left Content */}
+                      <div style={{ color: "#3A5FBE", fontSize: "25px" }}>
+                        <h6
+                          className="mb-2 ms-2"
+                          style={{ color: "#3A5FBE", fontSize: "25px" }}
+                        >
+                          Leave Balance
+                        </h6>
+                        <p
+                          className="mb-1 ms-2"
+                          style={{
+                            color: "#3A5FBE",
+                            fontSize: "18px",
+                            fontWeight: 500,
+                          }}
+                        >
+                          {user.casualLeaveBalance} Casual
+                        </p>
+                        <p
+                          className="mb-0 ms-2"
+                          style={{
+                            color: "#3A5FBE",
+                            fontSize: "18px",
+                            fontWeight: 500,
+                          }}
+                        >
+                          {user.sickLeaveBalance} Sick
+                        </p>
+                      </div>
+
+                      {/* Right Icon */}
+                      <div
+                        className=" d-flex justify-content-center align-items-center"
+                        style={{ width: "70px", height: "70px" }}
+                      >
+                        <i
+                          className="bi bi-file-earmark-text-fill"
+                          style={{ color: "#3A5FBE", fontSize: "50px" }}
+                        ></i>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Pending Request */}
+                  <div className="mt-4 ">
+                    <div className="card shadow-sm border-0 mb-2">
+                      <div className="card-body d-flex justify-content-between align-items-center">
+                        {/* Left Content */}
+                        {/* <div style={{ color: "#3A5FBE", fontSize: "25px" }}>
+                      <h6 className="mb-2" style={{ color: "#3A5FBE", fontSize: "25px" }}>Pending Request</h6>
+                      <p className="mb-1" style={{ color: "#3A5FBE", fontSize: "18px", fontWeight: 500 }}>{pendingCount} : Leave</p>
+                      <p className="mb-0" style={{ color: "#3A5FBE", fontSize: "18px", fontWeight: 500 }}>{pendingRegularization} Regularization</p>
+                    </div> */}
+
+                        <div style={{ color: "#3A5FBE", fontSize: "25px" }}>
+                          <h6
+                            className="mb-2 ms-2"
+                            style={{ color: "#3A5FBE", fontSize: "25px" }}
+                          >
+                            Pending Request
+                          </h6>
+
+                          {/* Navigate to Leave Balance */}
+                          <p
+                            className="mb-1 ms-2"
+                            style={{
+                              color: "#3A5FBE",
+                              fontSize: "18px",
+                              fontWeight: 500,
+                              cursor: "pointer",
+                            }}
+                            onClick={() =>
+                              navigate(
+                                `/dashboard/${role}/${username}/${id}/leavebalance`,
+                              )
+                            }
+                          >
+                            {pendingCount} : Leave
+                          </p>
+
+                          {/* Navigate to Regularization */}
+                          <p
+                            className="mb-0 ms-2"
+                            style={{
+                              color: "#3A5FBE",
+                              fontSize: "18px",
+                              fontWeight: 500,
+                              cursor: "pointer",
+                            }}
+                            onClick={() =>
+                              navigate(
+                                `/dashboard/${role}/${username}/${id}/regularization`,
+                              )
+                            }
+                          >
+                            {pendingRegularization} : Regularization
+                          </p>
+                        </div>
+
+                        {/* Right Icon with margin */}
+                        <div
+                          className="rounded-3 d-flex justify-content-center align-items-center me-3"
+                          style={{ width: "70px", height: "70px" }}
+                        >
+                          <i
+                            className="bi bi-stopwatch"
+                            style={{ color: "#3A5FBE", fontSize: "50px" }}
+                          ></i>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick apply leave */}
+              <div className="col-md-6 " style={{ height: "280px" }}>
                 <QuickApplyLeave user={user} />
               </div>
+            </div>
+
+            <div className="row mt-3">
               <div className="col-md-6 mb-2">
                 {" "}
                 <EventCard />
+              </div>
+              <div className="col-md-6 mb-2">
+                <HolidaysCard />
               </div>
             </div>
 
             {/* addeded samiksha code */}
 
             {/* ✅ Break Card */}
-            <div className="row mt-3">
-              <div className="col-md-6 mb-2 mt-3">
-                <div
-                  className="card shadow-sm p-4 border-0 h-100"
-                  style={{ borderRadius: "12px", minHeight: "260px" }}
-                >
-                  <div className="row align-items-center">
-                    <div className="col-md-12">
-                      {/* Break Header */}
-                      <div className="d-flex align-items-center justify-content-between mb-3">
-                        <h6
-                          style={{
-                            fontSize: "25px",
-                            color: "#3A5FBE",
-                            fontWeight: 600,
-                            margin: 0,
-                          }}
-                        >
-                          Break
-                        </h6>
-
-                        {/* Icon */}
-                        <i
-                          className={`bi ${currentIcon}`}
-                          style={{
-                            fontSize: "28px",
-                            color: "#3A5FBE",
-                            opacity: 0.35,
-                          }}
-                        ></i>
-                      </div>
-                      <hr
-                        style={{
-                          width: "100%",
-                          margin: "10px 0",
-                          opacity: "0.2",
-                        }}
-                      />
-                      <div className="ms-0">
-                        {/* Break Type */}
-                        <div className="d-flex align-items-center gap-2 mb-2">
-                          <span
-                            style={{
-                              minWidth: "80px",
-                              color: "#3A5FBE",
-                              fontWeight: "600",
-                              fontSize: "18px",
-                            }}
-                          >
-                            Type :
-                          </span>
-                          <select
-                            className="form-select form-select-sm"
-                            style={{ maxWidth: "200px" }}
-                            value={breakType}
-                            disabled={onBreak}
-                            onChange={(e) => setBreakType(e.target.value)}
-                          >
-                            <option value="Tea">Tea</option>
-                            <option value="Lunch">Lunch</option>
-                            <option value="Personal">Personal</option>
-                            <option value="Other">Other</option>
-                          </select>
-                        </div>
-
-                        {breakType === "Other" && (
-                          <div className="d-flex align-items-center mb-2">
-                            <span
-                              style={{
-                                minWidth: "88px",
-                                color: "#3A5FBE",
-                                fontWeight: "600",
-                                fontSize: "18px",
-                              }}
-                            >
-                              Reason :
-                            </span>
-                            <input
-                              type="text"
-                              className="form-control form-control-sm"
-                              style={{ maxWidth: "200px" }}
-                              placeholder="Enter reason"
-                              value={otherReason}
-                              disabled={onBreak}
-                              onChange={(e) => setOtherReason(e.target.value)}
-                            />
-                          </div>
-                        )}
-
-                        {/* Break Timer */}
-                        <div className="d-flex align-items-center mb-2">
-                          <span
-                            style={{
-                              minWidth: "89px",
-                              color: "#3A5FBE",
-                              fontWeight: "600",
-                              fontSize: "18px",
-                            }}
-                          >
-                            Time :
-                          </span>
-                          <span
-                            style={{
-                              fontSize: "18px",
-                              fontWeight: "500",
-                              color: onBreak ? "#dc3545" : "#6c757d",
-                            }}
-                          >
-                            {onBreak ? breakTimer : "00:00"}
-                          </span>
-                        </div>
-
-                        {/* Total Break Time */}
-                        <div className="d-flex align-items-center mt-1">
-                          <span
-                            style={{
-                              minWidth: "120px",
-                              color: "#3A5FBE",
-                              fontWeight: "600",
-                              fontSize: "18px",
-                            }}
-                          >
-                            Total Hours :
-                          </span>
-                          <span
-                            style={{
-                              fontSize: "18px",
-                              fontWeight: "600",
-                              color: "#3A5FBE",
-                            }}
-                          >
-                            {formatTotalBreakTime()}
-                          </span>
-                        </div>
-
-                        {/* Buttons */}
-                        <hr
-                          style={{
-                            width: "100%",
-                            margin: "10px 0",
-                            opacity: "0.2",
-                          }}
-                        />
-                        <div className="d-flex gap-2 mt-3">
-                          <button
-                            className={`btn ${
-                              onBreak ? "btn-secondary" : "btn-success"
-                            }`}
-                            style={{
-                              minWidth: "130px",
-                              height: "40px",
-                              borderRadius: "20px",
-                            }}
-                            onClick={handleStartBreak}
-                            disabled={onBreak}
-                          >
-                            Start Break
-                          </button>
-                          <button
-                            className={`btn px-4 ${
-                              !onBreak ? "btn-secondary" : "btn-danger"
-                            }`}
-                            style={{ minWidth: "130px" }}
-                            disabled={
-                              !onBreak ||
-                              !attendance?.checkIn ||
-                              attendance?.checkOut
-                            }
-                            onClick={handleEndBreak}
-                          >
-                            End Break
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
 
           <div className="col-md-4 mb-2 mt-3 mt-md-0">
-            <MyAttendanceCalender employeeId={user._id} />
+            <div
+              className="w-100"
+              style={{
+                minHeight: "530px",
+                height: "530px",
+                display: "flex",
+              }}
+            >
+              <MyAttendanceCalender employeeId={user._id} />
+            </div>
           </div>
         </div>
       </div>

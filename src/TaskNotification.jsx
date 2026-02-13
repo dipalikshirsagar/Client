@@ -13,7 +13,7 @@ const TaskNotification = ({ userId }) => {
 
     try {
       const res = await axios.get(
-        `https://server-backend-nu.vercel.app/task-notifications/${userId}`,
+        `https://server-backend-ems.vercel.app/task-notifications/${userId}`,
       );
 
       const notificationsArray = res.data;
@@ -35,7 +35,7 @@ const TaskNotification = ({ userId }) => {
 
   const handleNotificationClick = async (n) => {
     try {
-      await axios.put(`https://server-backend-nu.vercel.app/tasknotifications/${n._id}/read`);
+      await axios.put(`https://server-backend-ems.vercel.app/tasknotifications/${n._id}/read`);
 
       setNotifications((prev) =>
         prev.map((item) =>

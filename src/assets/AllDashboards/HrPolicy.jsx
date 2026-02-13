@@ -1,607 +1,8 @@
-// import React, { useEffect, useState } from "react";
-// import { useNavigate, useParams } from "react-router-dom";
-
-// const STORAGE_KEY = "hr_policy";
-
-// function HrPolicy() {
-//   const { role, username, id } = useParams();
-//   const navigate = useNavigate();
-//   const [showAddModal, setShowAddModal] = useState(false);
-//   const [newPolicy, setNewPolicy] = useState({
-//     title: "",
-//     description: ""
-//   });
-
-//   const canEdit = role === "admin" || role === "hr";
-
-//   const [policies, setPolicies] = useState([]);
-//   const [searchText, setSearchText] = useState("");
-//   const [searchQuery, setSearchQuery] = useState("");
-
-//   const [showModal, setShowModal] = useState(false);
-//   const [selectedPolicy, setSelectedPolicy] = useState(null);
-//   const [isEditMode, setIsEditMode] = useState(false);
-
-//   const [policyForm, setPolicyForm] = useState({
-//     title: "",
-//     description: ""
-//   });
-
-//   useEffect(() => {
-//     const saved = localStorage.getItem(STORAGE_KEY);
-//     setPolicies(
-//       saved
-//         ? JSON.parse(saved)
-//         : [
-//           {
-//             id: 1,
-//             title: "Office Timing",
-//             description: "9:30 AM – 6:30 PM"
-//           },
-//           {
-//             id: 2,
-//             title: "Lunch Break",
-//             description: "1 Hour"
-//           },
-//           {
-//             id: 3,
-//             title: "Leave Policy",
-//             description: "As per company rules"
-//           },
-//           {
-//             id: 4,
-//             title: "Work From Home",
-//             description: "Manager approval required"
-//           }
-//         ]
-//     );
-//   }, []);
-
-//   const persist = (updated) => {
-//     setPolicies(updated);
-//     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-//   };
-
-//   /* ---------- Search ---------- */
-//   const handleSearch = () => setSearchQuery(searchText);
-//   const handleReset = () => {
-//     setSearchText("");
-//     setSearchQuery("");
-//   };
-
-//   const filteredPolicies = policies.filter((p) =>
-//     `${p.title} ${p.description}`
-//       .toLowerCase()
-//       .includes(searchQuery.toLowerCase())
-//   );
-
-//   /* ---------- HR EDIT ---------- */
-//   const handleEditClick = (policy) => {
-//     setSelectedPolicy(policy);
-//     setPolicyForm({
-//       title: policy.title,
-//       description: policy.description
-//     });
-//     setIsEditMode(true);
-//     setShowModal(true);
-//   };
-
-//   const handleSave = () => {
-//     persist(
-//       policies.map((p) =>
-//         p.id === selectedPolicy.id
-//           ? { ...p, ...policyForm }
-//           : p
-//       )
-//     );
-//     setShowModal(false);
-//   };
-
-//   const deletePolicy = (pid) => {
-//     if (!window.confirm("Delete this policy?")) return;
-//     persist(policies.filter((p) => p.id !== pid));
-//   };
-
-//   /* ---------- EMPLOYEE VIEW ---------- */
-//   const handleViewClick = (policy) => {
-//     setSelectedPolicy(policy);
-//     setIsEditMode(false);
-//     setShowModal(true);
-//   };
-
-//   return (
-//     <div style={{ width: "100%" }}>
-//       {/* HEADER */}
-//       <div
-//         style={{
-//           display: "flex",
-//           justifyContent: "space-between",
-//           alignItems: "center",
-//           padding: "24px",
-//           marginBottom: "16px",
-//           paddingRight: "50px"
-//         }}
-//       >
-//         <h2 style={{ color: "#3A5FBE", margin: 0 }}>HR Policies</h2>
-
-//         {canEdit && (
-//           <button
-//             className="btn btn-sm custom-outline-btn"
-//             onClick={() => setShowAddModal(true)}
-//           >
-//             Add New Policy
-//           </button>
-
-//         )}
-//       </div>
-
-//       {/* SEARCH (HR ONLY) */}
-//       {canEdit && (
-//         <div
-//           style={{
-//             display: "flex",
-//             alignItems: "center",
-//             gap: "12px",
-//             background: "#ffffff",
-//             padding: "14px 20px",
-//             borderRadius: "10px",
-//             margin: "0 16px 20px 16px",
-//             boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-//           }}
-//         >
-//           <span
-//             style={{
-//               color: "#3A5FBE",
-//               fontWeight: 500,
-//               whiteSpace: "nowrap",
-//             }}
-//           >
-//             Search by Any Field
-//           </span>
-//           <input
-//             type="text"
-//             value={searchText}
-//             onChange={(e) => setSearchText(e.target.value)}
-//             placeholder="Search by any field..."
-//             style={{
-//               width: "420px",        // 👈 width control
-//               maxWidth: "100%",
-//               padding: "8px 12px",
-//               borderRadius: "8px",
-//               border: "1px solid #d1d5db",
-//               outline: "none",
-//             }}
-//           />
-//           <button
-//             className="btn btn-sm custom-outline-btn"
-//             onClick={handleSearch}
-//             style={{ minWidth: "40px", marginLeft: "600px", }}
-//           >
-//             Search
-//           </button>
-//           <button
-//             className="btn btn-sm custom-outline-btn"
-//             onClick={handleReset}
-//             style={{ minWidth: "40px" }}
-//           >
-//             Reset
-//           </button>
-//         </div>
-//       )}
-
-//       {/* POLICY LIST */}
-//       <div
-//         style={{
-//           background: "#ffffff",
-//           padding: "30px",
-//           borderRadius: "12px",
-//           boxShadow: "0 6px 18px rgba(0,0,0,0.1)",
-//           margin: "0 10px"
-//         }}
-//       >
-//         {filteredPolicies.map((policy) => (
-//           <div
-//             key={policy.id}
-//             style={{
-//               display: "flex",
-//               justifyContent: "space-between",
-//               alignItems: "center",
-//               padding: "14px",
-//               borderRadius: "8px",
-//               border: "1px solid #e5e7eb",
-//               marginBottom: "12px",
-//               color: "#3A5FBE"
-//             }}
-//           >
-//             <span style={{ fontSize: "15px" }}>
-//               <strong>{policy.title}</strong>: {policy.description}
-//             </span>
-
-//             <div style={{ display: "flex", gap: "10px" }}>
-//               {canEdit ? (
-//                 <>
-//                   <button
-//                     className="btn btn-sm custom-outline-btn"
-//                     onClick={() => handleEditClick(policy)}
-//                   >
-//                     Edit
-//                   </button>
-//                   <button
-//                     type="button"
-//                     className="btn btn-sm"
-//                     onClick={() => deletePolicy(policy.id)}
-//                     onMouseEnter={(e) => {
-//                       e.target.style.backgroundColor = "#dc3545";
-//                       e.target.style.color = "#ffffff";
-//                       e.target.style.borderColor = "#dc3545";
-//                     }}
-//                     onMouseLeave={(e) => {
-//                       e.target.style.backgroundColor = "transparent";
-//                       e.target.style.color = "#dc3545";
-//                       e.target.style.borderColor = "#dc3545";
-//                     }}
-//                     style={{
-//                       border: "1px solid #dc3545",
-//                       color: "#dc3545",
-//                       background: "transparent"
-//                     }}
-//                   >
-//                     Delete
-//                   </button>
-
-//                 </>
-//               ) : (
-//                 <button
-//                   className="btn btn-sm custom-outline-btn"
-//                   onClick={() => handleViewClick(policy)}
-//                 >
-//                   View
-//                 </button>
-//               )}
-//             </div>
-//           </div>
-//         ))}
-//       </div>
-
-//       {showModal && selectedPolicy && (
-//         <div
-//           style={{
-//             position: "fixed",
-//             inset: 0,
-//             background: "rgba(0,0,0,0.5)",
-//             display: "flex",
-//             justifyContent: "center",
-//             alignItems: "center",
-//             zIndex: 9999
-//           }}
-//         >
-//           <div
-//             style={{
-//               background: "#fff",
-//               width: "420px",
-//               borderRadius: "12px",
-//               overflow: "hidden"
-//             }}
-//           >
-//             <div
-//               style={{
-//                 background: "#3A5FBE",
-//                 color: "#fff",
-//                 padding: "14px"
-//               }}
-//             >
-//               {isEditMode ? "Edit Policy" : "HR Policy"}
-//             </div>
-
-//             <div style={{ padding: "16px" }}>
-//               {isEditMode ? (
-//                 <>
-//                   {/* TITLE */}
-//                   <label
-//                     style={{
-//                       fontSize: "13px",
-//                       fontWeight: 500,
-//                       marginBottom: "4px",
-//                       display: "block"
-//                     }}
-//                   >
-//                     Policy Title
-//                   </label>
-
-//                   <input
-//                     value={policyForm.title}
-//                     onChange={(e) =>
-//                       setPolicyForm({
-//                         ...policyForm,
-//                         title: e.target.value
-//                       })
-//                     }
-//                     style={{
-//                       width: "100%",
-//                       padding: "8px",
-//                       marginBottom: "12px"
-//                     }}
-//                   />
-
-//                   {/* DESCRIPTION */}
-//                   <label
-//                     style={{
-//                       fontSize: "13px",
-//                       fontWeight: 500,
-//                       marginBottom: "4px",
-//                       display: "block"
-//                     }}
-//                   >
-//                     Policy Description
-//                   </label>
-
-//                   <textarea
-//                     rows="3"
-//                     value={policyForm.description}
-//                     onChange={(e) =>
-//                       setPolicyForm({
-//                         ...policyForm,
-//                         description: e.target.value
-//                       })
-//                     }
-//                     style={{
-//                       width: "100%",
-//                       padding: "8px",
-//                       marginBottom: "10px"
-//                     }}
-//                   />
-//                 </>
-//               ) : (
-//                 <>
-//                   <label
-//                     style={{
-//                       fontSize: "13px",
-//                       fontWeight: 500,
-//                       marginBottom: "4px",
-//                       display: "block"
-//                     }}
-//                   >
-//                     Policy Title
-//                   </label>
-
-//                   <div
-//                     style={{
-//                       width: "100%",
-//                       padding: "8px",
-//                       marginBottom: "12px",
-//                       border: "1px solid #d1d5db",
-//                       borderRadius: "4px",
-//                       background: "#f9fafb"
-//                     }}
-//                   >
-//                     {selectedPolicy.title}
-//                   </div>
-
-//                   <label
-//                     style={{
-//                       fontSize: "13px",
-//                       fontWeight: 500,
-//                       marginBottom: "4px",
-//                       display: "block"
-//                     }}
-//                   >
-//                     Policy Description
-//                   </label>
-
-//                   <div
-//                     style={{
-//                       width: "100%",
-//                       padding: "8px",
-//                       marginBottom: "10px",
-//                       border: "1px solid #d1d5db",
-//                       borderRadius: "4px",
-//                       background: "#f9fafb",
-//                       whiteSpace: "pre-wrap"
-//                     }}
-//                   >
-//                     {selectedPolicy.description}
-//                   </div>
-//                 </>
-
-//               )}
-
-//               <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "16px" }}>
-//                 <button
-//                   className="btn btn-sm custom-outline-btn"
-//                   onClick={handleSave}
-//                 >
-//                   Save
-//                 </button>
-//                 <button
-//                   className="btn btn-sm custom-outline-btn"
-//                   onClick={() => setShowModal(false)}
-//                 >
-//                   Close
-//                 </button>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-
-//       )}
-//       {showAddModal && (
-//         <div
-//           style={{
-//             position: "fixed",
-//             inset: 0,
-//             background: "rgba(0,0,0,0.45)",
-//             display: "flex",
-//             justifyContent: "center",
-//             alignItems: "center",
-//             zIndex: 9999
-//           }}
-//         >
-//           <div
-//             style={{
-//               width: "460px",
-//               background: "#ffffff",
-//               borderRadius: "12px",
-//               boxShadow: "0 20px 40px rgba(0,0,0,0.25)",
-//               overflow: "hidden"
-//             }}
-//           >
-//             {/* HEADER */}
-//             <div
-//               style={{
-//                 background: "#3A5FBE",
-//                 color: "#ffffff",
-//                 padding: "14px 18px",
-//                 fontSize: "16px",
-//                 fontWeight: 600,
-//                 display: "flex",
-//                 justifyContent: "space-between",
-//                 alignItems: "center"
-//               }}
-//             >
-//               Add New Policy
-//               <span
-//                 onClick={() => setShowAddModal(false)}
-//                 style={{ cursor: "pointer", fontSize: "20px" }}
-//               >
-//                 ×
-//               </span>
-//             </div>
-
-//             {/* BODY */}
-//             <div style={{ padding: "18px" }}>
-//               {/* TITLE */}
-//               <label style={{ fontSize: "13px", fontWeight: 500 }}>
-//                 Policy Title
-//               </label>
-//               <input
-//                 value={newPolicy.title}
-//                 onChange={(e) => {
-//                   const value = e.target.value;
-//                   if (/^[a-zA-Z\s]*$/.test(value)) {
-//                     setNewPolicy({ ...newPolicy, title: value });
-//                   }
-//                 }}
-//                 placeholder="Enter policy title"
-//                 style={{
-//                   width: "100%",
-//                   padding: "10px 12px",
-//                   borderRadius: "8px",
-//                   border: "1px solid #d1d5db",
-//                   marginTop: "6px",
-//                   marginBottom: "14px",
-//                   outline: "none"
-//                 }}
-//               />
-
-//               {/* DESCRIPTION */}
-//               <label style={{ fontSize: "13px", fontWeight: 500 }}>
-//                 Policy Description
-//               </label>
-//               <textarea
-//                 rows="3"
-//                 maxLength={300}
-//                 value={newPolicy.description}
-//                 onChange={(e) =>
-//                   setNewPolicy({ ...newPolicy, description: e.target.value })
-//                 }
-//                 placeholder="Enter policy description"
-//                 style={{
-//                   width: "100%",
-//                   padding: "10px 12px",
-//                   borderRadius: "8px",
-//                   border: "1px solid #d1d5db",
-//                   marginTop: "6px",
-//                   marginBottom: "14px",
-//                   outline: "none",
-//                   resize: "none"
-//                 }}
-//               />
-//               <div className="char-count"
-//                 style={{
-//                   display: "flex",
-//                   justifyContent: "flex-end",
-//                   fontSize: "12px",
-//                   color: "#6c757d",
-//                   marginTop: "-10px",
-//                 }}>
-//                 {newPolicy.description.length}/300</div>
-
-//               {/* PDF */}
-//               <label style={{ fontSize: "13px", fontWeight: 500 }}>
-//                 Upload Policy PDF
-//               </label>
-//               <input
-//                 type="file"
-//                 accept="application/pdf"
-//                 onChange={(e) =>
-//                   setNewPolicy({ ...newPolicy, pdf: e.target.files[0] })
-//                 }
-//                 style={{
-//                   width: "100%",
-//                   marginTop: "6px",
-//                   fontSize: "13px"
-//                 }}
-//               />
-//             </div>
-
-//             {/* FOOTER */}
-//             <div
-//               style={{
-//                 display: "flex",
-//                 justifyContent: "flex-end",
-//                 gap: "12px",
-//                 padding: "14px 18px",
-//                 borderTop: "1px solid #e5e7eb"
-//               }}
-//             >
-//               <button
-//                 type="button"
-//                 className="btn btn-sm custom-outline-btn"
-//                 onClick={() => setShowAddModal(false)}
-//               >
-//                 Cancel
-//               </button>
-
-//               <button
-//                 onClick={() => {
-//                   if (!newPolicy.title || !newPolicy.description) {
-//                     alert("Title and Description required");
-//                     return;
-//                   }
-
-//                   const updated = [
-//                     ...policies,
-//                     {
-//                       id: Date.now(),
-//                       title: newPolicy.title,
-//                       description: newPolicy.description,
-//                       pdf: newPolicy.pdf ? newPolicy.pdf.name : null
-//                     }
-//                   ];
-
-//                   setPolicies(updated);
-//                   localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-
-//                   setNewPolicy({ title: "", description: "", pdf: null });
-//                   setShowAddModal(false);
-//                 }}
-//                 className="btn btn-sm custom-outline-btn"
-//               >
-//                 Save Policy
-//               </button>
-//             </div>
-//           </div>
-//         </div>
-//       )}
-
-//     </div>
-//   );
-// }
-
-// export default HrPolicy;
-
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import axios from "axios";
+
+const API_BASE = "https://server-backend-ems.vercel.app";
 
 const STORAGE_KEY = "hr_policy";
 const ACK_KEY = "policy_ack_employee";
@@ -631,11 +32,76 @@ function HrPolicy() {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [statusPolicy, setStatusPolicy] = useState(null);
   const [activeTab, setActiveTab] = useState("read");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [viewPolicy, setViewPolicy] = useState(null);
+  const modalRef = useRef(null);
+  const isAnyModalOpen =
+    showViewModal ||
+    showModal ||
+    showAddModal ||
+    showStatusModal ||
+    statusPolicy;
 
+  useEffect(() => {
+    if (!isAnyModalOpen || !modalRef.current) return;
+
+    const modal = modalRef.current;
+
+    const focusableElements = modal.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+
+    if (!focusableElements.length) return;
+
+    const firstEl = focusableElements[0];
+    const lastEl = focusableElements[focusableElements.length - 1];
+
+    // ⭐ modal open होताच focus
+    modal.focus();
+
+    const handleKeyDown = (e) => {
+      // ESC key → modal close
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setShowViewModal(false);
+        setShowModal(false);
+        setShowAddModal(false);
+        setShowStatusModal(false);
+        setStatusPolicy(false);
+      }
+
+      // TAB key → focus trap
+      if (e.key === "Tab") {
+        if (e.shiftKey) {
+          if (document.activeElement === firstEl) {
+            e.preventDefault();
+            lastEl.focus();
+          }
+        } else {
+          if (document.activeElement === lastEl) {
+            e.preventDefault();
+            firstEl.focus();
+          }
+        }
+      }
+    };
+
+    modal.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      modal.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isAnyModalOpen]);
   const handleViewClick = (policy) => {
     console.log("Selected Policy:", policy);
     setSelectedPolicy(policy);
     setShowModal(true);
+  };
+
+  const handleRowClick = (policy) => {
+    setViewPolicy(policy);
+    setShowViewModal(true);
   };
 
   const getReadEmployees = (policyId) => {
@@ -682,98 +148,87 @@ function HrPolicy() {
   }, []);
 
   useEffect(() => {
-    const today = new Date().toISOString().split("T")[0];
-    const saved = localStorage.getItem(STORAGE_KEY);
-
-    if (saved && JSON.parse(saved).length > 0) {
-      setPolicies(JSON.parse(saved));
-    } else {
-      const defaultPolicies = [
-        {
-          id: 1,
-          title: "Office Timing :",
-          description:
-            "Office working hours are from 9:30 AM to 6:30 PM. Employees must follow punctuality.",
-          version: "1.0",
-          createdAt: today,
-          updatedAt: today,
-        },
-        {
-          id: 2,
-          title: "Lunch Break :",
-          description:
-            "Employees are allowed a one-hour lunch break as per team schedule.",
-          version: "1.0",
-          createdAt: today,
-          updatedAt: today,
-        },
-        {
-          id: 3,
-          title: "Leave Policy :",
-          description:
-            "Leaves must be applied in advance and approved by the reporting manager.",
-          version: "1.0",
-          createdAt: today,
-          updatedAt: today,
-        },
-        {
-          id: 4,
-          title: "Work From Home :",
-          description:
-            "Work from home is allowed only with prior approval from the manager.",
-          version: "1.0",
-          createdAt: today,
-          updatedAt: today,
-        },
-        {
-          id: 5,
-          title: "Office Timing :",
-          description:
-            "Office working hours are from 9:30 AM to 6:30 PM. Employees must follow punctuality.",
-          version: "1.0",
-          createdAt: today,
-          updatedAt: today,
-        },
-        {
-          id: 6,
-          title: "Lunch Break :",
-          description:
-            "Employees are allowed a one-hour lunch break as per team schedule.",
-          version: "1.0",
-          createdAt: today,
-          updatedAt: today,
-        },
-        {
-          id: 7,
-          title: "Leave Policy:",
-          description:
-            "Leaves must be applied in advance and approved by the reporting manager.",
-          version: "1.0",
-          createdAt: today,
-          updatedAt: today,
-        },
-        {
-          id: 8,
-          title: "Work From Home :",
-          description:
-            "Work from home is allowed only with prior approval from the manager.",
-          version: "1.0",
-          createdAt: today,
-          updatedAt: today,
-        },
-      ];
-
-      setPolicies(defaultPolicies);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultPolicies));
-    }
+    fetchPolicies();
   }, []);
+
+  // const handleAddPolicy = async () => {
+  //   if (!newPolicy.title || !newPolicy.description) {
+  //     alert("Title and Description required");
+  //     return;
+  //   }
+
+  //   try {
+  //     const res = await axios.post(`${API_BASE}/policy/create`, {
+  //       title: newPolicy.title,
+  //       description: newPolicy.description,
+  //       image: newPolicy.pdf ? newPolicy.pdf.name : null,
+  //     });
+
+  //     if (res.data.success) {
+  //       alert(res.data.message);
+  //       setShowAddModal(false);
+  //       setNewPolicy({ title: "", description: "", pdf: null });
+
+  //       // 🔄 Refresh table
+  //       fetchPolicies();
+  //     }
+  //   } catch (error) {
+  //     console.error("Failed to add policy", error);
+  //     alert("Failed to create policy");
+  //   }
+  // };
+
+  const handleAddPolicy = async () => {
+    if (!newPolicy.title || !newPolicy.description) {
+      alert("Title and Description required");
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("title", newPolicy.title);
+      formData.append("description", newPolicy.description);
+
+      if (newPolicy.pdf) {
+        formData.append("pdf", newPolicy.pdf);
+      }
+
+      const res = await axios.post(`${API_BASE}/policy/create`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (res.data.success) {
+        alert(res.data.message);
+        setShowAddModal(false);
+        setNewPolicy({ title: "", description: "", pdf: null });
+        fetchPolicies();
+      }
+    } catch (error) {
+      console.error("Failed to add policy", error);
+      alert("Failed to create policy");
+    }
+  };
+  const fetchPolicies = async () => {
+    try {
+      const res = await axios.get(`${API_BASE}/policy/get`);
+      if (res.data.success) {
+        setPolicies(res.data.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch policies", error);
+    }
+  };
 
   const persist = (updated) => {
     setPolicies(updated);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
   };
 
-  const handleSearch = () => setSearchQuery(searchText);
+  const handleSearch = () => {
+    setSearchQuery(searchText);
+  };
   const handleReset = () => {
     setSearchText("");
     setSearchQuery("");
@@ -782,7 +237,7 @@ function HrPolicy() {
   const filteredPolicies = policies.filter((p) =>
     `${p.title || ""} ${p.description || ""}`
       .toLowerCase()
-      .includes(searchText.toLowerCase())
+      .includes(searchQuery.toLowerCase()),
   );
 
   const totalItems = filteredPolicies.length;
@@ -816,42 +271,60 @@ function HrPolicy() {
     setShowModal(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!selectedPolicy) return;
 
-    const updated = policies.map((p) =>
-      p.id === selectedPolicy.id
-        ? {
-            ...p,
-            title: policyForm.title,
-            description: policyForm.description,
-            version: (parseFloat(p.version || "1.0") + 0.1).toFixed(1),
-            updatedAt: new Date().toISOString().split("T")[0],
-          }
-        : p
-    );
+    try {
+      const res = await axios.put(
+        `${API_BASE}/policy/update/${selectedPolicy._id}`,
+        {
+          title: policyForm.title,
+          description: policyForm.description,
+        },
+      );
 
-    persist(updated);
-    setShowModal(false);
+      if (res.data.success) {
+        alert(res.data.message); // ✅ SHOW MESSAGE
+        fetchPolicies();
+        setShowModal(false);
+        setIsEditMode(false);
+        setSelectedPolicy(null);
+      }
+    } catch (error) {
+      alert("Failed to update policy");
+    }
   };
 
-  const deletePolicy = (pid) => {
+  const deletePolicy = async (pid) => {
     if (!window.confirm("Delete this policy?")) return;
-    persist(policies.filter((p) => p.id !== pid));
+
+    try {
+      const res = await axios.delete(`${API_BASE}/policy/delete/${pid}`);
+
+      if (res.data.success) {
+        alert(res.data.message); // ✅ SHOW MESSAGE
+        fetchPolicies();
+      }
+    } catch (error) {
+      alert("Failed to delete policy");
+    }
   };
 
   const thStyle = {
-    padding: "12px 16px",
-    textAlign: "left",
+    fontWeight: "500",
     fontSize: "14px",
-    fontWeight: 600,
+    color: "#6c757d",
+    borderBottom: "2px solid #dee2e6",
+    padding: "12px",
     whiteSpace: "nowrap",
   };
 
   const tdStyle = {
-    padding: "14px 16px",
+    padding: "12px",
+    verticalAlign: "middle",
     fontSize: "14px",
-    verticalAlign: "top",
+    borderBottom: "1px solid #dee2e6",
+    whiteSpace: "nowrap",
   };
 
   const isNewPolicy = (createdAt) => {
@@ -873,36 +346,7 @@ function HrPolicy() {
     return policy.updatedAt !== policy.createdAt;
   };
 
-  <button
-    onClick={() => {
-      if (!newPolicy.title || !newPolicy.description) {
-        alert("Title and Description required");
-        return;
-      }
-
-      const today = new Date().toISOString().split("T")[0];
-
-      const updated = [
-        ...policies,
-        {
-          id: Date.now(),
-          title: newPolicy.title,
-          description: newPolicy.description,
-          version: "1.0",
-          createdAt: today,
-          updatedAt: today,
-          pdf: newPolicy.pdf ? newPolicy.pdf.name : null,
-        },
-      ];
-
-      setPolicies(updated);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-
-      setNewPolicy({ title: "", description: "", pdf: null });
-      setShowAddModal(false);
-    }}
-    className="btn btn-sm custom-outline-btn"
-  >
+  <button className="btn btn-sm custom-outline-btn" onClick={handleAddPolicy}>
     Save Policy
   </button>;
   useEffect(() => {
@@ -918,17 +362,8 @@ function HrPolicy() {
   }, []);
 
   return (
-    <div style={{ width: "100%" }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "24px",
-          marginBottom: "16px",
-          paddingRight: "50px",
-        }}
-      >
+    <div className="container-fluid ">
+      <div className="d-flex justify-content-between mb-3">
         <h2 style={{ color: "#3A5FBE", fontSize: "25px", marginLeft: "15px" }}>
           HR Policies
         </h2>
@@ -937,224 +372,247 @@ function HrPolicy() {
           <button
             className="btn btn-sm custom-outline-btn"
             onClick={() => setShowAddModal(true)}
+            style={{ minWidth: 90, height: 30 }}
           >
             Add New Policy
           </button>
         )}
       </div>
 
-      {canEdit && (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "12px",
-            background: "#ffffff",
-            padding: "14px 20px",
-            borderRadius: "10px",
-            margin: "0 16px 20px 16px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-            flexWrap: "wrap", //add
-          }}
-        >
-          <span
-            style={{
-              color: "#3A5FBE",
-              fontWeight: 500,
-              whiteSpace: "nowrap",
-            }}
-          >
-            Search by Any Field
-          </span>
-          <input
-            type="text"
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            placeholder="Search by any field..."
-            style={{
-              width: "420px",
-              maxWidth: "100%",
-              padding: "8px 12px",
-              borderRadius: "8px",
-              border: "1px solid #d1d5db",
-              outline: "none",
-              flex: "1",
-            }}
-          />
+      {/* 
+//Added by mahesh */}
+      <div className="card mb-4 shadow-sm border-0">
+        <div className="card-body">
+          <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
+            {/* Search Input */}
+            <div
+              className="d-flex align-items-center gap-2 flex-grow-1 flex-md-grow-0 w-md-100"
+              style={{ maxWidth: "400px" }}
+            >
+              <label
+                className="fw-bold mb-0"
+                style={{ fontSize: "16px", color: "#3A5FBE" }}
+              >
+                Search
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Search By Any Field..."
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+              />
+            </div>
 
-          <div
-            style={{
-              marginLeft: "auto",
-              display: "flex",
-              gap: "8px",
-              flexWrap: "wrap", //add
-            }}
-          >
-            <button
-              className="btn btn-sm custom-outline-btn"
-              onClick={handleSearch}
-            >
-              Search
-            </button>
-            <button
-              className="btn btn-sm custom-outline-btn"
-              onClick={handleReset}
-            >
-              Reset
-            </button>
+            {/* Filter and Reset Buttons */}
+            <div className="d-flex gap-2 ms-auto">
+              <button
+                type="button"
+                style={{ minWidth: 90 }}
+                className="btn btn-sm custom-outline-btn"
+                onClick={handleSearch}
+              >
+                Filter
+              </button>
+              <button
+                type="button"
+                style={{ minWidth: 90 }}
+                className="btn btn-sm custom-outline-btn"
+                onClick={handleReset}
+              >
+                Reset
+              </button>
+            </div>
           </div>
         </div>
-      )}
-
-      <div
-        style={{
-          width: "100%",
-          overflowX: "auto",
-          border: "1px solid #e5e7eb",
-          borderRadius: "10px",
-          background: "#ffffff",
-        }}
-      >
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            minWidth: "800px",
-          }}
-        >
-          <thead>
-            <tr style={{ background: "#f9fafb" }}>
-              <th style={thStyle}>#</th>
-              <th style={thStyle}>Policy Title</th>
-              <th style={thStyle}>Description</th>
-              <th style={thStyle}>Status</th>
-              <th style={thStyle}>Read Date & Time</th>
-              <th style={thStyle}>Action</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {currentPolicies.map((policy) => (
-              <tr key={policy.id} style={{ borderTop: "1px solid #e5e7eb" }}>
-                <td style={tdStyle}>#{policy.id}</td>
-
-                {/* ✅ TITLE + BADGES */}
-                <td style={{ ...tdStyle, fontWeight: 600 }}>
-                  {policy.title}
-
-                  {/* 🆕 NEW */}
-                  {isNewPolicy(policy.createdAt) && (
-                    <span
-                      style={{
-                        marginLeft: "8px",
-                        fontSize: "11px",
-                        background: "#dcfce7",
-                        color: "#166534",
-                        padding: "2px 6px",
-                        borderRadius: "6px",
-                        fontWeight: 600,
-                      }}
-                    >
-                      NEW
-                    </span>
-                  )}
-
-                  {/* ✏️ UPDATED */}
-                  {isUpdatedPolicy(policy) && (
-                    <span
-                      style={{
-                        marginLeft: "6px",
-                        fontSize: "11px",
-                        background: "#e0f2fe",
-                        color: "#075985",
-                        padding: "2px 6px",
-                        borderRadius: "6px",
-                        fontWeight: 600,
-                      }}
-                    >
-                      UPDATED
-                    </span>
-                  )}
-                </td>
-
-                <td style={tdStyle}>{policy.description}</td>
-
-                <td style={tdStyle}>
-                  <button
-                    className="btn btn-sm custom-outline-btn"
-                    onClick={() => {
-                      setStatusPolicy(policy);
-                      setShowStatusModal(true);
-                    }}
-                  >
-                    View Status
-                  </button>
-                </td>
-
-                <td style={tdStyle}>
-                  {(() => {
-                    const acks = getAllAcksForPolicy(policy.id);
-
-                    if (acks.length === 0) return "-";
-
-                    const latest = acks
-                      .map((a) => new Date(a.acknowledgedAt))
-                      .sort((a, b) => b - a)[0];
-
-                    return latest.toLocaleString();
-                  })()}
-                </td>
-
-                <td style={tdStyle}>
-                  <div style={{ display: "flex", gap: "8px" }}>
-                    {canEdit ? (
-                      <>
-                        <button
-                          className="btn btn-sm custom-outline-btn"
-                          onClick={() => handleEditClick(policy)}
-                        >
-                          Edit
-                        </button>
-
-                        <button
-                          type="button"
-                          className="btn btn-sm"
-                          onClick={() => deletePolicy(policy.id)}
-                          onMouseEnter={(e) => {
-                            e.target.style.backgroundColor = "#dc3545";
-                            e.target.style.color = "#ffffff";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.target.style.backgroundColor = "transparent";
-                            e.target.style.color = "#dc3545";
-                          }}
-                          style={{
-                            border: "1px solid #dc3545",
-                            color: "#dc3545",
-                            background: "transparent",
-                          }}
-                        >
-                          Delete
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        className="btn btn-sm custom-outline-btn"
-                        onClick={() => handleViewClick(policy)}
-                      >
-                        View
-                      </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
       </div>
 
-      {showModal && selectedPolicy && (
+      <div className="card shadow-sm border-0">
+        <div className="table-responsive bg-white">
+          <table className="table table-hover mb-0">
+            <thead>
+              <tr style={{ background: "#f9fafb" }}>
+                <th style={thStyle}>Policy Title</th>
+                <th style={thStyle}>Description</th>
+                <th style={thStyle}>Status</th>
+                <th style={thStyle}>Read Date & Time</th>
+                <th style={thStyle}>Uploaded File</th>
+                <th style={thStyle}>Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {currentPolicies.map((policy) => (
+                <tr
+                  key={policy._id}
+                  style={{
+                    borderTop: "1px solid #e5e7eb",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => handleRowClick(policy)}
+                >
+                  {/* ✅ TITLE + BADGES */}
+                  <td style={{ ...tdStyle, fontWeight: 600 }}>
+                    {policy.title}
+
+                    {/* 🆕 NEW */}
+                    {isNewPolicy(policy.createdAt) && (
+                      <span
+                        style={{
+                          marginLeft: "8px",
+                          fontSize: "11px",
+                          background: "#dcfce7",
+                          color: "#166534",
+                          padding: "2px 6px",
+                          borderRadius: "6px",
+                          fontWeight: 600,
+                        }}
+                      >
+                        NEW
+                      </span>
+                    )}
+
+                    {/* ✏️ UPDATED */}
+                    {isUpdatedPolicy(policy) && (
+                      <span
+                        style={{
+                          marginLeft: "6px",
+                          fontSize: "11px",
+                          background: "#e0f2fe",
+                          color: "#075985",
+                          padding: "2px 6px",
+                          borderRadius: "6px",
+                          fontWeight: 600,
+                        }}
+                      >
+                        UPDATED
+                      </span>
+                    )}
+                  </td>
+
+                  <td style={tdStyle}>
+                    <div
+                      style={{
+                        maxWidth: "250px",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                      title={policy.description} // optional: show full text on hover
+                    >
+                      {policy.description}
+                    </div>
+                  </td>
+
+                  <td style={tdStyle}>
+                    <button
+                      className="btn btn-sm custom-outline-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setStatusPolicy(policy);
+                        setShowStatusModal(true);
+                      }}
+                    >
+                      View Status
+                    </button>
+                  </td>
+
+                  <td style={tdStyle}>
+                    {(() => {
+                      const acks = getAllAcksForPolicy(policy._id);
+
+                      if (acks.length === 0) return "-";
+
+                      const latest = acks
+                        .map((a) => new Date(a.acknowledgedAt))
+                        .sort((a, b) => b - a)[0];
+
+                      return latest.toLocaleString();
+                    })()}
+                  </td>
+
+                  {/* //Added by Shivani */}
+
+                  <td style={tdStyle}>
+                    {policy.image ? (
+                      <a
+                        href={`${API_BASE}/uploads/${policy.image}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()} // prevent row click
+                        style={{
+                          color: "#3A5FBE",
+                          fontWeight: 500,
+                          textDecoration: "none",
+                        }}
+                      >
+                        📄 View File
+                      </a>
+                    ) : (
+                      <span style={{ color: "#9ca3af" }}></span>
+                    )}
+                  </td>
+
+                  <td style={tdStyle}>
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      {canEdit ? (
+                        <>
+                          <button
+                            className="btn btn-sm custom-outline-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditClick(policy);
+                            }}
+                          >
+                            Edit
+                          </button>
+
+                          <button
+                            type="button"
+                            className="btn btn-sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deletePolicy(policy._id);
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.backgroundColor = "#dc3545";
+                              e.target.style.color = "#ffffff";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.backgroundColor = "transparent";
+                              e.target.style.color = "#dc3545";
+                            }}
+                            style={{
+                              border: "1px solid #dc3545",
+                              color: "#dc3545",
+                              background: "transparent",
+                            }}
+                          >
+                            Delete
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          className="btn btn-sm custom-outline-btn"
+                          onClick={() => handleViewClick(policy)}
+                        >
+                          View
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {showViewModal && viewPolicy && (
         <div
+          className="modal fade show"
+          ref={modalRef}
+          tabIndex="-1"
           style={{
             position: "fixed",
             inset: 0,
@@ -1162,168 +620,67 @@ function HrPolicy() {
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            zIndex: 9999,
+            zIndex: 1050,
+            overflowX: "auto",
           }}
         >
           <div
-            style={{
-              background: "#fff",
-              width: "420px",
-              borderRadius: "12px",
-              overflow: "hidden",
-            }}
+            className="modal-dialog"
+            style={{ maxWidth: "650px", width: "95%", marginTop: "120px" }}
           >
-            <div
-              style={{
-                background: "#3A5FBE",
-                color: "#fff",
-                padding: "14px",
-              }}
-            >
-              {isEditMode ? "Edit Policy" : "HR Policy"}
-            </div>
-
-            <div style={{ padding: "16px" }}>
-              {isEditMode ? (
-                <>
-                  <label
-                    style={{
-                      fontSize: "13px",
-                      fontWeight: 500,
-                      marginBottom: "4px",
-                      display: "block",
-                    }}
-                  >
-                    Policy Title
-                  </label>
-
-                  <input
-                    value={policyForm.title}
-                    onChange={(e) =>
-                      setPolicyForm({
-                        ...policyForm,
-                        title: e.target.value,
-                      })
-                    }
-                    style={{
-                      width: "100%",
-                      padding: "8px",
-                      marginBottom: "12px",
-                    }}
-                  />
-
-                  <label
-                    style={{
-                      fontSize: "13px",
-                      fontWeight: 500,
-                      marginBottom: "4px",
-                      display: "block",
-                    }}
-                  >
-                    Policy Description
-                  </label>
-
-                  <textarea
-                    rows="3"
-                    value={policyForm.description}
-                    onChange={(e) =>
-                      setPolicyForm({
-                        ...policyForm,
-                        description: e.target.value,
-                      })
-                    }
-                    style={{
-                      width: "100%",
-                      padding: "8px",
-                      marginBottom: "10px",
-                    }}
-                  />
-                </>
-              ) : (
-                <>
-                  <label
-                    style={{
-                      fontSize: "13px",
-                      fontWeight: 500,
-                      marginBottom: "4px",
-                      display: "block",
-                    }}
-                  >
-                    Policy Title
-                  </label>
-
-                  <div
-                    style={{
-                      width: "100%",
-                      padding: "8px",
-                      marginBottom: "12px",
-                      border: "1px solid #d1d5db",
-                      borderRadius: "4px",
-                      background: "#f9fafb",
-                    }}
-                  >
-                    {selectedPolicy.title}
-                  </div>
-
-                  <label
-                    style={{
-                      fontSize: "13px",
-                      fontWeight: 500,
-                      marginBottom: "4px",
-                      display: "block",
-                    }}
-                  >
-                    Policy Description
-                  </label>
-
-                  <div
-                    style={{
-                      width: "100%",
-                      padding: "8px",
-                      marginBottom: "10px",
-                      border: "1px solid #d1d5db",
-                      borderRadius: "4px",
-                      background: "#f9fafb",
-                      whiteSpace: "pre-wrap",
-                    }}
-                  >
-                    {selectedPolicy.description}
-                  </div>
-                </>
-              )}
-              <h4>Read Employees</h4>
-              <ul>
-                {getReadEmployees(selectedPolicy.id).map((e) => (
-                  <li key={e.employeeId}>
-                    {e.employeeName} – {e.acknowledgedAt}
-                  </li>
-                ))}
-              </ul>
-
-              <h4>Pending Employees</h4>
-              <ul>
-                {getPendingEmployees(selectedPolicy.id).map((e) => (
-                  <li key={e.id}>{e.name}</li>
-                ))}
-              </ul>
-
+            <div className="modal-content">
+              {/* HEADER */}
               <div
-                style={{
-                  display: "flex",
-                  justifyContent: "flex-end",
-                  gap: "10px",
-                  marginTop: "16px",
-                }}
+                className="modal-header text-white"
+                style={{ backgroundColor: "#3A5FBE" }}
               >
+                <h5 className="modal-title mb-0">View Policy</h5>
+                <button
+                  className="btn-close btn-close-white p-1"
+                  onClick={() => setShowViewModal(false)}
+                />
+              </div>
+
+              {/* BODY */}
+              <div className="modal-body">
+                <div className="mb-2 row">
+                  <label className="col-4 form-label fw-semibold mb-0">
+                    Policy Title
+                  </label>
+                  <div className="col-8">
+                    <p className="mb-0">{viewPolicy.title}</p>
+                  </div>
+                </div>
+
+                <div className="mb-2 row">
+                  <label className="col-4 form-label fw-semibold mb-0">
+                    Description
+                  </label>
+                  <div className="col-8">
+                    <p
+                      className="mb-0"
+                      style={{
+                        maxHeight: "120px",
+                        overflowY: "auto",
+                        overflowX: "hidden",
+                        whiteSpace: "pre-wrap",
+                        wordBreak: "break-word",
+                        lineHeight: "1.5",
+                        paddingRight: "6px",
+                      }}
+                    >
+                      {viewPolicy.description}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* FOOTER */}
+              <div className="d-flex justify-content-end gap-2 p-3">
                 <button
                   className="btn btn-sm custom-outline-btn"
-                  onClick={handleSave}
-                >
-                  Save
-                </button>
-                <button
-                  className="btn btn-sm custom-outline-btn"
-                  onClick={() => setShowModal(false)}
+                  style={{ minWidth: "90px" }}
+                  onClick={() => setShowViewModal(false)}
                 >
                   Close
                 </button>
@@ -1332,158 +689,212 @@ function HrPolicy() {
           </div>
         </div>
       )}
-      {showAddModal && (
+
+      {showModal && selectedPolicy && (
         <div
+          className="modal fade show"
+          ref={modalRef}
+          tabIndex="-1"
           style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.5)",
             position: "fixed",
             inset: 0,
-            background: "rgba(0,0,0,0.45)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 9999,
+            zIndex: 1050,
           }}
         >
           <div
-            style={{
-              width: "460px",
-              background: "#ffffff",
-              borderRadius: "12px",
-              boxShadow: "0 20px 40px rgba(0,0,0,0.25)",
-              overflow: "hidden",
-            }}
+            className="modal-dialog"
+            style={{ maxWidth: "650px", width: "95%", marginTop: "120px" }}
           >
-            <div
-              style={{
-                background: "#3A5FBE",
-                color: "#ffffff",
-                padding: "14px 18px",
-                fontSize: "16px",
-                fontWeight: 600,
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              Add New Policy
-              <span
-                onClick={() => setShowAddModal(false)}
-                style={{ cursor: "pointer", fontSize: "20px" }}
+            <div className="modal-content">
+              {/* HEADER */}
+              <div
+                className="modal-header text-white"
+                style={{ backgroundColor: "#3A5FBE" }}
               >
-                ×
-              </span>
-            </div>
+                <h5 className="modal-title mb-0">Edit Policy</h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setShowModal(false)}
+                />
+              </div>
 
-            <div style={{ padding: "18px" }}>
-              <label style={{ fontSize: "13px", fontWeight: 500 }}>
-                Policy Title
-              </label>
-              <input
-                value={newPolicy.title}
-                onChange={(e) =>
-                  setNewPolicy({ ...newPolicy, title: e.target.value })
-                }
-                placeholder="Enter policy title"
-                style={{
-                  width: "100%",
-                  padding: "10px 12px",
-                  borderRadius: "8px",
-                  border: "1px solid #d1d5db",
-                  marginTop: "6px",
-                  marginBottom: "14px",
-                  outline: "none",
-                }}
-              />
-
-              <label style={{ fontSize: "13px", fontWeight: 500 }}>
-                Policy Description
-              </label>
-              <textarea
-                rows="3"
-                value={newPolicy.description}
-                onChange={(e) =>
-                  setNewPolicy({ ...newPolicy, description: e.target.value })
-                }
-                placeholder="Enter policy description"
-                style={{
-                  width: "100%",
-                  padding: "10px 12px",
-                  borderRadius: "8px",
-                  border: "1px solid #d1d5db",
-                  marginTop: "6px",
-                  marginBottom: "14px",
-                  outline: "none",
-                  resize: "none",
-                }}
-              />
-
-              <label style={{ fontSize: "13px", fontWeight: 500 }}>
-                Upload Policy PDF
-              </label>
-              <input
-                type="file"
-                accept="application/pdf"
-                onChange={(e) =>
-                  setNewPolicy({ ...newPolicy, pdf: e.target.files[0] })
-                }
-                style={{
-                  width: "100%",
-                  marginTop: "6px",
-                  fontSize: "13px",
-                }}
-              />
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: "12px",
-                padding: "14px 18px",
-                borderTop: "1px solid #e5e7eb",
-              }}
-            >
-              <button
-                type="button"
-                className="btn btn-sm custom-outline-btn"
-                onClick={() => setShowAddModal(false)}
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={() => {
-                  if (!newPolicy.title || !newPolicy.description) {
-                    alert("Title and Description required");
-                    return;
+              {/* BODY */}
+              <div className="modal-body">
+                <label className="fw-semibold mb-1">Policy Title</label>
+                <input
+                  className="form-control mb-3"
+                  value={policyForm.title}
+                  onChange={(e) =>
+                    setPolicyForm({ ...policyForm, title: e.target.value })
                   }
+                />
 
-                  const updated = [
-                    ...policies,
-                    {
-                      id: Date.now(),
-                      title: newPolicy.title,
-                      description: newPolicy.description,
-                      pdf: newPolicy.pdf ? newPolicy.pdf.name : null,
-                    },
-                  ];
+                <label className="fw-semibold mb-1">Policy Description</label>
+                <textarea
+                  rows="3"
+                  className="form-control"
+                  value={policyForm.description}
+                  onChange={(e) =>
+                    setPolicyForm({
+                      ...policyForm,
+                      description: e.target.value,
+                    })
+                  }
+                />
+              </div>
 
-                  setPolicies(updated);
-                  localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+              {/* FOOTER */}
+              <div className="modal-footer border-0 pt-0">
+                <button
+                  className="btn btn-sm custom-outline-btn"
+                  style={{ minWidth: 90 }}
+                  onClick={handleSave}
+                >
+                  Save
+                </button>
 
-                  setNewPolicy({ title: "", description: "", pdf: null });
-                  setShowAddModal(false);
-                }}
-                className="btn btn-sm custom-outline-btn"
-              >
-                Save Policy
-              </button>
+                <button
+                  className="btn btn-sm custom-outline-btn"
+                  style={{ minWidth: 90 }}
+                  onClick={() => setShowModal(false)}
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
+
+      {showAddModal && (
+        <div
+          className="modal fade show"
+          ref={modalRef}
+          tabIndex="-1"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.5)",
+            position: "fixed",
+            inset: 0,
+            zIndex: 1050,
+            marginTop: "40px",
+          }}
+        >
+          <div className="modal-dialog modal-lg">
+            <div className="modal-content">
+              {/* HEADER */}
+              <div
+                className="modal-header"
+                style={{ background: "#3A5FBE", color: "#fff" }}
+              >
+                <h5 className="modal-title">Add New Policy</h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setShowAddModal(false)}
+                />
+              </div>
+
+              {/* BODY */}
+              <div
+                className="modal-body"
+                style={{
+                  maxHeight: "70vh",
+                  overflowY: "auto",
+                }}
+              >
+                <div className="row g-3">
+                  <div className="col-12">
+                    <label className="form-label">Policy Title</label>
+                    <input
+                      className="form-control"
+                      placeholder="Enter policy title"
+                      value={newPolicy.title}
+                      onChange={(e) =>
+                        setNewPolicy({ ...newPolicy, title: e.target.value })
+                      }
+                    />
+                  </div>
+
+                  <div className="col-12">
+                    <label className="form-label">Policy Description</label>
+
+                    <textarea
+                      rows="3"
+                      className="form-control"
+                      placeholder="Enter policy description"
+                      maxLength={200}
+                      value={newPolicy.description}
+                      onChange={(e) =>
+                        setNewPolicy({
+                          ...newPolicy,
+                          description: e.target.value,
+                        })
+                      }
+                    />
+
+                    {/* Character count */}
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "flex-end",
+                        fontSize: "12px",
+                        color: "#6c757d",
+                        marginTop: "4px",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {newPolicy.description.length}/200
+                    </div>
+                  </div>
+
+                  <div className="col-12">
+                    <label className="form-label">Upload Policy PDF</label>
+                    <input
+                      type="file"
+                      accept="application/pdf"
+                      className="form-control"
+                      onChange={(e) =>
+                        setNewPolicy({ ...newPolicy, pdf: e.target.files[0] })
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* FOOTER */}
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-sm custom-outline-btn"
+                  onClick={() => setShowAddModal(false)}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  className="btn btn-sm custom-outline-btn"
+                  onClick={handleAddPolicy}
+                >
+                  Save Policy
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {totalItems > 0 && (
         <div
+          ref={modalRef}
+          tabIndex="-1"
           style={{
             display: "flex",
             justifyContent: "flex-end",
@@ -1566,10 +977,10 @@ function HrPolicy() {
       {showStatusModal &&
         statusPolicy &&
         (() => {
-          const readEmployees = getAllAcksForPolicy(statusPolicy.id);
+          const readEmployees = getAllAcksForPolicy(statusPolicy._id);
 
           const pendingEmployees = allEmployees.filter(
-            (emp) => !readEmployees.some((r) => r.employeeId === emp.id)
+            (emp) => !readEmployees.some((r) => r.employeeId === emp.id),
           );
 
           return (
@@ -1592,127 +1003,137 @@ function HrPolicy() {
                   overflow: "hidden",
                 }}
               >
-                {/* HEADER */}
                 <div
-                  style={{
-                    background: "#3A5FBE",
-                    color: "#fff",
-                    padding: "14px 18px",
-                    fontWeight: 600,
-                    display: "flex",
-                    justifyContent: "space-between",
-                  }}
+                  className="modal-content"
+                  // samiksha p
+                  ref={modalRef}
+                  tabIndex="-1"
                 >
-                  Policy Status – {statusPolicy.title}
-                  <span
-                    style={{ cursor: "pointer" }}
-                    onClick={() => setShowStatusModal(false)}
-                  >
-                    ✕
-                  </span>
-                </div>
-
-                {/* TABS */}
-                <div
-                  style={{ display: "flex", borderBottom: "1px solid #e5e7eb" }}
-                >
-                  <button
-                    onClick={() => setActiveTab("read")}
+                  {/* HEADER */}
+                  <div
                     style={{
-                      flex: 1,
-                      padding: "10px",
-                      border: "none",
-                      background:
-                        activeTab === "read" ? "#e0e7ff" : "transparent",
+                      background: "#3A5FBE",
+                      color: "#fff",
+                      padding: "14px 18px",
                       fontWeight: 600,
+                      display: "flex",
+                      justifyContent: "space-between",
                     }}
                   >
-                    Read
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("pending")}
+                    Policy Status – {statusPolicy.title}
+                    <span
+                      style={{ cursor: "pointer" }}
+                      onClick={() => setShowStatusModal(false)}
+                    >
+                      ✕
+                    </span>
+                  </div>
+
+                  {/* TABS */}
+                  <div
                     style={{
-                      flex: 1,
-                      padding: "10px",
-                      border: "none",
-                      background:
-                        activeTab === "pending" ? "#fde68a" : "transparent",
-                      fontWeight: 600,
+                      display: "flex",
+                      borderBottom: "1px solid #e5e7eb",
                     }}
                   >
-                    Pending
-                  </button>
-                </div>
+                    <button
+                      onClick={() => setActiveTab("read")}
+                      style={{
+                        flex: 1,
+                        padding: "10px",
+                        border: "none",
+                        background:
+                          activeTab === "read" ? "#e0e7ff" : "transparent",
+                        fontWeight: 600,
+                      }}
+                    >
+                      Read
+                    </button>
+                    <button
+                      onClick={() => setActiveTab("pending")}
+                      style={{
+                        flex: 1,
+                        padding: "10px",
+                        border: "none",
+                        background:
+                          activeTab === "pending" ? "#fde68a" : "transparent",
+                        fontWeight: 600,
+                      }}
+                    >
+                      Pending
+                    </button>
+                  </div>
 
-                {/* CONTENT */}
-                <div
-                  style={{
-                    padding: "16px",
-                    maxHeight: "300px",
-                    overflowY: "auto",
-                  }}
-                >
-                  {activeTab === "read" && (
-                    <>
-                      {readEmployees.length === 0 ? (
-                        <p>No employee has read this policy.</p>
-                      ) : (
-                        <table width="100%">
-                          <thead>
-                            <tr>
-                              <th>ID</th>
-                              <th>Name</th>
-                              <th>Date & Time</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {readEmployees.map((e) => {
-                              const emp = allEmployees.find(
-                                (x) => x.id === e.employeeId
-                              );
-
-                              return (
-                                <tr key={e.employeeId}>
-                                  <td>{e.employeeId}</td>
-                                  <td>{emp?.name || "-"}</td>
-                                  <td>
-                                    {new Date(
-                                      e.acknowledgedAt
-                                    ).toLocaleString()}
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      )}
-                    </>
-                  )}
-
-                  {activeTab === "pending" && (
-                    <>
-                      {pendingEmployees.length === 0 ? (
-                        <p>All employees have read this policy.</p>
-                      ) : (
-                        <table width="100%">
-                          <thead>
-                            <tr>
-                              <th>ID</th>
-                              <th>Name</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {pendingEmployees.map((e) => (
-                              <tr key={e.id}>
-                                <td>{e.id}</td>
-                                <td>{e.name}</td>
+                  {/* CONTENT */}
+                  <div
+                    style={{
+                      padding: "16px",
+                      maxHeight: "300px",
+                      overflowY: "auto",
+                    }}
+                  >
+                    {activeTab === "read" && (
+                      <>
+                        {readEmployees.length === 0 ? (
+                          <p>No employee has read this policy.</p>
+                        ) : (
+                          <table width="100%">
+                            <thead>
+                              <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Date & Time</th>
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      )}
-                    </>
-                  )}
+                            </thead>
+                            <tbody>
+                              {readEmployees.map((e) => {
+                                const emp = allEmployees.find(
+                                  (x) => x.id === e.employeeId,
+                                );
+
+                                return (
+                                  <tr key={e.employeeId}>
+                                    <td>{e.employeeId}</td>
+                                    <td>{emp?.name || "-"}</td>
+                                    <td>
+                                      {new Date(
+                                        e.acknowledgedAt,
+                                      ).toLocaleString()}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        )}
+                      </>
+                    )}
+
+                    {activeTab === "pending" && (
+                      <>
+                        {pendingEmployees.length === 0 ? (
+                          <p>All employees have read this policy.</p>
+                        ) : (
+                          <table width="100%">
+                            <thead>
+                              <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {pendingEmployees.map((e) => (
+                                <tr key={e.id}>
+                                  <td>{e.id}</td>
+                                  <td>{e.name}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        )}
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

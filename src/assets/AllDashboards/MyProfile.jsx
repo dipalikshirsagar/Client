@@ -21,7 +21,7 @@ function MyProfile({ user }) {
       setRemovingImage(true);
 
       const res = await axios.delete(
-        `https://server-backend-nu.vercel.app/employees/${user._id}/image`,
+        `https://server-backend-ems.vercel.app/employees/${user._id}/image`,
       );
 
       if (res?.data?.employee) {
@@ -48,7 +48,7 @@ function MyProfile({ user }) {
     const fetchProfile = async () => {
       try {
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/employees/${user._id}`,
+          `https://server-backend-ems.vercel.app/employees/${user._id}`,
         );
         setProfile(res.data);
         setFormData({
@@ -160,7 +160,7 @@ function MyProfile({ user }) {
         }
       });
 
-      await axios.put(`https://server-backend-nu.vercel.app/employees/${user._id}`, data, {
+      await axios.put(`https://server-backend-ems.vercel.app/employees/${user._id}`, data, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
@@ -169,7 +169,7 @@ function MyProfile({ user }) {
 
       // Refresh profile
       const updated = await axios.get(
-        `https://server-backend-nu.vercel.app/employees/${user._id}`,
+        `https://server-backend-ems.vercel.app/employees/${user._id}`,
       );
       setProfile(updated.data);
     } catch (err) {
@@ -183,7 +183,7 @@ function MyProfile({ user }) {
     if (file instanceof File) return file.name;
     return (
       <a
-        href={`https://server-backend-nu.vercel.app/uploads/${file}`}
+        href={`https://server-backend-ems.vercel.app/uploads/${file}`}
         target="_blank"
         rel="noreferrer"
       >
@@ -325,7 +325,7 @@ function MyProfile({ user }) {
                     src={
                       profile.image?.startsWith("http")
                         ? profile.image
-                        : `https://server-backend-nu.vercel.app/image/${profile.image}`
+                        : `https://server-backend-ems.vercel.app/image/${profile.image}`
                     }
                     alt="Profile"
                     style={{

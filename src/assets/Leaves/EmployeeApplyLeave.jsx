@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 
 function EmployeeApplyLeave({ user, onLeaveApplied }) {
+  const REASON_MAX_LENGTH = 300; // Character limit for reason{/* Reason limit code changes by dip 11-02-2026 */}
   const [form, setForm] = useState({
     leaveType: "SL",
     dateFrom: "",
@@ -13,13 +14,26 @@ function EmployeeApplyLeave({ user, onLeaveApplied }) {
   const [showModal, setShowModal] = useState(false);
   const [availableLeaveTypes, setAvailableLeaveTypes] = useState([]);
   const [manager, setManager] = useState(null); // populated manager details
-  const [weeklyOffs, setWeeklyOffs] = useState([]);
-
+  const [leaveBalances, setLeaveBalances] = useState({ SL: 0, CL: 0 }); // NEW: Track leave balances dip 11-02-2026
+  // const [weeklyOffs, setWeeklyOffs] = useState([]);
+  const [weeklyOffs, setWeeklyOffs] = useState({
+    saturdays: [],
+    sundayOff: true,
+  });
+  //------  Fetch user's leave balances from user object dip 11-02-2026
+  useEffect(() => {
+    if (user) {
+      setLeaveBalances({
+        SL: user.sickLeaveBalance || 0,
+        CL: user.casualLeaveBalance || 0,
+      });
+    }
+  }, [user]); ////-------
   // useEffect(() => {
   //   const fetchWeeklyOffs = async () => {
   //     try {
   //       const res = await axios.get(
-  //         `https://server-backend-nu.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`
+  //         `https://server-backend-ems.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`
   //       );
 
   //       // 🛠️ Ensure it's always an array of date strings
@@ -40,12 +54,59 @@ function EmployeeApplyLeave({ user, onLeaveApplied }) {
   //   };
   //   fetchWeeklyOffs();
   // }, []);
+  const modalRef = useRef(null);
 
+  //TANVI
+  useEffect(() => {
+    if (!showModal || !modalRef.current) return;
+
+    const modal = modalRef.current;
+
+    const focusableElements = modal.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+
+    const firstEl = focusableElements[0];
+    const lastEl = focusableElements[focusableElements.length - 1];
+
+    // ⭐ modal open होताच focus
+    modal.focus();
+    firstEl?.focus();
+
+    const handleKeyDown = (e) => {
+      // ESC key → modal close
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setShowModal(null);
+      }
+
+      // TAB key → focus trap
+      if (e.key === "Tab") {
+        if (e.shiftKey) {
+          if (document.activeElement === firstEl) {
+            e.preventDefault();
+            lastEl.focus();
+          }
+        } else {
+          if (document.activeElement === lastEl) {
+            e.preventDefault();
+            firstEl.focus();
+          }
+        }
+      }
+    };
+
+    modal.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      modal.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [showModal]);
   useEffect(() => {
     const fetchWeeklyOffs = async () => {
       try {
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`,
+          `https://server-backend-ems.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`,
         );
 
         // 👇 Extract weekly off data safely
@@ -68,8 +129,13 @@ function EmployeeApplyLeave({ user, onLeaveApplied }) {
     fetchWeeklyOffs();
   }, []);
 
+  // useEffect(() => {
+  //   if (weeklyOffs.length > 0) {
+  //     console.log("✅ Weekly offs fetched:", weeklyOffs);
+  //   }
+  // }, [weeklyOffs]);
   useEffect(() => {
-    if (weeklyOffs.length > 0) {
+    if (weeklyOffs?.saturdays) {
       console.log("✅ Weekly offs fetched:", weeklyOffs);
     }
   }, [weeklyOffs]);
@@ -80,7 +146,7 @@ function EmployeeApplyLeave({ user, onLeaveApplied }) {
       if (!user?.reportingManager) return;
       try {
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/users/${user.reportingManager}`,
+          `https://server-backend-ems.vercel.app/users/${user.reportingManager}`,
         );
         setManager(res.data);
       } catch (err) {
@@ -119,18 +185,169 @@ function EmployeeApplyLeave({ user, onLeaveApplied }) {
   futureDate.setMonth(futureDate.getMonth() + 2);
   const maxDate = futureDate.toISOString().split("T")[0];
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+
+  //   const fromDate = new Date(form.dateFrom);
+  //   const toDate = new Date(form.dateTo);
+  //   const min = new Date(minDate);
+  //   const max = new Date(maxDate);
+
+  //   if (!form.reason || !form.dateFrom || !form.dateTo) {
+  //     setMessage("Please fill all required fields");
+  //     return;
+  //   }
+
+  //   if (fromDate < min) {
+  //     setMessage("From date cannot be before the current month.");
+  //     return;
+  //   }
+
+  //   if (toDate > max) {
+  //     setMessage("To date cannot be beyond next month.");
+  //     return;
+  //   }
+
+  //   if (toDate < fromDate) {
+  //     setMessage("⚠️ Invalid date range: 'To Date' cannot precede 'From Date'.");
+  //     return;
+  //   }
+
+  //   if (!form.reason || !form.dateFrom || !form.dateTo) {
+  //     setMessage("Please fill all required fields");
+  //     return;
+  //   }
+
+  //   //    // 🚫 Prevent applying on Sunday or weekly off
+  //   // for (
+  //   //   let d = new Date(form.dateFrom);
+  //   //   d <= new Date(form.dateTo);
+  //   //   d.setDate(d.getDate() + 1)
+  //   // ) {
+  //   //   const dateStr = d.toISOString().split("T")[0];
+  //   //   const isSunday = new Date(d).getDay() === 0;
+  //   //   const isWeeklyOff = weeklyOffs.includes(dateStr);
+  //   //   if (isSunday || isWeeklyOff) {
+  //   //     alert(`You cannot apply for leave on Sundays or weekly off days (${dateStr}).`);
+  //   //     return;
+  //   //   }
+  //   // }
+
+  //   // 🚫 Prevent applying on Sunday or weekly off (Saturday/Sunday)
+  //   for (
+  //     let d = new Date(form.dateFrom);
+  //     d <= new Date(form.dateTo);
+  //     d.setDate(d.getDate() + 1)
+  //   ) {
+  //     const date = new Date(d);
+  //     const dateStr = date.toISOString().split("T")[0];
+  //     const day = date.getDay(); // 0 = Sunday, 6 = Saturday
+
+  //     // Check Sunday off
+  //     // if (weeklyOffs.sundayOff && day === 0) {
+  //     //   alert(`❌ Cannot apply leave on Sunday (${dateStr}).`);
+  //     //   return;
+  //     // }
+  //     // Check Sunday off
+  //     if (weeklyOffs.sundayOff && day === 0) {
+  //       alert(`❌As per the system's sandwich leave policy, applying manual leave on weekends is restricted. (${dateStr}`);
+  //       return;
+  //     }
+
+  //     // Check 2nd/4th Saturday off
+  //     if (day === 6 && Array.isArray(weeklyOffs.saturdays)) {
+  //       const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+  //       let saturdayCount = 0;
+  //       for (let temp = new Date(firstDay); temp <= date; temp.setDate(temp.getDate() + 1)) {
+  //         if (temp.getDay() === 6) saturdayCount++;
+  //       }
+
+  //       if (weeklyOffs.saturdays.includes(saturdayCount)) {
+  //         alert(`❌ Cannot apply leave on weekly off Saturday (${dateStr}).`);
+  //         return;
+  //       }
+  //     }
+  //   }
+
+  //   try {
+
+  //     // ✅ 1️⃣ Fetch existing leaves of employee
+  //     const existingLeavesRes = await axios.get(
+  //       `https://server-backend-ems.vercel.app/leave/my/${user._id}`
+  //     );
+  //     const existingLeaves = existingLeavesRes.data || [];
+
+  //     // ✅ 2️⃣ Check if any existing leave overlaps with new one
+  //     const isOverlapping = existingLeaves.some((leave) => {
+  //       const leaveFrom = new Date(leave.dateFrom);
+  //       const leaveTo = new Date(leave.dateTo);
+
+  //       // normalize time
+  //       leaveFrom.setHours(0, 0, 0, 0);
+  //       leaveTo.setHours(23, 59, 59, 999);
+  //       fromDate.setHours(0, 0, 0, 0);
+  //       toDate.setHours(23, 59, 59, 999);
+
+  //       // overlap check
+  //       return (
+  //         (fromDate <= leaveTo && toDate >= leaveFrom) &&
+  //         leave.status !== "rejected" // ignore rejected
+  //       );
+  //     });
+
+  //     if (isOverlapping) {
+  //       setMessage("⚠️ You already applied for leave on one or more of these dates.");
+  //       alert("⚠️ You already applied for leave on one or more of these dates.");
+  //       return;
+  //     }
+
+  //     await axios.post("https://server-backend-ems.vercel.app/leave/apply", {
+  //       employeeId: user._id,
+  //       leaveType: form.leaveType,
+  //       dateFrom: form.dateFrom,
+  //       dateTo: form.dateTo,
+  //       duration: form.duration,
+  //       reason: form.reason,
+  //       reportingManagerId: manager?._id || null, // send manager ID
+  //     });
+
+  //     //setMessage("Leave applied successfully! Waiting for approval.");
+  //     alert("Leave applied successfully! Waiting for approval.");
+
+  //     // ✅ Trigger parent refresh
+  //     if (typeof onLeaveApplied === "function") onLeaveApplied();
+
+  //     setForm({
+  //       leaveType: availableLeaveTypes[0],
+  //       dateFrom: "",
+  //       dateTo: "",
+  //       duration: "full",
+  //       reason: "",
+  //     });
+  //     setShowModal(false);
+
+  //   } catch (err) {
+  //     setMessage(err.response?.data?.error || "Error applying leave");
+  //   }
+  // };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // -------------------- BASIC VALIDATION --------------------
+    if (!form.reason || !form.dateFrom || !form.dateTo) {
+      setMessage("Please fill all required fields");
+      return;
+    }
 
     const fromDate = new Date(form.dateFrom);
     const toDate = new Date(form.dateTo);
     const min = new Date(minDate);
     const max = new Date(maxDate);
 
-    if (!form.reason || !form.dateFrom || !form.dateTo) {
-      setMessage("Please fill all required fields");
-      return;
-    }
+    // Normalize dates
+    fromDate.setHours(0, 0, 0, 0);
+    toDate.setHours(23, 59, 59, 999);
 
     if (fromDate < min) {
       setMessage("From date cannot be before the current month.");
@@ -148,54 +365,61 @@ function EmployeeApplyLeave({ user, onLeaveApplied }) {
       );
       return;
     }
+    //---------  Calculate requested days (like backend logic) dip 11-02-2026
+    const requestedDays =
+      form.duration === "half"
+        ? 0.5
+        : Math.ceil((toDate - fromDate) / (1000 * 60 * 60 * 24)) + 1;
 
-    if (!form.reason || !form.dateFrom || !form.dateTo) {
-      setMessage("Please fill all required fields");
-      return;
+    //  Check leave balance (only for SL and CL  not LWP)  Frontend validation dip 11-02-2026
+    if (form.leaveType === "SL") {
+      const availableBalance = leaveBalances.SL || 0;
+
+      if (requestedDays > availableBalance) {
+        const errorMsg =
+          availableBalance === 0
+            ? "❌ No Sick Leave balance available. Please apply for LWP."
+            : `❌ Insufficient Sick Leave balance. You have ${availableBalance} day(s) available but requested ${requestedDays} day(s). Please reduce the days or apply for LWP.`;
+
+        setMessage(errorMsg);
+        alert(errorMsg);
+        return;
+      }
     }
 
-    //    // 🚫 Prevent applying on Sunday or weekly off
-    // for (
-    //   let d = new Date(form.dateFrom);
-    //   d <= new Date(form.dateTo);
-    //   d.setDate(d.getDate() + 1)
-    // ) {
-    //   const dateStr = d.toISOString().split("T")[0];
-    //   const isSunday = new Date(d).getDay() === 0;
-    //   const isWeeklyOff = weeklyOffs.includes(dateStr);
-    //   if (isSunday || isWeeklyOff) {
-    //     alert(`You cannot apply for leave on Sundays or weekly off days (${dateStr}).`);
-    //     return;
-    //   }
-    // }
+    if (form.leaveType === "CL") {
+      const availableBalance = leaveBalances.CL || 0;
 
-    // 🚫 Prevent applying on Sunday or weekly off (Saturday/Sunday)
-    for (
-      let d = new Date(form.dateFrom);
-      d <= new Date(form.dateTo);
-      d.setDate(d.getDate() + 1)
-    ) {
+      if (requestedDays > availableBalance) {
+        const errorMsg =
+          availableBalance === 0
+            ? "❌ No Casual Leave balance available. Please apply for LWP."
+            : `❌ Insufficient Casual Leave balance. You have ${availableBalance} day(s) available but requested ${requestedDays} day(s). Please reduce the days or apply for LWP.`;
+
+        setMessage(errorMsg);
+        alert(errorMsg);
+        return;
+      }
+    } //---------------
+    // -------------------- 🚫 WEEKEND / SANDWICH POLICY --------------------
+    for (let d = new Date(fromDate); d <= toDate; d.setDate(d.getDate() + 1)) {
       const date = new Date(d);
       const dateStr = date.toISOString().split("T")[0];
-      const day = date.getDay(); // 0 = Sunday, 6 = Saturday
+      const day = date.getDay(); // 0 = Sun, 6 = Sat
 
-      // Check Sunday off
-      // if (weeklyOffs.sundayOff && day === 0) {
-      //   alert(`❌ Cannot apply leave on Sunday (${dateStr}).`);
-      //   return;
-      // }
-      // Check Sunday off
-      if (weeklyOffs.sundayOff && day === 0) {
+      // Sunday off
+      if (weeklyOffs?.sundayOff && day === 0) {
         alert(
-          `❌As per the system's sandwich leave policy, applying manual leave on weekends is restricted. (${dateStr}`,
+          `❌ As per the system's sandwich leave policy, applying manual leave on weekends is restricted. (${dateStr})`,
         );
         return;
       }
 
-      // Check 2nd/4th Saturday off
-      if (day === 6 && Array.isArray(weeklyOffs.saturdays)) {
+      // 2nd / 4th Saturday off
+      if (day === 6 && Array.isArray(weeklyOffs?.saturdays)) {
         const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
         let saturdayCount = 0;
+
         for (
           let temp = new Date(firstDay);
           temp <= date;
@@ -212,55 +436,48 @@ function EmployeeApplyLeave({ user, onLeaveApplied }) {
     }
 
     try {
-      // ✅ 1️⃣ Fetch existing leaves of employee
+      // -------------------- ✅ OVERLAPPING LEAVE CHECK --------------------
       const existingLeavesRes = await axios.get(
-        `https://server-backend-nu.vercel.app/leave/my/${user._id}`,
+        `https://server-backend-ems.vercel.app/leave/my/${user._id}`,
       );
+
       const existingLeaves = existingLeavesRes.data || [];
 
-      // ✅ 2️⃣ Check if any existing leave overlaps with new one
       const isOverlapping = existingLeaves.some((leave) => {
+        if (leave.status === "rejected") return false;
+
         const leaveFrom = new Date(leave.dateFrom);
         const leaveTo = new Date(leave.dateTo);
 
-        // normalize time
         leaveFrom.setHours(0, 0, 0, 0);
         leaveTo.setHours(23, 59, 59, 999);
-        fromDate.setHours(0, 0, 0, 0);
-        toDate.setHours(23, 59, 59, 999);
 
-        // overlap check
-        return (
-          fromDate <= leaveTo &&
-          toDate >= leaveFrom &&
-          leave.status !== "rejected" // ignore rejected
-        );
+        return fromDate <= leaveTo && toDate >= leaveFrom;
       });
 
       if (isOverlapping) {
-        setMessage(
+        alert(
           "⚠️ You already applied for leave on one or more of these dates.",
         );
-        alert(
+        setMessage(
           "⚠️ You already applied for leave on one or more of these dates.",
         );
         return;
       }
 
-      await axios.post("https://server-backend-nu.vercel.app/leave/apply", {
+      // -------------------- ✅ APPLY LEAVE --------------------
+      await axios.post("https://server-backend-ems.vercel.app/leave/apply", {
         employeeId: user._id,
         leaveType: form.leaveType,
         dateFrom: form.dateFrom,
         dateTo: form.dateTo,
         duration: form.duration,
         reason: form.reason,
-        reportingManagerId: manager?._id || null, // send manager ID
+        reportingManagerId: manager?._id || null,
       });
 
-      //setMessage("Leave applied successfully! Waiting for approval.");
       alert("Leave applied successfully! Waiting for approval.");
 
-      // ✅ Trigger parent refresh
       if (typeof onLeaveApplied === "function") onLeaveApplied();
 
       setForm({
@@ -270,9 +487,15 @@ function EmployeeApplyLeave({ user, onLeaveApplied }) {
         duration: "full",
         reason: "",
       });
+
       setShowModal(false);
     } catch (err) {
-      setMessage(err.response?.data?.error || "Error applying leave");
+      const errorMessage =
+        err.response?.data?.error ||
+        "Something went wrong while applying leave.";
+
+      alert(`❌ ${errorMessage}`);
+      setMessage(errorMessage);
     }
   };
 
@@ -295,7 +518,23 @@ function EmployeeApplyLeave({ user, onLeaveApplied }) {
       setDaysCount(0);
     }
   }, [form.dateFrom, form.dateTo]);
+  //bg scroll stop
+  useEffect(() => {
+    if (showModal) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+    useEffect;
 
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [showModal]);
+  // dip code changes 11-02-2026
   return (
     <>
       <button
@@ -350,10 +589,12 @@ function EmployeeApplyLeave({ user, onLeaveApplied }) {
         <div
           className="modal d-block"
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+          ref={modalRef}
+          tabIndex="-1"
         >
           <div
             className="modal-dialog"
-            style={{ maxWidth: "600px", marginTop: "50px" }}
+            style={{ maxWidth: "600px", marginTop: "150px" }}
           >
             <div className="modal-content">
               <div
@@ -379,6 +620,21 @@ function EmployeeApplyLeave({ user, onLeaveApplied }) {
                 ></button>
               </div>
               <div className="modal-body" style={{ paddingTop: "24px" }}>
+                 {/* Dip 11-02-2026: Display error message
+                {message && (
+                  <div
+                    className="alert alert-danger alert-dismissible fade show"
+                    role="alert"
+                  >
+                    {message}
+                    <button
+                      type="button"
+                      className="btn-close"
+                      onClick={() => setMessage("")}
+                      aria-label="Close"
+                    ></button>
+                  </div>
+                )} */}
                 {/* {message && <div className="alert alert-info">{message}</div>} */}
                 <form onSubmit={handleSubmit}>
                   {/* Leave Type */}
@@ -427,7 +683,10 @@ function EmployeeApplyLeave({ user, onLeaveApplied }) {
                             cursor: "pointer",
                           }}
                         >
-                          Casual
+                          Casual{" "}
+                          {leaveBalances.CL !== undefined &&
+                            `(${leaveBalances.CL} left)`}{" "}
+                          {/*Dip code 11-02-2026  */}
                         </label>
                       </div>
                       <div className="form-check">
@@ -460,7 +719,10 @@ function EmployeeApplyLeave({ user, onLeaveApplied }) {
                             cursor: "pointer",
                           }}
                         >
-                          Sick
+                          Sick{" "}
+                          {leaveBalances.SL !== undefined &&
+                            `(${leaveBalances.SL} left)`}{" "}
+                          {/*Dip code 11-02-2026  */}
                         </label>
                       </div>
                       <div className="form-check">
@@ -490,7 +752,7 @@ function EmployeeApplyLeave({ user, onLeaveApplied }) {
                       </div>
                     </div>
                   </div>
-                  {/* Half Day */}
+                  {/* Half Day 
                   <div className="mb-3 d-flex align-items-center">
                     <label
                       style={{
@@ -503,10 +765,10 @@ function EmployeeApplyLeave({ user, onLeaveApplied }) {
                     >
                       Half day:
                     </label>{" "}
-                    {/* NEW: Fixed width */}{" "}
+                   {" "}
                     <div className="form-check">
                       <input
-                        disabled
+                        // disabled
                         type="checkbox"
                         name="duration"
                         className="form-check-input"
@@ -525,7 +787,7 @@ function EmployeeApplyLeave({ user, onLeaveApplied }) {
                         }}
                       />
                     </div>
-                  </div>
+                  </div> */}
                   {/* Dates */}
                   <div className="mb-3  d-flex align-items-center">
                     <label
@@ -641,10 +903,7 @@ function EmployeeApplyLeave({ user, onLeaveApplied }) {
                       className="form-control"
                       value={
                         manager
-                          ? `${
-                              manager.role.charAt(0).toUpperCase() +
-                              manager.role.slice(1)
-                            } (${manager.name})`
+                          ? `${manager.role.charAt(0).toUpperCase() + manager.role.slice(1)} (${manager.name})`
                           : "No manager assigned"
                       }
                       style={{
@@ -660,33 +919,49 @@ function EmployeeApplyLeave({ user, onLeaveApplied }) {
                     />
                   </div>
 
+                  {/* Reason limit code changes by dip 11-02-2026 */}
                   {/* Reason */}
-                  <div className="mb-3  d-flex align-items-center">
-                    <label
+                  <div className="mb-3">
+                    <div className="d-flex align-items-center">
+                      <label
+                        style={{
+                          fontWeight: "500",
+                          fontSize: "14px",
+                          color: "#495057",
+                          width: "90px",
+                          flexShrink: 0,
+                        }}
+                      >
+                        Reason:
+                      </label>
+                      <div style={{ flex: 1, position: "relative" }}>
+                        <textarea
+                          name="reason"
+                          value={form.reason}
+                          onChange={handleChange}
+                          className="form-control"
+                          maxLength={REASON_MAX_LENGTH}
+                          style={{
+                            minHeight: "80px",
+                            resize: "vertical",
+                            paddingBottom: "24px",
+                          }}
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div
+                      className="d-flex justify-content-end"
                       style={{
-                        fontWeight: "500",
-                        fontSize: "14px",
-                        color: "#495057",
-                        width: "90px",
-                        flexShrink: 0,
+                        fontSize: "12px",
+                        color: "#6c757d",
+                        pointerEvents: "none",
                       }}
                     >
-                      Reason:
-                    </label>
-                    <textarea
-                      name="reason"
-                      value={form.reason}
-                      onChange={handleChange}
-                      className="form-control"
-                      style={{
-                        flex: 1,
-                        minHeight: "80px" /* ADDED: Set minimum height */,
-                        resize:
-                          "vertical" /* ADDED: Allow vertical resize only */,
-                      }}
-                      required
-                    />
+                      {form.reason.length}/{REASON_MAX_LENGTH}
+                    </div>
                   </div>
+                  {/* Reason limit code changes by dip 11-02-2026 */}
 
                   {/* Buttons */}
                   <div className="d-flex justify-content-end gap-2">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 
 function AdminAddLeaveBalance() {
@@ -24,12 +24,58 @@ function AdminAddLeaveBalance() {
 
   //adesh code
   const [selectedLeave, setSelectedLeave] = useState(null);
+  const modalRef = useRef(null);
+  useEffect(() => {
+  if (!selectedLeave || !modalRef.current) return;
 
+  const modal = modalRef.current;
+
+  const focusableElements = modal.querySelectorAll(
+    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+  );
+
+  if (!focusableElements.length) return;
+
+  const firstEl = focusableElements[0];
+  const lastEl = focusableElements[focusableElements.length - 1];
+
+  // ✅ Focus first element when modal opens
+  firstEl.focus();
+
+  const handleKeyDown = (e) => {
+    // ESC closes modal
+    if (e.key === "Escape") {
+      e.preventDefault();
+      setSelectedLeave(null);
+    }
+
+    // TAB trap
+    if (e.key === "Tab") {
+      if (e.shiftKey) {
+        if (document.activeElement === firstEl) {
+          e.preventDefault();
+          lastEl.focus();
+        }
+      } else {
+        if (document.activeElement === lastEl) {
+          e.preventDefault();
+          firstEl.focus();
+        }
+      }
+    }
+  };
+
+  document.addEventListener("keydown", handleKeyDown);
+
+  return () => {
+    document.removeEventListener("keydown", handleKeyDown);
+  };
+}, [selectedLeave]);
   // dipali code
   //NEW CODE
   useEffect(() => {
     axios
-      .get("https://server-backend-nu.vercel.app/leaves")
+      .get("https://server-backend-ems.vercel.app/leaves")
       .then((res) => {
         const now = new Date();
 
@@ -66,36 +112,41 @@ function AdminAddLeaveBalance() {
     if (!token) return;
 
     axios
-      .get("https://server-backend-nu.vercel.app/me", {
+      .get("https://server-backend-ems.vercel.app/me", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => setUser(res.data))
       .catch((err) => console.error("User fetch error:", err));
   }, []);
 
-  // 🔹 Fetch all leaves
+  // 🔹 Fetch all leaves Added by Rutuja
   useEffect(() => {
     axios
-      .get("https://server-backend-nu.vercel.app/leaves")
+      .get("https://server-backend-ems.vercel.app/leaves")
       .then((res) => {
-        const sortedLeaves = res.data.sort(
+        const filteredByAdmin = res.data.filter(
+          (l) => l.employee?.employeeId !== user?.employeeId
+        );
+
+        const sortedLeaves = filteredByAdmin.sort(
           (a, b) => new Date(b.appliedAt) - new Date(a.appliedAt),
         );
         setLeaves(sortedLeaves);
+        setFilteredLeaves(sortedLeaves);
 
-        const pending = res.data.filter((l) => l.status === "pending").length;
+        const pending = filteredByAdmin.filter((l) => l.status === "pending").length;
         setPendingRequests(pending);
       })
       .catch((err) => console.error("Leaves fetch error:", err))
       .finally(() => setLoadingLeaves(false));
-  }, []);
+  }, [user]);
 
   // 🔹 Update leave status
   // const updateStatus = async (leaveId, status) => {
   //   if (!user?._id) return;
 
   //   try {
-  //     await axios.put(`https://server-backend-nu.vercel.app/leave/${leaveId}/status`, {
+  //     await axios.put(`https://server-backend-ems.vercel.app/leave/${leaveId}/status`, {
   //       status,
   //       userId: user._id,
   //       role: "admin",
@@ -115,9 +166,13 @@ function AdminAddLeaveBalance() {
 
   const updateStatus = async (leaveId, status) => {
     if (!user?._id) return;
+    //Added by Rutuja
+    if (!confirm(`Are you sure you want to ${status} this leave request?`)) {
+      return;
+    }
 
     try {
-      await axios.put(`https://server-backend-nu.vercel.app/leave/${leaveId}/status`, {
+      await axios.put(`https://server-backend-ems.vercel.app/leave/${leaveId}/status`, {
         status,
         userId: user._id,
         role: "admin",
@@ -137,14 +192,21 @@ function AdminAddLeaveBalance() {
 
       // update pending count
       setPendingRequests((prev) => (status !== "pending" ? prev - 1 : prev));
+      //Added by Rutuja
+      alert(`Leave request ${status} successfully!`);
     } catch (err) {
-      console.error("Error updating status:", err);
+      const errorMessage =
+        err.response?.data?.error ||
+        "Something went wrong while applying leave.";
+
+      alert(`❌ ${errorMessage}`);
+      setMessage(errorMessage);
     }
   };
 
   // const grantYearly = async () => {
   //   try {
-  //     const res = await axios.post("https://server-backend-nu.vercel.app/leave/grant-yearly", {
+  //     const res = await axios.post("https://server-backend-ems.vercel.app/leave/grant-yearly", {
   //       sl,
   //       cl,
   //     });
@@ -161,7 +223,7 @@ function AdminAddLeaveBalance() {
   const fetchYearlySettings = async () => {
     try {
       const res = await axios.get(
-        "https://server-backend-nu.vercel.app/leave/yearly-settings",
+        "https://server-backend-ems.vercel.app/leave/yearly-settings",
       );
       setData(res.data);
     } catch (err) {
@@ -175,7 +237,7 @@ function AdminAddLeaveBalance() {
 
   const grantYearly = async () => {
     try {
-      const res = await axios.post("https://server-backend-nu.vercel.app/leave/grant-yearly", {
+      const res = await axios.post("https://server-backend-ems.vercel.app/leave/grant-yearly", {
         sl,
         cl,
       });
@@ -206,7 +268,7 @@ function AdminAddLeaveBalance() {
   const grantMonthly = async () => {
     try {
       const res = await axios.post(
-        "https://server-backend-nu.vercel.app/leave/grant-monthly",
+        "https://server-backend-ems.vercel.app/leave/grant-monthly",
         {
           sl,
           cl,
@@ -223,7 +285,7 @@ function AdminAddLeaveBalance() {
 
   const fetchLeaveBalance = async () => {
     try {
-      const res = await axios.get("https://server-backend-nu.vercel.app/leave/balance");
+      const res = await axios.get("https://server-backend-ems.vercel.app/leave/balance");
       console.log("data", res.data);
       // if (res.data) {
       //   setSl(res.data.sl);
@@ -274,10 +336,13 @@ function AdminAddLeaveBalance() {
     if (!confirmDelete) return;
 
     try {
-      await axios.delete(`https://server-backend-nu.vercel.app/leave/${leaveId}`);
+      await axios.delete(`https://server-backend-ems.vercel.app/leave/${leaveId}`);
+
 
       // ✅ Remove the deleted leave from state
       setLeaves((prev) => prev.filter((l) => l._id !== leaveId));
+      //Added by jaicy
+      setFilteredLeaves((prev) => prev.filter((l) => l._id !== leaveId));
 
       alert("🗑️ Leave deleted successfully!");
     } catch (err) {
@@ -292,7 +357,7 @@ function AdminAddLeaveBalance() {
   //   }
 
   //   try {
-  //     const res = await axios.post("https://server-backend-nu.vercel.app/leave/reset-all");
+  //     const res = await axios.post("https://server-backend-ems.vercel.app/leave/reset-all");
   //     setMessage(`${res.data.message} (${res.data.count} employees affected) ✅`);
   //   } catch (err) {
   //     console.error("Error resetting leave balances:", err);
@@ -312,7 +377,7 @@ function AdminAddLeaveBalance() {
     }
 
     try {
-      const res = await axios.delete("https://server-backend-nu.vercel.app/leave/reset-all");
+      const res = await axios.delete("https://server-backend-ems.vercel.app/leave/reset-all");
       alert(res.data.message);
       setData([]); // clear yearly table instantly
     } catch (err) {
@@ -320,6 +385,23 @@ function AdminAddLeaveBalance() {
       alert("❌ Failed to reset yearly leave settings. Please try again.");
     }
   };
+/////leave duration dip
+
+const getLeaveDurationText = (leave) => {
+  if (!leave) return "-";
+
+  if (leave.duration === "half") {
+    return "0.5 day";
+  }
+
+  const days =
+    Math.floor(
+      (new Date(leave.dateTo) - new Date(leave.dateFrom)) /
+        (1000 * 60 * 60 * 24)
+    ) + 1;
+
+  return `${days} ${days === 1 ? "day" : "days"}`;
+};
 
   // dipali code
   //NEW CODE
@@ -350,13 +432,25 @@ function AdminAddLeaveBalance() {
     setFilteredLeaves(filtered);
     setCurrentPage(1); // optional: reset page to first
   };
+  //bg scroll stop
+  useEffect(() => {
+    if (selectedLeave) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
 
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [selectedLeave]);
+  // dip code changes 11-02-2026
   return (
     <div className="container-fluid">
-      <h3
-        className="mb-4 fw-bold"
-        style={{ color: "#3A5FBE", fontSize: "25px" }}
-      >
+      <h3 className="mb-4 " style={{ color: "#3A5FBE", fontSize: "25px" }}>
         Leaves
       </h3>
 
@@ -611,15 +705,16 @@ function AdminAddLeaveBalance() {
             }}
           >
             {/* Status Filter */}
-            <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1  ms-2">
+            <div className="col-12 col-md-auto d-flex align-items-center  mb-1  ms-2">
               <label
                 htmlFor="statusFilter"
                 className="fw-bold mb-0 text-start text-md-end"
                 style={{
                   width: "55px",
+                  minWidth: "55px",
                   fontSize: "16px",
                   color: "#3A5FBE",
-                  marginRight: "4px",
+                  marginRight: "8px",
                 }}
               >
                 Status
@@ -641,12 +736,13 @@ function AdminAddLeaveBalance() {
             </div>
 
             {/* Name Filter */}
-            <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1  ms-2">
+            <div className="col-12 col-md-auto d-flex align-items-center  mb-1  ms-2">
               <label
                 htmlFor="employeeNameFilter"
                 className="fw-bold mb-0 text-start text-md-end"
                 style={{
-                  width: "50px",
+                   width: "55px",
+                   minWidth: "55px",
                   fontSize: "16px",
                   color: "#3A5FBE",
                   marginRight: "8px",
@@ -675,8 +771,8 @@ function AdminAddLeaveBalance() {
                 style={{
                   fontSize: "16px",
                   color: "#3A5FBE",
-                  width: "50px",
-                  minWidth: "50px",
+                  width: "55px",
+                  minWidth: "55px",
                   marginRight: "8px",
                 }}
               >
@@ -701,8 +797,8 @@ function AdminAddLeaveBalance() {
                 style={{
                   fontSize: "16px",
                   color: "#3A5FBE",
-                  width: "50px",
-                  minWidth: "50px",
+                  width: "55px",
+                  minWidth: "55px",
                   marginRight: "8px",
                   textAlign: "right",
                 }}
@@ -954,13 +1050,13 @@ function AdminAddLeaveBalance() {
                         >
                           {l.appliedAt
                             ? new Date(l.appliedAt).toLocaleDateString(
-                                "en-GB",
-                                {
-                                  day: "2-digit",
-                                  month: "short",
-                                  year: "numeric",
-                                },
-                              )
+                              "en-GB",
+                              {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                              },
+                            )
                             : "-"}
                         </td>
                         <td
@@ -1013,7 +1109,12 @@ function AdminAddLeaveBalance() {
                             whiteSpace: "nowrap",
                           }}
                         >
-                          {calculateDays(l.dateFrom, l.dateTo)}
+                           {l.duration === "half"
+                        ? 0.5
+                        : Math.floor(
+                            (new Date(l.dateTo) - new Date(l.dateFrom)) /
+                              (1000 * 60 * 60 * 24)
+                          ) + 1}
                         </td>
                         <td
                           style={{
@@ -1143,9 +1244,11 @@ function AdminAddLeaveBalance() {
       {selectedLeave && (
         <div
           className="modal fade show"
+         role="dialog"
+          aria-modal="true"
           style={{ display: "block", background: "rgba(0,0,0,0.5)" }}
         >
-          <div className="modal-dialog modal-lg">
+          <div className="modal-dialog modal-lg"  ref={modalRef} style={{ marginTop: "120px" }}>
             <div className="modal-content">
               {/* Header */}
               <div
@@ -1182,13 +1285,13 @@ function AdminAddLeaveBalance() {
                     <div className="col-sm-9">
                       {selectedLeave.appliedAt
                         ? new Date(selectedLeave.appliedAt).toLocaleDateString(
-                            "en-GB",
-                            {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            },
-                          )
+                          "en-GB",
+                          {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          },
+                        )
                         : "-"}
                     </div>
                   </div>
@@ -1228,7 +1331,7 @@ function AdminAddLeaveBalance() {
 
                   <div className="row mb-2">
                     <div className="col-sm-3 fw-semibold">Duration</div>
-                    <div className="col-sm-9">{selectedLeave.duration}</div>
+                    <div className="col-sm-9">{getLeaveDurationText(selectedLeave)}</div>
                   </div>
 
                   <div className="row mb-2">
@@ -1259,6 +1362,24 @@ function AdminAddLeaveBalance() {
                       >
                         {selectedLeave.status}
                       </span>
+                    </div>
+                  </div>
+                  {/* //Added by Rutuja */}
+                  <div className="row mb-2">
+                    <div className="col-sm-3 fw-semibold">
+                      {selectedLeave.status === "approved" ? "Approved by" :
+                        selectedLeave.status === "rejected" ? "Rejected by" :
+                          ""}
+                    </div>
+                    <div className="col-sm-9">
+                      {selectedLeave.approvedBy ? (
+                        <>
+                          {selectedLeave.approvedBy.name}
+                          {selectedLeave.approvedBy.role && ` (${selectedLeave.approvedBy.role})`}
+                        </>
+                      ) : (
+                        "-"
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1347,7 +1468,7 @@ function AdminAddLeaveBalance() {
             style={{ marginLeft: "16px" }}
           >
             <button
-              className="btn btn-sm border-0"
+              className="btn btn-sm focus-ring"
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
               style={{ fontSize: "18px", padding: "2px 8px" }}
@@ -1355,7 +1476,7 @@ function AdminAddLeaveBalance() {
               ‹
             </button>
             <button
-              className="btn btn-sm border-0"
+              className="btn btn-sm focus-ring"
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
               style={{ fontSize: "18px", padding: "2px 8px" }}

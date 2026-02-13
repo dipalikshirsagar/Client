@@ -15,6 +15,79 @@ const AdminTaskTMS = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTask, setSelectedTask] = useState(null);
   const popupRef = useRef(null);
+
+  ////Komal Code
+const getDerivedStatus = (task) => {
+  const statusName = task.rawStatus;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const assignDate = task.assignDate ? new Date(task.assignDate) : null;
+  if (assignDate) assignDate.setHours(0, 0, 0, 0);
+
+  const deadline = task.deadline ? new Date(task.deadline) : null;
+  if (deadline) deadline.setHours(0, 0, 0, 0);
+
+  const timeSpent = task.timeSpent || 0;
+
+  // // ✅ COMPLETED
+  // if (statusName === "Completed") {
+  //   if (deadline && task.updatedAt) {
+  //     const completedDate = new Date(task.updatedAt);
+  //     completedDate.setHours(0, 0, 0, 0);
+
+  //     if (completedDate > deadline) {
+  //       const diffDays = Math.ceil(
+  //         (completedDate - deadline) / (1000 * 60 * 60 * 24)
+  //       );
+  //       return `Completed (Delayed by ${diffDays} days)`;
+  //     }
+  //   }
+  //   return "Completed";
+  // }
+
+  if (statusName === "Completed") {
+  if (deadline && task.updatedAt) {
+    const completedDate = new Date(task.updatedAt);
+    completedDate.setHours(0, 0, 0, 0);
+
+    if (completedDate > deadline) {
+      const diffDays = Math.ceil(
+        (completedDate - deadline) / (1000 * 60 * 60 * 24)
+      );
+      return `Completed (Delayed by ${diffDays} days)`;
+    }
+  }
+  return "Completed";
+}
+
+
+  // ✅ ASSIGNED → AUTO LOGIC
+  if (statusName === "Assigned") {
+    if (!assignDate) return "Assigned";
+
+    if (today >= assignDate) {
+      if (timeSpent === 0) {
+        return "Assigned";
+      }
+      return "On Track (In Progress)";
+    }
+
+    return "Assigned";
+  }
+
+  // ✅ IN PROGRESS
+  if (statusName === "In Progress") {
+    if (deadline && today > deadline) {
+      return "Delayed (In Progress)";
+    }
+    return "On Track (In Progress)";
+  }
+
+  return statusName || "Unknown";
+};
+  ///
   useEffect(() => {
     if (selectedTask && popupRef.current) {
       popupRef.current.focus();
@@ -45,29 +118,44 @@ const AdminTaskTMS = () => {
       }
     }
   };
-
-  const fetchAllTasks = async () => {
+////komal code 31-01-2026
+ const fetchAllTasks = async () => {
     try {
-      const res = await axios.get("https://server-backend-nu.vercel.app/task/getall");
+      const res = await axios.get("https://server-backend-ems.vercel.app/task/getall");
 
-      const mappedTasks = res.data.map((task) => ({
-        _id: task._id,
-        projectName: task.projectName,
-        title: task.taskName,
+      const mappedTasks = res.data.map((task) => {
+  const mappedTask = {
+    _id: task._id,
+    projectName: task.projectName,
+    title: task.taskName,
+    description: task.taskDescription,
 
-        description: task.taskDescription,
-        status: task.status?.name || "Unknown",
-        assignDate: task.dateOfTaskAssignment,
-        expectedDate: task.dateOfExpectedCompletion,
-        deadline: task.dateOfExpectedCompletion,
-        createdAt: task.createdAt,
-        assignedTo: task.assignedTo?.name || "Unassigned",
-        createdBy: task.createdBy?.name || "Unknown",
-        timeTracking: task.timeTracking || null,
-        time: task.timeTracking
-          ? formatTimeClock(task.timeTracking.totalSeconds || 0)
-          : "00:00:00",
-      }));
+    // RAW status from DB
+    rawStatus: task.status?.name || task.status,
+
+    assignDate: task.dateOfTaskAssignment,
+    deadline: task.dateOfExpectedCompletion,
+    createdAt: task.createdAt,
+
+    assignedTo: task.assignedTo?.name || "Unassigned",
+    createdBy: task.createdBy?.name || "Unknown",
+    updatedAt: task.updatedAt,   // ⭐ REQUIRED FOR DELAY CALCULATION
+
+
+    timeTracking: task.timeTracking || null,
+    timeSpent: task.timeTracking?.totalSeconds || 0,
+
+    time: task.timeTracking
+      ? formatTimeClock(task.timeTracking.totalSeconds || 0)
+      : "00:00:00",
+  };
+
+  // ✅ NOW derive status (after all fields exist)
+  mappedTask.status = getDerivedStatus(mappedTask);
+
+  return mappedTask;
+});
+
 
       mappedTasks.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
@@ -132,41 +220,95 @@ const AdminTaskTMS = () => {
   const [itemsPerPage, setItemsPerPage] = useState(5);
 
   ////
-  const calculateTaskStatus = () => {
-    const totalTasks = filteredTasks.length; // Use filteredTasks
-    const completedTasks = filteredTasks.filter(
-      (task) => task.status === "Completed",
-    ).length;
-    const ongoingTasks = filteredTasks.filter(
-      (task) => task.status === "In Progress",
-    ).length;
-    const unassignedTasks = filteredTasks.filter(
-      (task) => task.status === "Assignment Pending",
-    ).length;
-    const holdTasks = filteredTasks.filter(
-      (task) => task.status === "On Hold" || task.status === "Hold",
-    ).length;
-    const cancelledTasks = filteredTasks.filter(
-      (task) => task.status === "Cancelled",
-    ).length;
-    const delayedTasks = filteredTasks.filter(
-      (task) => task.status === "Delayed",
-    ).length;
-    const assignedTasks = filteredTasks.filter(
-      (task) => task.status === "Assigned",
+  // const calculateTaskStatus = () => {
+  //   const totalTasks = filteredTasks.length; // Use filteredTasks
+  //   const completedTasks = filteredTasks.filter(
+  //     (task) => task.status === "Completed",
+  //   ).length;
+  //   const ongoingTasks = filteredTasks.filter(
+  //     (task) => task.status === "In Progress",
+  //   ).length;
+  //   const unassignedTasks = filteredTasks.filter(
+  //     (task) => task.status === "Assignment Pending",
+  //   ).length;
+  //   const holdTasks = filteredTasks.filter(
+  //     (task) => task.status === "On Hold" || task.status === "Hold",
+  //   ).length;
+  //   const cancelledTasks = filteredTasks.filter(
+  //     (task) => task.status === "Cancelled",
+  //   ).length;
+  //   const delayedTasks = filteredTasks.filter(
+  //     (task) => task.status === "Delayed",
+  //   ).length;
+  //   const assignedTasks = filteredTasks.filter(
+  //     (task) => task.status === "Assigned",
+  //   ).length;
+
+  //   return {
+  //     totalTasks,
+  //     completedTasks,
+  //     ongoingTasks,
+  //     unassignedTasks,
+  //     holdTasks,
+  //     cancelledTasks,
+  //     delayedTasks,
+  //     assignedTasks,
+  //   };
+  // };
+
+  // const stats = calculateTaskStatus();
+  ////
+
+  ////Komal code
+const calculateTaskStatus = () => {
+  const totalTasks = allTasks.length;
+
+  const completedTasks = allTasks.filter(
+    (task) => task.status.startsWith("Completed")
+  ).length;
+
+  // ✅ In Progress = On Track + Delayed (In Progress)
+  const ongoingTasks = allTasks.filter(
+    (task) =>
+      task.status === "On Track (In Progress)" ||
+      task.status === "Delayed (In Progress)" ||
+    task.status === "Delayed"
     ).length;
 
-    return {
-      totalTasks,
-      completedTasks,
-      ongoingTasks,
-      unassignedTasks,
-      holdTasks,
-      cancelledTasks,
-      delayedTasks,
-      assignedTasks,
-    };
+  const unassignedTasks = allTasks.filter(
+    (task) => task.status === "Assignment Pending"
+  ).length;
+
+  const holdTasks = allTasks.filter(
+    (task) => task.status === "On Hold" || task.status === "Hold"
+  ).length;
+
+  const cancelledTasks = allTasks.filter(
+    (task) => task.status === "Cancelled"
+  ).length;
+
+  // ✅ Delayed ONLY means delayed-in-progress
+  const delayedTasks = allTasks.filter(
+    (task) => task.status === "Delayed (In Progress)" || 
+    task.status === "Delayed"
+  ).length;
+
+  const assignedTasks = allTasks.filter(
+    (task) => task.status === "Assigned"
+  ).length;
+
+  return {
+    totalTasks,
+    completedTasks,
+    ongoingTasks,
+    unassignedTasks,
+    holdTasks,
+    cancelledTasks,
+    delayedTasks,
+    assignedTasks,
   };
+};
+
 
   const stats = calculateTaskStatus();
   ////
@@ -184,7 +326,7 @@ const AdminTaskTMS = () => {
         task.projectName,
         task.title,
         task.assignedTo,
-        task.description,
+        // task.description,
         task.status,
         task.createdBy,
         task.time,
@@ -779,7 +921,7 @@ const AdminTaskTMS = () => {
                     whiteSpace: "nowrap",
                   }}
                 >
-                  Assign Date
+                  Assigned Date
                 </th>
                 {/* <th style={{ fontWeight: '500', fontSize: '14px', color: '#6c757d', borderBottom: '2px solid #dee2e6', padding: '12px', whiteSpace: 'nowrap' }}>Expected Date</th> */}
                 <th
@@ -888,11 +1030,7 @@ const AdminTaskTMS = () => {
                         whiteSpace: "nowrap",
                       }}
                     >
-                      <span>
-                        {task.status === "Assignment Pending"
-                          ? "Unassigned"
-                          : task.status?.name || task.status || "Unknown"}
-                      </span>
+                      <span>{task.status}</span>
                     </td>
                     <td
                       style={{

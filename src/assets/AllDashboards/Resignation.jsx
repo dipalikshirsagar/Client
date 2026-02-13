@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 
 function Resignation() {
@@ -12,16 +12,74 @@ function Resignation() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
 
+  //addded by shivani
+  const [showRowModal, setShowRowModal] = useState(false);
+  const [rowSelected, setRowSelected] = useState(null);
+  const openRowModal = (item) => {
+    setRowSelected(item);
+    setShowRowModal(true);
+  };
+
+  const closeRowModal = () => {
+    setShowRowModal(false);
+    setRowSelected(null);
+  };
+
   // Get token from localStorage
   const getToken = () => {
     return localStorage.getItem("token") || localStorage.getItem("accessToken");
   };
+  const modalRef = useRef(null);
 
+  useEffect(() => {
+    if (!showModal || !modalRef.current) return;
+
+    const modal = modalRef.current;
+
+    const focusableElements = modal.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+
+    const firstEl = focusableElements[0];
+    const lastEl = focusableElements[focusableElements.length - 1];
+
+    // ⭐ modal open होताच focus
+    modal.focus();
+
+    const handleKeyDown = (e) => {
+      // ESC key → modal close
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setShowModal(null);
+      }
+
+      // TAB key → focus trap
+      if (e.key === "Tab") {
+        if (e.shiftKey) {
+          if (document.activeElement === firstEl) {
+            e.preventDefault();
+            lastEl.focus();
+          }
+        } else {
+          if (document.activeElement === lastEl) {
+            e.preventDefault();
+            firstEl.focus();
+          }
+        }
+      }
+    };
+
+    modal.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      modal.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [showModal]);
   // Get all resignations
   const fetchResignations = async () => {
     try {
       const token = getToken();
-      const response = await axios.get("https://server-backend-nu.vercel.app/resignation", {
+      const response = await axios.get("https://server-backend-ems.vercel.app/resignation", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -74,6 +132,11 @@ function Resignation() {
       }
     }
 
+    if (comment && comment.trim().length > 300) {
+      alert("Comment must be 300 characters or less");
+      return;
+    }
+
     try {
       const token = getToken();
       if (!token) {
@@ -88,7 +151,7 @@ function Resignation() {
       };
 
       const response = await axios.put(
-        `https://server-backend-nu.vercel.app/resignation/${selected.originalData.resignationId}`,
+        `https://server-backend-ems.vercel.app/resignation/${selected.originalData.resignationId}`,
         payload,
         {
           headers: {
@@ -127,40 +190,67 @@ function Resignation() {
   }, []);
 
   // Filter and search logic
-  useEffect(() => {
-    let temp = [...requests];
+  // useEffect(() => {
+  //   let temp = [...requests];
 
-    if (searchInput.trim() !== "") {
-      const query = searchInput.toLowerCase();
-      temp = temp.filter((r) => {
-        const searchableFields = [
-          r.id,
-          r.empId,
-          r.name,
-          r.designation,
-          r.dept,
-          r.status,
-          r.reportingManager,
-          r.applyDate,
-          r.lwd,
-          r.reason,
-          r.approverComment,
-          r.comments,
-          r.approvedBy?.name,
-        ];
+  //   if (searchInput.trim() !== "") {
+  //     const query = searchInput.toLowerCase();
+  //     temp = temp.filter((r) => {
+  //       const searchableFields = [
+  //         r.id,
+  //         r.empId,
+  //         r.name,
+  //         r.designation,
+  //         r.dept,
+  //         r.status,
+  //         r.reportingManager,
+  //         r.applyDate,
+  //         r.lwd,
+  //         r.reason,
+  //         r.approverComment,
+  //         r.comments,
+  //         r.approvedBy?.name,
+  //       ];
 
-        const searchString = searchableFields
-          .filter((field) => field !== null && field !== undefined)
-          .join(" ")
-          .toLowerCase();
+  //       const searchString = searchableFields
+  //         .filter((field) => field !== null && field !== undefined)
+  //         .join(" ")
+  //         .toLowerCase();
 
-        return searchString.includes(query);
-      });
+  //       return searchString.includes(query);
+  //     });
+  //   }
+
+  //   setFilteredRequests(temp);
+  //   setCurrentPage(1);
+  // }, [requests, searchInput]);
+
+  const handleSearch = () => {
+    if (!searchInput.trim()) {
+      setFilteredRequests(requests);
+      return;
     }
 
-    setFilteredRequests(temp);
+    const query = searchInput.toLowerCase().trim();
+    const filtered = requests.filter((r) => {
+      const searchFields = [
+        r.id?.toString().toLowerCase(),
+        r.empId?.toString().toLowerCase(),
+        r.name?.toLowerCase(),
+        r.designation?.toLowerCase(),
+        r.dept?.toLowerCase(),
+        r.applyDate?.toLowerCase(),
+        r.lwd?.toLowerCase(),
+        r.approvedBy?.name?.toLowerCase(),
+        r.status?.toLowerCase(),
+      ];
+
+      return searchFields.some((field) => field && field.includes(query));
+    });
+
+    setFilteredRequests(filtered);
     setCurrentPage(1);
-  }, [requests, searchInput]);
+  };
 
   // Open modal
   const openModal = (item) => {
@@ -189,6 +279,7 @@ function Resignation() {
   // Reset filters
   const resetFilters = () => {
     setSearchInput("");
+    setFilteredRequests(requests);
   };
 
   // Calculate counts for status cards
@@ -331,7 +422,7 @@ function Resignation() {
                 type="button"
                 style={{ minWidth: 90 }}
                 className="btn btn-sm custom-outline-btn"
-                onClick={() => {}}
+                onClick={handleSearch}
               >
                 Filter
               </button>
@@ -379,7 +470,11 @@ function Resignation() {
                 </tr>
               ) : (
                 currentRequests.map((r) => (
-                  <tr key={r.id}>
+                  <tr
+                    key={r.id}
+                    style={{ cursor: "pointer" }}
+                    onClick={() => openRowModal(r)}
+                  >
                     <td style={tdStyle}>{r.id}</td>
                     <td style={tdStyle}>{r.empId}</td>
                     <td style={tdStyle}>{r.name}</td>
@@ -410,7 +505,10 @@ function Resignation() {
                     <td style={tdStyle}>
                       <button
                         className="btn btn-sm custom-outline-btn"
-                        onClick={() => openModal(r)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openModal(r);
+                        }}
                       >
                         View
                       </button>
@@ -497,7 +595,7 @@ function Resignation() {
         >
           <div
             className="modal-dialog modal-dialog-scrollable"
-            style={{ maxWidth: "650px", width: "95%" }}
+            style={{ maxWidth: "650px", width: "95%", marginTop: "200px" }}
           >
             <div className="modal-content">
               {/* Header */}
@@ -505,7 +603,7 @@ function Resignation() {
                 className="modal-header text-white"
                 style={{ backgroundColor: "#3A5FBE" }}
               >
-                <h5 className="modal-title mb-0">Resignation Details</h5>
+                <h5 className="modal-title mb-0">Resignation Action</h5>
                 <button
                   type="button"
                   className="btn-close btn-close-white"
@@ -516,82 +614,6 @@ function Resignation() {
               {/* Body */}
               <div className="modal-body">
                 <div className="container-fluid">
-                  {/* Employee Information */}
-                  <div className="row mb-3">
-                    <div className="col-12">
-                      <h6
-                        className="fw-semibold mb-3"
-                        style={{ color: "#3A5FBE" }}
-                      >
-                        Employee Information
-                      </h6>
-                    </div>
-                    <div className="col-md-6 mb-2">
-                      <div className="fw-semibold">Employee ID</div>
-                      <div>{selected.empId}</div>
-                    </div>
-                    <div className="col-md-6 mb-2">
-                      <div className="fw-semibold">Name</div>
-                      <div>{selected.name}</div>
-                    </div>
-                    <div className="col-md-6 mb-2">
-                      <div className="fw-semibold">Designation</div>
-                      <div>{selected.designation}</div>
-                    </div>
-                    <div className="col-md-6 mb-2">
-                      <div className="fw-semibold">Department</div>
-                      <div>{selected.dept}</div>
-                    </div>
-                    <div className="col-md-6 mb-2">
-                      <div className="fw-semibold">Joining Date</div>
-                      <div>{selected.joiningDate}</div>
-                    </div>
-                    <div className="col-md-6 mb-2">
-                      <div className="fw-semibold">Reporting Manager</div>
-                      <div>{selected.reportingManager}</div>
-                    </div>
-                  </div>
-
-                  {/* Resignation Information */}
-                  <div className="row mb-3">
-                    <div className="col-12">
-                      <h6
-                        className="fw-semibold mb-3"
-                        style={{ color: "#3A5FBE" }}
-                      >
-                        Resignation Information
-                      </h6>
-                    </div>
-                    <div className="col-md-6 mb-2">
-                      <div className="fw-semibold">Apply Date</div>
-                      <div>{selected.applyDate}</div>
-                    </div>
-                    <div className="col-md-6 mb-2">
-                      <div className="fw-semibold">Status</div>
-                      <div>
-                        <span
-                          style={{
-                            padding: "4px 12px",
-                            borderRadius: "999px",
-                            fontSize: "12px",
-                            backgroundColor: getStatusColor(selected.status).bg,
-                            color: getStatusColor(selected.status).color,
-                          }}
-                        >
-                          {selected.status}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="col-12 mb-2">
-                      <div className="fw-semibold">Reason</div>
-                      <div>{selected.reason}</div>
-                    </div>
-                    <div className="col-12 mb-2">
-                      <div className="fw-semibold">Employee Comment</div>
-                      <div>{selected.comments || "-"}</div>
-                    </div>
-                  </div>
-
                   {/* HR Action Section */}
                   {selected.status === "Pending" && (
                     <div className="row mb-3">
@@ -600,7 +622,7 @@ function Resignation() {
                           className="fw-semibold mb-3"
                           style={{ color: "#3A5FBE" }}
                         >
-                          HR Action
+                          Action
                         </h6>
                       </div>
                       <div className="col-12 mb-3">
@@ -678,23 +700,13 @@ function Resignation() {
                 {selected.status === "Pending" ? (
                   <>
                     <button
-                      className="btn btn-sm custom-outline-btn"
-                      style={{
-                        backgroundColor: "#22c55e",
-                        color: "#fff",
-                        border: "none",
-                      }}
+                      className="btn btn-sm btn-outline-success"
                       onClick={handleApprove}
                     >
                       Approve
                     </button>
                     <button
-                      className="btn btn-sm custom-outline-btn"
-                      style={{
-                        backgroundColor: "#ef4444",
-                        color: "#fff",
-                        border: "none",
-                      }}
+                      className="btn btn-sm btn-outline-danger"
                       onClick={handleReject}
                     >
                       Reject
@@ -704,6 +716,144 @@ function Resignation() {
                 <button
                   className="btn btn-sm custom-outline-btn"
                   onClick={closeModal}
+                  style={{ minWidth: 90 }}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Row Details Modal added by shivani */}
+      {showRowModal && rowSelected && (
+        <div
+          className="modal fade show"
+          ref={modalRef}
+          tabIndex="-1"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.5)",
+            position: "fixed",
+            inset: 0,
+            zIndex: 1050,
+          }}
+          onClick={closeRowModal}
+        >
+          <div
+            className="modal-dialog modal-dialog-scrollable"
+            style={{ maxWidth: "650px", width: "95%", marginTop: "200px" }}
+          >
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              {/* Header */}
+              <div
+                className="modal-header text-white"
+                style={{ backgroundColor: "#3A5FBE" }}
+              >
+                <h5 className="modal-title mb-0">Resignation Details</h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={closeRowModal}
+                />
+              </div>
+
+              {/* Body */}
+              <div className="modal-body">
+                <div className="container-fluid">
+                  <div className="row mb-2">
+                    <div className="col-12">
+                      <h6
+                        className="fw-semibold mb-3"
+                        style={{ color: "#3A5FBE" }}
+                      >
+                        Employee Information
+                      </h6>
+                    </div>
+                    <div className="col-md-6 mb-2">
+                      <div className="fw-semibold">Employee ID</div>
+                      <div>{rowSelected.empId}</div>
+                    </div>
+
+                    <div className="col-md-6 mb-2">
+                      <div className="fw-semibold">Name</div>
+                      <div>{rowSelected.name}</div>
+                    </div>
+
+                    <div className="col-md-6 mb-2">
+                      <div className="fw-semibold">Designation</div>
+                      <div>{rowSelected.designation}</div>
+                    </div>
+
+                    <div className="col-md-6 mb-2">
+                      <div className="fw-semibold">Department</div>
+                      <div>{rowSelected.dept}</div>
+                    </div>
+
+                    <div className="col-md-6 mb-2">
+                      <div className="fw-semibold">Joining Date</div>
+                      <div>{rowSelected.joiningDate}</div>
+                    </div>
+
+                    <div className="col-md-6 mb-2">
+                      <div className="fw-semibold">Reporting Manager</div>
+                      <div>{rowSelected.reportingManager}</div>
+                    </div>
+                  </div>
+
+                  {/* Resignation Information */}
+                  <div className="row mb-3">
+                    <div className="col-12">
+                      <h6
+                        className="fw-semibold mb-3"
+                        style={{ color: "#3A5FBE" }}
+                      >
+                        Resignation Information
+                      </h6>
+                    </div>
+                    <div className="col-md-6 mb-2">
+                      <div className="fw-semibold">Apply Date</div>
+                      <div>{rowSelected.applyDate}</div>
+                    </div>
+                    <div className="col-md-6 mb-2">
+                      <div className="fw-semibold">Status</div>
+                      <div>
+                        <span
+                          style={{
+                            padding: "4px 12px",
+                            borderRadius: "999px",
+                            fontSize: "12px",
+                            backgroundColor: getStatusColor(rowSelected.status)
+                              .bg,
+                            color: getStatusColor(rowSelected.status).color,
+                          }}
+                        >
+                          {rowSelected.status}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="col-12 mb-2">
+                      <div className="fw-semibold">Reason</div>
+                      <div>{rowSelected.reason}</div>
+                    </div>
+
+                    <div className="col-12 mb-2">
+                      <div className="fw-semibold">Employee Comment</div>
+                      <div>{rowSelected.comments || "-"}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="modal-footer border-0 pt-0">
+                <button
+                  className="btn btn-sm custom-outline-btn"
+                  style={{ minWidth: 90 }}
+                  onClick={closeRowModal}
                 >
                   Close
                 </button>

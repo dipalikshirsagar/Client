@@ -10,6 +10,7 @@ function EmployeeResignation({ user }) {
     manager: "",
     joiningDate: "",
   });
+  const [applyFilter, setApplyFilter] = useState(false); //rutuja code
 
   const [resignations, setResignations] = useState([]);
   const [filteredResignations, setFilteredResignations] = useState([]);
@@ -31,7 +32,7 @@ function EmployeeResignation({ user }) {
 
   async function fetchUser() {
     try {
-      const response = await axios.get("https://server-backend-nu.vercel.app/me", {
+      const response = await axios.get("https://server-backend-ems.vercel.app/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
       return response.data;
@@ -47,7 +48,7 @@ function EmployeeResignation({ user }) {
       if (!userData) return;
 
       const response = await axios.get(
-        `https://server-backend-nu.vercel.app/emp/info/${userData.employeeId}`,
+        `https://server-backend-ems.vercel.app/emp/info/${userData.employeeId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -72,7 +73,7 @@ function EmployeeResignation({ user }) {
       if (!userData) return;
 
       const response = await axios.get(
-        `https://server-backend-nu.vercel.app/resignation/${userData.employeeId}`,
+        `https://server-backend-ems.vercel.app/resignation/${userData.employeeId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -105,13 +106,24 @@ function EmployeeResignation({ user }) {
       alert("Please select reason");
       return;
     }
+    //Added by Rutuja
+    if (!form.comments || form.comments.trim() === "") {
+      alert("Please provide comments for resignation");
+      return;
+    }
+
+    // comment limit
+    if (form.comments.trim().length > 300) {
+      alert("Comments must be 300 characters or less");
+      return;
+    }
 
     try {
-      const userData = await fetchUser();
-      if (!userData) {
-        alert("User not found");
-        return;
-      }
+      // const userData = await fetchUser();
+      // if (!userData) {
+      //   alert("User not found");
+      //   return;
+      // }
 
       const payload = {
         reason: form.reason,
@@ -119,7 +131,7 @@ function EmployeeResignation({ user }) {
       };
 
       const response = await axios.post(
-        "https://server-backend-nu.vercel.app/resignation/apply",
+        "https://server-backend-ems.vercel.app/resignation/apply",
         payload,
         {
           headers: {
@@ -151,7 +163,7 @@ function EmployeeResignation({ user }) {
 
     try {
       const response = await axios.delete(
-        `https://server-backend-nu.vercel.app/cancel/resignation/${resignationId}`,
+        `https://server-backend-ems.vercel.app/cancel/resignation/${resignationId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -183,30 +195,58 @@ function EmployeeResignation({ user }) {
   }, [token]);
 
   // Apply filters when search query changes
+  // useEffect(() => {
+  //   const query = searchQuery.toLowerCase().trim();
+  //   if (query === "") {
+  //     setFilteredResignations(resignations);
+  //   } else {
+  //     const filtered = resignations.filter(
+  //       (r) =>
+  //         (r.resignationId || "").toString().toLowerCase().includes(query) ||
+  //         (r.reason || "").toLowerCase().includes(query) ||
+  //         (r.status || "").toLowerCase().includes(query) ||
+  //         (r.approverComment || "").toLowerCase().includes(query) ||
+  //         (r.approverName || "").toLowerCase().includes(query) ||
+  //         formatDate(r.applyDate).toLowerCase().includes(query) ||
+  //         (r.approvedDate
+  //           ? formatDate(r.approvedDate).toLowerCase().includes(query)
+  //           : false) ||
+  //         (r.lastWorkingDay
+  //           ? formatDate(r.lastWorkingDay).toLowerCase().includes(query)
+  //           : false),
+  //     );
+  //     setFilteredResignations(filtered);
+  //   }
+  //   setCurrentPage(1);
+  // }, [searchQuery, resignations]);
+
   useEffect(() => {
-    const query = searchQuery.toLowerCase().trim();
-    if (query === "") {
-      setFilteredResignations(resignations);
-    } else {
-      const filtered = resignations.filter(
-        (r) =>
-          (r.resignationId || "").toString().toLowerCase().includes(query) ||
-          (r.reason || "").toLowerCase().includes(query) ||
-          (r.status || "").toLowerCase().includes(query) ||
-          (r.approverComment || "").toLowerCase().includes(query) ||
-          (r.approverName || "").toLowerCase().includes(query) ||
-          formatDate(r.applyDate).toLowerCase().includes(query) ||
-          (r.approvedDate
-            ? formatDate(r.approvedDate).toLowerCase().includes(query)
-            : false) ||
-          (r.lastWorkingDay
-            ? formatDate(r.lastWorkingDay).toLowerCase().includes(query)
-            : false),
-      );
-      setFilteredResignations(filtered);
+    if (applyFilter) {
+      const query = searchQuery.toLowerCase().trim();
+      if (query === "") {
+        setFilteredResignations(resignations);
+      } else {
+        const filtered = resignations.filter(
+          (r) =>
+            (r.resignationId || "").toString().toLowerCase().includes(query) ||
+            (r.reason || "").toLowerCase().includes(query) ||
+            (r.status || "").toLowerCase().includes(query) ||
+            (r.approverComment || "").toLowerCase().includes(query) ||
+            (r.approverName || "").toLowerCase().includes(query) ||
+            formatDate(r.applyDate).toLowerCase().includes(query) ||
+            (r.approvedDate
+              ? formatDate(r.approvedDate).toLowerCase().includes(query)
+              : false) ||
+            (r.lastWorkingDay
+              ? formatDate(r.lastWorkingDay).toLowerCase().includes(query)
+              : false),
+        );
+        setFilteredResignations(filtered);
+      }
+      setApplyFilter(false);
+      setCurrentPage(1);
     }
-    setCurrentPage(1);
-  }, [searchQuery, resignations]);
+  }, [applyFilter, searchQuery, resignations]);
 
   const formatDate = (dateString) => {
     if (!dateString || dateString === "-") return "N/A";
@@ -261,16 +301,23 @@ function EmployeeResignation({ user }) {
     }
   };
 
-  // Calculate counts for status cards
-  const statusCounts = {
-    total: resignations.length,
-    pending: resignations.filter((r) => r.status?.toLowerCase() === "pending")
-      .length,
-    approved: resignations.filter((r) => r.status?.toLowerCase() === "approved")
-      .length,
-    rejected: resignations.filter((r) => r.status?.toLowerCase() === "rejected")
-      .length,
+  const resetApplyForm = () => {
+    setForm({
+      reason: "",
+      comments: "",
+    });
   };
+
+  // Calculate counts for status cards
+  // const statusCounts = {
+  //   total: resignations.length,
+  //   pending: resignations.filter((r) => r.status?.toLowerCase() === "pending")
+  //     .length,
+  //   approved: resignations.filter((r) => r.status?.toLowerCase() === "approved")
+  //     .length,
+  //   rejected: resignations.filter((r) => r.status?.toLowerCase() === "rejected")
+  //     .length,
+  // };
 
   // Pagination logic
   const totalPages = Math.ceil(filteredResignations.length / itemsPerPage);
@@ -308,7 +355,7 @@ function EmployeeResignation({ user }) {
       </h2>
 
       {/* Status Cards */}
-      <div className="row g-3 mb-4">
+      {/* <div className="row g-3 mb-4">
         {[
           {
             title: "Total Requests",
@@ -364,7 +411,7 @@ function EmployeeResignation({ user }) {
             </div>
           </div>
         ))}
-      </div>
+      </div> */}
 
       {/* Employee Info Table */}
       <div className="card shadow-sm border-0 mb-4">
@@ -420,7 +467,7 @@ function EmployeeResignation({ user }) {
                 type="text"
                 className="form-control"
                 placeholder="Search by any field..."
-                style={{ minWidth: 300 }}
+                style={{ minWidth: 100 }}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -432,7 +479,9 @@ function EmployeeResignation({ user }) {
                 type="button"
                 style={{ minWidth: 90 }}
                 className="btn btn-sm custom-outline-btn"
-                onClick={() => {}}
+                onClick={() => {
+                  setApplyFilter(true); //rutuja
+                }}
               >
                 Filter
               </button>
@@ -440,7 +489,11 @@ function EmployeeResignation({ user }) {
                 type="button"
                 style={{ minWidth: 90 }}
                 className="btn btn-sm custom-outline-btn"
-                onClick={resetFilters}
+                onClick={() => {
+                  setSearchQuery("");
+                  setApplyFilter(true);
+                  setCurrentPage(1);
+                }}
               >
                 Reset
               </button>
@@ -453,7 +506,10 @@ function EmployeeResignation({ user }) {
       <div className="d-flex justify-content-start mb-4">
         <button
           className="btn btn-sm custom-outline-btn"
-          onClick={() => setShowApply(true)}
+          onClick={() => {
+            resetApplyForm();
+            setShowApply(true);
+          }}
         >
           Apply Resignation
         </button>
@@ -502,12 +558,15 @@ function EmployeeResignation({ user }) {
                     <td style={tdStyle}>
                       <span
                         style={{
-                          padding: "6px 16px",
-                          borderRadius: "20px",
-                          fontSize: "12px",
+                          padding: "6px 14px",
+                          borderRadius: "4px",
+                          fontSize: "13px",
                           fontWeight: "500",
                           backgroundColor: getStatusColor(r.status).bg,
                           color: getStatusColor(r.status).color,
+                          display: "inline-block",
+                          minWidth: "100px",
+                          textAlign: "center",
                         }}
                       >
                         {r.status || "Unknown"}
@@ -774,7 +833,10 @@ function EmployeeResignation({ user }) {
                 <button
                   type="button"
                   className="btn-close btn-close-white"
-                  onClick={() => setShowApply(false)}
+                  onClick={() => {
+                    resetApplyForm();
+                    setShowApply(false);
+                  }}
                 />
               </div>
 
@@ -834,7 +896,7 @@ function EmployeeResignation({ user }) {
                         className="form-label fw-semibold"
                         style={{ color: "#212529" }}
                       >
-                        Comments
+                        Comment
                       </label>
                       <textarea
                         className="form-control"
@@ -843,17 +905,33 @@ function EmployeeResignation({ user }) {
                         onChange={(e) =>
                           setForm({ ...form, comments: e.target.value })
                         }
-                        placeholder="Optional comments..."
+                        placeholder="Enter your resignation comments "
                         style={{ resize: "none" }}
+                        maxLength={300}
                       />
+                      <div
+                        className="char-count mt-1"
+                        style={{
+                          display: "flex",
+                          justifyContent: "flex-end",
+                          fontSize: "12px",
+                          color:
+                            form.comments.length > 300 ? "#dc3545" : "#6c757d",
+                        }}
+                      >
+                        {form.comments.length}/300
+                      </div>
                     </div>
                   </div>
 
-                  <div className="modal-footer border-0 pt-0">
+                  <div className="d-flex justify-content-end gap-2">
                     <button
                       type="button"
                       className="btn btn-sm custom-outline-btn"
-                      onClick={() => setShowApply(false)}
+                      onClick={() => {
+                        resetApplyForm();
+                        setShowApply(false);
+                      }}
                     >
                       Cancel
                     </button>
@@ -887,8 +965,8 @@ function EmployeeResignation({ user }) {
           onClick={() => setShowResignationDetails(false)}
         >
           <div
-            className="modal-dialog modal-dialog-scrollable"
-            style={{ maxWidth: "650px", width: "95%", marginTop: "200px" }}
+            className="modal-dialog modal-dialog-centered"
+            style={{ width: "600px" }}
           >
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <div
@@ -1073,7 +1151,7 @@ function EmployeeResignation({ user }) {
                     onClick={() =>
                       handleDeleteResignation(selectedResignation.resignationId)
                     }
-                    style={{ marginRight: "auto" }}
+                    // style={{ marginRight: "auto" }}
                   >
                     Cancel Resignation
                   </button>

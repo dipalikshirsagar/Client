@@ -72,9 +72,8 @@ function AdminSetting({ user }) {
 
         <button
           type="button"
-          className={`btn btn-sm ${
-            activeTab === "support" ? "btn-primary" : "btn-outline-primary"
-          }`}
+          className={`btn btn-sm ${activeTab === "support" ? "btn-primary" : "btn-outline-primary"
+            }`}
           style={{
             backgroundColor:
               activeTab === "support" ? "#3A5FBE" : "transparent",
@@ -93,6 +92,9 @@ function AdminSetting({ user }) {
       {activeTab === "changePassword" && <ChangePassword />}
       {activeTab === "support" && <SupportEmployeeSetting />}
     </div>
+
+
+
   );
 }
 

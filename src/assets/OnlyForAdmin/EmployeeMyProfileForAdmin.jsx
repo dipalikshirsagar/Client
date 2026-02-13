@@ -30,7 +30,7 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
         try {
           const token = localStorage.getItem("accessToken");
           const res = await axios.get(
-            `https://server-backend-nu.vercel.app/getEmployee/${empId}`,
+            `https://server-backend-ems.vercel.app/getEmployee/${empId}`,
             {
               headers: { Authorization: `Bearer ${token}` },
             },
@@ -378,7 +378,7 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
       });
 
       await axios.put(
-        `https://server-backend-nu.vercel.app/employees/${employee._id || empId}`,
+        `https://server-backend-ems.vercel.app/employees/${employee._id || empId}`,
         data,
         {
           headers: {
@@ -392,7 +392,7 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
       setIsEditing(false);
 
       const updated = await axios.get(
-        `https://server-backend-nu.vercel.app/getEmployee/${employee._id || empId}`,
+        `https://server-backend-ems.vercel.app/getEmployee/${employee._id || empId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -482,7 +482,7 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
 
     const url = fileName.startsWith("http")
       ? fileName
-      : `https://server-backend-nu.vercel.app/uploads/${fileName}`;
+      : `https://server-backend-ems.vercel.app/uploads/${fileName}`;
 
     const fileType = getFileType(fileName);
 
@@ -521,7 +521,7 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
     try {
       const token = localStorage.getItem("accessToken");
       const res = await axios.delete(
-        `https://server-backend-nu.vercel.app/deleteEmployee/${id}`,
+        `https://server-backend-ems.vercel.app/deleteEmployee/${id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -573,7 +573,7 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
                   src={
                     employee?.image?.startsWith("http")
                       ? employee.image
-                      : `https://server-backend-nu.vercel.app/uploads/${employee.image}`
+                      : `https://server-backend-ems.vercel.app/uploads/${employee.image}`
                   }
                   alt="Profile Preview"
                   style={{
@@ -725,7 +725,7 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
 
         <div>
           <div className="card-body">
-            <h6 className="fw-bold text-primary mb-3">Personal Details:</h6>
+            <h6 className="fw-bold text-primary mb-3">Personal Details</h6>
 
             <div className="row g-3">
               {[
@@ -1110,7 +1110,7 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
                       href={
                         employee[field]?.startsWith("http")
                           ? employee[field]
-                          : `https://server-backend-nu.vercel.app/uploads/${employee[field]}`
+                          : `https://server-backend-ems.vercel.app/uploads/${employee[field]}`
                       }
                       target="_blank"
                       rel="noopener noreferrer"
@@ -1141,7 +1141,7 @@ function EmployeeProfileForAdmin({ employee: stateEmployee }) {
 
                 ) : employee.bankDetails?.passbookPdf ? (
                   <a
-                    href={`https://server-backend-nu.vercel.app/uploads/${employee.bankDetails.passbookPdf}`}
+                    href={`https://server-backend-ems.vercel.app/uploads/${employee.bankDetails.passbookPdf}`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >

@@ -31,7 +31,7 @@ function PasswordReset() {
     setError(null); // Clear previous error
 
     try {
-      const res = await fetch("https://server-backend-nu.vercel.app/sendpasswordlink", {
+      const res = await fetch("https://server-backend-ems.vercel.app/sendpasswordlink", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),

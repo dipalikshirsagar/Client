@@ -24,7 +24,7 @@ function EmployeeMyRegularization({ employeeId, refreshKey }) {
     const fetchRequests = async () => {
       try {
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/attendance/regularization/my/${employeeId}`,
+          `https://server-backend-ems.vercel.app/attendance/regularization/my/${employeeId}`,
         );
         // ✅ Sort newest first (based on createdAt or request date)
         // 🔒 STRICT last 3 months (rolling window)
@@ -54,6 +54,7 @@ function EmployeeMyRegularization({ employeeId, refreshKey }) {
               a.regularizationRequest?.requestedAt || a.createdAt || a.date,
             ),
         );
+
 
         setRequests(sortedData);
 
@@ -90,14 +91,15 @@ function EmployeeMyRegularization({ employeeId, refreshKey }) {
     setFilteredRequests(sorted);
   }, [requests]);
 
+  //Added by Jaicy
   const formatToIST = (utcDateString) => {
     const date = new Date(utcDateString);
     return date.toLocaleTimeString("en-IN", {
       timeZone: "Asia/Kolkata",
-      hour: "2-digit",
+      hour: "numeric",
       minute: "2-digit",
-      hour12: false,
-    });
+      hour12: true,
+    }).toUpperCase();
   };
 
   const handleDelete = async (id) => {
@@ -106,7 +108,7 @@ function EmployeeMyRegularization({ employeeId, refreshKey }) {
 
     try {
       await axios.delete(
-        `https://server-backend-nu.vercel.app/attendance/regularization/${id}`,
+        `https://server-backend-ems.vercel.app/attendance/regularization/${id}`,
       );
       setRequests(requests.filter((req) => req._id !== id));
     } catch (err) {
@@ -198,7 +200,7 @@ function EmployeeMyRegularization({ employeeId, refreshKey }) {
 
   if (error) return <p className="text-danger">{error}</p>;
   // if (filteredRequests.length === 0) return <p>No regularization requests found.</p>;
-
+  //Added by Jaicy
   const applyFilters = () => {
     let temp = requests.filter((req) =>
       ["Pending", "Rejected", "Approved"].includes(
@@ -215,13 +217,26 @@ function EmployeeMyRegularization({ employeeId, refreshKey }) {
     }
 
     if (dateFromFilter) {
-      temp = temp.filter(
-        (req) => new Date(req.date) >= new Date(dateFromFilter),
-      );
+      const from = new Date(dateFromFilter);
+      from.setHours(0, 0, 0, 0);
+
+      temp = temp.filter((req) => {
+        const reqDate = new Date(req.date);
+        reqDate.setHours(0, 0, 0, 0);
+        return reqDate >= from;
+      });
     }
+
     if (dateToFilter) {
-      temp = temp.filter((req) => new Date(req.date) <= new Date(dateToFilter));
+      const to = new Date(dateToFilter);
+      to.setHours(23, 59, 59, 999);
+
+      temp = temp.filter((req) => {
+        const reqDate = new Date(req.date);
+        return reqDate <= to;
+      });
     }
+
 
     setFilteredRequests(
       temp.sort(
@@ -721,6 +736,7 @@ function EmployeeMyRegularization({ employeeId, refreshKey }) {
                       Delete
                     </button>
                   </td> */}
+                      {/* //Added by Jaicy */}
                       <td
                         style={{
                           padding: "12px",
@@ -730,9 +746,7 @@ function EmployeeMyRegularization({ employeeId, refreshKey }) {
                           whiteSpace: "nowrap",
                         }}
                       >
-                        {(req?.regularizationRequest?.status === "Pending" ||
-                          req?.regularizationRequest?.status ===
-                            "Rejected") && (
+                        {req?.regularizationRequest?.status === "Pending" ? (
                           <button
                             // className="btn btn-sm btn-outline"
                             // style={{ color: "#3A5FBE", borderColor: "#3A5FBE" }}
@@ -744,6 +758,10 @@ function EmployeeMyRegularization({ employeeId, refreshKey }) {
                           >
                             Delete
                           </button>
+                        ) : (
+                          <div>
+                            <span style={{ fontSize: "13px" }}>-</span>
+                          </div>
                         )}
                       </td>
                     </tr>
@@ -824,7 +842,7 @@ function EmployeeMyRegularization({ employeeId, refreshKey }) {
                     <div className="col-7 col-sm-9">
                       {formatToIST(
                         selectedRequest.checkIn ||
-                          selectedRequest?.regularizationRequest?.checkIn,
+                        selectedRequest?.regularizationRequest?.checkIn,
                       )}
                     </div>
                   </div>
@@ -834,7 +852,7 @@ function EmployeeMyRegularization({ employeeId, refreshKey }) {
                     <div className="col-7 col-sm-9">
                       {formatToIST(
                         selectedRequest.checkOut ||
-                          selectedRequest?.regularizationRequest?.checkOut,
+                        selectedRequest?.regularizationRequest?.checkOut,
                       )}
                     </div>
                   </div>
@@ -869,10 +887,10 @@ function EmployeeMyRegularization({ employeeId, refreshKey }) {
                         className={
                           "badge text-capitalize " +
                           (selectedRequest?.regularizationRequest?.status ===
-                          "Approved"
+                            "Approved"
                             ? "bg-success"
                             : selectedRequest?.regularizationRequest?.status ===
-                                "Rejected"
+                              "Rejected"
                               ? "bg-danger"
                               : "bg-warning text-dark")
                         }
@@ -890,19 +908,19 @@ function EmployeeMyRegularization({ employeeId, refreshKey }) {
                 {(selectedRequest?.regularizationRequest?.status ===
                   "Pending" ||
                   selectedRequest?.regularizationRequest?.status ===
-                    "Rejected") && (
-                  <button
-                    className="btn btn-outline-danger me-2"
-                    onClick={() => {
-                      handleDelete(selectedRequest._id);
-                      setSelectedRequest(null);
-                    }}
-                  >
-                    Delete
-                  </button>
-                )}
+                  "Rejected") && (
+                    <button
+                      className="btn btn-outline-danger me-2 btn-sm"
+                      onClick={() => {
+                        handleDelete(selectedRequest._id);
+                        setSelectedRequest(null);
+                      }}
+                    >
+                      Delete
+                    </button>
+                  )}
                 <button
-                  className="btn  custom-outline-btn"
+                  className="btn  custom-outline-btn btn-sm"
                   onClick={() => setSelectedRequest(null)}
                 >
                   Close
@@ -943,9 +961,8 @@ function EmployeeMyRegularization({ employeeId, refreshKey }) {
           <span style={{ fontSize: "14px", marginLeft: "16px" }}>
             {filteredRequests.length === 0
               ? "0–0 of 0"
-              : `${indexOfFirstItem + 1}-${indexOfLastItem} of ${
-                  filteredRequests.length
-                }`}
+              : `${indexOfFirstItem + 1}-${indexOfLastItem} of ${filteredRequests.length
+              }`}
           </span>
 
           {/* Arrows */}

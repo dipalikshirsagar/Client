@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 
 const HRFeedback = () => {
@@ -12,7 +12,10 @@ const HRFeedback = () => {
   const [employees, setEmployees] = useState([]);
   const [sending, setSending] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
-
+  const formModalRef = useRef(null);
+  const detailsModalRef = useRef(null);
+  ///active tab code Dip 03-02-2026
+  const [activeTab, setActiveTab] = useState("received");
   // Pagination state
   const [currentPageSent, setCurrentPageSent] = useState(1);
   const [currentPageReceived, setCurrentPageReceived] = useState(1);
@@ -24,7 +27,12 @@ const HRFeedback = () => {
     title: "",
     message: "",
   });
-
+  const [dateSearch, setDateSearch] = useState("");
+  const [appliedFilters, setAppliedFilters] = useState({
+    search: "",
+    status: "All",
+    date: "",
+  });
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     if (token) {
@@ -60,7 +68,7 @@ const HRFeedback = () => {
       if (!token) return;
 
       const response = await axios.get(
-        "https://server-backend-nu.vercel.app/getAllEmployees",
+        "https://server-backend-ems.vercel.app/getAllEmployees",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -88,7 +96,7 @@ const HRFeedback = () => {
       }
 
       const response = await axios.get(
-        `https://server-backend-nu.vercel.app/feedback/employee/${currentUser._id}`,
+        `https://server-backend-ems.vercel.app/feedback/employee/${currentUser._id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -111,8 +119,16 @@ const HRFeedback = () => {
               : fb.receiver?.designation,
             assignedTo: fb.receiver?.name,
             date: fb.createdAt
-              ? new Date(fb.createdAt).toLocaleDateString("en-GB")
-              : new Date().toLocaleDateString("en-GB"),
+              ? new Date(fb.createdAt).toLocaleDateString("en-GB", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                })
+              : new Date().toLocaleDateString("en-GB", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                }),
             status: fb.status === "viewed" ? "Viewed" : "Pending",
             title: fb.title || "No Title",
             description: fb.message || "No Message",
@@ -122,7 +138,14 @@ const HRFeedback = () => {
             senderName: fb.sender?.name,
             senderId: fb.sender?._id,
             readAt: fb.readAt
-              ? new Date(fb.readAt).toLocaleString("en-GB")
+              ? new Date(fb.readAt).toLocaleString("en-GB", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
+                })
               : null,
             originalStatus: fb.status,
           };
@@ -169,7 +192,7 @@ const HRFeedback = () => {
       }
 
       const response = await axios.put(
-        `https://server-backend-nu.vercel.app/feedback/view/${feedbackId}`,
+        `https://server-backend-ems.vercel.app/feedback/view/${feedbackId}`,
         {},
         {
           headers: {
@@ -206,19 +229,31 @@ const HRFeedback = () => {
     }
   };
 
-  const handleSearch = () => setSearchQuery(searchText);
+  const handleSearch = () => {
+    setAppliedFilters({
+      search: searchText,
+      status: statusFilter,
+      date: dateSearch,
+    });
+  };
 
   const handleReset = () => {
     setSearchText("");
-    setSearchQuery("");
     setStatusFilter("All");
+    setDateSearch("");
+    setAppliedFilters({
+      search: "",
+      status: "All",
+      date: "",
+    });
   };
 
   const sentFeedbacks = feedbacks.filter((fb) => fb.type === "sent");
   const receivedFeedbacks = feedbacks.filter((fb) => fb.type === "received");
 
   const filteredReceivedFeedbacks = receivedFeedbacks.filter((fb) => {
-    const q = searchQuery.toLowerCase();
+    const q = appliedFilters.search.toLowerCase();
+    const dateQ = appliedFilters.date;
     const matchesText =
       q === "" ||
       (fb.feedbackId && fb.feedbackId.toLowerCase().includes(q)) ||
@@ -226,12 +261,26 @@ const HRFeedback = () => {
       (fb.designation && fb.designation.toLowerCase().includes(q)) ||
       (fb.title && fb.title.toLowerCase().includes(q)) ||
       (fb.status && fb.status.toLowerCase().includes(q));
-    const matchesStatus = statusFilter === "All" || fb.status === statusFilter;
-    return matchesText && matchesStatus;
+    let matchesDate = true;
+    if (dateQ) {
+      const fbDateStr = fb.date;
+      const fbDate = new Date(fbDateStr.split(" ").reverse().join(" "));
+      const selectedDate = new Date(dateQ);
+
+      matchesDate =
+        fbDate.getFullYear() === selectedDate.getFullYear() &&
+        fbDate.getMonth() === selectedDate.getMonth() &&
+        fbDate.getDate() === selectedDate.getDate();
+    }
+
+    const matchesStatus =
+      appliedFilters.status === "All" || fb.status === appliedFilters.status;
+    return matchesText && matchesStatus && matchesDate;
   });
 
   const filteredSentFeedbacks = sentFeedbacks.filter((fb) => {
-    const q = searchQuery.toLowerCase();
+    const q = appliedFilters.search.toLowerCase();
+    const dateQ = appliedFilters.date;
     const matchesText =
       q === "" ||
       (fb.feedbackId && fb.feedbackId.toLowerCase().includes(q)) ||
@@ -239,51 +288,56 @@ const HRFeedback = () => {
       (fb.designation && fb.designation.toLowerCase().includes(q)) ||
       (fb.title && fb.title.toLowerCase().includes(q)) ||
       (fb.status && fb.status.toLowerCase().includes(q));
-    return matchesText;
+    let matchesDate = true;
+    if (dateQ) {
+      const fbDateStr = fb.date;
+      const fbDate = new Date(fbDateStr.split(" ").reverse().join(" "));
+      const selectedDate = new Date(dateQ);
+
+      matchesDate =
+        fbDate.getFullYear() === selectedDate.getFullYear() &&
+        fbDate.getMonth() === selectedDate.getMonth() &&
+        fbDate.getDate() === selectedDate.getDate();
+    }
+
+    const matchesStatus =
+      appliedFilters.status === "All" || fb.status === appliedFilters.status;
+    return matchesText && matchesStatus && matchesDate;
   });
 
-  const totalPagesReceived = Math.ceil(
-    filteredReceivedFeedbacks.length / itemsPerPage,
-  );
-  const indexOfLastItemReceived = Math.min(
-    currentPageReceived * itemsPerPage,
-    filteredReceivedFeedbacks.length,
-  );
-  const indexOfFirstItemReceived = (currentPageReceived - 1) * itemsPerPage;
-  const currentReceivedFeedbacks = filteredReceivedFeedbacks.slice(
-    indexOfFirstItemReceived,
-    indexOfLastItemReceived,
-  );
+  //  show data based on active tab  dip(03-02-2026)
+  const currentFeedbacks =
+    activeTab === "received"
+      ? filteredReceivedFeedbacks
+      : filteredSentFeedbacks;
+  const currentPage =
+    activeTab === "received" ? currentPageReceived : currentPageSent;
+  const setCurrentPage =
+    activeTab === "received" ? setCurrentPageReceived : setCurrentPageSent;
 
-  const totalPagesSent = Math.ceil(filteredSentFeedbacks.length / itemsPerPage);
-  const indexOfLastItemSent = Math.min(
-    currentPageSent * itemsPerPage,
-    filteredSentFeedbacks.length,
+  const totalPages = Math.ceil(currentFeedbacks.length / itemsPerPage);
+  const indexOfLastItem = Math.min(
+    currentPage * itemsPerPage,
+    currentFeedbacks.length,
   );
-  const indexOfFirstItemSent = (currentPageSent - 1) * itemsPerPage;
-  const currentSentFeedbacks = filteredSentFeedbacks.slice(
-    indexOfFirstItemSent,
-    indexOfLastItemSent,
-  );
-
-  const handlePageChangeSent = (pageNumber) => {
-    if (pageNumber < 1 || pageNumber > totalPagesSent) return;
-    setCurrentPageSent(pageNumber);
-  };
-
-  const handlePageChangeReceived = (pageNumber) => {
-    if (pageNumber < 1 || pageNumber > totalPagesReceived) return;
-    setCurrentPageReceived(pageNumber);
-  };
-
-  const renderPagination = (
-    currentPage,
-    totalPages,
-    totalItems,
+  const indexOfFirstItem = (currentPage - 1) * itemsPerPage;
+  const paginatedFeedbacks = currentFeedbacks.slice(
     indexOfFirstItem,
     indexOfLastItem,
-    setPage,
-  ) => (
+  );
+
+  const handlePageChange = (pageNumber) => {
+    if (pageNumber < 1 || pageNumber > totalPages) return;
+    setCurrentPage(pageNumber);
+  };
+
+  const renderPagination = () => (
+    // currentPage,
+    // totalPages,
+    // totalItems,
+    // indexOfFirstItem,
+    // indexOfLastItem,
+    // setPage, //  remove commented code dip(03-02-2026)
     <nav className="d-flex align-items-center justify-content-end mt-3 text-muted">
       <div className="d-flex align-items-center gap-3">
         <div className="d-flex align-items-center">
@@ -304,14 +358,14 @@ const HRFeedback = () => {
             <option value={25}>25</option>
           </select>
         </div>
-
+        {/* change total items to currentfeedback.length dip 03-02-2026 */}
         <span style={{ fontSize: "14px", marginLeft: "16px" }}>
-          {totalItems === 0
+          {currentFeedbacks.length === 0
             ? "0–0 of 0"
             : `${indexOfFirstItem + 1}-${Math.min(
                 indexOfLastItem,
-                totalItems,
-              )} of ${totalItems}`}
+                currentFeedbacks.length,
+              )} of ${currentFeedbacks.length}`}
         </span>
 
         <div
@@ -319,16 +373,16 @@ const HRFeedback = () => {
           style={{ marginLeft: "16px" }}
         >
           <button
-            className="btn btn-sm border-0"
-            onClick={() => setPage(currentPage - 1)}
+            className="btn btn-sm focus-ring"
+            onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
             style={{ fontSize: "18px", padding: "2px 8px" }}
           >
             ‹
           </button>
           <button
-            className="btn btn-sm border-0"
-            onClick={() => setPage(currentPage + 1)}
+            className="btn btn-sm focus-ring"
+            onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
             style={{ fontSize: "18px", padding: "2px 8px" }}
           >
@@ -377,7 +431,7 @@ const HRFeedback = () => {
 
       if (editId) {
         response = await axios.put(
-          `https://server-backend-nu.vercel.app/feedback/edit/${editId}`,
+          `https://server-backend-ems.vercel.app/feedback/edit/${editId}`,
           {
             title: formData.title,
             message: formData.message,
@@ -391,7 +445,7 @@ const HRFeedback = () => {
         );
       } else {
         response = await axios.post(
-          "https://server-backend-nu.vercel.app/feedback/send",
+          "https://server-backend-ems.vercel.app/feedback/send",
           {
             receiverId: formData.receiverId,
             title: formData.title,
@@ -453,7 +507,7 @@ const HRFeedback = () => {
     try {
       const token = localStorage.getItem("accessToken");
       if (token) {
-        await axios.delete(`https://server-backend-nu.vercel.app/feedback/delete/${id}`, {
+        await axios.delete(`https://server-backend-ems.vercel.app/feedback/delete/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -466,19 +520,111 @@ const HRFeedback = () => {
       alert("Failed to delete feedback");
     }
   };
+  console.log("Active Tab:", activeTab);
+
+  /////Disable background scroll
+  useEffect(() => {
+    if (showForm || selectedFeedback) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [showForm, selectedFeedback]);
+  ///Auto focus modal when it opens
+  useEffect(() => {
+    if (showForm && formModalRef.current) {
+      formModalRef.current.focus();
+    }
+
+    if (selectedFeedback && detailsModalRef.current) {
+      detailsModalRef.current.focus();
+    }
+  }, [showForm, selectedFeedback]);
+  useEffect(() => {
+    const modal = showForm
+      ? formModalRef.current
+      : selectedFeedback
+        ? detailsModalRef.current
+        : null;
+
+    if (!modal) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setShowForm(false);
+        setSelectedFeedback(null);
+        return;
+      }
+
+      if (e.key !== "Tab") return;
+
+      const focusable = modal.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      );
+
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [showForm, selectedFeedback]);
 
   return (
     <div className="container-fluid">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 style={{ color: "#3A5FBE", fontSize: "25px", marginLeft: "15px" }}>
-          Employee Feedback Management
-        </h2>
+        <h2 style={{ color: "#3A5FBE", fontSize: "25px" }}>Feedback</h2>
         <button
           className="btn btn-sm custom-outline-btn"
           onClick={openAddForm}
           style={{ minWidth: 140 }}
         >
           Add New Feedback
+        </button>
+      </div>
+      {/* Tab switchinng buttons Dip 03-02-2026 */}
+      <div className="d-flex gap-2 justify-content-center mt-3 mb-3">
+        <button
+          onClick={() => {
+            setActiveTab("received");
+            setCurrentPageReceived(1);
+          }}
+          className="btn btn-sm custom-outline-btn"
+          style={{ minWidth: 150 }}
+        >
+          Received Feedback
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveTab("sent");
+            setCurrentPageSent(1);
+          }}
+          className="btn btn-sm custom-outline-btn"
+          style={{ minWidth: 150 }}
+        >
+          Sent Feedback
         </button>
       </div>
 
@@ -526,10 +672,9 @@ const HRFeedback = () => {
                   fontSize: "16px",
                   color: "#3A5FBE",
                   marginRight: "5px",
-                  minWidth: "120px",
                 }}
               >
-                Search Feedback
+                Search
               </label>
               <input
                 id="searchInput"
@@ -538,6 +683,29 @@ const HRFeedback = () => {
                 placeholder="Search by any field..."
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
+              />
+            </div>
+
+            <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
+              <label
+                htmlFor="dateInput"
+                className="fw-bold mb-0"
+                style={{
+                  fontSize: "16px",
+                  color: "#3A5FBE",
+                  marginRight: "15px",
+                  minWidth: "40px",
+                }}
+              >
+                Date
+              </label>
+              <input
+                id="dateInput"
+                type="date"
+                className="form-control"
+                value={dateSearch}
+                onChange={(e) => setDateSearch(e.target.value)}
+                style={{ minWidth: "140px" }}
               />
             </div>
 
@@ -562,15 +730,11 @@ const HRFeedback = () => {
         </div>
       </div>
 
-      {/* Received Feedback */}
-      <h2 style={{ color: "#3A5FBE", fontSize: "25px", marginLeft: "15px" }}>
-        Received Feedback
-      </h2>
-
-      {filteredReceivedFeedbacks.length === 0 ? (
+      {/* CONDITIONAL RENDERING BASED ON ACTIVE TAB dipali 03-02-2026 */}
+      {currentFeedbacks.length === 0 ? (
         <div className="text-center py-4">
           <p style={{ color: "#6c757d", fontSize: "16px" }}>
-            No feedback received yet.
+            No {activeTab} feedback yet.
           </p>
         </div>
       ) : (
@@ -610,7 +774,8 @@ const HRFeedback = () => {
                       whiteSpace: "nowrap",
                     }}
                   >
-                    From
+                    {activeTab === "received" ? "From" : "To"}{" "}
+                    {/*change dip 03-02-2026 */}
                   </th>
                   <th
                     style={{
@@ -660,270 +825,41 @@ const HRFeedback = () => {
                   >
                     Title
                   </th>
-                  <th
-                    style={{
-                      fontWeight: "500",
-                      fontSize: "14px",
-                      color: "#6c757d",
-                      borderBottom: "2px solid #dee2e6",
-                      padding: "10px",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    Actions
-                  </th>
+                  {/* //added by Rushikesh */}
+                  {/* Add activ tab code dip 03-02-2026 */}
+                  {activeTab === "received" && (
+                    <th
+                      style={{
+                        fontWeight: "500",
+                        fontSize: "14px",
+                        color: "#6c757d",
+                        padding: "12px",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Description
+                    </th>
+                  )}
+                  {activeTab === "sent" && (
+                    <th
+                      style={{
+                        fontWeight: "500",
+                        fontSize: "14px",
+                        color: "#6c757d",
+                        borderBottom: "2px solid #dee2e6",
+                        padding: "10px",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Actions
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody>
-                {currentReceivedFeedbacks.map((fb) => (
-                  <tr key={fb.id}>
-                    <td
-                      style={{
-                        padding: "10px",
-                        verticalAlign: "middle",
-                        fontSize: "14px",
-                        borderBottom: "1px solid #dee2e6",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {fb.feedbackId}
-                    </td>
-                    <td
-                      style={{
-                        padding: "10px",
-                        verticalAlign: "middle",
-                        fontSize: "14px",
-                        borderBottom: "1px solid #dee2e6",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {fb.employeeName}
-                    </td>
-                    <td
-                      style={{
-                        padding: "10px",
-                        verticalAlign: "middle",
-                        fontSize: "14px",
-                        borderBottom: "1px solid #dee2e6",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {fb.designation || "N/A"}
-                    </td>
-                    <td
-                      style={{
-                        padding: "10px",
-                        verticalAlign: "middle",
-                        fontSize: "14px",
-                        borderBottom: "1px solid #dee2e6",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {fb.date}
-                    </td>
-                    <td
-                      style={{
-                        padding: "10px",
-                        verticalAlign: "middle",
-                        fontSize: "14px",
-                        borderBottom: "1px solid #dee2e6",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {fb.status === "Viewed" ? (
-                        <span
-                          style={{
-                            backgroundColor: "#d1f2dd",
-                            padding: "6px 12px",
-                            borderRadius: "4px",
-                            fontSize: "13px",
-                            fontWeight: "500",
-                            display: "inline-block",
-                            width: "100px",
-                            textAlign: "center",
-                          }}
-                        >
-                          Viewed
-                        </span>
-                      ) : (
-                        <span
-                          style={{
-                            backgroundColor: "#fff3cd",
-                            padding: "6px 12px",
-                            borderRadius: "4px",
-                            fontSize: "13px",
-                            fontWeight: "500",
-                            display: "inline-block",
-                            width: "100px",
-                            textAlign: "center",
-                          }}
-                        >
-                          Pending
-                        </span>
-                      )}
-                    </td>
-                    <td
-                      style={{
-                        padding: "10px",
-                        verticalAlign: "middle",
-                        fontSize: "14px",
-                        borderBottom: "1px solid #dee2e6",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {fb.title}
-                    </td>
-                    <td
-                      style={{
-                        padding: "10px",
-                        verticalAlign: "middle",
-                        fontSize: "14px",
-                        borderBottom: "1px solid #dee2e6",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      <button
-                        className="btn btn-sm custom-outline-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openFeedbackModal(fb);
-                        }}
-                        style={{ minWidth: "80px", padding: "5px 10px" }}
-                      >
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {renderPagination(
-            currentPageReceived,
-            totalPagesReceived,
-            filteredReceivedFeedbacks.length,
-            indexOfFirstItemReceived,
-            indexOfLastItemReceived,
-            handlePageChangeReceived,
-          )}
-        </>
-      )}
-
-      {/* Sent Feedback */}
-      <h2 style={{ color: "#3A5FBE", fontSize: "25px", marginLeft: "15px" }}>
-        Sent Feedback
-      </h2>
-
-      {filteredSentFeedbacks.length === 0 ? (
-        <div className="text-center py-4">
-          <p style={{ color: "#6c757d", fontSize: "16px" }}>
-            No feedback sent yet.
-          </p>
-        </div>
-      ) : (
-        <>
-          <div
-            className="table-responsive mt-3 "
-            style={{
-              boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-              borderRadius: "8px",
-            }}
-          >
-            <table
-              className="table table-hover mb-0"
-              style={{ borderCollapse: "collapse" }}
-            >
-              <thead style={{ backgroundColor: "#f8f9fa" }}>
-                <tr>
-                  <th
-                    style={{
-                      fontWeight: "500",
-                      fontSize: "14px",
-                      color: "#6c757d",
-                      borderBottom: "2px solid #dee2e6",
-                      padding: "10px",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    Feedback ID
-                  </th>
-                  <th
-                    style={{
-                      fontWeight: "500",
-                      fontSize: "14px",
-                      color: "#6c757d",
-                      borderBottom: "2px solid #dee2e6",
-                      padding: "10px",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    To
-                  </th>
-                  <th
-                    style={{
-                      fontWeight: "500",
-                      fontSize: "14px",
-                      color: "#6c757d",
-                      borderBottom: "2px solid #dee2e6",
-                      padding: "10px",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    Designation
-                  </th>
-                  <th
-                    style={{
-                      fontWeight: "500",
-                      fontSize: "14px",
-                      color: "#6c757d",
-                      borderBottom: "2px solid #dee2e6",
-                      padding: "10px",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    Date
-                  </th>
-                  <th
-                    style={{
-                      fontWeight: "500",
-                      fontSize: "14px",
-                      color: "#6c757d",
-                      borderBottom: "2px solid #dee2e6",
-                      padding: "10px",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    Status
-                  </th>
-                  <th
-                    style={{
-                      fontWeight: "500",
-                      fontSize: "14px",
-                      color: "#6c757d",
-                      borderBottom: "2px solid #dee2e6",
-                      padding: "10px",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    Title
-                  </th>
-                  <th
-                    style={{
-                      fontWeight: "500",
-                      fontSize: "14px",
-                      color: "#6c757d",
-                      borderBottom: "2px solid #dee2e6",
-                      padding: "10px",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentSentFeedbacks.map((fb) => (
+                {/* Change to paginatedfeedback dip 03-02-2026*/}
+                {paginatedFeedbacks.map((fb) => (
+                  //addeed by Rushikesh
                   <tr
                     key={fb.id}
                     style={{
@@ -1035,6 +971,22 @@ const HRFeedback = () => {
                     >
                       {fb.title}
                     </td>
+                    {/* //added by Rushikesh */}
+                    {activeTab === "received" && (
+                      <td
+                        style={{
+                          padding: "12px",
+                          fontSize: "14px",
+                          borderBottom: "1px solid #dee2e6",
+                          maxWidth: "250px",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {fb.description}
+                      </td>
+                    )}
                     <td
                       style={{
                         padding: "10px",
@@ -1043,37 +995,53 @@ const HRFeedback = () => {
                         borderBottom: "1px solid #dee2e6",
                         whiteSpace: "nowrap",
                       }}
-                      onClick={(e) => e.stopPropagation()}
                     >
-                      <div className="d-flex gap-2">
+                      {/* TAB SWTICHING CHANGES DIP 03-02-2026 */}
+                      {activeTab === "received" && "sent" ? (
                         <button
                           className="btn btn-sm custom-outline-btn"
                           onClick={(e) => {
-                            if (fb.status === "Pending") {
-                              openEditForm(fb, e);
-                            }
+                            e.stopPropagation();
+                            openFeedbackModal(fb);
                           }}
-                          style={{
-                            padding: "5px 10px",
-                            minWidth: "70px",
-                            opacity: fb.status === "Viewed" ? 0.6 : 1,
-                            cursor:
-                              fb.status === "Viewed"
-                                ? "not-allowed"
-                                : "pointer",
-                          }}
-                          disabled={fb.status === "Viewed"}
+                          style={{ minWidth: "80px", padding: "5px 10px" }}
                         >
-                          {fb.status === "Viewed" ? "Edit" : "Edit"}
+                          View
                         </button>
-                        <button
-                          className="btn btn-sm btn-outline-danger"
-                          onClick={(e) => handleDelete(fb.id, e)}
-                          style={{ padding: "5px 10px", minWidth: "70px" }}
+                      ) : (
+                        <div
+                          className="d-flex gap-2"
+                          onClick={(e) => e.stopPropagation()}
                         >
-                          Delete
-                        </button>
-                      </div>
+                          <button
+                            className="btn btn-sm custom-outline-btn"
+                            onClick={(e) => {
+                              if (fb.status === "Pending") {
+                                openEditForm(fb, e);
+                              }
+                            }}
+                            style={{
+                              padding: "5px 10px",
+                              minWidth: "70px",
+                              opacity: fb.status === "Viewed" ? 0.6 : 1,
+                              cursor:
+                                fb.status === "Viewed"
+                                  ? "not-allowed"
+                                  : "pointer",
+                            }}
+                            disabled={fb.status === "Viewed"}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="btn btn-sm btn-outline-danger"
+                            onClick={(e) => handleDelete(fb.id, e)}
+                            style={{ padding: "5px 10px", minWidth: "70px" }}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -1081,21 +1049,26 @@ const HRFeedback = () => {
             </table>
           </div>
 
-          {renderPagination(
-            currentPageSent,
-            totalPagesSent,
-            filteredSentFeedbacks.length,
-            indexOfFirstItemSent,
-            indexOfLastItemSent,
-            handlePageChangeSent,
-          )}
+          {
+            renderPagination()
+            // currentPageReceived,
+            // totalPagesReceived,
+            // filteredReceivedFeedbacks.length,
+            // indexOfFirstItemReceived,
+            // indexOfLastItemReceived,
+            // handlePageChangeReceived, remove all of this dip 03-02-2026
+          }
         </>
       )}
 
       {/* Modal */}
       {showForm && (
         <div
+          ref={formModalRef}
           className="modal fade show"
+          role="dialog"
+          aria-modal="true"
+          tabIndex={-1}
           style={{
             display: "flex",
             alignItems: "center",
@@ -1108,7 +1081,7 @@ const HRFeedback = () => {
         >
           <div
             className="modal-dialog"
-            style={{ maxWidth: "500px", width: "95%" }}
+            style={{ maxWidth: "500px", width: "95%", marginTop: "80px" }}
           >
             <div className="modal-content">
               <div
@@ -1249,7 +1222,11 @@ const HRFeedback = () => {
       {/* View Details Modal */}
       {selectedFeedback && (
         <div
+          ref={detailsModalRef}
           className="modal fade show"
+          role="dialog"
+          aria-modal="true"
+          tabIndex={-1}
           style={{
             display: "flex",
             alignItems: "center",
@@ -1262,7 +1239,7 @@ const HRFeedback = () => {
         >
           <div
             className="modal-dialog"
-            style={{ maxWidth: "600px", width: "95%" }}
+            style={{ maxWidth: "600px", width: "95%", marginTop: "160px" }}
           >
             <div className="modal-content">
               <div
@@ -1379,6 +1356,22 @@ const HRFeedback = () => {
           </div>
         </div>
       )}
+      <div className="d-flex justify-content-end mt-3">
+        <button
+          className="btn btn-sm custom-outline-btn"
+          style={{ minWidth: 90 }}
+          onClick={() => {
+            if (activeTab === "sent") {
+              setActiveTab("received");
+              setCurrentPage(1);
+            } else {
+              window.history.go(-1);
+            }
+          }}
+        >
+          Back
+        </button>
+      </div>
     </div>
   );
 };

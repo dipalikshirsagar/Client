@@ -84,7 +84,7 @@ function AddAnnouncements({ onAdd }) {
       formData.append("image", image);
 
       const response = await axios.post(
-        "https://server-backend-nu.vercel.app/announcements/",
+        "https://server-backend-ems.vercel.app/announcements/",
         formData,
         {
           headers: {
@@ -94,7 +94,12 @@ function AddAnnouncements({ onAdd }) {
         },
       );
 
-      const newAnnouncement = response.data?.announcement || response.data;
+      // const newAnnouncement = response.data?.announcement || response.data;
+      //Added by samiksha
+      const newAnnouncement =
+        response.data?.announcement ||
+        response.data?.data ||
+        response.data;
       if (onAdd && newAnnouncement) onAdd(newAnnouncement);
 
       alert("Announcement added successfully!");

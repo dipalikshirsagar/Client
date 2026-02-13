@@ -36,7 +36,7 @@ function AddHolidayForm({ onAdd }) {
     try {
       const token = localStorage.getItem("accessToken");
       const res = await axios.post(
-        "https://server-backend-nu.vercel.app/holidays",
+        "https://server-backend-ems.vercel.app/holidays",
         { name, date },
         { headers: { Authorization: `Bearer ${token}` } },
       );

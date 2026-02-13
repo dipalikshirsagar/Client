@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import * as XLSX from "xlsx"; //  Import xlsx
@@ -18,28 +18,96 @@ function EmployeeFullAttendance() {
 
   const [showPopup, setShowPopup] = useState(false);
   const [selectedAttendance, setSelectedAttendance] = useState(null);
-
+  const [displayData, setDisplayData] = useState([]);
   const [breaks, setBreaks] = useState([]);
   const [loadingBreaks, setLoadingBreaks] = useState(false);
+  const modalRef = useRef(null);
+  //TANVI
+  useEffect(() => {
+    if (!showPopup || !modalRef.current) return;
 
+    const modal = modalRef.current;
+
+    const focusableElements = modal.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+
+    const firstEl = focusableElements[0];
+    const lastEl = focusableElements[focusableElements.length - 1];
+
+    // ⭐ modal open होताच focus
+    modal.focus();
+    firstEl?.focus();
+
+    const handleKeyDown = (e) => {
+      // ESC key → modal close
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setShowPopup(null);
+      }
+
+      // TAB key → focus trap
+      if (e.key === "Tab") {
+        if (e.shiftKey) {
+          if (document.activeElement === firstEl) {
+            e.preventDefault();
+            lastEl.focus();
+          }
+        } else {
+          if (document.activeElement === lastEl) {
+            e.preventDefault();
+            firstEl.focus();
+          }
+        }
+      }
+    };
+
+    modal.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      modal.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [showPopup]);
+  useEffect(() => {
+    const isModalOpen = showPopup;
+
+    if (isModalOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [showPopup]);
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         const token = localStorage.getItem("accessToken");
         const authAxios = axios.create({
-          baseURL: "https://server-backend-nu.vercel.app",
+          baseURL: "https://server-backend-ems.vercel.app",
           headers: { Authorization: `Bearer ${token}` },
         });
 
         const empRes = await axios.get(
-          `https://server-backend-nu.vercel.app/employees/${empId}`,
+          `https://server-backend-ems.vercel.app/employees/${empId}`,
         );
         setEmployee(empRes.data);
 
         const attRes = await authAxios.get(`/attendance/all/${empId}`);
         setAttendance(attRes.data);
         setFilteredAttendance(attRes.data);
+        const initialDisplayData = buildDataWithFullCalendar(
+          attRes.data,
+          null,
+          null,
+        );
+        setDisplayData(initialDisplayData);
       } catch (err) {
         console.error("Error fetching employee attendance:", err);
       } finally {
@@ -67,24 +135,40 @@ function EmployeeFullAttendance() {
       return attDate >= from && attDate <= to;
     });
     setFilteredAttendance(filtered);
+    const filteredDisplayData = buildDataWithFullCalendar(
+      filtered,
+      fromDate,
+      toDate,
+    );
+    setDisplayData(filteredDisplayData);
+
+    setCurrentPage(1);
   };
 
   const handleReset = () => {
     setFromDate("");
     setToDate("");
     setFilteredAttendance(attendance);
+    const resetDisplayData = buildDataWithFullCalendar(attendance, null, null);
+    setDisplayData(resetDisplayData);
+    setCurrentPage(1);
   };
   // 🔹 Build full calendar data (every date), filling missing days
-  const buildDataWithFullCalendar = () => {
-    const src = filteredAttendance;
-
-    if (!src.length && (!fromDate || !toDate)) return [];
+  const buildDataWithFullCalendar = (
+    data,
+    startDate = null,
+    endDate = null,
+  ) => {
+    const src = data || filteredAttendance;
+    if (!src.length) return [];
 
     // Decide range: filter range or earliest-record → today
     let start;
     let end;
-
-    if (fromDate && toDate) {
+    if (startDate && endDate) {
+      start = new Date(startDate);
+      end = new Date(endDate);
+    } else if (fromDate && toDate) {
       start = new Date(fromDate);
       end = new Date(toDate);
     } else if (src.length) {
@@ -134,6 +218,20 @@ function EmployeeFullAttendance() {
     return result;
   };
 
+  useEffect(() => {
+    if (
+      (filteredAttendance.length > 0 || attendance.length > 0) &&
+      !fromDate &&
+      !toDate
+    ) {
+      const newDisplayData = buildDataWithFullCalendar(
+        filteredAttendance,
+        null,
+        null,
+      );
+      setDisplayData(newDisplayData);
+    }
+  }, [filteredAttendance, fromDate, toDate]);
   // ✅ Function to export data to Excel
   const handleDownloadExcel = () => {
     if (filteredAttendance.length === 0) {
@@ -229,7 +327,7 @@ function EmployeeFullAttendance() {
   };
   //jacy code
   //const sortedAndFilteredData =filteredAttendance()
-  const sortedAndFilteredData = buildDataWithFullCalendar()
+  const sortedAndFilteredData = displayData
     .filter((att) => new Date(att.date) <= new Date())
     .sort((b, a) => new Date(a.date) - new Date(b.date));
 
@@ -272,7 +370,7 @@ function EmployeeFullAttendance() {
       console.log("Fetching breaks for:", formattedDate);
 
       const res = await axios.get(
-        `https://server-backend-nu.vercel.app/api/break/admin/${empId}`,
+        `https://server-backend-ems.vercel.app/api/break/admin/${empId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { date: formattedDate },
@@ -322,7 +420,7 @@ function EmployeeFullAttendance() {
   return (
     <div className="container p-4">
       {employee && (
-        <div className="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div className="mb-3 d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
           <h3 className="mb-3" style={{ color: "#3A5FBE", fontSize: "25px" }}>
             <span style={{ textTransform: "capitalize" }}>{employee.name}</span>
             's Attendance
@@ -482,7 +580,7 @@ function EmployeeFullAttendance() {
       </div>
 
       {/* 🔹 Table Section */}
-      {filteredAttendance.length === 0 ? (
+      {displayData.length === 0 ? (
         <p>No attendance records found for selected dates.</p>
       ) : (
         <div className="table-responsive" style={{ background: "#fff" }}>
@@ -587,7 +685,6 @@ function EmployeeFullAttendance() {
                   Location
                 </th>
               </tr>
-                  
             </thead>
             <tbody>
               {currentItems.map((att) => {
@@ -750,8 +847,8 @@ function EmployeeFullAttendance() {
 
           <span style={{ fontSize: "14px", marginLeft: "16px" }}>
             {indexOfFirstItem + 1}-
-            {Math.min(indexOfLastItem, filteredAttendance.length)} of{" "}
-            {filteredAttendance.length}
+            {Math.min(indexOfLastItem, sortedAndFilteredData.length)} of{" "}
+            {sortedAndFilteredData.length}
           </span>
 
           <div
@@ -790,6 +887,8 @@ function EmployeeFullAttendance() {
         <div
           className="modal fade show"
           style={{ display: "block", background: "rgba(0,0,0,0.5)" }}
+          ref={modalRef}
+          tabIndex="-1"
         >
           <div className="modal-dialog modal-lg modal-dialog-centered">
             <div className="modal-content">

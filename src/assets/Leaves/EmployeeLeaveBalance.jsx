@@ -10,7 +10,7 @@ function EmployeeLeaveBalance({ user }) {
   useEffect(() => {
     if (!user?._id) return;
     axios
-      .get(`https://server-backend-nu.vercel.app/leave/${user._id}`)
+      .get(`https://server-backend-ems.vercel.app/leave/${user._id}`)
       .then((res) => setBalance(res.data))
       .catch((err) => console.error(err));
   }, [user, refresh]);
@@ -20,11 +20,10 @@ function EmployeeLeaveBalance({ user }) {
   return (
     <div className="container-fluid">
       <h2
+        className="mb-3"
         style={{
           color: "#3A5FBE",
           fontSize: "25px",
-          marginLeft: "15px",
-          marginBottom: "40px",
         }}
       >
         Leaves

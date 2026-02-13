@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -22,7 +22,67 @@ function TodaysEmployeeDetails() {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [employeeBreaks, setEmployeeBreaks] = useState([]);
   const [breakLoading, setBreakLoading] = useState(false);
+  const modalRef = useRef(null);
+  useEffect(() => {
+    if (!showModal || !modalRef.current) return;
 
+    const modal = modalRef.current;
+
+    const focusableElements = modal.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+
+    const firstEl = focusableElements[0];
+    const lastEl = focusableElements[focusableElements.length - 1];
+
+    // ⭐ modal open होताच focus
+    modal.focus();
+
+    const handleKeyDown = (e) => {
+      // ESC key → modal close
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setShowModal(null);
+      }
+
+      // TAB key → focus trap
+      if (e.key === "Tab") {
+        if (e.shiftKey) {
+          if (document.activeElement === firstEl) {
+            e.preventDefault();
+            lastEl.focus();
+          }
+        } else {
+          if (document.activeElement === lastEl) {
+            e.preventDefault();
+            firstEl.focus();
+          }
+        }
+      }
+    };
+
+    modal.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      modal.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [showModal]);
+  useEffect(() => {
+    const isModalOpen = showModal;
+
+    if (isModalOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [showModal]);
   const openEmployeePopup = async (emp) => {
     try {
       setSelectedEmployee(emp);
@@ -35,7 +95,7 @@ function TodaysEmployeeDetails() {
       const today = new Date().toISOString().split("T")[0];
 
       const res = await axios.get(
-        `https://server-backend-nu.vercel.app/api/break/admin/${emp._id}?date=${today}`,
+        `https://server-backend-ems.vercel.app/api/break/admin/${emp._id}?date=${today}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -131,7 +191,7 @@ function TodaysEmployeeDetails() {
         setLoading(true);
         const token = localStorage.getItem("accessToken");
         const authAxios = axios.create({
-          baseURL: "https://server-backend-nu.vercel.app",
+          baseURL: "https://server-backend-ems.vercel.app",
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -785,6 +845,8 @@ function TodaysEmployeeDetails() {
       {showModal && selectedEmployee && (
         <div
           className="modal fade show"
+          ref={modalRef}
+          tabIndex="-1"
           style={{ display: "block", background: "rgba(0,0,0,0.5)" }}
         >
           <div className="modal-dialog modal-lg modal-dialog-centered">

@@ -11,6 +11,8 @@ import {
   TreeFill,
   ChatLeftTextFill,
   BriefcaseFill,
+  ClipboardCheckFill,
+  Images,
 } from "react-bootstrap-icons";
 import "./Sidebar.css";
 
@@ -187,7 +189,7 @@ function Sidebar({ handleLogout }) {
               onClick={handleLinkClick}
               end
             >
-              <CalendarCheckFill size={20} />
+              <ClipboardCheckFill size={20} />
               {/* <h6 className="mt-1">My Attendance</h6> */}
               <h6 className="mt-1">
                 {role === "admin" ||
@@ -269,7 +271,7 @@ function Sidebar({ handleLogout }) {
               onClick={handleLinkClick}
               end
             >
-              <FileEarmarkTextFill size={20} />
+              <Images size={20} />
               <h6 className="mt-1">Gallery</h6>
             </NavLink>
           </li>
@@ -296,7 +298,9 @@ function Sidebar({ handleLogout }) {
             </NavLink>
           </li> */}
           {/* jayashree */}
-          {(role === "employee" || role === "IT_Support") && (
+          {(role === "employee" ||
+            role === "IT_Support" ||
+            role === "manager") && (
             <li className="nav-item">
               <NavLink
                 to={`/dashboard/${role}/${username}/${id}/teams`}
@@ -345,35 +349,29 @@ function Sidebar({ handleLogout }) {
             </li>
           )}
 
-{(role === "hr" ) && (
+          {role === "hr" && (
             <li className="nav-item">
               <NavLink
                 to={`/dashboard/${role}/${username}/${id}/feedback`}
                 className="nav-link d-flex flex-column align-items-center"
               >
                 <ChatLeftTextFill size={20} />
-                <h6 className="mt-1">
-                  HR Feedback
-                </h6>
+                <h6 className="mt-1">HR Feedback</h6>
               </NavLink>
             </li>
           )}
 
-
-        {(role === "admin" ) && (
+          {role === "admin" && (
             <li className="nav-item">
               <NavLink
                 to={`/dashboard/${role}/${username}/${id}/feedback`}
                 className="nav-link d-flex flex-column align-items-center"
               >
                 <ChatLeftTextFill size={20} />
-                <h6 className="mt-1">
-                  Feedback
-                </h6>
+                <h6 className="mt-1">Feedback</h6>
               </NavLink>
             </li>
           )}
-
 
           {(role === "employee" || role === "manager") && (
             <li className="nav-item">
@@ -382,26 +380,10 @@ function Sidebar({ handleLogout }) {
                 className="nav-link d-flex flex-column align-items-center"
               >
                 <ChatLeftTextFill size={20} />
-                <h6 className="mt-1">
-                  Employee Feedback
-                </h6>
+                <h6 className="mt-1">Employee Feedback</h6>
               </NavLink>
             </li>
           )}
-
-
-          {/* Settings */}
-          <li className="nav-item ">
-            <NavLink
-              to={`/dashboard/${role}/${username}/${id}/settings`}
-              className="nav-link text-white d-flex flex-column align-items-center"
-              onClick={handleLinkClick}
-              end
-            >
-              <GearFill size={20} />
-              <h6 className="mt-1">Settings</h6>
-            </NavLink>
-          </li>
 
           {/* added jayashree */}
           {role === "hr" && (
@@ -460,11 +442,7 @@ function Sidebar({ handleLogout }) {
           <li className="nav-item">
             <NavLink
               to={`/dashboard/${role}/${username}/${id}/resignation`}
-              className={({ isActive }) =>
-                `nav-link d-flex flex-column align-items-center ${
-                  isActive ? "text-primary" : "text-dark"
-                }`
-              }
+              className="nav-link sidebar-link d-flex flex-column align-items-center"
             >
               <i className="bi bi-box-arrow-right fs-5 mb-1"></i>
               <span style={{ fontSize: "12px" }}>Resignation</span>
@@ -502,7 +480,12 @@ function Sidebar({ handleLogout }) {
 
         {/* //Added by Tanvi for Performance Dashboard */}
         {/* Performance (HR + Manager ONLY) */}
-        {(role === "hr" || role === "manager") && (
+        {(role === "hr" ||
+          role === "manager" ||
+          role === "employee" ||
+          role === "admin" ||
+          role === "ceo" ||
+          role === "coo") && (
           <li className="nav-item">
             <NavLink
               to={`/dashboard/${role}/${username}/${id}/performance`}
@@ -515,6 +498,19 @@ function Sidebar({ handleLogout }) {
             </NavLink>
           </li>
         )}
+
+        {/* Settings */}
+        <li className="nav-item ">
+          <NavLink
+            to={`/dashboard/${role}/${username}/${id}/settings`}
+            className="nav-link text-white d-flex flex-column align-items-center"
+            onClick={handleLinkClick}
+            end
+          >
+            <GearFill size={20} />
+            <h6 className="mt-1">Settings</h6>
+          </NavLink>
+        </li>
       </div>
     </>
   );

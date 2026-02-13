@@ -25,7 +25,7 @@ const AdminFeedback = () => {
 
   const fetchAllFeedbacks = async () => {
     try {
-      const response = await axios.get("https://server-backend-nu.vercel.app/feedback/all");
+      const response = await axios.get("https://server-backend-ems.vercel.app/feedback/all");
 
       if (response.data && response.data.success) {
         const allFeedbacks = (response.data.feedbacks || []).map((fb) => {
@@ -43,16 +43,28 @@ const AdminFeedback = () => {
             receiverRole: fb.receiver?.role || "-",
             receiverEmail: fb.receiver?.email || "-",
             date: fb.createdAt
-              ? new Date(fb.createdAt).toLocaleDateString("en-GB")
-              : new Date().toLocaleDateString("en-GB"),
-            fullDate: fb.createdAt
-              ? new Date(fb.createdAt).toLocaleString("en-GB")
-              : new Date().toLocaleString("en-GB"),
+              ? new Date(fb.createdAt).toLocaleDateString("en-GB", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                })
+              : new Date().toLocaleDateString("en-GB", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                }),
             status: fb.status === "viewed" ? "Viewed" : "Pending",
             title: fb.title || "-",
             description: fb.message || "-",
             readAt: fb.readAt
-              ? new Date(fb.readAt).toLocaleString("en-GB")
+              ? new Date(fb.readAt).toLocaleString("en-GB", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
+                })
               : null,
             originalStatus: fb.status,
           };
@@ -152,7 +164,7 @@ const AdminFeedback = () => {
           style={{ marginLeft: "16px" }}
         >
           <button
-            className="btn btn-sm border-0"
+            className="btn btn-sm focus-ring"
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
             style={{ fontSize: "18px", padding: "2px 8px" }}
@@ -160,7 +172,7 @@ const AdminFeedback = () => {
             ‹
           </button>
           <button
-            className="btn btn-sm border-0"
+            className="btn btn-sm focus-ring"
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
             style={{ fontSize: "18px", padding: "2px 8px" }}
@@ -193,7 +205,7 @@ const AdminFeedback = () => {
         return;
       }
 
-      await axios.delete(`https://server-backend-nu.vercel.app/feedback/delete/${id}`, {
+      await axios.delete(`https://server-backend-ems.vercel.app/feedback/delete/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -207,12 +219,27 @@ const AdminFeedback = () => {
       console.error("Error deleting feedback:", err);
     }
   };
+  ///popup fixed
+  useEffect(() => {
+    if (selectedFeedback) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [selectedFeedback]);
+  ///tab popup focus
+
   return (
     <div className="container-fluid">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 style={{ color: "#3A5FBE", fontSize: "25px", marginLeft: "15px" }}>
-          Admin Feedback Dashboard
-        </h2>
+        <h2 style={{ color: "#3A5FBE", fontSize: "25px" }}>Feedback</h2>
       </div>
 
       {/* Search and Filter */}
@@ -259,10 +286,9 @@ const AdminFeedback = () => {
                   fontSize: "16px",
                   color: "#3A5FBE",
                   marginRight: "5px",
-                  minWidth: "120px",
                 }}
               >
-                Search Feedback
+                Search
               </label>
               <input
                 id="searchInput"
@@ -280,7 +306,7 @@ const AdminFeedback = () => {
                 className="btn btn-sm custom-outline-btn"
                 style={{ minWidth: 90 }}
               >
-                Search
+                Filter
               </button>
               <button
                 type="button"
@@ -296,7 +322,7 @@ const AdminFeedback = () => {
       </div>
 
       {/*feedback TAble */}
-      <h2 style={{ color: "#3A5FBE", fontSize: "25px", marginLeft: "15px" }}>
+      <h2 style={{ color: "#3A5FBE", fontSize: "20px" }}>
         All Feedback Records
       </h2>
 
@@ -551,7 +577,11 @@ const AdminFeedback = () => {
       {/* View Details Modal */}
       {selectedFeedback && (
         <div
+          ref={popupRef}
           className="modal fade show"
+          tabIndex={-1}
+          role="dialog"
+          aria-modal="true"
           style={{
             display: "flex",
             alignItems: "center",
@@ -560,12 +590,13 @@ const AdminFeedback = () => {
             position: "fixed",
             inset: 0,
             zIndex: 1050,
+            overflow: "hidden",
           }}
           onClick={() => setSelectedFeedback(null)}
         >
           <div
-            className="modal-dialog modal-dialog-scrollable"
-            style={{ maxWidth: "650px", width: "95%", marginTop: "200px" }}
+            className="modal-dialog "
+            style={{ maxWidth: "660px", width: "95%", marginTop: "100px" }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="modal-content">

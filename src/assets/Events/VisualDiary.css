@@ -60,7 +60,7 @@
 
 /* ================= WHITE CARD ================= */
 .section-card {
-  background: #ffffff;
+  /* background: #ffffff; */
   border-radius: 14px;
   padding: 12px;
   height: 220px; /* SAME AS EVENTS / BIRTHDAY */
@@ -70,8 +70,9 @@
   overflow-y: auto;
   flex-wrap: wrap; /* small boxes inside wrap */
   gap: 12px;
-  scrollbar-width: thin;
-  scrollbar-color: #424242 #eaeaea;
+  /* scrollbar-width: thin; */
+ scrollbar-width: thick;
+  scrollbar-color: #959393 #eaeaea;
 }
 
 /* ================= DARK THIN SCROLLBAR ================= */
@@ -123,11 +124,31 @@
   object-fit: contain;
   margin: 0 auto;
 } */
- .section-item img {
-  width: 120px;      /* increase width */
-  height: 120px;     /* increase height */
+ /* //Added by Rushikesh */
+.section-item img {
+  width: 120px;      
+  height: 120px;     
   object-fit: contain;
   margin: 8px auto;
+}
+/* Modal dialog size */
+.custom-modal-dialog {
+  max-width: 600px;
+  width: 90%;
+}
+
+/* Media (image / video) */
+.popup-media {
+  max-width: 100%;
+  max-height: 40vh;     
+  border-radius: 10px;
+}
+
+/* PDF / iframe */
+.popup-iframe {
+  width: 100%;
+  height: 75vh;
+  border: none;
 }
 
 

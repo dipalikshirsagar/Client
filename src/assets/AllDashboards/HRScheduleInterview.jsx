@@ -12,7 +12,7 @@ const isToday = (date) => {
     today.getDate() === selected.getDate()
   );
 };
-const BASE_URL = "https://server-backend-nu.vercel.app";
+const BASE_URL = "https://server-backend-ems.vercel.app";
 
 const HRScheduleInterview = () => {
   const [showForm, setShowForm] = useState(false);
@@ -49,7 +49,7 @@ const HRScheduleInterview = () => {
     endTime: "",
     duration: "",
     interviewType: "Online",
-    interviewerId: "", // 👈 NEW
+    interviewerId: "",
     interviewerName: "",
     resume: null,
     link: "",
@@ -62,7 +62,7 @@ const HRScheduleInterview = () => {
   /* ---------------- FETCH EMPLOYEES ---------------- */
   useEffect(() => {
     axios
-      .get("https://server-backend-nu.vercel.app/allEmp")
+      .get("https://server-backend-ems.vercel.app/allEmp")
       .then((res) => {
         if (res.data.success) setEmployees(res.data.employees);
       })
@@ -72,7 +72,7 @@ const HRScheduleInterview = () => {
   /* ---------------- API FUNCTIONS ---------------- */
   const fetchAllInterviews = () => {
     axios
-      .get("https://server-backend-nu.vercel.app/interviews")
+      .get("https://server-backend-ems.vercel.app/interviews")
       .then((res) => {
         if (res.data.success) {
           setAllInterviews(res.data.interviews);
@@ -87,13 +87,6 @@ const HRScheduleInterview = () => {
   /* ---------------- LOAD INTERVIEWS STATUS UPDATE  ---------------- */
   useEffect(() => {
     fetchAllInterviews();
-    // 🔥 auto refresh every 1 min
-    const interval = setInterval(() => {
-      fetchAllInterviews();
-    }, 60000); // 60 sec
-
-    // cleanup
-    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -113,7 +106,7 @@ const HRScheduleInterview = () => {
 
     try {
       const res = await axios.delete(
-        `https://server-backend-nu.vercel.app/interviewsDelete/${id}`,
+        `https://server-backend-ems.vercel.app/interviewsDelete/${id}`,
       );
 
       if (res.data.success) {
@@ -136,17 +129,30 @@ const HRScheduleInterview = () => {
     }
   };
 
+  const formatDate = (dateString) =>
+    new Intl.DateTimeFormat("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }).format(new Date(dateString));
+
   /* ---------------- UPDATE INTERVIEW ---------------- */
   const handleUpdateInterview = async (id, formData) => {
     const confirmUpdate = window.confirm(
       "Are you sure you want to update this interview?",
     );
     if (!confirmUpdate) return;
-
+    const token = localStorage.getItem("accessToken");
     try {
       const res = await axios.put(
-        `https://server-backend-nu.vercel.app/interviewsUpdate/${id}`,
-        formData, // 🔥 direct FormData bhejo
+        `https://server-backend-ems.vercel.app/interviewsUpdate/${id}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        },
       );
 
       if (res.data.success) {
@@ -380,11 +386,12 @@ const HRScheduleInterview = () => {
       handleUpdateInterview(editingId, updatePayload);
       return;
     }
-
+    const token = localStorage.getItem("accessToken");
     axios
-      .post("https://server-backend-nu.vercel.app/schedule-interview", formPayload, {
+      .post("https://server-backend-ems.vercel.app/schedule-interview", formPayload, {
         headers: {
           "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
         },
       })
 
@@ -456,256 +463,303 @@ const HRScheduleInterview = () => {
   /* ---------------- JSX ---------------- */
   return (
     <div className="container-fluid px-3 mt-3">
-      <h5 className="mb-3 fw-semibold" style={{ color: "#3A5FBE" }}>
-        HR - Schedule Interview
-      </h5>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2
+          className="mb-3 fw-semibold"
+          style={{
+            color: "#3A5FBE",
+            fontSize: "25px",
 
-      <button
-        className="btn btn-sm custom-outline-btn mb-3"
-        onClick={handleToggleForm}
-      >
-        {showForm ? "Close Form" : "Schedule Interview"}
-      </button>
+            marginBottom: "40px",
+          }}
+        >
+          HR - Schedule Interview
+        </h2>
+
+        <button
+          className="btn btn-sm custom-outline-btn mb-3"
+          onClick={handleToggleForm}
+        >
+          Schedule Interview
+        </button>
+      </div>
 
       {/* ================= FORM ================= */}
       {showForm && (
-        <div className="card shadow-sm mb-4">
-          <div className="card-body">
-            <form onSubmit={handleSubmit} noValidate>
-              {/* Candidate + Email */}
-              <div className="row mb-3">
-                <div className="col-md-6">
-                  <label className="form-label">Candidate Name</label>
-                  <input
-                    type="text"
-                    name="candidateName"
-                    maxLength={50}
-                    className={`form-control ${errors.candidateName ? "is-invalid" : ""}`}
-                    value={formData.candidateName}
-                    onChange={handleChange}
-                  />
-                  <div className="invalid-feedback">{errors.candidateName}</div>
-                </div>
-
-                <div className="col-md-6">
-                  <label className="form-label">Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    className={`form-control ${errors.email ? "is-invalid" : ""}`}
-                    value={formData.email}
-                    onChange={handleChange}
-                  />
-                  <div className="invalid-feedback">{errors.email}</div>
-                </div>
-              </div>
-
-              {/* Role */}
-              <div className="mb-3">
-                <label className="form-label">Role / Position</label>
-                <select
-                  name="role"
-                  className={`form-select ${errors.role ? "is-invalid" : ""}`}
-                  value={formData.role}
-                  onChange={handleChange}
-                >
-                  <option value="">-- Select Role --</option>
-                  <option value="Tester">Tester</option>
-                  <option value="Software Developer">Software Developer</option>
-                  <option value="Java Developer">Java Developer</option>
-                  <option value="Frontend Developer">Frontend Developer</option>
-                  <option value="Backend Developer">Backend Developer</option>
-                  <option value="Full Stack Developer">
-                    Full Stack Developer
-                  </option>
-                </select>
-                <div className="invalid-feedback">{errors.role}</div>
-              </div>
-
-              {/* Date, Time, Type */}
-              <div className="row mb-3">
-                <div className="col-md-3">
-                  <label className="form-label">Date</label>
-                  <input
-                    type="date"
-                    name="date"
-                    min={today}
-                    className={`form-control ${errors.date ? "is-invalid" : ""}`}
-                    value={formData.date}
-                    onChange={handleChange}
-                  />
-                  <div className="invalid-feedback">{errors.date}</div>
-                </div>
-
-                <div className="col-md-3">
-                  <label className="form-label">Start Time</label>
-                  <input
-                    type="time"
-                    name="startTime"
-                    ref={startTimeRef}
-                    className={`form-control ${errors.startTime ? "is-invalid" : ""}`}
-                    value={formData.startTime}
-                    onChange={(e) => {
-                      handleChange(e);
-                      setTimeout(() => startTimeRef.current?.blur(), 100);
-                    }}
-                  />
-                  <div className="invalid-feedback">{errors.startTime}</div>
-                </div>
-                <div className="col-md-3">
-                  <label className="form-label">End Time</label>
-                  <input
-                    type="time"
-                    name="endTime"
-                    ref={endTimeRef}
-                    className={`form-control ${errors.endTime ? "is-invalid" : ""}`}
-                    value={formData.endTime}
-                    onChange={(e) => {
-                      handleChange(e);
-                      setTimeout(() => endTimeRef.current?.blur(), 100);
-                    }}
-                  />
-                  <div className="invalid-feedback">{errors.endTime}</div>
-                </div>
-                <div className="col-md-3">
-                  <label className="form-label">Duration</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={formData.duration}
-                    disabled
-                  />
-                </div>
-              </div>
-
-              {/* Interviewer */}
-              <div className="row mb-3">
-                <div className="col-md-6">
-                  <label className="form-label">Interviewer</label>
-                  <select
-                    name="interviewerId"
-                    className={`form-select ${errors.interviewer ? "is-invalid" : ""}`}
-                    value={formData.interviewerId}
-                    onChange={handleChange}
-                  >
-                    <option value="">-- Select Interviewer --</option>
-                    {employees.map((emp) => (
-                      <option
-                        key={emp._id}
-                        value={emp._id}
-                        data-name={emp.name}
-                      >
-                        {emp.name} ({emp.designation})
-                      </option>
-                    ))}
-                  </select>
-                  <div className="invalid-feedback">{errors.interviewer}</div>
-                </div>
-
-                <div className="col-md-6">
-                  <label className="form-label">Interview Type</label>
-                  <select
-                    name="interviewType"
-                    className="form-select"
-                    value={formData.interviewType}
-                    onChange={handleChange}
-                  >
-                    <option>Online</option>
-                    <option>Offline</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Resume */}
-              <div className="mb-3">
-                <label className="form-label">Upload Resume</label>
-                {/* Existing Resume Preview */}
-                {formData.resumeUrl && !formData.resume && (
-                  <div className="mb-2">
-                    <a
-                      href={`https://server-backend-nu.vercel.app${formData.resumeUrl}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="btn btn-sm custom-outline-btn mb-3"
-                    >
-                      View Current Resume
-                    </a>
-                  </div>
-                )}
-                <input
-                  type="file"
-                  name="resume"
-                  className={`form-control ${errors.resume ? "is-invalid" : ""}`}
-                  accept=".pdf,.doc,.docx"
-                  onChange={handleChange}
-                />
-                {/* 🔥 THIS LINE — ONLY FOR UPDATE */}
-                {editingId ? (
-                  <small className="text-muted">
-                    Upload only if you want to replace existing resume
-                  </small>
-                ) : (
-                  <small className="text-muted">
-                    Allowed formats: PDF, DOC, DOCX | Max size: 2MB
-                  </small>
-                )}
-                <div className="invalid-feedback">{errors.resume}</div>
-              </div>
-
-              {/* Link */}
-              <div className="mb-3">
-                <label className="form-label">Interview Link</label>
-                <input
-                  type="text"
-                  name="link"
-                  className={`form-control ${errors.link ? "is-invalid" : ""}`}
-                  value={formData.link}
-                  onChange={handleChange}
-                  placeholder="Enter meeting link"
-                />
-                <div className="invalid-feedback">{errors.link}</div>
-              </div>
-
-              {/* Status */}
-              <div className="mb-3">
-                <label className="form-label">Status</label>
-                <select
-                  name="status"
-                  className={`form-select ${errors.status ? "is-invalid" : ""}`}
-                  value={formData.status}
-                  onChange={handleChange}
-                >
-                  <option value="Scheduled">Scheduled</option>
-                  <option value="On-going">On-going</option>
-                  <option value="Cancelled">Cancelled</option>
-                  <option value="Completed">Completed</option>
-                  <option value="Not-completed">Not-completed</option>
-                </select>
-                <div className="invalid-feedback">{errors.status}</div>
-              </div>
-
-              <div className="mb-3">
-                <label className="form-label">Comment / Remark</label>
-                <textarea
-                  name="comment"
-                  rows="3"
-                  maxLength={500}
-                  className="form-control"
-                  value={formData.comment}
-                  onChange={handleChange}
-                  placeholder="Add comment (required for completed / cancelled/ Not-Completed)"
-                />
-                <div className="invalid-feedback">{errors.comment}</div>
-                <small className="text-muted">Max 500 characters</small>
-              </div>
-
-              <button
-                type="submit"
-                className="btn btn-sm custom-outline-btn mb-3"
+        <div
+          className="modal fade show"
+          style={{ display: "block", backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
+          <div
+            className="modal-dialog modal-dialog-scrollable"
+            style={{ maxWidth: "650px", marginTop: "60px" }}
+          >
+            <div className="modal-content">
+              {/* Modal Header */}
+              <div
+                className="modal-header"
+                style={{ backgroundColor: "#3A5FBE", color: "#fff" }}
               >
-                {editingId ? "Update Interview" : "Schedule Interview"}
-              </button>
-            </form>
+                <h5 className="modal-title">
+                  {editingId ? "Update Interview" : "Schedule Interview"}
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setShowForm(false)}
+                />
+              </div>
+              <div className="modal-body">
+                <form onSubmit={handleSubmit} noValidate>
+                  {/* Candidate + Email */}
+                  <div className="row mb-3">
+                    <div className="col-md-6">
+                      <label className="form-label">Candidate Name</label>
+                      <input
+                        type="text"
+                        name="candidateName"
+                        maxLength={50}
+                        className={`form-control ${errors.candidateName ? "is-invalid" : ""}`}
+                        value={formData.candidateName}
+                        onChange={handleChange}
+                      />
+                      <div className="invalid-feedback">
+                        {errors.candidateName}
+                      </div>
+                    </div>
+
+                    <div className="col-md-6">
+                      <label className="form-label">Email</label>
+                      <input
+                        type="email"
+                        name="email"
+                        className={`form-control ${errors.email ? "is-invalid" : ""}`}
+                        value={formData.email}
+                        onChange={handleChange}
+                      />
+                      <div className="invalid-feedback">{errors.email}</div>
+                    </div>
+                  </div>
+
+                  {/* Role */}
+                  <div className="mb-3">
+                    <label className="form-label">Role / Position</label>
+                    <select
+                      name="role"
+                      className={`form-select ${errors.role ? "is-invalid" : ""}`}
+                      value={formData.role}
+                      onChange={handleChange}
+                    >
+                      <option value="">-- Select Role --</option>
+                      <option value="Tester">Tester</option>
+                      <option value="Software Developer">
+                        Software Developer
+                      </option>
+                      <option value="Java Developer">Java Developer</option>
+                      <option value="Frontend Developer">
+                        Frontend Developer
+                      </option>
+                      <option value="Backend Developer">
+                        Backend Developer
+                      </option>
+                      <option value="Full Stack Developer">
+                        Full Stack Developer
+                      </option>
+                    </select>
+                    <div className="invalid-feedback">{errors.role}</div>
+                  </div>
+
+                  {/* Date, Time, Type */}
+                  <div className="row mb-3">
+                    <div className="col-md-3">
+                      <label className="form-label">Date</label>
+                      <input
+                        type="date"
+                        name="date"
+                        min={today}
+                        className={`form-control ${errors.date ? "is-invalid" : ""}`}
+                        value={formData.date}
+                        onChange={handleChange}
+                      />
+                      <div className="invalid-feedback">{errors.date}</div>
+                    </div>
+
+                    <div className="col-md-3">
+                      <label className="form-label">Start Time</label>
+                      <input
+                        type="time"
+                        name="startTime"
+                        ref={startTimeRef}
+                        className={`form-control ${errors.startTime ? "is-invalid" : ""}`}
+                        value={formData.startTime}
+                        onChange={(e) => {
+                          handleChange(e);
+                          setTimeout(() => startTimeRef.current?.blur(), 100);
+                        }}
+                      />
+                      <div className="invalid-feedback">{errors.startTime}</div>
+                    </div>
+                    <div className="col-md-3">
+                      <label className="form-label">End Time</label>
+                      <input
+                        type="time"
+                        name="endTime"
+                        ref={endTimeRef}
+                        className={`form-control ${errors.endTime ? "is-invalid" : ""}`}
+                        value={formData.endTime}
+                        onChange={(e) => {
+                          handleChange(e);
+                          setTimeout(() => endTimeRef.current?.blur(), 100);
+                        }}
+                      />
+                      <div className="invalid-feedback">{errors.endTime}</div>
+                    </div>
+                    <div className="col-md-3">
+                      <label className="form-label">Duration</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={formData.duration}
+                        disabled
+                      />
+                    </div>
+                  </div>
+
+                  {/* Interviewer */}
+                  <div className="row mb-3">
+                    <div className="col-md-6">
+                      <label className="form-label">Interviewer</label>
+                      <select
+                        name="interviewerId"
+                        className={`form-select ${errors.interviewer ? "is-invalid" : ""}`}
+                        value={formData.interviewerId}
+                        onChange={handleChange}
+                      >
+                        <option value="">-- Select Interviewer --</option>
+                        {employees.map((emp) => (
+                          <option
+                            key={emp._id}
+                            value={emp._id}
+                            data-name={emp.name}
+                          >
+                            {emp.name} ({emp.designation})
+                          </option>
+                        ))}
+                      </select>
+                      <div className="invalid-feedback">
+                        {errors.interviewer}
+                      </div>
+                    </div>
+
+                    <div className="col-md-6">
+                      <label className="form-label">Interview Type</label>
+                      <select
+                        name="interviewType"
+                        className="form-select"
+                        value={formData.interviewType}
+                        onChange={handleChange}
+                      >
+                        <option>Online</option>
+                        <option>Offline</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Resume */}
+                  <div className="mb-3">
+                    <label className="form-label">Upload Resume</label>
+                    {/* Existing Resume Preview */}
+                    {formData.resumeUrl && !formData.resume && (
+                      <div className="mb-2">
+                        <a
+                          href={`https://server-backend-ems.vercel.app${formData.resumeUrl}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="btn btn-sm custom-outline-btn mb-3"
+                        >
+                          View Current Resume
+                        </a>
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      name="resume"
+                      className={`form-control ${errors.resume ? "is-invalid" : ""}`}
+                      accept=".pdf,.doc,.docx"
+                      onChange={handleChange}
+                    />
+                    {/* 🔥 THIS LINE — ONLY FOR UPDATE */}
+                    {editingId ? (
+                      <small className="text-muted">
+                        Upload only if you want to replace existing resume
+                      </small>
+                    ) : (
+                      <small className="text-muted">
+                        Allowed formats: PDF, DOC, DOCX | Max size: 2MB
+                      </small>
+                    )}
+                    <div className="invalid-feedback">{errors.resume}</div>
+                  </div>
+
+                  {/* Link */}
+                  {formData.interviewType === "Online" && (
+                    <div className="mb-3">
+                      <label className="form-label">Interview Link</label>
+                      <input
+                        type="text"
+                        name="link"
+                        className={`form-control ${errors.link ? "is-invalid" : ""}`}
+                        value={formData.link}
+                        onChange={handleChange}
+                        placeholder="Enter meeting link"
+                      />
+                      <div className="invalid-feedback">{errors.link}</div>
+                    </div>
+                  )}
+
+                  {/* Status */}
+                  <div className="mb-3">
+                    <label className="form-label">Status</label>
+                    <select
+                      name="status"
+                      className={`form-select ${errors.status ? "is-invalid" : ""}`}
+                      value={formData.status}
+                      onChange={handleChange}
+                    >
+                      <option value="Scheduled">Scheduled</option>
+                      <option value="On-going">On-going</option>
+                      <option value="Cancelled">Cancelled</option>
+                      <option value="Completed">Completed</option>
+                      <option value="Not-completed">Not-completed</option>
+                    </select>
+                    <div className="invalid-feedback">{errors.status}</div>
+                  </div>
+
+                  <div className="mb-3">
+                    <label className="form-label">Comment / Remark</label>
+                    <textarea
+                      name="comment"
+                      rows="3"
+                      maxLength={500}
+                      className="form-control"
+                      value={formData.comment}
+                      onChange={handleChange}
+                      placeholder="Add comment (required for completed / cancelled/ Not-Completed)"
+                    />
+                    <div className="invalid-feedback">{errors.comment}</div>
+                    <small className="text-muted">Max 500 characters</small>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="btn btn-sm custom-outline-btn mb-3"
+                  >
+                    {editingId ? "Update Interview" : "Schedule Interview"}
+                  </button>
+                </form>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -864,9 +918,10 @@ const HRScheduleInterview = () => {
                       <td>
                         {item.resumeUrl ? (
                           <a
-                            href={`https://server-backend-nu.vercel.app${item.resumeUrl}`}
+                            href={`https://server-backend-ems.vercel.app${item.resumeUrl}`}
                             target="_blank"
                             rel="noreferrer"
+                            onClick={(e) => e.stopPropagation()}
                           >
                             View Resume
                           </a>
@@ -875,7 +930,7 @@ const HRScheduleInterview = () => {
                         )}
                       </td>
 
-                      <td style={tdStyle()}>{item.date}</td>
+                      <td style={tdStyle()}>{formatDate(item.date)}</td>
                       <td style={tdStyle()}>{item.startTime}</td>
                       <td style={tdStyle()}>{item.interviewType}</td>
                       <td style={tdStyle()}>{item.interviewerName}</td>
@@ -884,7 +939,12 @@ const HRScheduleInterview = () => {
                         item.status !== "Cancelled" &&
                         item.status !== "Not-completed" &&
                         item.link ? (
-                          <a href={item.link} target="_blank" rel="noreferrer">
+                          <a
+                            href={item.link}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             Join
                           </a>
                         ) : (
@@ -1055,7 +1115,7 @@ const HRScheduleInterview = () => {
                   "Interview ID": selected.interviewId,
                   Candidate: selected.candidateName,
                   Role: selected.role,
-                  Date: selected.date,
+                  Date: formatDate(selected.date),
                   Time: selected.startTime,
                   Duration: selected.duration,
                   Type: selected.interviewType,
@@ -1075,7 +1135,12 @@ const HRScheduleInterview = () => {
                     selected.status !== "Cancelled" &&
                     selected.status !== "Not-completed" &&
                     selected.link ? (
-                      <a href={selected.link} target="_blank" rel="noreferrer">
+                      <a
+                        href={selected.link}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         Join
                       </a>
                     ) : (
@@ -1094,6 +1159,7 @@ const HRScheduleInterview = () => {
                         target="_blank"
                         rel="noreferrer"
                         className="btn custom-outline-btn"
+                        onClick={(e) => e.stopPropagation()}
                       >
                         View Resume
                       </a>

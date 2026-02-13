@@ -145,3 +145,37 @@ body, html {
   overflow-x: hidden !important;
   max-width: 100vw;
 }
+
+@media (min-width:768px) and (max-width:1024px){
+
+  
+  .container-fluid .row:first-child{
+    flex-wrap: wrap;
+  }
+
+
+  .container-fluid .col-md-8{
+    width:100% !important;
+  }
+
+  .container-fluid .col-md-4{
+    width:100% !important;
+  }
+
+
+  .container-fluid .col-md-6{
+    width:50% !important;
+  }
+
+
+  .container-fluid .col-md-4.mb-2.mt-3{
+    width:100% !important;
+    margin-top:15px !important;
+  }
+
+
+  .d-flex{
+    flex-wrap:wrap;
+  }
+
+}

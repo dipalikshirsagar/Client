@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 
 function QuickApplyLeave({ user }) {
+  const REASON_MAX_LENGTH = 300; // Character limit for reason{/* Reason limit code changes by dip 11-02-2026 */}
   const [formData, setFormData] = useState({
     leaveType: "SL",
     date: "",
@@ -21,12 +22,57 @@ function QuickApplyLeave({ user }) {
   const [availableLeaveTypes, setAvailableLeaveTypes] = useState([]);
   const [manager, setManager] = useState(null);
   const [weeklyOffs, setWeeklyOffs] = useState([]);
+  const modalRef = useRef(null);
 
+  useEffect(() => {
+    if (!showModal || !modalRef.current) return;
+
+    const modal = modalRef.current;
+
+    const focusableElements = modal.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+
+    const firstEl = focusableElements[0];
+    const lastEl = focusableElements[focusableElements.length - 1];
+
+    // ⭐ modal open होताच focus
+    modal.focus();
+
+    const handleKeyDown = (e) => {
+      // ESC key → modal close
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setShowModal(null);
+      }
+
+      // TAB key → focus trap
+      if (e.key === "Tab") {
+        if (e.shiftKey) {
+          if (document.activeElement === firstEl) {
+            e.preventDefault();
+            lastEl.focus();
+          }
+        } else {
+          if (document.activeElement === lastEl) {
+            e.preventDefault();
+            firstEl.focus();
+          }
+        }
+      }
+    };
+
+    modal.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      modal.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [showModal]);
   useEffect(() => {
     const fetchWeeklyOffs = async () => {
       try {
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`,
+          `https://server-backend-ems.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`,
         );
 
         // 👇 Extract weekly off data safely
@@ -61,7 +107,7 @@ function QuickApplyLeave({ user }) {
       if (!user?.reportingManager) return;
       try {
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/users/${user.reportingManager}`,
+          `https://server-backend-ems.vercel.app/users/${user.reportingManager}`,
         );
         setManager(res.data);
       } catch (err) {
@@ -116,7 +162,7 @@ function QuickApplyLeave({ user }) {
   //   }
 
   //   try {
-  //     await axios.post("https://server-backend-nu.vercel.app/leave/apply", {
+  //     await axios.post("https://server-backend-ems.vercel.app/leave/apply", {
   //       employeeId: user._id,
   //       leaveType: form.leaveType,
   //       dateFrom: form.dateFrom,
@@ -223,7 +269,7 @@ function QuickApplyLeave({ user }) {
     try {
       // ✅ 1️⃣ Fetch existing leaves of employee
       const existingLeavesRes = await axios.get(
-        `https://server-backend-nu.vercel.app/leave/my/${user._id}`,
+        `https://server-backend-ems.vercel.app/leave/my/${user._id}`,
       );
       const existingLeaves = existingLeavesRes.data || [];
 
@@ -256,7 +302,7 @@ function QuickApplyLeave({ user }) {
         return;
       }
 
-      await axios.post("https://server-backend-nu.vercel.app/leave/apply", {
+      await axios.post("https://server-backend-ems.vercel.app/leave/apply", {
         employeeId: user._id,
         leaveType: form.leaveType,
         dateFrom: form.dateFrom,
@@ -310,7 +356,23 @@ function QuickApplyLeave({ user }) {
       setDaysCount(0);
     }
   }, [form.dateFrom, form.dateTo]);
+  //bg scroll stop
+  useEffect(() => {
+    if (showModal) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+    useEffect;
 
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [showModal]);
+  // dip code changes 11-02-2026
   return (
     <div className="card shadow-sm h-100 border-0">
       <h4 className="ms-4 mt-3" style={{ color: "#3A5FBE", fontSize: "25px" }}>
@@ -319,7 +381,10 @@ function QuickApplyLeave({ user }) {
       <hr style={{ width: "100%", margin: "5px 0", opacity: "0.2" }}></hr>
       <div className="ms-4">
         {/* Quick Select */}
-        <div className="mb-2" style={{ marginRight: "25px" }}>
+        <div
+          className="mb-2"
+          style={{ marginRight: "25px", marginTop: "20px" }}
+        >
           <label>Leave Type</label>
           <select
             name="leaveType"
@@ -355,6 +420,7 @@ function QuickApplyLeave({ user }) {
             borderColor: "#3A5FBE",
             float: "right",
             marginRight: "25px",
+            marginTop: "10px",
           }}
           className="btn btn-sm custom-outline-btn mb-2"
           onClick={handleApplyClick}
@@ -367,6 +433,8 @@ function QuickApplyLeave({ user }) {
       {showModal && (
         <div
           className="modal d-block"
+          ref={modalRef}
+          tabIndex="-1"
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
         >
           <div
@@ -389,15 +457,15 @@ function QuickApplyLeave({ user }) {
                 {message && <div className="alert alert-danger">{message}</div>}
                 <form onSubmit={handleSubmit}>
                   {/* Leave Type */}
-                  <div
-                    className="mb-3 d-flex align-items-center"
-                    style={{ gap: "18px" }}
-                  >
+                  <div className="mb-3 d-flex align-items-center">
                     <label
                       style={{
                         fontWeight: "500",
                         fontSize: "14px",
                         color: "#495057",
+                        width: "90px",
+                        flexShrink: 0,
+                        minWidth: "fit-content",
                       }}
                     >
                       Leave type:
@@ -509,16 +577,16 @@ function QuickApplyLeave({ user }) {
                     </div>
                   </div>
 
-                  {/* Half Day */}
-                  <div
-                    className="mb-3 d-flex align-items-center"
-                    style={{ gap: "18px" }}
-                  >
+                  {/* Half Day
+                  <div className="mb-3 d-flex align-items-center">
                     <label
                       style={{
                         fontWeight: "500",
                         fontSize: "14px",
                         color: "#495057",
+                        width: "90px",
+                        flexShrink: 0,
+                        minWidth: "fit-content",
                       }}
                     >
                       Half day:
@@ -544,12 +612,9 @@ function QuickApplyLeave({ user }) {
                         }}
                       />
                     </div>
-                  </div>
+                  </div> */}
 
-                  <div
-                    className="mb-3 d-flex align-items-center"
-                    style={{ gap: "18px" }}
-                  >
+                  <div className="mb-3 d-flex align-items-center">
                     {/* Dates */}
 
                     <div className="mb-3  d-flex align-items-center">
@@ -558,6 +623,8 @@ function QuickApplyLeave({ user }) {
                           fontWeight: "500",
                           fontSize: "14px",
                           color: "#495057",
+                          width: "90px",
+                          flexShrink: 0,
                         }}
                       >
                         Select Date:
@@ -650,16 +717,14 @@ function QuickApplyLeave({ user }) {
                   {/* Duration */}
 
                   {/* Apply to section */}
-                  <div
-                    className="mb-3  d-flex align-items-center"
-                    style={{ gap: "18px" }}
-                  >
+                  <div className="mb-3  d-flex align-items-center">
                     <label
                       style={{
                         fontWeight: "500",
                         fontSize: "14px",
                         color: "#495057",
-                        marginBottom: "8px",
+                        width: "90px",
+                        flexShrink: 0,
                       }}
                     >
                       Apply to:
@@ -687,20 +752,49 @@ function QuickApplyLeave({ user }) {
                     />
                   </div>
 
+                  {/* Reason limit code changes by dip 11-02-2026 */}
                   {/* Reason */}
-                  <div
-                    className="mb-3  d-flex align-items-center"
-                    style={{ gap: "18px" }}
-                  >
-                    <label>Reason</label>
-                    <textarea
-                      name="reason"
-                      value={form.reason}
-                      onChange={handleChange}
-                      className="form-control"
-                      required
-                    />
+                  <div className="mb-3">
+                    <div className="d-flex align-items-center">
+                      <label
+                        style={{
+                          fontWeight: "500",
+                          fontSize: "14px",
+                          color: "#495057",
+                          width: "90px",
+                          flexShrink: 0,
+                        }}
+                      >
+                        Reason:
+                      </label>
+                      <div style={{ flex: 1, position: "relative" }}>
+                        <textarea
+                          name="reason"
+                          value={form.reason}
+                          onChange={handleChange}
+                          className="form-control"
+                          maxLength={REASON_MAX_LENGTH}
+                          style={{
+                            minHeight: "80px",
+                            resize: "vertical",
+                            paddingBottom: "24px",
+                          }}
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div
+                      className="d-flex justify-content-end"
+                      style={{
+                        fontSize: "12px",
+                        color: "#6c757d",
+                        pointerEvents: "none",
+                      }}
+                    >
+                      {form.reason.length}/{REASON_MAX_LENGTH}
+                    </div>
                   </div>
+                  {/* Reason limit code changes by dip 11-02-2026 */}
 
                   {/* Buttons */}
                   <div className="d-flex justify-content-end gap-2">

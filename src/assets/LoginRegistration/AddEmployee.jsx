@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import "./AddEmployee.css";
 
@@ -43,7 +43,7 @@ const AddEmployee = () => {
     pfNumber: "",
     uanNumber: "",
   });
-
+  const modalRef = useRef(null);
   const [files, setFiles] = useState({
     image: null,
     panCardPdf: null,
@@ -101,6 +101,66 @@ const AddEmployee = () => {
   //   return error;
   // }
 
+  useEffect(() => {
+    if (!showModal || !modalRef.current) return;
+
+    const modal = modalRef.current;
+
+    const focusableElements = modal.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+
+    const firstEl = focusableElements[0];
+    const lastEl = focusableElements[focusableElements.length - 1];
+
+    // ⭐ modal open होताच focus
+    modal.focus();
+
+    const handleKeyDown = (e) => {
+      // ESC key → modal close
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setShowModal(null);
+      }
+
+      // TAB key → focus trap
+      if (e.key === "Tab") {
+        if (e.shiftKey) {
+          if (document.activeElement === firstEl) {
+            e.preventDefault();
+            lastEl.focus();
+          }
+        } else {
+          if (document.activeElement === lastEl) {
+            e.preventDefault();
+            firstEl.focus();
+          }
+        }
+      }
+    };
+
+    modal.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      modal.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [showModal]);
+  useEffect(() => {
+    const isModalOpen = showModal;
+
+    if (isModalOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [showModal]);
   const validateField = (name, value) => {
     let error = "";
 
@@ -426,7 +486,7 @@ const AddEmployee = () => {
       });
 
       const res = await axios.post(
-        "https://server-backend-nu.vercel.app/admin/add-employee",
+        "https://server-backend-ems.vercel.app/admin/add-employee",
         payload,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -565,6 +625,7 @@ const AddEmployee = () => {
         <div
           className="modal fade show"
           tabIndex="-1"
+          ref={modalRef}
           style={{ display: "block", backgroundColor: "rgba(0,0,0,0.5)" }}
         >
           <div

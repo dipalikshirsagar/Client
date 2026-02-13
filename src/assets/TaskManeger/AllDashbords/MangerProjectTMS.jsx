@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
-const API_URL = "https://server-backend-nu.vercel.app/api/projects";
+const API_URL = "https://server-backend-ems.vercel.app/api/projects";
 
 function ManagerProjectTMS({ user }) {
   const [searchInput, setSearchInput] = useState("");
@@ -51,7 +51,7 @@ function ManagerProjectTMS({ user }) {
 
   useEffect(() => {
     axios
-      .get("https://server-backend-nu.vercel.app/managers/list")
+      .get("https://server-backend-ems.vercel.app/managers/list")
       .then((res) => {
         console.log("Managers fetched:", res.data);
         setManagerList(res.data);
@@ -67,7 +67,7 @@ function ManagerProjectTMS({ user }) {
     const fetchWeeklyOffs = async () => {
       try {
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`,
+          `https://server-backend-ems.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`,
         );
 
         const weeklyData = res.data?.data || {};
@@ -166,9 +166,9 @@ function ManagerProjectTMS({ user }) {
   //     let apiUrl;
   //     // Change API for specific statuses
   //     if (newStatus === "Completed") {
-  //       apiUrl = `https://server-backend-nu.vercel.app/api/projects/${projectId}/complete`;
+  //       apiUrl = `https://server-backend-ems.vercel.app/api/projects/${projectId}/complete`;
   //     } else if (newStatus === "Cancelled") {
-  //       apiUrl = `https://server-backend-nu.vercel.app/api/projects/${projectId}/cancel`;
+  //       apiUrl = `https://server-backend-ems.vercel.app/api/projects/${projectId}/cancel`;
   //     }
 
   //     await axios.put(apiUrl, { status: newStatus });
@@ -256,7 +256,7 @@ function ManagerProjectTMS({ user }) {
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
 
-    const holidaysRes = await axios.get("https://server-backend-nu.vercel.app/getHolidays");
+    const holidaysRes = await axios.get("https://server-backend-ems.vercel.app/getHolidays");
     const holidays = holidaysRes.data?.data || holidaysRes.data || [];
 
     const isHoliday = (date) =>
@@ -498,7 +498,7 @@ function ManagerProjectTMS({ user }) {
     setCommentLoading(true);
     try {
       const response = await axios.get(
-        `https://server-backend-nu.vercel.app/project/${projectId}/comments`,
+        `https://server-backend-ems.vercel.app/project/${projectId}/comments`,
       );
       setProjectComments(response.data.comments || []);
     } catch (error) {
@@ -522,7 +522,7 @@ function ManagerProjectTMS({ user }) {
 
     try {
       const res = await axios.post(
-        `https://server-backend-nu.vercel.app/project/${commentModalProject._id}/comment`,
+        `https://server-backend-ems.vercel.app/project/${commentModalProject._id}/comment`,
         { comment: newComment },
         {
           headers: {
@@ -561,7 +561,7 @@ function ManagerProjectTMS({ user }) {
 
     try {
       const res = await axios.delete(
-        `https://server-backend-nu.vercel.app/project/${projectId}/comment/${commentId}`,
+        `https://server-backend-ems.vercel.app/project/${projectId}/comment/${commentId}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
@@ -587,7 +587,7 @@ function ManagerProjectTMS({ user }) {
 
     try {
       const res = await axios.put(
-        `https://server-backend-nu.vercel.app/project/${projectId}/comment/${commentId}`,
+        `https://server-backend-ems.vercel.app/project/${projectId}/comment/${commentId}`,
         { comment: newText },
         {
           headers: {

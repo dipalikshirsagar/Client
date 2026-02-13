@@ -1,13 +1,13 @@
 import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 
-function ManagerPerformances() {
-  const [managerId, setManagerId] = useState(null);
+function EmployeePerformances() {
+  const [employeeId, setEmployeeId] = useState(null);
   const [performances, setPerformances] = useState([]);
   const [allPerformances, setAllPerformances] = useState([]);
   const [selectedPerformance, setSelectedPerformance] = useState(null);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [userId, setUserId] = useState(null);
+  const [role, setRole] = useState(null);
 
   /* ===== FILTER STATES ===== */
   const [statusFilter, setStatusFilter] = useState("All");
@@ -15,102 +15,92 @@ function ManagerPerformances() {
   const [dateToFilter, setDateToFilter] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
 
-  /* ===== PAGINATION STATES (HR EXACT) ===== */
+  /* ===== PAGINATION STATES ===== */
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const modalRef = useRef(null);
-  // 🔥 GET MANAGER ID (SAME AS EMPLOYEE)
+
+  //TANVI
+  useEffect(() => {
+    if (!selectedPerformance || !modalRef.current) return;
+
+    const modal = modalRef.current;
+
+    const focusableElements = modal.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+
+    const firstEl = focusableElements[0];
+    const lastEl = focusableElements[focusableElements.length - 1];
+
+    // ⭐ modal open होताच focus
+    modal.focus();
+    firstEl?.focus();
+
+    const handleKeyDown = (e) => {
+      // ESC key → modal close
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setSelectedPerformance(null);
+      }
+
+      // TAB key → focus trap
+      if (e.key === "Tab") {
+        if (e.shiftKey) {
+          if (document.activeElement === firstEl) {
+            e.preventDefault();
+            lastEl.focus();
+          }
+        } else {
+          if (document.activeElement === lastEl) {
+            e.preventDefault();
+            firstEl.focus();
+          }
+        }
+      }
+    };
+
+    modal.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      modal.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [selectedPerformance]);
+
+  // GET ACTIVE USER
   useEffect(() => {
     const raw = localStorage.getItem("activeUser");
-
-    if (!raw) {
-      console.error("activeUser missing");
-      return;
-    }
+    if (!raw) return console.error("activeUser missing");
 
     const user = JSON.parse(raw);
+    console.log("ACTIVE USER:", user);
 
-    if (user._id) {
-      setManagerId(user._id);
-    } else {
-      console.error("manager _id not found");
-    }
+    setUserId(user._id); // ✅ ObjectId
+    setRole(user.role); // ✅ EMPLOYEE
   }, []);
 
-  /* ===== FETCH ALL DATA ONLY ===== */
+  //  FETCH EMPLOYEE PERFORMANCES
   useEffect(() => {
-    console.log("Manager Performance View clicked:", managerId);
+    if (!userId || !role) return;
 
-    if (!managerId) {
-      console.error("managerId not ready yet");
-      return;
-    }
-
-    fetch(`https://server-backend-ems.vercel.app/performance/manager/${managerId}`)
+    fetch(
+      `https://server-backend-ems.vercel.app/performance/employee?userId=${userId}&role=${role}`,
+    )
       .then((res) => res.json())
-      .then((data) => {
-        console.log("Manager API response:", data);
-        setPerformances(data);
-        setAllPerformances(data);
+      .then((res) => {
+        setPerformances(res.data || []);
+        setAllPerformances(res.data || []);
       })
-      .catch((err) => console.error("Manager performance fetch error:", err));
-  }, [managerId]);
-
-  // UPDATE DATA BY MANAGER
-  const handleUpdatePerformance = async () => {
-    // basic validation
-    if (!selectedPerformance.status || !selectedPerformance.recommendation) {
-      alert("Status and Recommendation are required");
-      return;
-    }
-
-    setIsUpdating(true);
-
-    try {
-      const payload = {
-        rating: selectedPerformance.rating || null,
-        status: selectedPerformance.status,
-        recommendation: selectedPerformance.recommendation,
-      };
-
-      // 🔁 API CALL (example)
-      await axios.put(
-        `https://server-backend-ems.vercel.app/performance/${selectedPerformance._id}`,
-        payload,
-      );
-      // ✅ Update UI locally
-      setPerformances((prev) =>
-        prev.map((p) =>
-          p._id === selectedPerformance._id ? { ...p, ...payload } : p,
-        ),
-      );
-
-      setAllPerformances((prev) =>
-        prev.map((p) =>
-          p._id === selectedPerformance._id ? { ...p, ...payload } : p,
-        ),
-      );
-      // ✅ Success handling
-      alert(
-        "Performance updated successfully and request send to Admins for final Approval.",
-      ); //rutuja
-      setSelectedPerformance(null);
-      setIsEditMode(false);
-    } catch (error) {
-      console.error(error);
-      alert("Failed to update performance");
-    } finally {
-      setIsUpdating(false);
-    }
-  };
+      .catch((err) => console.error("Employee performance fetch error:", err));
+  }, [userId, role]);
 
   /* -------- STATUS COLOUR -------- */
   const getStatusClass = (status) => {
     switch (status) {
       case "Pending":
-        return "bg-warning text-dark"; // dark yellow
+        return "bg-warning text-dark";
       case "Added":
-        return "bg-success text-white"; // dark green
+        return "bg-success text-white";
       default:
         return "bg-secondary text-white";
     }
@@ -120,11 +110,11 @@ function ManagerPerformances() {
   const getRecommendationClass = (recommendation) => {
     switch (recommendation) {
       case "Pending":
-        return "bg-warning text-dark"; // same yellow
+        return "bg-warning text-dark";
       case "Promotion":
       case "Increment":
       case "Training":
-        return "bg-success text-white"; // same green
+        return "bg-success text-white";
       default:
         return "bg-secondary text-white";
     }
@@ -166,7 +156,6 @@ function ManagerPerformances() {
     setCurrentPage(1);
   };
 
-  /* ===== RESET FILTER  ===== */
   const resetFilters = () => {
     setStatusFilter("All");
     setDateFromFilter("");
@@ -176,29 +165,16 @@ function ManagerPerformances() {
     setCurrentPage(1);
   };
 
-  /* ===== PAGINATION LOGIC  ===== */
-  const safePerformances = performances || [];
+  /* ===== PAGINATION ===== */
+  const safePerformances = Array.isArray(performances) ? performances : [];
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentRows = safePerformances.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(safePerformances.length / itemsPerPage);
 
-  //Added by Rutuja
-  const getAdminStatusClass = (adminStatus) => {
-    switch (adminStatus) {
-      case "pending":
-        return "bg-warning text-dark";
-      case "approved":
-        return "bg-success text-white";
-      case "rejected":
-        return "bg-danger text-white";
-      default:
-        return "bg-secondary text-white";
-    }
-  };
-
   return (
-    <div className="container-fluid p-1">
+    <div className="container-fluid p-2">
+      {/* mahesh code header change font size */}
       <h2
         style={{
           color: "#3A5FBE",
@@ -210,7 +186,7 @@ function ManagerPerformances() {
         Performance
       </h2>
 
-      {/* ================= FILTER BAR ================= */}
+      {/* ===== FILTER BAR ===== */}
       <div className="card mb-4 mt-3 shadow-sm border-0">
         <div className="card-body">
           <form
@@ -335,8 +311,7 @@ function ManagerPerformances() {
         </div>
       </div>
 
-      {/* ================= TABLE ================= */}
-
+      {/* ===== TABLE ===== */}
       <div
         className="table-responsive mt-3"
         style={{ boxShadow: "0 2px 6px rgba(0,0,0,0.1)", borderRadius: "8px" }}
@@ -355,7 +330,6 @@ function ManagerPerformances() {
                 "Status",
                 "Recommendation",
                 "Final Approval",
-                "Action",
               ].map((h) => (
                 <th key={h} style={thStyle}>
                   {h}
@@ -363,7 +337,6 @@ function ManagerPerformances() {
               ))}
             </tr>
           </thead>
-
           <tbody>
             {currentRows.length === 0 ? (
               <tr>
@@ -393,6 +366,7 @@ function ManagerPerformances() {
                   </td>
                   <td style={tdStyle()}>{row.rating ?? "-"}</td>
                   <td style={tdStyle()}>{row.description}</td>
+
                   {/* Status */}
                   <td style={tdStyle()}>
                     <span
@@ -433,7 +407,6 @@ function ManagerPerformances() {
                     </span>
                   </td>
 
-                  {/* //Added by Rutuja */}
                   <td style={tdStyle()}>
                     <span
                       style={{
@@ -442,7 +415,9 @@ function ManagerPerformances() {
                             ? "#FFE493"
                             : row.adminStatus === "approved"
                               ? "#d1f2dd"
-                              : "#f8d7da", // red for rejected
+                              : row.adminStatus === "rejected"
+                                ? "#f8d7da"
+                                : "#e9ecef",
                         padding: "6px 14px",
                         borderRadius: "4px",
                         fontSize: "13px",
@@ -458,20 +433,6 @@ function ManagerPerformances() {
                         : "-"}
                     </span>
                   </td>
-                  {/* Action */}
-                  <td style={tdStyle()}>
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-outline-primary"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedPerformance(row);
-                        setIsEditMode(true);
-                      }}
-                    >
-                      Update
-                    </button>
-                  </td>
                 </tr>
               ))
             )}
@@ -479,7 +440,7 @@ function ManagerPerformances() {
         </table>
       </div>
 
-      {/* ================= PAGINATION (HR EXACT) ================= */}
+      {/* ===== PAGINATION ===== */}
       <nav className="d-flex align-items-center justify-content-end mt-3 text-muted">
         <div className="d-flex align-items-center gap-3">
           <div className="d-flex align-items-center">
@@ -500,12 +461,9 @@ function ManagerPerformances() {
           </div>
 
           <span style={{ fontSize: 14 }}>
-            {performances.length === 0
+            {safePerformances.length === 0
               ? "0–0 of 0"
-              : `${indexOfFirstItem + 1}-${Math.min(
-                  indexOfLastItem,
-                  performances.length,
-                )} of ${performances.length}`}
+              : `${indexOfFirstItem + 1}-${Math.min(indexOfLastItem, safePerformances.length)} of ${safePerformances.length}`}
           </span>
 
           <div className="d-flex align-items-center">
@@ -526,6 +484,7 @@ function ManagerPerformances() {
           </div>
         </div>
       </nav>
+
       <div className="text-end mt-3">
         <button
           style={{ minWidth: 90 }}
@@ -536,7 +495,7 @@ function ManagerPerformances() {
         </button>
       </div>
 
-      {/* ================= MODAL FOR ROW CLICK================= */}
+      {/* ===== MODAL ===== */}
       {selectedPerformance && (
         <div
           className="modal fade show"
@@ -583,132 +542,79 @@ function ManagerPerformances() {
                           ).toLocaleDateString()
                     }`,
                   ],
-                ].map(([label, value]) => (
-                  <div className="row mb-2" key={label}>
-                    <div className="col-4 fw-semibold">{label}</div>
-                    <div className="col-8">{value}</div>
-                  </div>
-                ))}
-                {/* ===== RATING ===== */}
-                <div className="row mb-2">
-                  <div className="col-4 fw-semibold">Rating</div>
-                  <div className="col-8">
-                    {isEditMode ? (
-                      <input
-                        type="number"
-                        min="1"
-                        max="5"
-                        className="form-control"
-                        value={selectedPerformance.rating || ""}
-                        onChange={(e) =>
-                          setSelectedPerformance({
-                            ...selectedPerformance,
-                            rating: Number(e.target.value),
-                          })
-                        }
-                      />
-                    ) : (
-                      (selectedPerformance.rating ?? "-")
-                    )}
-                  </div>
-                </div>
-
-                <div className="row mb-2">
-                  <div className="col-4 fw-semibold">Status</div>
-                  <div className="col-8">
-                    {isEditMode ? (
-                      <select
-                        className="form-select"
-                        value={selectedPerformance.status}
-                        onChange={(e) =>
-                          setSelectedPerformance({
-                            ...selectedPerformance,
-                            status: e.target.value,
-                          })
-                        }
-                      >
-                        <option value="Pending">Pending</option>
-                        <option value="Added">Added</option>
-                      </select>
-                    ) : (
-                      <span
-                        className={`badge ${getStatusClass(selectedPerformance.status)}`}
-                        style={{
-                          minWidth: "110px",
-                          textAlign: "center",
-                          padding: "6px 14px",
-                        }}
-                      >
-                        {selectedPerformance.status}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="row mb-2">
-                  <div className="col-4 fw-semibold">Recommendation</div>
-                  <div className="col-8">
-                    {isEditMode ? (
-                      <select
-                        className="form-select"
-                        value={selectedPerformance.recommendation}
-                        onChange={(e) =>
-                          setSelectedPerformance({
-                            ...selectedPerformance,
-                            recommendation: e.target.value,
-                          })
-                        }
-                      >
-                        <option value="Pending">Pending</option>
-                        <option value="Promotion">Promotion</option>
-                        <option value="Increment">Increment</option>
-                        <option value="Training">Training</option>
-                      </select>
-                    ) : (
-                      <span
-                        className={`badge ${getRecommendationClass(selectedPerformance.recommendation)}`}
-                        style={{
-                          minWidth: "110px",
-                          textAlign: "center",
-                          padding: "6px 14px",
-                        }}
-                      >
-                        {selectedPerformance.recommendation}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Added by Rutuja */}
-                <div className="row mb-2">
-                  <div className="col-4 fw-semibold">Final Approval</div>
-                  <div className="col-8">
-                    <span
-                      style={{
-                        backgroundColor:
-                          selectedPerformance.adminStatus === "pending"
-                            ? "#FFE493"
-                            : selectedPerformance.adminStatus === "approved"
-                              ? "#d1f2dd"
-                              : "#f8d7da", // red for rejected
-                        padding: "6px 14px",
-                        borderRadius: "4px",
-                        fontSize: "13px",
-                        fontWeight: 500,
-                        display: "inline-block",
-                        minWidth: "110px",
-                        textAlign: "center",
-                      }}
-                    >
-                      {selectedPerformance.adminStatus
-                        ? selectedPerformance.adminStatus
-                            .charAt(0)
-                            .toUpperCase() +
-                          selectedPerformance.adminStatus.slice(1)
-                        : "-"}
-                    </span>
-                  </div>
-                </div>
+                  ["Rating", selectedPerformance.rating ?? "-"],
+                  ["Status", selectedPerformance.status],
+                  ["Recommendation", selectedPerformance.recommendation],
+                  [
+                    "Final Approval",
+                    selectedPerformance.adminStatus
+                      ? selectedPerformance.adminStatus
+                          .charAt(0)
+                          .toUpperCase() +
+                        selectedPerformance.adminStatus.slice(1)
+                      : "Pending",
+                  ],
+                ].map(([label, value]) => {
+                  const isStatus = label === "Status";
+                  const isRecommendation = label === "Recommendation";
+                  const isFinalApproval = label === "Final Approval";
+                  return (
+                    <div className="row mb-2" key={label}>
+                      <div className="col-4 fw-semibold">{label}</div>
+                      <div className="col-8">
+                        {isStatus ? (
+                          <span
+                            className={`badge ${getStatusClass(value)}`}
+                            style={{
+                              minWidth: "110px",
+                              textAlign: "center",
+                              padding: "6px 14px",
+                            }}
+                          >
+                            {value}
+                          </span>
+                        ) : isRecommendation ? (
+                          <span
+                            className={`badge ${getRecommendationClass(value)}`}
+                            style={{
+                              minWidth: "110px",
+                              textAlign: "center",
+                              padding: "6px 14px",
+                            }}
+                          >
+                            {value}
+                          </span>
+                        ) : isFinalApproval ? (
+                          <span
+                            style={{
+                              backgroundColor:
+                                selectedPerformance.adminStatus === "pending"
+                                  ? "#FFE493"
+                                  : selectedPerformance.adminStatus ===
+                                      "approved"
+                                    ? "#d1f2dd"
+                                    : selectedPerformance.adminStatus ===
+                                        "rejected"
+                                      ? "#f8d7da"
+                                      : "#e9ecef",
+                              padding: "6px 14px",
+                              borderRadius: "4px",
+                              fontSize: "13px",
+                              fontWeight: 500,
+                              display: "inline-block",
+                              minWidth: "110px",
+                              textAlign: "center",
+                            }}
+                          >
+                            {value}
+                          </span>
+                        ) : (
+                          value // normal text for Rating or others
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
 
                 {selectedPerformance.adminStatus === "approved" &&
                   selectedPerformance.approvedBy && (
@@ -768,22 +674,10 @@ function ManagerPerformances() {
               <div className="modal-footer border-0">
                 <button
                   className="btn custom-outline-btn"
-                  onClick={() => {
-                    setSelectedPerformance(null);
-                    setIsEditMode(false);
-                  }}
+                  onClick={() => setSelectedPerformance(null)}
                 >
                   Close
                 </button>
-
-                {isEditMode && (
-                  <button
-                    className="btn btn-primary"
-                    onClick={handleUpdatePerformance}
-                  >
-                    {isUpdating ? "Updating..." : "Update"}
-                  </button>
-                )}
               </div>
             </div>
           </div>
@@ -824,4 +718,4 @@ const tdStyle = (color = "#212529", weight = 400) => ({
   fontWeight: weight,
 });
 
-export default ManagerPerformances;
+export default EmployeePerformances;

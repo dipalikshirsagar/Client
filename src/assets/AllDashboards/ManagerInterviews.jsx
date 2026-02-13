@@ -28,12 +28,12 @@ const ManagerInterviews = () => {
 
   // to get table after click on notification
   useEffect(() => {
-    const query = new URLSearchParams(location.search);
-    const id = query.get("interviewerId"); // ye notification se aa raha hai
-    if (id && managerId) {
+    // const query = new URLSearchParams(location.search);
+    // const id = query.get("interviewerId"); // ye notification se aa raha hai
+    if (managerId) {
       handleView(); // 🔥 auto open table
     }
-  }, [location.search, managerId]);
+  }, [managerId]);
 
   // 🔥 GET MANAGER ID (SAME AS EMPLOYEE)
   useEffect(() => {
@@ -61,23 +61,26 @@ const ManagerInterviews = () => {
       console.error("managerId not ready yet");
       return;
     }
-
+    const token = localStorage.getItem("accessToken");
     try {
       const res = await fetch(
-        `https://server-backend-nu.vercel.app/interviews/manager/${managerId}`,
+        `https://server-backend-ems.vercel.app/interviews/manager/${managerId}`,
         {
           headers: {
-            role: "manager",
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
         },
       );
 
       const data = await res.json();
+      const sortedData = [...data].sort(
+        (a, b) => new Date(b.date) - new Date(a.date),
+      );
       console.log("Manager interview data:", data);
 
-      setAllInterviews(data); // always keep original
-
-      setInterviews(data);
+      setAllInterviews(sortedData);
+      setInterviews(sortedData);
       setShowTable(true);
       setCurrentPage(1);
     } catch (err) {
@@ -88,15 +91,16 @@ const ManagerInterviews = () => {
   //status & comment update
   const handleUpdate = async () => {
     try {
+      const token = localStorage.getItem("accessToken");
       const res = await fetch(
-        `https://server-backend-nu.vercel.app/interviews/managerUpdate/${selected._id}`,
+        `https://server-backend-ems.vercel.app/interviews/managerUpdate/${selected._id}`,
         {
           method: "PUT",
+          body: JSON.stringify(editData),
           headers: {
             "Content-Type": "application/json",
-            role: "manager",
+            Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify(editData),
         },
       );
 
@@ -125,6 +129,12 @@ const ManagerInterviews = () => {
       alert("Something went wrong");
     }
   };
+  const formatDate = (dateString) =>
+    new Intl.DateTimeFormat("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }).format(new Date(dateString));
 
   {
     /*--------status colour-----*/
@@ -170,7 +180,7 @@ const ManagerInterviews = () => {
         (item) => new Date(item.date) <= new Date(dateToFilter),
       );
     }
-
+    filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
     setInterviews(filtered);
     setCurrentPage(1);
   };
@@ -198,16 +208,23 @@ const ManagerInterviews = () => {
 
   return (
     <div className="container-fluid px-3 mt-3">
-      <h5 className="mb-3 fw-semibold" style={{ color: "#3A5FBE" }}>
+      <h2
+        style={{
+          color: "#3A5FBE",
+          fontSize: "25px",
+          marginLeft: "15px",
+          marginBottom: "40px",
+        }}
+      >
         Manager – Assigned Interviews
-      </h5>
-
+      </h2>
+      {/* 
       <button
         className="btn btn-sm custom-outline-btn mb-3"
         onClick={handleView}
       >
         View Assigned Interviews
-      </button>
+      </button> */}
 
       {/* ================= FILTER CARD ================= */}
       {showTable && (
@@ -365,7 +382,11 @@ const ManagerInterviews = () => {
                   currentInterviews.map((item, i) => (
                     <tr
                       key={item._id || item.interviewId}
-                      onClick={() => setSelected(item)}
+                      onClick={() => {
+                        //added jayu
+                        setSelected(item);
+                        setIsEditing(false); // reset edit mode
+                      }}
                       style={{ cursor: "pointer" }}
                     >
                       <td style={tdStyle("#3A5FBE", 500)}>
@@ -376,9 +397,10 @@ const ManagerInterviews = () => {
                       <td>
                         {item.resumeUrl ? (
                           <a
-                            href={`https://server-backend-nu.vercel.app${item.resumeUrl}`}
+                            href={`https://server-backend-ems.vercel.app${item.resumeUrl}`}
                             target="_blank"
                             rel="noreferrer"
+                            onClick={(e) => e.stopPropagation()}
                           >
                             View Resume
                           </a>
@@ -386,7 +408,7 @@ const ManagerInterviews = () => {
                           "-"
                         )}
                       </td>
-                      <td style={tdStyle()}>{item.date}</td>
+                      <td style={tdStyle()}>{formatDate(item.date)}</td>
                       <td style={tdStyle()}>{item.startTime}</td>
                       <td style={tdStyle()}>{item.interviewType}</td>
                       <td style={tdStyle()}>{item.interviewerName}</td>
@@ -395,7 +417,12 @@ const ManagerInterviews = () => {
                         item.status !== "Cancelled" &&
                         item.status !== "Not-completed" &&
                         item.link ? (
-                          <a href={item.link} target="_blank" rel="noreferrer">
+                          <a
+                            href={item.link}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             Join
                           </a>
                         ) : (
@@ -434,7 +461,7 @@ const ManagerInterviews = () => {
                       <td style={tdStyle()}>
                         {item.status !== "On-going" && (
                           <button
-                            className="btn btn-sm btn-outline-primary"
+                            className="btn custom-outline-btn"
                             onClick={(e) => {
                               e.stopPropagation();
 
@@ -527,7 +554,7 @@ const ManagerInterviews = () => {
           style={{ display: "block", background: "rgba(0,0,0,0.5)" }}
         >
           <div
-            className="modal-dialog modal-dialog-scrollable"
+            className="modal-dialog"
             style={{ maxWidth: "650px", marginTop: "60px" }}
           >
             <div className="modal-content">
@@ -538,7 +565,11 @@ const ManagerInterviews = () => {
                 <h5 className="modal-title mb-0">Interview Details</h5>
                 <button
                   className="btn-close btn-close-white"
-                  onClick={() => setSelected(null)}
+                  onClick={() => {
+                    //added jayu
+                    setSelected(null);
+                    setIsEditing(false); // reset here also
+                  }}
                 />
               </div>
 
@@ -547,7 +578,7 @@ const ManagerInterviews = () => {
                   "Interview ID": selected.interviewId,
                   Candidate: selected.candidateName,
                   Role: selected.role,
-                  Date: selected.date,
+                  Date: formatDate(selected.date),
                   Time: selected.startTime,
                   Duration: selected.duration,
                   Type: selected.interviewType,
@@ -567,7 +598,12 @@ const ManagerInterviews = () => {
                     selected.status !== "Cancelled" &&
                     selected.status !== "Not-completed" &&
                     selected.link ? (
-                      <a href={selected.link} target="_blank" rel="noreferrer">
+                      <a
+                        href={selected.link}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         Join
                       </a>
                     ) : (
@@ -582,10 +618,11 @@ const ManagerInterviews = () => {
                   <div className="col-8">
                     {selected?.resumeUrl ? (
                       <a
-                        href={`https://server-backend-nu.vercel.app${selected.resumeUrl}`}
+                        href={`https://server-backend-ems.vercel.app${selected.resumeUrl}`}
                         target="_blank"
                         rel="noreferrer"
                         className="btn custom-outline-btn"
+                        onClick={(e) => e.stopPropagation()}
                       >
                         View Resume
                       </a>
@@ -657,6 +694,7 @@ const ManagerInterviews = () => {
                 {isEditing ? (
                   <button
                     className="btn custom-outline-btn"
+                    style={{ minWidth: 90 }}
                     onClick={handleUpdate}
                   >
                     Update
@@ -664,6 +702,7 @@ const ManagerInterviews = () => {
                 ) : (
                   <button
                     className="btn custom-outline-btn"
+                    style={{ minWidth: 90 }}
                     onClick={() => setSelected(null)}
                   >
                     Close

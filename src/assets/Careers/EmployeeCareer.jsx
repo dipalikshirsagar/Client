@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./EmployeeCareer.css";
 import axios from "axios";
@@ -29,10 +29,112 @@ const EmployeeCareer = ({ user }) => {
   const [referralSuccess, setReferralSuccess] = useState(false);
   const [referredCandidates, setReferredCandidates] = useState([]);
   const [activeReferralTab, setActiveReferralTab] = useState("DESC");
+  const [appliedSearch, setAppliedSearch] = useState("");
+
+  // view modal applied
+  const [showAppliedViewModal, setShowAppliedViewModal] = useState(false);
+  const [selectedAppliedJob, setSelectedAppliedJob] = useState(null);
+
+  // view modal referal
+  const [showReferralViewModal, setShowReferralViewModal] = useState(false);
+  const [selectedReferral, setSelectedReferral] = useState(null);
+
+  const [filterDate, setFilterDate] = useState("");
 
   const [jobs, setJobs] = useState([]);
   const [appliedJob, setAppliedJob] = useState([]);
   const [referralJobs, setReferralJobs] = useState([]);
+  const modalRef = useRef(null);
+
+  //TANVI
+  useEffect(() => {
+    const isModalOpen =
+      !!showReferralViewModal ||
+      showViewModal ||
+      showReferralModal ||
+      showAppliedViewModal;
+
+    if (isModalOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [
+    showReferralViewModal,
+    showViewModal,
+    showReferralModal,
+    showAppliedViewModal,
+  ]);
+
+  const isAnyModalOpen =
+    showReferralViewModal ||
+    showViewModal ||
+    showReferralModal ||
+    showAppliedViewModal;
+
+  useEffect(() => {
+    if (!isAnyModalOpen || !modalRef.current) return;
+
+    const modal = modalRef.current;
+
+    const focusableElements = modal.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+
+    if (!focusableElements.length) return;
+
+    const firstEl = focusableElements[0];
+    const lastEl = focusableElements[focusableElements.length - 1];
+
+    // ⭐ modal open होताच focus
+    modal.focus();
+    firstEl.focus();
+
+    const handleKeyDown = (e) => {
+      // ESC key → modal close
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setShowReferralViewModal(false);
+        setShowViewModal(false);
+        setShowReferralModal(false);
+        setShowAppliedViewModal(false);
+      }
+
+      // TAB key → focus trap
+      if (e.key === "Tab") {
+        if (e.shiftKey) {
+          if (document.activeElement === firstEl) {
+            e.preventDefault();
+            lastEl.focus();
+          }
+        } else {
+          if (document.activeElement === lastEl) {
+            e.preventDefault();
+            firstEl.focus();
+          }
+        }
+      }
+    };
+
+    modal.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      modal.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [
+    showReferralViewModal,
+    showViewModal,
+    showReferralModal,
+    showAppliedViewModal,
+  ]);
+
   useEffect(() => {
     setJobsPage(0);
     setAppliedPage(0);
@@ -41,7 +143,7 @@ const EmployeeCareer = ({ user }) => {
 
   const fetchJobs = async () => {
     try {
-      const res = await fetch("https://server-backend-nu.vercel.app/api/jobs/");
+      const res = await fetch("https://server-backend-ems.vercel.app/api/jobs/");
       const data = await res.json();
       setJobs(data);
     } catch (err) {
@@ -52,7 +154,7 @@ const EmployeeCareer = ({ user }) => {
   const fetchAppliedJobs = async () => {
     try {
       const res = await fetch(
-        `https://server-backend-nu.vercel.app/api/apply/employee/${user._id}?applicantType=inhouse`,
+        `https://server-backend-ems.vercel.app/api/apply/employee/${user._id}?applicantType=inhouse`,
       );
 
       if (!res.ok) throw new Error("Failed to fetch applied jobs");
@@ -68,7 +170,7 @@ const EmployeeCareer = ({ user }) => {
   const fetchRefferedJobs = async () => {
     try {
       const res = await fetch(
-        `https://server-backend-nu.vercel.app/api/apply/employee/${user._id}?applicantType=referral`,
+        `https://server-backend-ems.vercel.app/api/apply/employee/${user._id}?applicantType=referral`,
       );
 
       if (!res.ok) throw new Error("Failed to fetch applied jobs");
@@ -82,7 +184,7 @@ const EmployeeCareer = ({ user }) => {
     }
   };
   const createApplication = (formData) =>
-    axios.post("https://server-backend-nu.vercel.app/api/apply", formData, {
+    axios.post("https://server-backend-ems.vercel.app/api/apply", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
 
@@ -215,48 +317,181 @@ const EmployeeCareer = ({ user }) => {
         return baseStyle;
     }
   };
-
-  const filteredJobs = jobs.filter((job) => {
-    const categoryMatch =
-      jobCategoryView === "ALL" ||
-      (jobCategoryView === "INHOUSE" && job.jobType === "inhouse") ||
-      (jobCategoryView === "REFERRAL" && job.jobType === "referral");
-
-    return (
-      categoryMatch &&
-      (locationFilter === "All" || job.location === locationFilter) &&
-      (workModeFilter === "All" || job.hiringType === workModeFilter) &&
-      (departmentFilter === "All" || job.department === departmentFilter) &&
-      (postedFilter === "All" ||
-        getDaysAgo(job.createdAt) <= Number(postedFilter)) &&
-      job.jobTitle.toLowerCase().includes(searchText.toLowerCase())
-    );
+  const [appliedFilters, setAppliedFilters] = useState({
+    searchText: "",
+    filterDate: "",
+    location: "All",
+    workMode: "All",
+    department: "All",
+    posted: "All",
+    category: "ALL",
   });
+
+  const filteredJobs = [...jobs]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .filter((job) => {
+      const {
+        searchText,
+        filterDate,
+        location,
+        workMode,
+        department,
+        posted,
+        category,
+      } = appliedFilters;
+
+      const categoryMatch =
+        category === "ALL" ||
+        (category === "INHOUSE" && job.jobType === "inhouse") ||
+        (category === "REFERRAL" && job.jobType === "referral");
+
+      const searchMatch =
+        !searchText ||
+        job.jobTitle?.toLowerCase().includes(searchText.toLowerCase()) ||
+        job.location?.toLowerCase().includes(searchText.toLowerCase()) ||
+        job.department?.toLowerCase().includes(searchText.toLowerCase());
+
+      const dateMatch =
+        !filterDate ||
+        new Date(job.createdAt).toDateString() ===
+          new Date(filterDate).toDateString();
+
+      return (
+        categoryMatch &&
+        searchMatch &&
+        dateMatch &&
+        (location === "All" || job.location === location) &&
+        (workMode === "All" || job.hiringType === workMode) &&
+        (department === "All" || job.department === department) &&
+        (posted === "All" || getDaysAgo(job.createdAt) <= Number(posted))
+      );
+    });
+
+  const appliedData = [...appliedJob].sort(
+    (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+  );
+  const commonFilter = ({ data, type }) => {
+    const {
+      searchText,
+      filterDate,
+      location,
+      workMode,
+      department,
+      posted,
+      category,
+    } = appliedFilters;
+
+    return data.filter((item) => {
+      const job = type === "JOBS" ? item : item.job;
+
+      if (!job) return false;
+
+      const categoryMatch =
+        type !== "JOBS" ||
+        category === "ALL" ||
+        (category === "INHOUSE" && job.jobType === "inhouse") ||
+        (category === "REFERRAL" && job.jobType === "referral");
+
+      const searchMatch =
+        !searchText ||
+        job.jobTitle?.toLowerCase().includes(searchText.toLowerCase()) ||
+        job.location?.toLowerCase().includes(searchText.toLowerCase()) ||
+        job.department?.toLowerCase().includes(searchText.toLowerCase()) ||
+        (type === "REFERRAL" &&
+          item.candidate?.name
+            ?.toLowerCase()
+            .includes(searchText.toLowerCase())) ||
+        (type !== "JOBS" &&
+          item.status?.toLowerCase().includes(searchText.toLowerCase()));
+
+      const createdAt = item.createdAt || job.createdAt;
+      const dateMatch =
+        !filterDate ||
+        new Date(createdAt).toDateString() ===
+          new Date(filterDate).toDateString();
+
+      return (
+        categoryMatch &&
+        searchMatch &&
+        dateMatch &&
+        (location === "All" || job.location === location) &&
+        (workMode === "All" || job.hiringType === workMode) &&
+        (department === "All" || job.department === department) &&
+        (posted === "All" || getDaysAgo(job.createdAt) <= Number(posted))
+      );
+    });
+  };
 
   const paginatedJobs = filteredJobs.slice(
     jobsPage * rowsPerPage,
     jobsPage * rowsPerPage + rowsPerPage,
   );
 
-  const appliedData = appliedJob;
+  const filteredAppliedJobs = commonFilter({
+    data: appliedJob,
+    type: "APPLIED",
+  });
 
-  const paginatedApplied = appliedData.slice(
+  const paginatedApplied = filteredAppliedJobs.slice(
     appliedPage * rowsPerPage,
     appliedPage * rowsPerPage + rowsPerPage,
   );
 
-  const paginatedReferrals = referralJobs.slice(
+  const filteredReferralJobs = commonFilter({
+    data: referralJobs,
+    type: "REFERRAL",
+  });
+
+  const paginatedReferrals = filteredReferralJobs.slice(
     referralPage * rowsPerPage,
     referralPage * rowsPerPage + rowsPerPage,
   );
 
   const resetJobFilters = () => {
     setSearchText("");
+    setFilterDate("");
     setLocationFilter("All");
     setWorkModeFilter("All");
     setDepartmentFilter("All");
     setPostedFilter("All");
     setJobCategoryView("ALL");
+
+    setAppliedFilters({
+      searchText: "",
+      filterDate: "",
+      location: "All",
+      workMode: "All",
+      department: "All",
+      posted: "All",
+      category: "ALL",
+    });
+
+    setJobsPage(0);
+  };
+
+  const handleFilter = () => {
+    setAppliedFilters({
+      searchText,
+      filterDate,
+      location: locationFilter,
+      workMode: workModeFilter,
+      department: departmentFilter,
+      posted: postedFilter,
+      category: jobCategoryView,
+    });
+    setJobsPage(0);
+  };
+
+  const handleReset = () => {
+    setSearchText("");
+    setFilterDate("");
+    setFilteredLogs([]);
+    setIsFiltered(false);
+    setPage(0);
+  };
+  const handleFilterSubmit = (e) => {
+    e.preventDefault();
+    handleFilter();
   };
 
   return (
@@ -275,14 +510,15 @@ const EmployeeCareer = ({ user }) => {
 
       <div className="container-fluid pt-1 px-3">
         {/* ===== TOP TABS ===== */}
-        <ul className="career-tabs mb-5 ">
+        <ul className="d-flex flex-row justify-content-start justify-content-md-center gap-2 mb-3 list-unstyled flex-wrap">
           {["Jobs", "Applied", "My Referral"].map((tab) => (
             <li key={tab}>
               <button
                 type="button"
-                className={`career-tab-btn ${
+                className={` btn btn-sm custom-outline-btn ${
                   activeTab === tab ? "active" : ""
                 }`}
+                style={{ width: 100 }}
                 onClick={() => setActiveTab(tab)}
               >
                 {tab}
@@ -294,25 +530,25 @@ const EmployeeCareer = ({ user }) => {
         {/* ===== JOBS filter ===== */}
         {activeTab === "Jobs" && (
           <>
-            <div className="card mb-5 mt-5 shadow-sm border-0">
+            {/* <div className="card mb-5 mt-5 shadow-sm border-0">
               <div className="card-body">
                 <div className="row g-2 align-items-center">
-                  {/* Search */}
-                  <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
-                    <label htmlFor="leaveStatusFilter" className="filter-label">
+                 
+                  <div className="col-12 col-md-auto d-flex align-items-center gap-4 mb-1 ">
+                    <label htmlFor="leaveStatusFilter" className="filter-label " style={{ fontSize: "16px", color: "#3A5FBE" }}>
                       Job title
                     </label>
                     <input
                       type="text"
-                      className="form-control form-control-sm"
+                      className="form-select"
                       placeholder="Job title"
                       value={searchText}
                       onChange={(e) => setSearchText(e.target.value)}
                     />
                   </div>
 
-                  {/* Location */}
-                  <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
+                 
+                 <div className="col-12 col-md-auto d-flex align-items-center gap-3 mb-1 ">
                     <label className="filter-label">Location</label>
                     <select
                       className="form-select form-select-sm"
@@ -327,8 +563,8 @@ const EmployeeCareer = ({ user }) => {
                     </select>
                   </div>
 
-                  {/* Department */}
-                  <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
+                 
+                  <div className="col-12 col-md-auto d-flex align-items-center gap- mb-1">
                     <label className="filter-label">Department</label>
                     <select
                       className="form-select form-select-sm"
@@ -343,8 +579,8 @@ const EmployeeCareer = ({ user }) => {
                     </select>
                   </div>
 
-                  {/* Posted */}
-                  <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
+                  
+                  <div className="col-12 col-md-auto d-flex align-items-center gap-5 mb-1 ">
                     <label className=" filter-label">Posted</label>
                     <select
                       className="form-select form-select-sm"
@@ -358,7 +594,7 @@ const EmployeeCareer = ({ user }) => {
                     </select>
                   </div>
 
-                  {/* Reset */}
+                 
                   <div className="col-md-1 text-end">
                     <button
                       className="btn btn-sm btn-outline-primary px-4"
@@ -369,26 +605,100 @@ const EmployeeCareer = ({ user }) => {
                   </div>
                 </div>
               </div>
+            </div> */}
+            <div className="card mb-4 shadow-sm border-0">
+              <div className="card-body">
+                <form
+                  className="row g-2 align-items-center"
+                  onSubmit={(e) => e.preventDefault()}
+                  style={{ justifyContent: "space-between" }}
+                >
+                  {/*  SEARCH */}
+                  <div className="col-12 col-md-auto d-flex align-items-center gap-2  mb-1">
+                    <label
+                      htmlFor="searchFilter"
+                      className="fw-bold mb-0"
+                      style={{ fontSize: "16px", color: "#3A5FBE" }}
+                    >
+                      Search
+                    </label>
+                    <input
+                      className="form-control"
+                      placeholder="Search By Any Field..."
+                      type="search"
+                      onChange={(e) => setSearchText(e.target.value)}
+                      style={{ minWidth: 150 }}
+                    />
+                  </div>
+                  <div className="col-12 col-md-auto d-flex align-items-center  mb-1">
+                    <label
+                      className="fw-bold mb-0 text-start text-md-end"
+                      style={{
+                        fontSize: "16px",
+                        color: "#3A5FBE",
+                        width: "50px",
+                        minWidth: "50px",
+                        marginRight: "8px",
+                      }}
+                    >
+                      Date
+                    </label>
+                    <input
+                      className="form-control"
+                      type="date"
+                      onChange={(e) => setFilterDate(e.target.value)}
+                      style={{ minWidth: 150 }}
+                    />
+                  </div>
+                  <div className="col-auto ms-auto d-flex gap-2">
+                    <button
+                      onClick={handleFilter}
+                      className="btn btn-sm custom-outline-btn"
+                      type="buttun"
+                      style={{ minWidth: 90 }}
+                    >
+                      Filter
+                    </button>
+
+                    <button
+                      onClick={resetJobFilters}
+                      className="btn btn-sm custom-outline-btn"
+                      type="buttun"
+                      style={{ minWidth: 90 }}
+                    >
+                      Reset
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
 
             {/* filter code end*/}
 
             {/* Category */}
-            <div className="d-flex gap-4 mb-3 px-2">
+            <div className="d-flex flex-row justify-content-start justify-content-md-center gap-2 mb-3 list-unstyled flex-wrap">
               {[
                 { label: "All Jobs", value: "ALL" },
                 { label: "In-house Jobs", value: "INHOUSE" },
                 { label: "Referral Jobs", value: "REFERRAL" },
               ].map((cat) => (
                 <button
+                  className="btn btn-sm custom-outline-btn"
+                  style={{ width: 110 }}
                   key={cat.value}
                   type="button"
-                  className={`btn fw-semibold ${
-                    jobCategoryView === cat.value
-                      ? "btn-primary"
-                      : "btn-outline-secondary"
-                  }`}
-                  onClick={() => setJobCategoryView(cat.value)}
+                  // className={`btn fw-semibold ${jobCategoryView === cat.value
+                  //   ? "btn-primary"
+                  //   : "btn-outline-secondary"
+                  //   }`}
+                  onClick={() => {
+                    setJobCategoryView(cat.value);
+                    setAppliedFilters((prev) => ({
+                      ...prev,
+                      category: cat.value,
+                    }));
+                    setJobsPage(0);
+                  }}
                 >
                   {cat.label}
                 </button>
@@ -397,18 +707,9 @@ const EmployeeCareer = ({ user }) => {
 
             {/* Job Table */}
             <div className="card shadow-sm border-0">
-              <div
-                className="table-responsive mt-3 "
-                style={{
-                  boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-                  borderRadius: "8px",
-                }}
-              >
-                <table
-                  className="table table-hover mb-0"
-                  style={{ borderCollapse: "collapse" }}
-                >
-                  <thead style={{ backgroundColor: "#f8f9fa" }}>
+              <div className="table-responsive bg-white">
+                <table className="table table-hover mb-0">
+                  <thead style={{ backgroundColor: "#ffffffff" }}>
                     <tr>
                       <th
                         style={{
@@ -458,7 +759,7 @@ const EmployeeCareer = ({ user }) => {
                       >
                         Posted
                       </th>
-                      <th
+                      {/* <th
                         style={{
                           fontWeight: "500",
                           fontSize: "14px",
@@ -469,7 +770,7 @@ const EmployeeCareer = ({ user }) => {
                         }}
                       >
                         Action
-                      </th>
+                      </th> */}
                     </tr>
                   </thead>
                   <tbody>
@@ -489,7 +790,22 @@ const EmployeeCareer = ({ user }) => {
                       </tr>
                     ) : (
                       paginatedJobs.map((job) => (
-                        <tr key={job._id}>
+                        <tr
+                          key={job._id}
+                          style={{ cursor: "pointer" }}
+                          onClick={() => {
+                            setSelectedJob(job);
+
+                            if (job.jobType === "referral") {
+                              setShowReferralModal(true);
+                              setReferralSuccess(false);
+                              setActiveReferralTab("DESC");
+                            } else {
+                              setShowViewModal(true);
+                              setActiveViewTab("DESC");
+                            }
+                          }}
+                        >
                           <td
                             style={{
                               padding: "12px",
@@ -542,17 +858,9 @@ const EmployeeCareer = ({ user }) => {
                               ? "Today"
                               : `${getDaysAgo(job.createdAt)} days ago`}
                           </td>
-                          <td
-                            style={{
-                              padding: "12px",
-                              verticalAlign: "middle",
-                              fontSize: "14px",
-                              borderBottom: "1px solid #dee2e6",
-                              whiteSpace: "nowrap",
-                            }}
-                          >
-                            <button
-                              className="btn btn-sm btn-outline-primary"
+
+                          {/* <button
+                              className="btn btn-sm custom-outline-btn"
                               onClick={() => {
                                 setSelectedJob(job);
                                 if (job.jobType === "referral") {
@@ -565,8 +873,7 @@ const EmployeeCareer = ({ user }) => {
                               }}
                             >
                               View
-                            </button>
-                          </td>
+                            </button> */}
                         </tr>
                       ))
                     )}
@@ -587,8 +894,75 @@ const EmployeeCareer = ({ user }) => {
         {/* ===== Applied Tab ===== */}
         {activeTab === "Applied" && (
           <>
+            <div className="card mb-4 shadow-sm border-0">
+              <div className="card-body">
+                <form
+                  className="row g-2 align-items-center"
+                  onSubmit={(e) => e.preventDefault()}
+                  style={{ justifyContent: "space-between" }}
+                >
+                  {/*  SEARCH */}
+                  <div className="col-12 col-md-auto d-flex align-items-center gap-2  mb-1">
+                    <label
+                      htmlFor="searchFilter"
+                      className="fw-bold mb-0"
+                      style={{ fontSize: "16px", color: "#3A5FBE" }}
+                    >
+                      Search
+                    </label>
+                    <input
+                      className="form-control"
+                      placeholder="Search By Any Field..."
+                      type="search"
+                      onChange={(e) => setSearchText(e.target.value)}
+                      style={{ minWidth: 150 }}
+                    />
+                  </div>
+                  <div className="col-12 col-md-auto d-flex align-items-center  mb-1">
+                    <label
+                      className="fw-bold mb-0 text-start text-md-end"
+                      style={{
+                        fontSize: "16px",
+                        color: "#3A5FBE",
+                        width: "50px",
+                        minWidth: "50px",
+                        marginRight: "8px",
+                      }}
+                    >
+                      Date
+                    </label>
+                    <input
+                      className="form-control"
+                      type="date"
+                      onChange={(e) => setFilterDate(e.target.value)}
+                      style={{ minWidth: 150 }}
+                    />
+                  </div>
+                  <div className="col-auto ms-auto d-flex gap-2">
+                    <button
+                      onClick={handleFilter}
+                      className="btn btn-sm custom-outline-btn"
+                      type="buttun"
+                      style={{ minWidth: 90 }}
+                    >
+                      Filter
+                    </button>
+
+                    <button
+                      onClick={resetJobFilters}
+                      className="btn btn-sm custom-outline-btn"
+                      type="buttun"
+                      style={{ minWidth: 90 }}
+                    >
+                      Reset
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
             <div className="card shadow-sm border-0">
-              <div className="card-body p-0">
+              <div className="table-responsive bg-white">
                 <table className="table table-hover mb-0">
                   <thead className="table-light">
                     <tr>
@@ -652,7 +1026,14 @@ const EmployeeCareer = ({ user }) => {
                       </tr>
                     ) : (
                       paginatedApplied.map((app) => (
-                        <tr key={app._id}>
+                        <tr
+                          key={app._id}
+                          style={{ cursor: "pointer" }}
+                          onClick={() => {
+                            setSelectedAppliedJob(app);
+                            setShowAppliedViewModal(true);
+                          }}
+                        >
                           <td
                             style={{
                               padding: "12px",
@@ -706,14 +1087,180 @@ const EmployeeCareer = ({ user }) => {
                 </table>
               </div>
             </div>
+            <TablePagination
+              page={appliedPage}
+              setPage={setAppliedPage}
+              rowsPerPage={rowsPerPage}
+              setRowsPerPage={setRowsPerPage}
+              totalCount={filteredJobs.length}
+            />
           </>
+        )}
+        {showAppliedViewModal && selectedAppliedJob && (
+          <div
+            className="modal fade show d-block"
+            style={{ background: "#00000080" }}
+            ref={modalRef}
+            tabIndex="-1"
+          >
+            <div className="modal-dialog modal-lg">
+              <div className="modal-content">
+                {/* HEADER */}
+                <div
+                  className="modal-header"
+                  style={{ backgroundColor: "#3A5FBE" }}
+                >
+                  <h5 className="modal-title text-white">
+                    {selectedAppliedJob.job?.jobTitle}
+                  </h5>
+                  <button
+                    className="btn-close btn-close-white"
+                    onClick={() => setShowAppliedViewModal(false)}
+                  />
+                </div>
+
+                {/* BODY */}
+                <div className="modal-body">
+                  <div className="job-card mb-3">
+                    <h6 className="job-card-title">Application Info</h6>
+
+                    <div className="job-info-grid">
+                      <div>
+                        <span className="label">Job ID</span>
+                        <p>{selectedAppliedJob.job?._id?.slice(-4)}</p>
+                      </div>
+
+                      <div>
+                        <span className="label">Applied On</span>
+                        <p>{formatDate(selectedAppliedJob.createdAt)}</p>
+                      </div>
+
+                      <div>
+                        <span className="label">Status</span>
+                        <p>
+                          <span
+                            style={getStatusColor(selectedAppliedJob.status)}
+                          >
+                            {selectedAppliedJob.status}
+                          </span>
+                        </p>
+                      </div>
+
+                      <div>
+                        <span className="label">Location</span>
+                        <p>{selectedAppliedJob.job?.location}</p>
+                      </div>
+
+                      <div>
+                        <span className="label">Department</span>
+                        <p>{selectedAppliedJob.job?.department}</p>
+                      </div>
+
+                      <div>
+                        <span className="label">Experience</span>
+                        <p>
+                          {selectedAppliedJob.job?.experience?.min} –{" "}
+                          {selectedAppliedJob.job?.experience?.max} Years
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="job-card">
+                    <h6 className="job-card-title">Job Description</h6>
+                    <div
+                      className="job-desc"
+                      dangerouslySetInnerHTML={{
+                        __html: selectedAppliedJob.job?.jobDescription,
+                      }}
+                    />
+                  </div>
+
+                  {/* CLOSE BUTTON */}
+                  <button
+                    className="btn btn-sm custom-outline-btn float-end mt-3"
+                    style={{ minWidth: 90 }}
+                    onClick={() => setShowAppliedViewModal(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* ===== MY REFERRAL TAB ===== */}
         {activeTab === "My Referral" && (
           <>
+            <div className="card mb-4 shadow-sm border-0">
+              <div className="card-body">
+                <form
+                  className="row g-2 align-items-center"
+                  onSubmit={(e) => e.preventDefault()}
+                  style={{ justifyContent: "space-between" }}
+                >
+                  {/*  SEARCH */}
+                  <div className="col-12 col-md-auto d-flex align-items-center gap-2  mb-1">
+                    <label
+                      htmlFor="searchFilter"
+                      className="fw-bold mb-0"
+                      style={{ fontSize: "16px", color: "#3A5FBE" }}
+                    >
+                      Search
+                    </label>
+                    <input
+                      className="form-control"
+                      placeholder="Search By Any Field..."
+                      type="search"
+                      onChange={(e) => setSearchText(e.target.value)}
+                      style={{ minWidth: 150 }}
+                    />
+                  </div>
+                  <div className="col-12 col-md-auto d-flex align-items-center  mb-1">
+                    <label
+                      className="fw-bold mb-0 text-start text-md-end"
+                      style={{
+                        fontSize: "16px",
+                        color: "#3A5FBE",
+                        width: "50px",
+                        minWidth: "50px",
+                        marginRight: "8px",
+                      }}
+                    >
+                      Date
+                    </label>
+                    <input
+                      className="form-control"
+                      type="date"
+                      onChange={(e) => setFilterDate(e.target.value)}
+                      style={{ minWidth: 150 }}
+                    />
+                  </div>
+                  <div className="col-auto ms-auto d-flex gap-2">
+                    <button
+                      onClick={handleFilter}
+                      className="btn btn-sm custom-outline-btn"
+                      type="buttun"
+                      style={{ minWidth: 90 }}
+                    >
+                      Filter
+                    </button>
+
+                    <button
+                      onClick={resetJobFilters}
+                      className="btn btn-sm custom-outline-btn"
+                      type="buttun"
+                      style={{ minWidth: 90 }}
+                    >
+                      Reset
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
             <div className="card shadow-sm border-0">
-              <div className="card-body p-0">
+              <div className="table-responsive bg-white">
                 <table className="table table-hover mb-0">
                   <thead className="table-light">
                     <tr>
@@ -783,7 +1330,14 @@ const EmployeeCareer = ({ user }) => {
                   <tbody>
                     {paginatedReferrals.length > 0 ? (
                       paginatedReferrals.map((ref) => (
-                        <tr key={ref._id}>
+                        <tr
+                          key={ref._id}
+                          style={{ cursor: "pointer" }}
+                          onClick={() => {
+                            setSelectedReferral(ref);
+                            setShowReferralViewModal(true);
+                          }}
+                        >
                           <td
                             style={{
                               padding: "12px",
@@ -854,7 +1408,124 @@ const EmployeeCareer = ({ user }) => {
                 </table>
               </div>
             </div>
+            <TablePagination
+              page={referralPage}
+              setPage={setReferralPage}
+              rowsPerPage={rowsPerPage}
+              setRowsPerPage={setRowsPerPage}
+              totalCount={referralJobs.length}
+            />
           </>
+        )}
+        {showReferralViewModal && selectedReferral && (
+          <div
+            className="modal fade show d-block"
+            style={{ background: "#00000080" }}
+            ref={modalRef}
+            tabIndex="-1"
+          >
+            <div className="modal-dialog modal-lg">
+              <div className="modal-content">
+                {/* HEADER */}
+                <div
+                  className="modal-header"
+                  style={{ backgroundColor: "#3A5FBE" }}
+                >
+                  <h5 className="modal-title text-white">
+                    {selectedReferral.job?.jobTitle}
+                  </h5>
+                  <button
+                    className="btn-close btn-close-white"
+                    onClick={() => setShowReferralViewModal(false)}
+                  />
+                </div>
+
+                {/* BODY */}
+                <div className="modal-body">
+                  {/* Referral Info */}
+                  <div className="job-card mb-3">
+                    <h6 className="job-card-title">Referral Details</h6>
+
+                    <div className="job-info-grid">
+                      <div>
+                        <span className="label">Job ID</span>
+                        <p>{selectedReferral.job?._id?.slice(-4)}</p>
+                      </div>
+
+                      <div>
+                        <span className="label">Candidate Name</span>
+                        <p>{selectedReferral.candidate?.name}</p>
+                      </div>
+
+                      <div>
+                        <span className="label">Candidate Email</span>
+                        <p>{selectedReferral.candidate?.email}</p>
+                      </div>
+
+                      <div>
+                        <span className="label">Referred On</span>
+                        <p>{formatDate(selectedReferral.createdAt)}</p>
+                      </div>
+
+                      <div>
+                        <span className="label">Status</span>
+                        <p>
+                          <span style={getStatusColor(selectedReferral.status)}>
+                            {selectedReferral.status}
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Job Info */}
+                  <div className="job-card mb-3">
+                    <h6 className="job-card-title">Job Information</h6>
+
+                    <div className="job-info-grid">
+                      <div>
+                        <span className="label">Location</span>
+                        <p>{selectedReferral.job?.location}</p>
+                      </div>
+
+                      <div>
+                        <span className="label">Department</span>
+                        <p>{selectedReferral.job?.department}</p>
+                      </div>
+
+                      <div>
+                        <span className="label">Experience</span>
+                        <p>
+                          {selectedReferral.job?.experience?.min} –{" "}
+                          {selectedReferral.job?.experience?.max} Years
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Job Description */}
+                  <div className="job-card">
+                    <h6 className="job-card-title">Job Description</h6>
+                    <div
+                      className="job-desc"
+                      dangerouslySetInnerHTML={{
+                        __html: selectedReferral.job?.jobDescription,
+                      }}
+                    />
+                  </div>
+
+                  {/* CLOSE */}
+                  <button
+                    className="btn btn-sm custom-outline-btn float-end mt-3"
+                    style={{ minWidth: 90 }}
+                    onClick={() => setShowReferralViewModal(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* ===== View Modal ===== */}
@@ -862,21 +1533,28 @@ const EmployeeCareer = ({ user }) => {
           <div
             className="modal fade show d-block"
             style={{ background: "#00000080" }}
+            ref={modalRef}
+            tabIndex="-1"
           >
-            <div className="modal-dialog modal-lg">
+            <div className="modal-dialog modal-lg" style={{ marginTop: 120 }}>
               <div className="modal-content">
-                <div className="modal-header">
-                  <h5 className="modal-title">{selectedJob.jobTitle}</h5>
+                <div
+                  className="modal-header"
+                  style={{ backgroundColor: "#3A5FBE" }}
+                >
+                  <h5 className="modal-title" style={{ color: "white" }}>
+                    {selectedJob.jobTitle}
+                  </h5>
                   <button
-                    className="btn-close"
+                    className="btn-close btn-close-white"
                     onClick={() => setShowViewModal(false)}
                   />
                 </div>
                 <div className="modal-body">
                   {/* Modal Tabs */}
-                  <div className="d-flex gap-3 mb-3">
+                  <div className="d-flex flex-row justify-content-start justify-content-md-center gap-2 mb-3 flex-wrap">
                     <button
-                      className={`btn btn-sm ${
+                      className={`btn btn-sm custom-outline-btn ${
                         activeViewTab === "DESC"
                           ? "btn-primary"
                           : "btn-outline-primary"
@@ -886,7 +1564,8 @@ const EmployeeCareer = ({ user }) => {
                       Job Description
                     </button>
                     <button
-                      className={`btn btn-sm ${
+                      type="button"
+                      className={`btn btn-sm custom-outline-btn ${
                         activeViewTab === "APPLY"
                           ? "btn-primary"
                           : "btn-outline-primary"
@@ -1030,127 +1709,151 @@ const EmployeeCareer = ({ user }) => {
                         }
                       }}
                     >
-                      <div className="mb-3 d-flex align-items-center">
-                        <label
-                          className="form-label me-2"
-                          style={{ minWidth: "150px" }}
-                        >
-                          First Name:
-                        </label>
-                        <input
-                          className="form-control"
-                          name="firstName"
-                          placeholder="Enter First Name"
-                          required
-                        />
+                      <div className="row g-3">
+                        <div className="col-12 col-md-6">
+                          <label
+                            className="form-label"
+                            style={{ color: "#3A5FBE", fontWeight: 500 }}
+                          >
+                            First Name
+                          </label>
+                          <input
+                            className="form-control"
+                            name="firstName"
+                            placeholder="Enter First Name"
+                            required
+                          />
+                        </div>
+
+                        <div className="col-12 col-md-6">
+                          <label
+                            className="form-label"
+                            style={{ color: "#3A5FBE", fontWeight: 500 }}
+                          >
+                            Middle Name
+                          </label>
+                          <input
+                            className="form-control"
+                            name="middleName"
+                            placeholder="Enter Middle Name"
+                          />
+                        </div>
+
+                        <div className="col-12 col-md-6">
+                          <label
+                            className="form-label"
+                            style={{ color: "#3A5FBE", fontWeight: 500 }}
+                          >
+                            Last Name
+                          </label>
+                          <input
+                            className="form-control"
+                            name="lastName"
+                            placeholder="Enter Last Name"
+                            required
+                          />
+                        </div>
+
+                        <div className="col-12 col-md-6">
+                          <label
+                            className="form-label"
+                            style={{ color: "#3A5FBE", fontWeight: 500 }}
+                          >
+                            Email ID
+                          </label>
+                          <input
+                            className="form-control"
+                            name="email"
+                            type="email"
+                            placeholder="Enter Email"
+                            required
+                          />
+                        </div>
+
+                        <div className="col-12 col-md-6">
+                          <label
+                            className="form-label"
+                            style={{ color: "#3A5FBE", fontWeight: 500 }}
+                          >
+                            Phone Number
+                          </label>
+                          <input
+                            className="form-control"
+                            name="phone"
+                            type="tel"
+                            placeholder="Enter Phone Number"
+                            required
+                          />
+                        </div>
+
+                        <div className="col-12 col-md-6">
+                          <label
+                            className="form-label"
+                            style={{ color: "#3A5FBE", fontWeight: 500 }}
+                          >
+                            Experience (Years)
+                          </label>
+                          <input
+                            className="form-control"
+                            name="experience"
+                            type="number"
+                            min="0"
+                            placeholder="Enter Experience"
+                            required
+                          />
+                        </div>
+
+                        <div className="col-12 col-md-6">
+                          <label
+                            className="form-label"
+                            style={{ color: "#3A5FBE", fontWeight: 500 }}
+                          >
+                            Current City
+                          </label>
+                          <input
+                            className="form-control"
+                            name="city"
+                            placeholder="Enter Current City"
+                            required
+                          />
+                        </div>
+
+                        <div className="col-12 col-md-6">
+                          <label
+                            className="form-label"
+                            style={{ color: "#3A5FBE", fontWeight: 500 }}
+                          >
+                            Resume
+                          </label>
+                          <input
+                            className="form-control"
+                            name="resume"
+                            type="file"
+                            accept=".doc,.docx,.pdf"
+                            required
+                          />
+                        </div>
                       </div>
-                      <div className="mb-3 d-flex align-items-center">
-                        <label
-                          className="form-label me-2"
-                          style={{ minWidth: "150px" }}
+                      <div className="d-flex justify-content-end gap-2  mt-3 g mb-2 ">
+                        <button
+                          className="btn btn-sm custom-outline-btn "
+                          style={{ minWidth: 90 }}
+                          type="submit"
                         >
-                          Middle Name:
-                        </label>
-                        <input
-                          className="form-control"
-                          name="middleName"
-                          placeholder="Enter Middle Name"
-                        />
-                      </div>
-                      <div className="mb-3 d-flex align-items-center">
-                        <label
-                          className="form-label me-2"
-                          style={{ minWidth: "150px" }}
+                          Apply Job
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-sm custom-outline-btn float-end"
+                          onClick={() => setShowViewModal(false)}
+                          style={{ minWidth: 90 }}
                         >
-                          Last Name:
-                        </label>
-                        <input
-                          className="form-control"
-                          name="lastName"
-                          placeholder="Enter Last Name"
-                          required
-                        />
+                          Close
+                        </button>
                       </div>
-                      <div className="mb-3 d-flex align-items-center">
-                        <label
-                          className="form-label me-2"
-                          style={{ minWidth: "150px" }}
-                        >
-                          Email ID:
-                        </label>
-                        <input
-                          className="form-control"
-                          name="email"
-                          type="email"
-                          placeholder="Enter Email"
-                          required
-                        />
-                      </div>
-                      <div className="mb-3 d-flex align-items-center">
-                        <label
-                          className="form-label me-2"
-                          style={{ minWidth: "150px" }}
-                        >
-                          Experience (Years):
-                        </label>
-                        <input
-                          className="form-control"
-                          name="experience"
-                          type="number"
-                          min="0"
-                          placeholder="Enter Experience"
-                          required
-                        />
-                      </div>
-                      <div className="mb-3 d-flex align-items-center">
-                        <label
-                          className="form-label me-2"
-                          style={{ minWidth: "150px" }}
-                        >
-                          Current City:
-                        </label>
-                        <input
-                          className="form-control"
-                          name="city"
-                          placeholder="Enter Current City"
-                          required
-                        />
-                      </div>
-                      <div className="mb-3 d-flex align-items-center">
-                        <label
-                          className="form-label me-2"
-                          style={{ minWidth: "150px" }}
-                        >
-                          Phone Number:
-                        </label>
-                        <input
-                          className="form-control"
-                          name="phone"
-                          type="tel"
-                          placeholder="Enter Phone Number"
-                          required
-                        />
-                      </div>
-                      <div className="mb-3 d-flex align-items-center">
-                        <label
-                          className="form-label me-2"
-                          style={{ minWidth: "150px" }}
-                        >
-                          Resume:
-                        </label>
-                        <input
-                          className="form-control"
-                          name="resume"
-                          type="file"
-                          accept=".doc,.docx,.pdf"
-                          required
-                        />
-                      </div>
-                      <button className="btn btn-primary w-100">
-                        Apply Job
-                      </button>
                     </form>
                   )}
+                  {/* //Added by Mahesh */}
                 </div>
               </div>
             </div>
@@ -1162,15 +1865,20 @@ const EmployeeCareer = ({ user }) => {
           <div
             className="modal fade show d-block"
             style={{ background: "#00000080" }}
+            ref={modalRef}
+            tabIndex="-1"
           >
-            <div className="modal-dialog modal-lg">
+            <div className="modal-dialog modal-lg" style={{ marginTop: 120 }}>
               <div className="modal-content">
-                <div className="modal-header">
-                  <h5 className="modal-title">
+                <div
+                  className="modal-header"
+                  style={{ backgroundColor: "#3A5FBE" }}
+                >
+                  <h5 className="modal-title" style={{ color: "white" }}>
                     Refer Candidate for {selectedJob.jobTitle}
                   </h5>
                   <button
-                    className="btn-close"
+                    className="btn-close btn-close-white"
                     onClick={() => setShowReferralModal(false)}
                   />
                 </div>
@@ -1178,7 +1886,7 @@ const EmployeeCareer = ({ user }) => {
                   {/* Modal Tabs */}
                   <div className="d-flex gap-3 mb-3">
                     <button
-                      className={`btn btn-sm ${
+                      className={`btn btn-sm custom-outline-btn ${
                         activeReferralTab === "DESC"
                           ? "btn-primary"
                           : "btn-outline-primary"
@@ -1188,7 +1896,7 @@ const EmployeeCareer = ({ user }) => {
                       Job Description
                     </button>
                     <button
-                      className={`btn btn-sm ${
+                      className={`btn btn-sm custom-outline-btn ${
                         activeReferralTab === "APPLY"
                           ? "btn-primary"
                           : "btn-outline-primary"
@@ -1344,7 +2052,7 @@ const EmployeeCareer = ({ user }) => {
                       }}
                     >
                       {/* Candidate Info (Same as In-house Form) */}
-                      <div className="mb-3 d-flex align-items-center">
+                      {/* <div className="mb-3 d-flex align-items-center">
                         <label
                           className="form-label me-2"
                           style={{ minWidth: "150px" }}
@@ -1463,7 +2171,133 @@ const EmployeeCareer = ({ user }) => {
 
                       <button className="btn btn-primary w-100">
                         Submit Referral
-                      </button>
+                      </button> */}
+                      {/* Candidate Info */}
+                      <div className="row g-3">
+                        <div className="col-12 col-md-6">
+                          <label
+                            className="form-label"
+                            style={{ color: "#3A5FBE", fontWeight: 500 }}
+                          >
+                            First Name
+                          </label>
+                          <input
+                            className="form-control"
+                            name="firstName"
+                            placeholder="Enter First Name"
+                            required
+                          />
+                        </div>
+
+                        <div className="col-12 col-md-6">
+                          <label
+                            className="form-label"
+                            style={{ color: "#3A5FBE", fontWeight: 500 }}
+                          >
+                            Middle Name
+                          </label>
+                          <input
+                            className="form-control"
+                            name="middleName"
+                            placeholder="Enter Middle Name"
+                          />
+                        </div>
+
+                        <div className="col-12 col-md-6">
+                          <label
+                            className="form-label"
+                            style={{ color: "#3A5FBE", fontWeight: 500 }}
+                          >
+                            Last Name
+                          </label>
+                          <input
+                            className="form-control"
+                            name="lastName"
+                            placeholder="Enter Last Name"
+                            required
+                          />
+                        </div>
+
+                        <div className="col-12 col-md-6">
+                          <label
+                            className="form-label"
+                            style={{ color: "#3A5FBE", fontWeight: 500 }}
+                          >
+                            Email ID
+                          </label>
+                          <input
+                            className="form-control"
+                            name="email"
+                            type="email"
+                            placeholder="Enter Email"
+                            required
+                          />
+                        </div>
+
+                        <div className="col-12 col-md-6">
+                          <label
+                            className="form-label"
+                            style={{ color: "#3A5FBE", fontWeight: 500 }}
+                          >
+                            Phone Number
+                          </label>
+                          <input
+                            className="form-control"
+                            name="phone"
+                            type="tel"
+                            placeholder="Enter Phone Number"
+                            required
+                          />
+                        </div>
+
+                        <div className="col-12 col-md-6">
+                          <label
+                            className="form-label"
+                            style={{ color: "#3A5FBE", fontWeight: 500 }}
+                          >
+                            Experience (Years)
+                          </label>
+                          <input
+                            className="form-control"
+                            name="experience"
+                            type="number"
+                            min="0"
+                            placeholder="Enter Experience"
+                            required
+                          />
+                        </div>
+
+                        <div className="col-12 col-md-6">
+                          <label
+                            className="form-label"
+                            style={{ color: "#3A5FBE", fontWeight: 500 }}
+                          >
+                            Current City
+                          </label>
+                          <input
+                            className="form-control"
+                            name="city"
+                            placeholder="Enter Current City"
+                            required
+                          />
+                        </div>
+
+                        <div className="col-12 col-md-6">
+                          <label
+                            className="form-label"
+                            style={{ color: "#3A5FBE", fontWeight: 500 }}
+                          >
+                            Resume
+                          </label>
+                          <input
+                            className="form-control"
+                            name="resume"
+                            type="file"
+                            accept=".doc,.docx,.pdf"
+                            required
+                          />
+                        </div>
+                      </div>
                     </form>
                   )}
 
@@ -1488,11 +2322,38 @@ const EmployeeCareer = ({ user }) => {
                       </button>
                     </div>
                   )}
+                  <div className="d-flex justify-content-end gap-2  mt-3 g mb-2 ">
+                    <button
+                      className="btn btn-sm custom-outline-btn "
+                      style={{ minWidth: 90 }}
+                      type="submit"
+                    >
+                      Submit Referral
+                    </button>
+                    <button
+                      className="btn btn-sm custom-outline-btn "
+                      style={{ minWidth: 90 }}
+                      onClick={() => setShowReferralModal(false)}
+                    >
+                      Close
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         )}
+      </div>
+
+      {/* //Added by Mahesh */}
+      <div className="text-end mt-3">
+        <button
+          className="btn btn-sm custom-outline-btn"
+          style={{ minWidth: 90 }}
+          onClick={() => window.history.go(-1)}
+        >
+          Back
+        </button>
       </div>
     </div>
   );

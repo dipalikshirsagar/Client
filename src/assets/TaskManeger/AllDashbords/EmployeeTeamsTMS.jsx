@@ -90,7 +90,7 @@ const EmployeeTeamsTMS = ({ user }) => {
 
       try {
         const empCountRes = await axios.get(
-          "https://server-backend-nu.vercel.app/getEmployeeCount",
+          "https://server-backend-ems.vercel.app/getEmployeeCount",
           { headers },
         );
         totalMembers = empCountRes.data?.totalEmployees || 0;
@@ -100,9 +100,9 @@ const EmployeeTeamsTMS = ({ user }) => {
 
       Promise.all([
         fetch(
-          `https://server-backend-nu.vercel.app/api/teams/employee/${user._id}/teams`,
+          `https://server-backend-ems.vercel.app/api/teams/employee/${user._id}/teams`,
         ).then((res) => res.json()),
-        axios.get("https://server-backend-nu.vercel.app/getAllDepartments"),
+        axios.get("https://server-backend-ems.vercel.app/getAllDepartments"),
       ])
         .then(([teamRes, deptRes]) => {
           if (!teamRes.success) return;
@@ -114,7 +114,7 @@ const EmployeeTeamsTMS = ({ user }) => {
               team.project?.projectName || team.project?.name || "N/A",
             teamLead:
               Array.isArray(team.project?.managers) &&
-              team.project.managers.length
+                team.project.managers.length
                 ? team.project.managers.map((m) => m.name).join(", ")
                 : "N/A",
             totalMembers: team.assignToProject?.length || 0,
@@ -532,9 +532,8 @@ const EmployeeTeamsTMS = ({ user }) => {
           >
             {filteredTeams.length === 0
               ? "0–0 of 0"
-              : `${indexOfFirstItem + 1}-${indexOfLastItem} of ${
-                  filteredTeams.length
-                }`}
+              : `${indexOfFirstItem + 1}-${indexOfLastItem} of ${filteredTeams.length
+              }`}
           </span>
 
           <div
@@ -580,7 +579,7 @@ const EmployeeTeamsTMS = ({ user }) => {
             inset: 0,
             zIndex: 1050,
           }}
-          onClick={() => setSelectedTeam(null)}
+        // onClick={() => setSelectedTeam(null)}
         >
           <div
             className="modal-dialog "
@@ -674,8 +673,8 @@ const EmployeeTeamsTMS = ({ user }) => {
                     >
                       {selectedTeam.assignToProject?.length > 0
                         ? selectedTeam.assignToProject.map((emp) => (
-                            <div key={emp._id}>{emp.name}</div>
-                          ))
+                          <div key={emp._id}>{emp.name}</div>
+                        ))
                         : "NA"}
                     </div>
                   </div>
@@ -700,6 +699,7 @@ const EmployeeTeamsTMS = ({ user }) => {
               <div className="modal-footer border-0 pt-0">
                 <button
                   className="btn btn-sm custom-outline-btn"
+                  style={{ minWidth: "90px" }}
                   onClick={() => setSelectedTeam(null)}
                 >
                   Close

@@ -1,6 +1,6 @@
 // editing after demo
 //try name fetch
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import API from "../ITSupport/service/api";
 import "../ITSupport/custom.css";
 import { useNavigate } from "react-router-dom";
@@ -37,6 +37,77 @@ function SupportEmployeeSetting() {
     attachment: [],
   });
   const [errors, setErrors] = useState({});
+  // tanvi
+  const modalRef = useRef(null);
+
+  useEffect(() => {
+    const isModalOpen = !!viewTicket || showRaiseModal || editData;
+
+    if (isModalOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [viewTicket, showRaiseModal, editData]);
+
+  const isAnyModalOpen = viewTicket || showRaiseModal || editData;
+
+  useEffect(() => {
+    if (!isAnyModalOpen || !modalRef.current) return;
+
+    const modal = modalRef.current;
+
+    const focusableElements = modal.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+
+    if (!focusableElements.length) return;
+
+    const firstEl = focusableElements[0];
+    const lastEl = focusableElements[focusableElements.length - 1];
+
+    // ⭐ modal open होताच focus
+    modal.focus();
+
+    const handleKeyDown = (e) => {
+      // ESC key → modal close
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setViewTicket(false);
+        setShowRaiseModal(false);
+        setEditData(false);
+      }
+
+      // TAB key → focus trap
+      if (e.key === "Tab") {
+        if (e.shiftKey) {
+          if (document.activeElement === firstEl) {
+            e.preventDefault();
+            lastEl.focus();
+          }
+        } else {
+          if (document.activeElement === lastEl) {
+            e.preventDefault();
+            firstEl.focus();
+          }
+        }
+      }
+    };
+
+    modal.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      modal.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [viewTicket, showRaiseModal, editData]);
+
   //200 word description limit
   const shortDescription = (text) => {
     const words = text.split(" ");
@@ -226,7 +297,11 @@ function SupportEmployeeSetting() {
         });
       }
 
-      await API.post("/tickets", data);
+      //snehal code 03 refresh notification and ticket table dtaa
+      const res = await API.post("/tickets", data);
+      setTickets((prev) => [res.data, ...prev]); // 🔥 instant table update
+      window.dispatchEvent(new Event("notificationRefresh")); // 🔥 instant notification
+      //snehal code 03 refresh notification and ticket table dtaa
 
       alert("Support Ticket Submitted Successfully!");
 
@@ -421,6 +496,42 @@ function SupportEmployeeSetting() {
   // useEffect(() => {
   //   fetchNotifications();
   // }, []);
+  const formatDateOnly = (date) => {
+    if (!date) return "-";
+    return new Date(date).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const formatDateTime = (date) => {
+    if (!date) return "-";
+    return new Date(date).toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  //Added by tanvi
+  const isAnyPopupOpen = !!viewTicket || showRaiseModal;
+  useEffect(() => {
+    if (isAnyPopupOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden"; // 🔑 important
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [isAnyPopupOpen]);
 
   return (
     <div className="container-fluid pt-1 px-3" style={{ minHeight: "100vh" }}>
@@ -456,6 +567,8 @@ function SupportEmployeeSetting() {
       {showRaiseModal && (
         <div
           className="modal fade show"
+          ref={modalRef}
+          tabIndex="-1"
           style={{
             display: "flex",
             alignItems: "center",
@@ -823,7 +936,7 @@ function SupportEmployeeSetting() {
                       color: "#212529",
                     }}
                   >
-                    {new Date(t.raisedDate).toLocaleString()}
+                    {formatDateOnly(t.raisedDate)}
                   </td>
                   <td
                     style={{
@@ -835,9 +948,7 @@ function SupportEmployeeSetting() {
                       color: "#212529",
                     }}
                   >
-                    {t.closedDate
-                      ? new Date(t.closedDate).toLocaleString()
-                      : "-"}
+                    {formatDateOnly(t.closedDate)}
                   </td>
                   <td
                     style={{
@@ -956,6 +1067,8 @@ function SupportEmployeeSetting() {
       {viewTicket && (
         <div
           className="modal fade show"
+          ref={modalRef}
+          tabIndex="-1"
           style={{
             display: "flex",
             alignItems: "center",
@@ -1076,7 +1189,7 @@ function SupportEmployeeSetting() {
                         ? viewTicket.attachment.map((file, i) => (
                             <div key={i}>
                               <a
-                                href={`https://server-backend-nu.vercel.app/uploads/${file}`}
+                                href={`https://server-backend-ems.vercel.app/uploads/${file}`}
                                 download
                                 className="btn btn-sm btn-outline-primary mb-1"
                               >
@@ -1210,6 +1323,8 @@ function SupportEmployeeSetting() {
       {editData && (
         <div
           className="modal fade show"
+          ref={modalRef}
+          tabIndex="-1"
           style={{
             display: "flex",
             alignItems: "center",

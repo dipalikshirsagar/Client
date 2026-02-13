@@ -8,7 +8,7 @@
 
 
 .job-module .section-title {
-  color: #1a4fd8;
+  color: #3A5FBE;
   margin: 18px 0 12px;
   font-size: 18px;
   border-bottom: 1px solid #e0e0e0;
@@ -56,7 +56,7 @@
 .job-module .field select:focus,
 .job-module .field textarea:focus {
   outline: none;
-  border-color: #1a4fd8;
+  border-color: #3A5FBE;
 }
 
 .job-module .modal-footer {
@@ -336,6 +336,75 @@
   border-color: #3A5FBE;
 }
 
+
+/* //Added by Samiksha */
+
+.action-btn {
+  min-width: 120px;          /* same width */
+  height: 38px;              /* same height */
+  padding: 6px 16px;
+  font-size: 14px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-cancel-btn {
+  background-color: #f1f3f5;
+  color: #3A5FBE;
+  border: 1px solid #3A5FBE;  
+  transition: all 0.2s ease-in-out;
+}
+
+.custom-cancel-btn:hover {
+  background-color: #3A5FBE;   /* blue on hover */
+  color: #ffffff;              /* white text */
+  border-color: #3A5FBE;
+  cursor: pointer;
+}
+
+.custom-primary-btn {
+  background-color: #f1f3f5;
+  color: #3A5FBE;
+  border: 1px solid #3A5FBE;
+  transition: all 0.2s ease-in-out;
+}
+
+.custom-primary-btn:hover {
+  background-color: #3A5FBE;
+  color: #ffffff;
+  border-color: #3A5FBE;
+  cursor: pointer;
+}
+
+td {
+  vertical-align: middle;
+}
+
+.modal-header-custom {
+  background-color: #3A5FBE;
+  color: #ffffff;
+  padding: 16px 20px;
+  font-size: 20px;
+  font-weight: 600;
+  border-radius: 6px 6px 0 0;
+  position: relative;   /* 🔥 MUST */
+}
+
+
+/* //Added by Rushikesh */
+.modal-close-btn {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 26px;
+  cursor: pointer;
+}
 
 
 

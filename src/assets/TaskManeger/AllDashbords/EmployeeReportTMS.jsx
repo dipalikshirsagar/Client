@@ -63,7 +63,7 @@ function EmployeeReportTMS({ employeeId }) {
     if (!employeeId) return;
 
     axios
-      .get(`https://server-backend-nu.vercel.app/tasks/assigned/${employeeId}`)
+      .get(`https://server-backend-ems.vercel.app/tasks/assigned/${employeeId}`)
       .then((res) => {
         const apiTasks = res.data.tasks.map((task) => ({
           _id: task._id,
@@ -223,7 +223,7 @@ function EmployeeReportTMS({ employeeId }) {
       setLoadingProjects(true);
 
       const res = await axios.get(
-        `https://server-backend-nu.vercel.app/projects/employee/${employeeId}`,
+        `https://server-backend-ems.vercel.app/projects/employee/${employeeId}`,
       );
 
       if (res.data.success) {
@@ -247,7 +247,7 @@ function EmployeeReportTMS({ employeeId }) {
       setLoadingDelayedTasks(true);
 
       const res = await axios.get(
-        `https://server-backend-nu.vercel.app/api/tasks/employee/${employeeId}/delayed-tasks`,
+        `https://server-backend-ems.vercel.app/api/tasks/employee/${employeeId}/delayed-tasks`,
       );
 
       if (res.data.success) {
@@ -271,7 +271,7 @@ function EmployeeReportTMS({ employeeId }) {
       setLoadingUpcomingTasks(true);
 
       const res = await axios.get(
-        `https://server-backend-nu.vercel.app/api/tasks/employee/${employeeId}/upcoming-tasks`,
+        `https://server-backend-ems.vercel.app/api/tasks/employee/${employeeId}/upcoming-tasks`,
       );
 
       if (res.data.success) {
@@ -304,7 +304,7 @@ function EmployeeReportTMS({ employeeId }) {
       setLoadingTeam(true);
 
       const res = await axios.get(
-        `https://server-backend-nu.vercel.app/api/employee/${employeeId}/teams`,
+        `https://server-backend-ems.vercel.app/api/employee/${employeeId}/teams`,
       );
 
       if (res.data.success) {
@@ -349,8 +349,8 @@ function EmployeeReportTMS({ employeeId }) {
       case "myProjects":
         excelData = filteredListData.map((item) => ({
           "Project Name": item.name,
-          Status: item.isDelayed ? "Delayed" : item.status?.name,
-          "Delivery Date": formatDate(item.endDate),
+          Status: item.isDelayed ? "Delayed" : item.status,
+          "Due Date": formatDate(item.dueDate),
         }));
         break;
 

@@ -238,7 +238,7 @@ function HRReportTMS() {
     /* 
   useEffect(() => {
     const fetchTasks = async () => {
-      const res = await axios.get("https://server-backend-nu.vercel.app/task/getall");
+      const res = await axios.get("https://server-backend-ems.vercel.app/task/getall");
       setAllTasks(res.data || []);
     };
 
@@ -354,7 +354,7 @@ function HRReportTMS() {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const res = await axios.get("https://server-backend-nu.vercel.app/api/projects");
+        const res = await axios.get("https://server-backend-ems.vercel.app/api/projects");
         setProjects(res.data?.data || res.data || []);
       } catch (err) {
         console.error("Project fetch error:", err);
@@ -502,9 +502,9 @@ function HRReportTMS() {
 
         // Fetch all data using your existing APIs change dip
         const [employeesRes, tasksRes, projectsRes] = await Promise.all([
-          axios.get("https://server-backend-nu.vercel.app/getAllEmployees", { headers }),
-          axios.get("https://server-backend-nu.vercel.app/task/getall", { headers }),
-          axios.get("https://server-backend-nu.vercel.app/api/projects", { headers }),
+          axios.get("https://server-backend-ems.vercel.app/getAllEmployees", { headers }),
+          axios.get("https://server-backend-ems.vercel.app/task/getall", { headers }),
+          axios.get("https://server-backend-ems.vercel.app/api/projects", { headers }),
         ]);
 
         // if (!employeesRes.ok || !tasksRes.ok || !projectsRes.ok) {
@@ -919,11 +919,13 @@ function HRReportTMS() {
         <div className="col-lg-4 col-md-5">
           <div className="card shadow-sm border-0 rounded-4 h-100">
             <div className="card-body p-4">
+              
               <div className="d-flex justify-content-between align-items-center mb-3">
-                <h6 className="fw-semibold mb-0 " style={{color: "#3A5FBE"}}>
+                <div className="d-flex flex-column align-items-start">
+                <h6 className="fw-semibold mb-4 " style={{color: "#3A5FBE"}}>
                   📊 Task Status Overview
                 </h6>
-
+              </div>
                 <div className="dropdown">
                   <button
                     className="form-select form-select-sm text-start"

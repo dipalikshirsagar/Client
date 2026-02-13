@@ -27,7 +27,7 @@ function AddPolicyPage() {
         formData.append("image", file); // optional
       }
 
-      await axios.post("https://server-backend-nu.vercel.app/policy/create", formData);
+      await axios.post("https://server-backend-ems.vercel.app/policy/create", formData);
 
       alert("Policy created successfully");
       navigate(-1);

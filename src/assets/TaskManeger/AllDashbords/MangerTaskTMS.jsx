@@ -37,7 +37,7 @@ const MangerTaskTMS = ({ role }) => {
   const [assignDateFromFilter, setAssignDateFromFilter] = useState("");
   const [assignDateToFilter, setAssignDateToFilter] = useState("");
   const [documentFile, setDocumentFile] = useState(null);
-const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
+  const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
   const uniqueProjects = [
     "All",
     ...new Set(allTasks.map((task) => task.projectName)),
@@ -98,6 +98,9 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
           task.dateOfExpectedCompletion,
         );
       }
+      //Added by Jaicy
+      formData.append("estimatedHours", task.estimatedHours || "");
+
 
       if (
         task.progressPercentage !== undefined &&
@@ -134,7 +137,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
 
       const token = localStorage.getItem("accessToken");
 
-      await axios.put(`https://server-backend-nu.vercel.app/task/${task._id}`, formData, {
+      await axios.put(`https://server-backend-ems.vercel.app/task/${task._id}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,
@@ -218,6 +221,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
     dateOfTaskAssignment: "",
     dateOfExpectedCompletion: "",
     progressPercentage: "0",
+    estimatedHours: "",
     comments: "",
     status: "",
   });
@@ -271,7 +275,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
     setCommentLoading(true);
     try {
       const response = await axios.get(
-        `https://server-backend-nu.vercel.app/task/${taskId}/comments`,
+        `https://server-backend-ems.vercel.app/task/${taskId}/comments`,
       );
       setTaskComments(response.data.comments || []);
     } catch (error) {
@@ -305,7 +309,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
     try {
       const token = localStorage.getItem("accessToken");
       const res = await axios.post(
-        `https://server-backend-nu.vercel.app/task/${commentModalTask._id}/comment`,
+        `https://server-backend-ems.vercel.app/task/${commentModalTask._id}/comment`,
         { comment: newComment },
         {
           headers: {
@@ -324,9 +328,9 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
       console.error("Add comment error:", error);
       alert(error?.response?.data?.message || "Failed to add comment");
     }
-    finally {                           
-    setIsCommentSubmitting(false); /////shivani
-  }
+    finally {
+      setIsCommentSubmitting(false); /////shivani
+    }
   };
 
   const handleDeleteComment = async (commentId, taskId) => {
@@ -342,7 +346,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
     try {
       const token = localStorage.getItem("accessToken");
       const res = await axios.delete(
-        `https://server-backend-nu.vercel.app/task/${taskId}/comment/${commentId}`,
+        `https://server-backend-ems.vercel.app/task/${taskId}/comment/${commentId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -369,7 +373,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
     try {
       const token = localStorage.getItem("accessToken");
       const res = await axios.put(
-        `https://server-backend-nu.vercel.app/task/${taskId}/comment/${commentId}`,
+        `https://server-backend-ems.vercel.app/task/${taskId}/comment/${commentId}`,
         { comment: newText },
         {
           headers: {
@@ -416,7 +420,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
   async function fetchUser() {
     try {
       const token = localStorage.getItem("accessToken");
-      const response = await axios.get("https://server-backend-nu.vercel.app/me", {
+      const response = await axios.get("https://server-backend-ems.vercel.app/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const user = response.data;
@@ -431,7 +435,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
       try {
         const token = localStorage.getItem("accessToken");
         if (token) {
-          const response = await axios.get("https://server-backend-nu.vercel.app/me", {
+          const response = await axios.get("https://server-backend-ems.vercel.app/me", {
             headers: { Authorization: `Bearer ${token}` },
           });
           setCurrentUser(response.data);
@@ -458,7 +462,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
       const user = await fetchUser();
       const managerId = user._id;
 
-      const res = await axios.get(`https://server-backend-nu.vercel.app/tasks/${managerId}`, {
+      const res = await axios.get(`https://server-backend-ems.vercel.app/tasks/${managerId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -538,14 +542,14 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
 
   const fetchStatuses = async () => {
     try {
-      const res = await axios.get(`https://server-backend-nu.vercel.app/unique`);
+      const res = await axios.get(`https://server-backend-ems.vercel.app/unique`);
       if (res.data.success) {
-         const normalized = res.data.data.map(s => ({
-        _id: s._id || s.id,   
-        name: s.name,
-      }));
-      setUniqueStatus(normalized);
-    
+        const normalized = res.data.data.map(s => ({
+          _id: s._id || s.id,
+          name: s.name,
+        }));
+        setUniqueStatus(normalized);
+
       }
     } catch (error) {
       console.error("Failed to fetch statuses:", error);
@@ -560,7 +564,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
     try {
       const token = localStorage.getItem("accessToken");
       const projectsRes = await axios.get(
-        "https://server-backend-nu.vercel.app/api/projects",
+        "https://server-backend-ems.vercel.app/api/projects",
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -571,7 +575,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
 
       if (selectedProject && selectedProject._id) {
         const empRes = await axios.get(
-          `https://server-backend-nu.vercel.app/projects/employees/${selectedProject._id}`,
+          `https://server-backend-ems.vercel.app/projects/employees/${selectedProject._id}`,
         );
 
         if (empRes.data.success) {
@@ -648,18 +652,18 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
       try {
         const token = localStorage.getItem("accessToken");
         console.log("token is " + token);
-        const res = await axios.get("https://server-backend-nu.vercel.app/getAllDepartments");
+        const res = await axios.get("https://server-backend-ems.vercel.app/getAllDepartments");
         const user = await fetchUser();
         const empRes = await axios.get(
-          `https://server-backend-nu.vercel.app/employees/manager/${user._id}`,
+          `https://server-backend-ems.vercel.app/employees/manager/${user._id}`,
         );
         const taskTypeRes = await axios.get(
-          `https://server-backend-nu.vercel.app/api/task-types/unique-names`,
+          `https://server-backend-ems.vercel.app/api/task-types/unique-names`,
         );
         const projectRes = await axios.get(
-          `https://server-backend-nu.vercel.app/api/projects/unique-names/${user._id}`,
+          `https://server-backend-ems.vercel.app/api/projects/unique-names/${user._id}`,
         );
-        const teamsRes = await axios.get("https://server-backend-nu.vercel.app/api/teams");
+        const teamsRes = await axios.get("https://server-backend-ems.vercel.app/api/teams");
         const departments = res.data.departments;
         const employeesNames = empRes.data.employees;
         const taskTypeNames = taskTypeRes.data.taskTypes;
@@ -733,12 +737,15 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
       newTask.dateOfTaskAssignment &&
       newTask.dateOfExpectedCompletion &&
       new Date(newTask.dateOfExpectedCompletion) <
-        new Date(newTask.dateOfTaskAssignment)
+      new Date(newTask.dateOfTaskAssignment)
     ) {
       errors.dateOfExpectedCompletion = "Due date must be after assign date";
     }
 
     if (!newTask.status) errors.status = "Status is required";
+
+    //Added by Jaicy
+    if (!newTask.estimatedHours) errors.estimatedHours = "Estimated hours is required";
 
     if (newTask.progressPercentage < 0 || newTask.progressPercentage > 100) {
       errors.progressPercentage = "Progress must be between 0 and 100";
@@ -759,6 +766,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
       dateOfTaskAssignment: "",
       dateOfExpectedCompletion: "",
       status: "",
+      estimatedHours: "",
       progressPercentage: "",
       comments: "",
     });
@@ -775,7 +783,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
     const fetchWeeklyOffs = async () => {
       try {
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`,
+          `https://server-backend-ems.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`,
         );
 
         const weeklyData = res.data?.data || {};
@@ -832,7 +840,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
 
       // Fetch employee leave
       const leaveRes = await axios.get(
-        `https://server-backend-nu.vercel.app/leave/manager/${user._id}`,
+        `https://server-backend-ems.vercel.app/leave/manager/${user._id}`,
       );
 
       const leaves = leaveRes.data.data || [];
@@ -860,7 +868,7 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
         return;
       }
 
-      const holidaysRes = await axios.get("https://server-backend-nu.vercel.app/getHolidays");
+      const holidaysRes = await axios.get("https://server-backend-ems.vercel.app/getHolidays");
       const holidays = holidaysRes.data || [];
 
       const isHoliday = holidays.some((holiday) => {
@@ -937,11 +945,11 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
       const token = localStorage.getItem("accessToken");
 
       // if (editTaskId) {
-      //   await axios.put(`https://server-backend-nu.vercel.app/task/${editTaskId}`, formData, {
+      //   await axios.put(`https://server-backend-ems.vercel.app/task/${editTaskId}`, formData, {
       //     headers: { "Content-Type": "multipart/form-data" },
       //   });
       // } else {
-      //   await axios.post("https://server-backend-nu.vercel.app/task/create", formData, {
+      //   await axios.post("https://server-backend-ems.vercel.app/task/create", formData, {
       //     headers: {
       //       "Content-Type": "multipart/form-data",
       //       Authorization: `Bearer ${token}`,
@@ -950,30 +958,30 @@ const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);///shivani
       // }
 
       //snehalcode
-if (editTaskId) {
-  await axios.put(
-    `https://server-backend-nu.vercel.app/task/${editTaskId}`,
-    formData,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`, //  REQUIRED
-        //  DO NOT SET Content-Type
-      },
-    }
-  );
-} else {
-  await axios.post(
-    "https://server-backend-nu.vercel.app/task/create",
-    formData,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`, //  REQUIRED
-        //  DO NOT SET Content-Type
-      },
-    }
-  );
-}
-//snehalcode
+      if (editTaskId) {
+        await axios.put(
+          `https://server-backend-ems.vercel.app/task/${editTaskId}`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`, //  REQUIRED
+              //  DO NOT SET Content-Type
+            },
+          }
+        );
+      } else {
+        await axios.post(
+          "https://server-backend-ems.vercel.app/task/create",
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`, //  REQUIRED
+              //  DO NOT SET Content-Type
+            },
+          }
+        );
+      }
+      //snehalcode
 
       await fetchTasks();
 
@@ -993,6 +1001,7 @@ if (editTaskId) {
         typeOfTask: "Bug",
         dateOfTaskAssignment: "",
         dateOfExpectedCompletion: "",
+        estimatedHours: "",
         progressPercentage: "0",
         comments: "",
         status: "",
@@ -1009,6 +1018,8 @@ if (editTaskId) {
       setIsSubmitting(false);
     }
   }
+
+
 
   // async function handleAddTask(e) {
   //   e.preventDefault();
@@ -1029,7 +1040,7 @@ if (editTaskId) {
 
   //     if (editTaskId) {
   //       res = await axios.put(
-  //         `https://server-backend-nu.vercel.app/task/${editTaskId}`,
+  //         `https://server-backend-ems.vercel.app/task/${editTaskId}`,
   //         formData,
   //         { headers: { "Content-Type": "multipart/form-data" } }
   //       );
@@ -1037,7 +1048,7 @@ if (editTaskId) {
   //         task._id === editTaskId ? { ...newTask, taskId: editTaskId } : task
   //       );
   //     } else {
-  //       res = await axios.post("https://server-backend-nu.vercel.app/task/create", formData, {
+  //       res = await axios.post("https://server-backend-ems.vercel.app/task/create", formData, {
   //         headers: {
   //           "Content-Type": "multipart/form-data",
   //           Authorization: `Bearer ${token}`,
@@ -1161,7 +1172,7 @@ if (editTaskId) {
     if (!window.confirm("Are you sure you want to delete this task?")) return;
 
     try {
-      await axios.delete(`https://server-backend-nu.vercel.app/task/${id}`);
+      await axios.delete(`https://server-backend-ems.vercel.app/task/${id}`);
       setAllTasks((prev) => prev.filter((t) => t._id !== id));
       setFilteredTasks((prev) => prev.filter((t) => t._id !== id));
       alert("Task deleted Successfuly!");
@@ -1198,8 +1209,8 @@ if (editTaskId) {
   //   whiteSpace: "normal",
   //   wordBreak: "break-word",
   // });
-console.log("newTask.status:", newTask.status);
-console.log("Status object:", uniqueStatus.find(s => s.id === newTask.status));
+  console.log("newTask.status:", newTask.status);
+  console.log("Status object:", uniqueStatus.find(s => s.id === newTask.status));
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -1245,9 +1256,8 @@ console.log("Status object:", uniqueStatus.find(s => s.id === newTask.status));
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
 
-    const fileName = `Manager_Tasks_${assignDateFromFilter || "ALL"}_to_${
-      assignDateToFilter || "ALL"
-    }.xlsx`;
+    const fileName = `Manager_Tasks_${assignDateFromFilter || "ALL"}_to_${assignDateToFilter || "ALL"
+      }.xlsx`;
 
     saveAs(data, fileName);
   };
@@ -1267,86 +1277,137 @@ console.log("Status object:", uniqueStatus.find(s => s.id === newTask.status));
       document.documentElement.style.overflow = "";
     };
   }, [isAnyPopupOpen]);
-////rutuja 30-01-2026 document
-const getFileType = (file) => {
+  ////rutuja 30-01-2026 document
+  const getFileType = (file) => {
     if (!file) return null;
-  
+
     if (typeof file === 'string') {
       const clean = file.toLowerCase();
-      
+
       if (clean.includes('/raw/upload/')) return "pdf";
       if (clean.endsWith(".pdf")) return "pdf";
       if (/\.(jpg|jpeg|png|gif|webp)$/i.test(clean)) return "image";
       return "other";
     }
-  
+
     if (typeof file === 'object' && file.url) {
       return getFileType(file.url);
     }
-  
+
     return null;
   };
-  
+
   const getFileName = (doc) => {
     if (!doc) return 'No Document';
-    
+
     if (typeof doc === 'string') {
       if (doc.includes('cloudinary')) {
         const parts = doc.split('/');
         return parts[parts.length - 1] || 'Document';
       }
-      
+
       let fileName = doc;
       if (fileName.includes('/')) {
         fileName = fileName.split('/').pop();
       }
-      
+
       fileName = fileName.split('?')[0];
-      
+
       return fileName || 'Document';
     }
-    
+
     if (typeof doc === 'object' && doc.url) {
       return getFileName(doc.url);
     }
-    
+
     return 'Document';
   };
-  
+
   const getFileUrl = (doc) => {
     if (!doc) return '#';
-    
+
     if (typeof doc === 'string') {
       if (doc.includes('res.cloudinary.com')) {
         return doc;
       }
-      
+
       if (doc.includes('cloudinary') || doc.includes('/upload/')) {
         // Check if it already has the full URL structure
         if (doc.startsWith('http')) {
           return doc;
         }
-        
+
         // Handle different Cloudinary URL formats
         if (doc.includes('/raw/upload/')) {
           return `https://res.cloudinary.com/dfvumzr0q/raw/upload/${doc}`;
         }
-        
+
         // For images
         return `https://res.cloudinary.com/dfvumzr0q/image/upload/${doc}`;
       }
-      
+
       return '#';
     }
-    
+
     if (typeof doc === 'object' && doc.url) {
       return getFileUrl(doc.url);
     }
-    
+
     return '#';
   };
-////
+  ////
+  //////komal code
 
+  const getDerivedStatus = (task) => {
+    const statusName = task.status?.name || task.status || "";
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const assignDate = task.dateOfTaskAssignment
+      ? new Date(task.dateOfTaskAssignment)
+      : null;
+
+    const dueDate = task.dateOfExpectedCompletion
+      ? new Date(task.dateOfExpectedCompletion)
+      : null;
+
+    const updatedAt = task.updatedAt ? new Date(task.updatedAt) : null;
+
+    if (assignDate) assignDate.setHours(0, 0, 0, 0);
+    if (dueDate) dueDate.setHours(0, 0, 0, 0);
+    if (updatedAt) updatedAt.setHours(0, 0, 0, 0);
+
+    /* ✅ COMPLETED */
+    if (statusName === "Completed") {
+      if (dueDate && updatedAt && updatedAt > dueDate) {
+        const diffTime = updatedAt - dueDate;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return `Completed (Delayed by ${diffDays} days)`;
+      }
+      return "Completed";
+    }
+
+    /* ✅ IN PROGRESS */
+    if (statusName === "In Progress") {
+      if (dueDate && today > dueDate) {
+        return "Delayed (In Progress)";
+      }
+      return "In Progress";
+    }
+
+    /* ✅ ASSIGNED → AUTO CHECK */
+    if (statusName === "Assigned" && assignDate) {
+      // same day or past, but not started
+      if (today >= assignDate) {
+        return "Assigned";
+      }
+      return "Assigned";
+    }
+
+    return statusName || "-";
+  };
+
+  /////
   return (
     <div className="container-fluid ">
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -1378,6 +1439,7 @@ const getFileType = (file) => {
                   assignTime: "",
                   dueTime: "",
                   expectedDate: "",
+                  estimatedHours: "",
                   department: "",
                   taskType: "",
                   progress: 0,
@@ -1621,36 +1683,36 @@ const getFileType = (file) => {
                     <td style={tdStyle}>
                       {t.dateOfTaskAssignment
                         ? new Date(t.dateOfTaskAssignment).toLocaleDateString(
-                            "en-GB",
-                            {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            },
-                          )
+                          "en-GB",
+                          {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          },
+                        )
                         : "-"}
                     </td>
                     <td style={tdStyle}>
                       {t.dateOfExpectedCompletion
                         ? new Date(
-                            t.dateOfExpectedCompletion,
-                          ).toLocaleDateString("en-GB", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          })
+                          t.dateOfExpectedCompletion,
+                        ).toLocaleDateString("en-GB", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })
                         : "-"}
                     </td>
                     <td style={tdStyle}>{t.progressPercentage ?? 0}%</td>
                     <td style={tdStyle}>
                       {t.status?.name === "In Progress" &&
-                      t.timeTracking?.isRunning ? (
+                        t.timeTracking?.isRunning ? (
                         <div className="d-flex align-items-center">
                           <span className="text-success fw-bold">
                             {formatTimeClock(
                               timerSeconds[t._id] ||
-                                t.timeTracking.totalSeconds ||
-                                0,
+                              t.timeTracking.totalSeconds ||
+                              0,
                             )}
                           </span>
                         </div>
@@ -1661,15 +1723,7 @@ const getFileType = (file) => {
                       )}
                     </td>
                     <td style={tdStyle}>
-                      {t.status?.name ? (
-                        <span>
-                          {t.status.name === "Assignment Pending"
-                            ? "Unassigned"
-                            : t.status.name}
-                        </span>
-                      ) : (
-                        "-"
-                      )}
+                      <span>{getDerivedStatus(t)}</span>
                     </td>
                     {/* comment start---------------------- */}
                     <td style={tdStyle}>
@@ -1703,7 +1757,7 @@ const getFileType = (file) => {
                               }
                               fetchTaskComments(t._id);
                             }}
-                            // end**---------------------------------
+                          // end**---------------------------------
                           >
                             Edit
                           </button>
@@ -1741,6 +1795,7 @@ const getFileType = (file) => {
             position: "fixed",
             inset: 0,
             zIndex: 1050,
+            marginTop: "40px"
           }}
         >
           <div className="modal-dialog modal-lg">
@@ -1770,7 +1825,7 @@ const getFileType = (file) => {
                       resetTaskForm();
                       checkTaskName();
                     }}
-                    // ----------------------------
+                  // ----------------------------
                   />
                 </div>
 
@@ -2048,29 +2103,29 @@ const getFileType = (file) => {
                         <option value="">Select Status</option>
                         {!newTask.assignedTo || newTask.assignedTo.trim() === ""
                           ? uniqueStatus
-                              .filter(
-                                (status) =>
-                                  status.name === "Assignment Pending",
-                              )
+                            .filter(
+                              (status) =>
+                                status.name === "Assignment Pending",
+                            )
 
-                              .map((status) => (
-                                <option key={status._id} value={status._id}> {/* changes to_id */}
-                                  {/* Show "Unassigned" instead of "Assignment Pending" */}
-                                  {status.name === "Assignment Pending"
-                                    ? "Unassigned"
-                                    : status.name}
-                                </option>
-                              ))
+                            .map((status) => (
+                              <option key={status._id} value={status._id}> {/* changes to_id */}
+                                {/* Show "Unassigned" instead of "Assignment Pending" */}
+                                {status.name === "Assignment Pending"
+                                  ? "Unassigned"
+                                  : status.name}
+                              </option>
+                            ))
                           : uniqueStatus
-                              .filter((status) => status.name !== "Cancelled")
-                              .map((status) => (
-                                <option key={status._id} value={status._id}> {/* changes to_id */}
-                                  {/* Show "Unassigned" instead of "Assignment Pending" */}
-                                  {status.name === "Assignment Pending"
-                                    ? "Unassigned"
-                                    : status.name}
-                                </option>
-                              ))}
+                            .filter((status) => status.name !== "Cancelled")
+                            .map((status) => (
+                              <option key={status._id} value={status._id}> {/* changes to_id */}
+                                {/* Show "Unassigned" instead of "Assignment Pending" */}
+                                {status.name === "Assignment Pending"
+                                  ? "Unassigned"
+                                  : status.name}
+                              </option>
+                            ))}
                       </select>
                       {taskErrors.status && (
                         <small className="text-danger">
@@ -2115,6 +2170,41 @@ const getFileType = (file) => {
                       {taskErrors.progressPercentage && (
                         <small className="text-danger">
                           {taskErrors.progressPercentage}
+                        </small>
+                      )}
+                    </div>
+
+                    {/* //Added by Jaicy */}
+                    {/* Estimated Hours */}
+                    <div className="col-md-4">
+                      <label className="form-label">Estimated Hours</label>
+                      <input
+                        type="number"
+                        name="estimatedHours"   // ✅ correct
+                        className="form-control"
+                        min="0"
+                        value={newTask.estimatedHours}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value === "" || Number(value) >= 0) {
+                            setNewTask({
+                              ...newTask,
+                              estimatedHours: value,
+                            });
+
+                            if (taskErrors.estimatedHours) {
+                              setTaskErrors({
+                                ...taskErrors,
+                                estimatedHours: "",
+                              });
+                            }
+                          }
+                        }}
+                      />
+
+                      {taskErrors.estimatedHours && (
+                        <small className="text-danger">
+                          {taskErrors.estimatedHours}
                         </small>
                       )}
                     </div>
@@ -2196,9 +2286,8 @@ const getFileType = (file) => {
           >
             {filteredTasks.length === 0
               ? "0–0 of 0"
-              : `${indexOfFirstItem + 1}-${indexOfLastItem} of ${
-                  filteredTasks.length
-                }`}
+              : `${indexOfFirstItem + 1}-${indexOfLastItem} of ${filteredTasks.length
+              }`}
           </span>
 
           {/* Arrows */}
@@ -2549,7 +2638,7 @@ const getFileType = (file) => {
                               taskDescription: e.target.value,
                             })
                           }
-                          // ----------end ------------
+                        // ----------end ------------
                         />
                       )}
                     </div>
@@ -2642,7 +2731,7 @@ const getFileType = (file) => {
                             );
                             setSelectedTask({
                               ...selectedTask,
-                              status:  selectedStatus,///// Dip
+                              status: selectedStatus,///// Dip
                             });
                           }}
                           disabled={
@@ -2653,28 +2742,28 @@ const getFileType = (file) => {
                         >
                           <option value="" disabled>Select Status</option>
                           {!selectedTask.assignedTo ||
-                          !selectedTask.assignedTo._id
+                            !selectedTask.assignedTo._id
                             ? uniqueStatus
-                                .filter(
-                                  (status) =>
-                                    status.name === "Assignment Pending",
-                                )
-                                .map((s) => (
-                                  <option key={s._id} value={s._id}>
-                                    {/* Display "Unassigned" instead of "Assignment Pending" */}
-                                    {s.name === "Assignment Pending"
-                                      ? "Unassigned"
-                                      : s.name}
-                                  </option>
-                                ))
-                            : uniqueStatus.map((s) => (
+                              .filter(
+                                (status) =>
+                                  status.name === "Assignment Pending",
+                              )
+                              .map((s) => (
                                 <option key={s._id} value={s._id}>
                                   {/* Display "Unassigned" instead of "Assignment Pending" */}
                                   {s.name === "Assignment Pending"
                                     ? "Unassigned"
                                     : s.name}
                                 </option>
-                              ))}
+                              ))
+                            : uniqueStatus.map((s) => (
+                              <option key={s._id} value={s._id}>
+                                {/* Display "Unassigned" instead of "Assignment Pending" */}
+                                {s.name === "Assignment Pending"
+                                  ? "Unassigned"
+                                  : s.name}
+                              </option>
+                            ))}
                         </select>
                       )}
                     </div>
@@ -2688,13 +2777,13 @@ const getFileType = (file) => {
 
                       <div className="col-7 col-sm-9">
                         {selectedTask.status?.name === "In Progress" &&
-                        selectedTask.timeTracking?.isRunning ? (
+                          selectedTask.timeTracking?.isRunning ? (
                           <div className="d-flex align-items-center">
                             <span className="text-success fw-bold">
                               {formatTimeClock(
                                 timerSeconds[selectedTask._id] ||
-                                  selectedTask.timeTracking.totalSeconds ||
-                                  0,
+                                selectedTask.timeTracking.totalSeconds ||
+                                0,
                               )}
                             </span>
                           </div>
@@ -2713,7 +2802,7 @@ const getFileType = (file) => {
                     <div className="col-5 col-sm-3 fw-semibold">Progress</div>
                     <div className="col-7 col-sm-9">
                       {popupMode === "view" ||
-                      selectedTask.status?.name === "Assigned" ? (
+                        selectedTask.status?.name === "Assigned" ? (
                         `${selectedTask.progressPercentage || 0}%`
                       ) : (
                         <input
@@ -2737,73 +2826,99 @@ const getFileType = (file) => {
                     </div>
                   </div>
 
+                  {/* //Added by Jaicy */}
+                  {/* est hours */}
+                  <div className="row mb-2">
+                    <div className="col-5 col-sm-3 fw-semibold">Estimated Hours</div>
+                    <div className="col-7 col-sm-9">
+                      {popupMode === "view"
+                        ? (
+                          `${selectedTask.estimatedHours || 0}`
+                        ) : (
+                          <input
+                            type="number"
+                            className="form-control"
+                            min="0"
+                            max="100"
+                            value={selectedTask.estimatedHours || ""}
+                            onChange={(e) =>
+                              setSelectedTask({
+                                ...selectedTask,
+                                estimatedHours: e.target.value,
+                              })
+                            }
+                          />
+                        )}
+                    </div>
+                  </div>
+
                   {/* Document */}
                   <div className="row mb-2">
-                      <div className="col-5 col-sm-3 fw-semibold">Document</div>
-                      <div className="col-7 col-sm-9">
-                        {popupMode === "view" ? (
-                          selectedTask.documentPath || selectedTask.document || selectedTask.documents ? (
-                            <div className="d-flex flex-column gap-2">
-                              {(() => {
-                                const doc = selectedTask.documentPath || selectedTask.document || selectedTask.documents;
-                                
-                                let documentToShow = doc;
-                                if (Array.isArray(doc) && doc.length > 0) {
-                                  documentToShow = doc[0];
-                                }
-                                
-                                const fileName = getFileName(documentToShow);
-                                const fileUrl = getFileUrl(documentToShow);
+                    <div className="col-5 col-sm-3 fw-semibold">Document</div>
+                    <div className="col-7 col-sm-9">
+                      {popupMode === "view" ? (
+                        selectedTask.documentPath || selectedTask.document || selectedTask.documents ? (
+                          <div className="d-flex flex-column gap-2">
+                            {(() => {
+                              const doc = selectedTask.documentPath || selectedTask.document || selectedTask.documents;
 
-                                return (
-                                  <div className="d-flex align-items-center justify-content-between p-2 border rounded">
-                                    <div className="d-flex align-items-center gap-2">
-                                      <span className="fw-semibold">{fileName}</span>
-                                    </div>
-                                    
-                                    <div className="ms-auto">
-                                      <a
-                                        href={fileUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        download={fileName}
-                                        className="btn btn-sm btn-link text-decoration-none"
-                                        title="Download"
-                                      >
-                                        <i className="bi bi-download fs-5"></i>
-                                      </a>
-                                    </div>
+                              let documentToShow = doc;
+                              if (Array.isArray(doc) && doc.length > 0) {
+                                documentToShow = doc[0];
+                              }
+
+                              const fileName = getFileName(documentToShow);
+                              const fileUrl = getFileUrl(documentToShow);
+
+                              return (
+                                <div className="d-flex align-items-center justify-content-between p-2 border rounded">
+                                  <div className="d-flex align-items-center gap-2">
+                                    <span className="fw-semibold">{fileName}</span>
                                   </div>
-                                );
-                              })()}
-                            </div>
-                          ) : (
-                            "-"
-                          )
-                        ) : (
-                          <div>
-                            <input
-                              type="file"
-                              className="form-control"
-                              onChange={(e) => {
-                                if (e.target.files && e.target.files[0]) {
-                                  setSelectedTask({
-                                    ...selectedTask,
-                                    document: e.target.files[0],
-                                  });
-                                }
-                              }}
-                              accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
-                            />
-                            <small className="text-muted">
-                              {selectedTask.documentPath || selectedTask.document 
-                                ? "Upload a new file to replace the current document" 
-                                : "Upload a document"}
-                            </small>
+
+                                  <div className="ms-auto">
+                                    <a
+                                      href={fileUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      download={fileName}
+                                      className="btn btn-sm btn-link text-decoration-none"
+                                      title="Download"
+                                    >
+                                      <i className="bi bi-download fs-5"></i>
+                                    </a>
+                                  </div>
+                                </div>
+                              );
+                            })()}
                           </div>
-                        )}
-                      </div>
+                        ) : (
+                          "-"
+                        )
+                      ) : (
+                        <div>
+                          <input
+                            type="file"
+                            className="form-control"
+                            onChange={(e) => {
+                              if (e.target.files && e.target.files[0]) {
+                                setSelectedTask({
+                                  ...selectedTask,
+                                  document: e.target.files[0],
+                                });
+                              }
+                            }}
+                            accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
+                          />
+                          <small className="text-muted">
+                            {selectedTask.documentPath || selectedTask.document
+                              ? "Upload a new file to replace the current document"
+                              : "Upload a document"}
+                          </small>
+                        </div>
+                      )}
                     </div>
+                  </div>
 
                   {/* Comments start----------------------------------------------------------*/}
                   {popupMode === "view" && (
@@ -2891,8 +3006,8 @@ const getFileType = (file) => {
                                       <small className="text-muted">
                                         {comment.createdAt
                                           ? new Date(
-                                              comment.createdAt,
-                                            ).toLocaleDateString("en-GB")
+                                            comment.createdAt,
+                                          ).toLocaleDateString("en-GB")
                                           : ""}
                                       </small>
                                       {isCommentCreator && (
@@ -3024,7 +3139,7 @@ const tdStyle = {
   fontSize: "14px",
   borderBottom: "1px solid #dee2e6",
   whiteSpace: "nowrap",
-  textTransform:"capitalize"
+  textTransform: "capitalize"
 };
 
 // const statusStyle = (bg) => ({

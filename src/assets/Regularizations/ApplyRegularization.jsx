@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import EmployeeMyRegularization from "./EmployeeMyRegularization";
 
@@ -25,24 +25,100 @@ function ApplyRegularization({ user, selectedRecord }) {
   const [workMode, setWorkMode] = useState("");
   const [attendance, setAttendance] = useState([]); // ✅ store attendance data
   const [reason, setReason] = useState("");
+
+  //TANVI
+  const modalRef = useRef(null);
+
+  //TANVI
+  useEffect(() => {
+    if (!showModal || !modalRef.current) return;
+
+    const modal = modalRef.current;
+
+    const focusableElements = modal.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+
+    const firstEl = focusableElements[0];
+    const lastEl = focusableElements[focusableElements.length - 1];
+
+    // ⭐ modal open होताच focus
+    modal.focus();
+
+    const handleKeyDown = (e) => {
+      // ESC key → modal close
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setShowModal(null);
+      }
+
+      // TAB key → focus trap
+      if (e.key === "Tab") {
+        if (e.shiftKey) {
+          if (document.activeElement === firstEl) {
+            e.preventDefault();
+            lastEl.focus();
+          }
+        } else {
+          if (document.activeElement === lastEl) {
+            e.preventDefault();
+            firstEl.focus();
+          }
+        }
+      }
+    };
+
+    modal.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      modal.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [showModal]);
   // ✅ Function to fetch counts
   const fetchCounts = async () => {
     try {
       const res = await axios.get(
-        `https://server-backend-nu.vercel.app/attendance/regularization/my/${user._id}`,
+        `https://server-backend-ems.vercel.app/attendance/regularization/my/${user._id}`,
       );
 
       const requests = res.data || [];
+      //Added by Jaicy
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const threeMonthsAgo = new Date(today);
+      threeMonthsAgo.setMonth(today.getMonth() - 3);
+
+      // ✅ FILTER BY DATE FIRST
+      const lastThreeMonthsData = res.data.filter((req) => {
+        const recordDate = new Date(
+          req.regularizationRequest?.requestedAt || req.createdAt || req.date,
+        );
+        recordDate.setHours(0, 0, 0, 0);
+
+        return recordDate >= threeMonthsAgo && recordDate <= today;
+      });
+
+      // ✅ SORT NEWEST FIRST
+      const sortedData = lastThreeMonthsData.sort(
+        (a, b) =>
+          new Date(
+            b.regularizationRequest?.requestedAt || b.createdAt || b.date,
+          ) -
+          new Date(
+            a.regularizationRequest?.requestedAt || a.createdAt || a.date,
+          ),
+      );
       setAcceptedCount(
-        requests.filter((r) => r?.regularizationRequest?.status === "Approved")
+        sortedData.filter((r) => r?.regularizationRequest?.status === "Approved")
           .length,
       );
       setRejectedCount(
-        requests.filter((r) => r?.regularizationRequest?.status === "Rejected")
+        sortedData.filter((r) => r?.regularizationRequest?.status === "Rejected")
           .length,
       );
       setPendingCount(
-        requests.filter((r) => r?.regularizationRequest?.status === "Pending")
+        sortedData.filter((r) => r?.regularizationRequest?.status === "Pending")
           .length,
       );
     } catch (err) {
@@ -61,7 +137,7 @@ function ApplyRegularization({ user, selectedRecord }) {
     const fetchWeeklyOffs = async () => {
       try {
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`,
+          `https://server-backend-ems.vercel.app/admin/weeklyoff/${new Date().getFullYear()}`,
         );
 
         const weeklyData = res.data?.data || res.data || {};
@@ -87,7 +163,7 @@ function ApplyRegularization({ user, selectedRecord }) {
     const fetchAttendance = async () => {
       try {
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/attendance/regularization/my/${user._id}`,
+          `https://server-backend-ems.vercel.app/attendance/regularization/my/${user._id}`,
         );
         setAttendance(res.data);
         console.log(res.data);
@@ -337,7 +413,7 @@ function ApplyRegularization({ user, selectedRecord }) {
 
       // 1️⃣ Fetch existing leaves for the employee
       const leaveRes = await axios.get(
-        `https://server-backend-nu.vercel.app/leave/my/${user._id}`,
+        `https://server-backend-ems.vercel.app/leave/my/${user._id}`,
       );
       const leaves = leaveRes.data || [];
 
@@ -359,7 +435,7 @@ function ApplyRegularization({ user, selectedRecord }) {
       }
       // 2️⃣ Fetch holidays dynamically
       const currentYear = new Date().getFullYear();
-      const holidaysRes = await axios.get("https://server-backend-nu.vercel.app/getHolidays");
+      const holidaysRes = await axios.get("https://server-backend-ems.vercel.app/getHolidays");
       const holidays = holidaysRes.data.filter(
         (h) => new Date(h.date).getFullYear() === currentYear,
       );
@@ -381,7 +457,7 @@ function ApplyRegularization({ user, selectedRecord }) {
 
       // 3 Fetch existing regularization requests (✅ fixed link)
       const regRes = await axios.get(
-        `https://server-backend-nu.vercel.app/attendance/regularization/my/${user._id}`,
+        `https://server-backend-ems.vercel.app/attendance/regularization/my/${user._id}`,
       );
       const regularizations = regRes.data || [];
 
@@ -405,7 +481,7 @@ function ApplyRegularization({ user, selectedRecord }) {
       // 3️⃣ If all checks pass → Submit regularization request
       const token = localStorage.getItem("accessToken");
       const authAxios = axios.create({
-        baseURL: "https://server-backend-nu.vercel.app",
+        baseURL: "https://server-backend-ems.vercel.app",
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -435,8 +511,12 @@ function ApplyRegularization({ user, selectedRecord }) {
       setMessage("");
       setReason("");
     } catch (err) {
-      console.error("Error submitting regularization:", err);
-      setMessage(err.response?.data?.error || "❌ Failed to submit request");
+      const errorMessage =
+        err.response?.data?.error ||
+        "Something went wrong while applying regularization.";
+
+      alert(`❌ ${errorMessage}`);
+      setMessage(errorMessage);
     }
   };
 
@@ -612,9 +692,13 @@ function ApplyRegularization({ user, selectedRecord }) {
         <div
           className="modal fade show d-block"
           tabIndex="-1"
+          ref={modalRef}
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
         >
-          <div className="modal-dialog modal-dialog-centered">
+          <div
+            className="modal-dialog modal-dialog-centered"
+            style={{ width: "600px" }}
+          >
             <div className="modal-content shadow-lg">
               <div
                 className="modal-header text-white"
@@ -799,13 +883,7 @@ function ApplyRegularization({ user, selectedRecord }) {
                       type="submit"
                       className="btn btn-sm custom-outline-btn"
                       style={{
-                        backgroundColor: "transparent",
-                        color: "#3A5FBE",
-                        border: "1px solid #3A5FBE",
-                        padding: "10px 28px",
-                        fontSize: "14px",
-                        fontWeight: "500",
-                        borderRadius: "4px",
+                        minWidth: "90px",
                       }}
                     >
                       Submit
@@ -814,13 +892,7 @@ function ApplyRegularization({ user, selectedRecord }) {
                       type="button"
                       className="btn btn-sm custom-outline-btn"
                       style={{
-                        backgroundColor: "transparent",
-                        color: "#3A5FBE",
-                        border: "1px solid #3A5FBE",
-                        padding: "10px 28px",
-                        fontSize: "14px",
-                        fontWeight: "500",
-                        borderRadius: "4px",
+                        minWidth: "90px",
                       }}
                       //onClick={() => setShowModal(false)}
                       onClick={() => {

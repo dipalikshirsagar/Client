@@ -65,6 +65,10 @@ import ManagerResignation from "./ManagerResignation";
 import SupportEmployeeSetting from "../ITSupport/SupportEmployeeSetting";
 import ITSupportDashboard from "../ITSupport/ITSupportDashboard";
 import AdminFeedback from "./AdminFeedback";
+import AdminPerformances from "../Performances/AdminPerformances";
+import EmployeePerformances from "../Performances/EmployeePerformances";
+import CooPerformances from "../Performances/CooPerformances";
+import CeoPerformances from "../Performances/CeoPerformances";
 
 function Dashboard() {
   const { role, username, id } = useParams();
@@ -152,7 +156,7 @@ function Dashboard() {
 
     let isMounted = true;
     axios
-      .get("https://server-backend-nu.vercel.app/me", {
+      .get("https://server-backend-ems.vercel.app/me", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
@@ -196,7 +200,7 @@ function Dashboard() {
     }
 
     axios
-      .get(`https://server-backend-nu.vercel.app/me`, {
+      .get(`https://server-backend-ems.vercel.app/me`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => setUser(res.data))
@@ -213,7 +217,7 @@ function Dashboard() {
       setIsLoggingOut(true);
       const refreshToken = localStorage.getItem("refreshToken");
       // call backend to invalidate refresh token (optional)
-      await axios.post("https://server-backend-nu.vercel.app/logout", { refreshToken });
+      await axios.post("https://server-backend-ems.vercel.app/logout", { refreshToken });
 
       // clear everything
       // ❗ Clear active browser session
@@ -585,7 +589,7 @@ function Dashboard() {
               )}
               {user?.role === "admin" ||
               user?.role === "hr" ||
-              user.role === "manager" ||
+              // user.role === "manager" ||
               user?.role === "ceo" ||
               user?.role === "coo" ||
               user?.role === "md" ? (
@@ -681,7 +685,9 @@ function Dashboard() {
               <Route
                 path="teams"
                 element={
-                  user.role === "employee" || user.role == "IT_Support" ? (
+                  user.role === "employee" ||
+                  user.role == "IT_Support" ||
+                  role === "manager" ? (
                     <EmployeeTeams />
                   ) : (
                     <h5 className="text-center mt-4 text-danger">
@@ -741,10 +747,15 @@ function Dashboard() {
               <Route
                 path="performance"
                 element={
-                  user.role === "hr" ? (
+                  user.role === "hr" ||
+                  user.role === "admin" ||
+                  user.role === "ceo" ||
+                  user.role === "coo" ? (
                     <Performances user={user} />
                   ) : user.role === "manager" ? (
                     <ManagerPerformances user={user} />
+                  ) : user.role === "employee" ? (
+                    <EmployeePerformances user={user} />
                   ) : (
                     <h5 className="text-center mt-4 text-danger">
                       Access Denied

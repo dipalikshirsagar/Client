@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 
-const EmployeeInterviews = () => {
+const EmployeeInterviews = ({ user }) => {
   const [employeeId, setEmployeeId] = useState(null);
 
   const location = useLocation();
@@ -27,12 +27,12 @@ const EmployeeInterviews = () => {
 
   // to get table after click on notification
   useEffect(() => {
-    const query = new URLSearchParams(location.search);
-    const id = query.get("interviewerId"); // 🔔 notification se aayega
-    if (id && employeeId) {
+    // const query = new URLSearchParams(location.search);
+    // const id = query.get("interviewerId"); // 🔔 notification se aayega
+    if (employeeId) {
       handleView(); // 🔥 auto open table
     }
-  }, [location.search, employeeId]);
+  }, [employeeId]);
 
   // 🔥 GET EMPLOYEE ID
   useEffect(() => {
@@ -53,6 +53,13 @@ const EmployeeInterviews = () => {
     }
   }, []);
 
+  const formatDate = (dateString) =>
+    new Intl.DateTimeFormat("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }).format(new Date(dateString));
+
   // 🔥 FETCH EMPLOYEE INTERVIEWS
   const handleView = async () => {
     console.log("View clicked, employeeId:", employeeId);
@@ -60,12 +67,15 @@ const EmployeeInterviews = () => {
       console.error("employeeId not ready yet");
       return;
     }
+    const token = localStorage.getItem("accessToken");
+    console.log("token", token);
     try {
       const res = await fetch(
-        `https://server-backend-nu.vercel.app/interviews/employee/${employeeId}`,
+        `https://server-backend-ems.vercel.app/interviews/employee/${employeeId}`,
         {
           headers: {
-            role: "employee",
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
         },
       );
@@ -86,14 +96,15 @@ const EmployeeInterviews = () => {
     /*--------status & comment update-----*/
   }
   const handleUpdate = async () => {
+    const token = localStorage.getItem("accessToken");
     try {
       const res = await fetch(
-        `https://server-backend-nu.vercel.app/interviews/employee/${selected._id}`,
+        `https://server-backend-ems.vercel.app/interviews/employee/${selected._id}`,
         {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            role: "employee",
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(editData),
         },
@@ -195,16 +206,17 @@ const EmployeeInterviews = () => {
 
   return (
     <div className="container-fluid px-3 mt-3">
-      <h5 className="mb-3 fw-semibold" style={{ color: "#3A5FBE" }}>
-        My Scheduled Interviews
-      </h5>
-
-      <button
-        className="btn btn-sm custom-outline-btn mb-3"
-        onClick={handleView}
+      {/* mahesh code header change font size */}
+      <h2
+        style={{
+          color: "#3A5FBE",
+          fontSize: "25px",
+          marginLeft: "15px",
+          marginBottom: "40px",
+        }}
       >
-        View Scheduled Interviews
-      </button>
+        My Scheduled Interveiw
+      </h2>
 
       {/* ================= FILTER CARD ================= */}
       {showTable && (
@@ -362,7 +374,11 @@ const EmployeeInterviews = () => {
                   currentInterviews.map((item, i) => (
                     <tr
                       key={item._id || item.interviewId}
-                      onClick={() => setSelected(item)}
+                      onClick={() => {
+                        //added jayu
+                        setSelected(item);
+                        setIsEditing(false); // reset edit mode
+                      }}
                       style={{ cursor: "pointer" }}
                     >
                       <td style={tdStyle("#3A5FBE", 500)}>
@@ -373,9 +389,10 @@ const EmployeeInterviews = () => {
                       <td>
                         {item.resumeUrl ? (
                           <a
-                            href={`https://server-backend-nu.vercel.app${item.resumeUrl}`}
+                            href={`https://server-backend-ems.vercel.app${item.resumeUrl}`}
                             target="_blank"
                             rel="noreferrer"
+                            onClick={(e) => e.stopPropagation()}
                           >
                             View Resume
                           </a>
@@ -383,7 +400,7 @@ const EmployeeInterviews = () => {
                           "-"
                         )}
                       </td>
-                      <td style={tdStyle()}>{item.date}</td>
+                      <td style={tdStyle()}>{formatDate(item.date)}</td>
                       <td style={tdStyle()}>{item.startTime}</td>
                       <td style={tdStyle()}>{item.interviewType}</td>
                       <td style={tdStyle()}>{item.interviewerName}</td>
@@ -392,7 +409,12 @@ const EmployeeInterviews = () => {
                         item.status !== "Cancelled" &&
                         item.status !== "Not-completed" &&
                         item.link ? (
-                          <a href={item.link} target="_blank" rel="noreferrer">
+                          <a
+                            href={item.link}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             Join
                           </a>
                         ) : (
@@ -431,7 +453,7 @@ const EmployeeInterviews = () => {
                       <td style={tdStyle()}>
                         {item.status !== "On-going" && (
                           <button
-                            className="btn btn-sm btn-outline-primary"
+                            className="btn custom-outline-btn"
                             onClick={(e) => {
                               e.stopPropagation();
 
@@ -524,7 +546,7 @@ const EmployeeInterviews = () => {
           style={{ display: "block", background: "rgba(0,0,0,0.5)" }}
         >
           <div
-            className="modal-dialog modal-dialog-scrollable"
+            className="modal-dialog "
             style={{ maxWidth: "650px", marginTop: "60px" }}
           >
             <div className="modal-content">
@@ -535,7 +557,11 @@ const EmployeeInterviews = () => {
                 <h5 className="modal-title mb-0">Interview Details</h5>
                 <button
                   className="btn-close btn-close-white"
-                  onClick={() => setSelected(null)}
+                  onClick={() => {
+                    //added jayu
+                    setSelected(null);
+                    setIsEditing(false); // reset here also
+                  }}
                 />
               </div>
 
@@ -544,7 +570,7 @@ const EmployeeInterviews = () => {
                   "Interview ID": selected.interviewId,
                   Candidate: selected.candidateName,
                   Role: selected.role,
-                  Date: selected.date,
+                  Date: formatDate(selected.date),
                   Time: selected.startTime,
                   Duration: selected.duration,
                   Type: selected.interviewType,
@@ -564,7 +590,12 @@ const EmployeeInterviews = () => {
                     selected.status !== "Cancelled" &&
                     selected.status !== "Not-completed" &&
                     selected.link ? (
-                      <a href={selected.link} target="_blank" rel="noreferrer">
+                      <a
+                        href={selected.link}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         Join
                       </a>
                     ) : (
@@ -579,10 +610,11 @@ const EmployeeInterviews = () => {
                   <div className="col-8">
                     {selected?.resumeUrl ? (
                       <a
-                        href={`https://server-backend-nu.vercel.app${selected.resumeUrl}`}
+                        href={`https://server-backend-ems.vercel.app${selected.resumeUrl}`}
                         target="_blank"
                         rel="noreferrer"
                         className="btn custom-outline-btn"
+                        onClick={(e) => e.stopPropagation()}
                       >
                         View Resume
                       </a>
@@ -655,6 +687,7 @@ const EmployeeInterviews = () => {
                   // ✏️ EDIT MODE → Update button
                   <button
                     className="btn custom-outline-btn"
+                    style={{ minWidth: 90 }}
                     onClick={handleUpdate}
                   >
                     Update
@@ -662,6 +695,7 @@ const EmployeeInterviews = () => {
                 ) : (
                   <button
                     className="btn custom-outline-btn"
+                    style={{ minWidth: 90 }}
                     onClick={() => setSelected(null)}
                   >
                     Close

@@ -21,7 +21,7 @@ const AdminTasklog = ({ user }) => {
   const [workloadWeek, setWorkloadWeek] = useState("");
   const [workloadMonth, setWorkloadMonth] = useState("");
   const [workloadRangeLabel, setWorkloadRangeLabel] = useState("");
-const [isFiltered, setIsFiltered] = useState(false);////samiksha
+  const [isFiltered, setIsFiltered] = useState(false); ////samiksha
   const [filterEmployee, setFilterEmployee] = useState("");
 
   // rutuja code start
@@ -165,7 +165,7 @@ const [isFiltered, setIsFiltered] = useState(false);////samiksha
         const dateStr = d.toISOString().split("T")[0];
 
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/api/tasklogs/daily-workload?date=${dateStr}`,
+          `https://server-backend-ems.vercel.app/api/tasklogs/daily-workload?date=${dateStr}`,
           { headers: { Authorization: `Bearer ${token}` } },
         );
 
@@ -228,7 +228,7 @@ const [isFiltered, setIsFiltered] = useState(false);////samiksha
       const token = localStorage.getItem("accessToken");
 
       const res = await axios.get(
-        `https://server-backend-nu.vercel.app/api/tasklogs/daily-workload?date=${selectedDate}`,
+        `https://server-backend-ems.vercel.app/api/tasklogs/daily-workload?date=${selectedDate}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -250,14 +250,14 @@ const [isFiltered, setIsFiltered] = useState(false);////samiksha
       let url = "";
 
       if (workloadDate) {
-        url = `https://server-backend-nu.vercel.app/api/tasklogs/daily-workload?date=${workloadDate}`;
+        url = `https://server-backend-ems.vercel.app/api/tasklogs/daily-workload?date=${workloadDate}`;
       } else if (workloadWeek) {
         const weekStartDate = getStartDateOfWeek(workloadWeek);
-        url = `https://server-backend-nu.vercel.app/api/tasklogs/workload/weekly?date=${weekStartDate}`;
+        url = `https://server-backend-ems.vercel.app/api/tasklogs/workload/weekly?date=${weekStartDate}`;
       } else if (workloadMonth) {
         // Monthly API
         const [year, month] = workloadMonth.split("-");
-        url = `https://server-backend-nu.vercel.app/api/tasklogs/workload/monthly?year=${year}&month=${month}`;
+        url = `https://server-backend-ems.vercel.app/api/tasklogs/workload/monthly?year=${year}&month=${month}`;
       } else {
         console.warn("No filter selected");
         return;
@@ -302,11 +302,7 @@ const [isFiltered, setIsFiltered] = useState(false);////samiksha
   }
   const taskLogs = logs;
   const tableData =
-    activeTab === "task"
-      ?  isFiltered
-        ? filteredLogs
-        : logs
-      : workloadData; //smiksha
+    activeTab === "task" ? (isFiltered ? filteredLogs : logs) : workloadData; //smiksha
 
   const safeTableData = Array.isArray(tableData) ? tableData : [];
   const totalItems = safeTableData.length;
@@ -410,7 +406,7 @@ const [isFiltered, setIsFiltered] = useState(false);////samiksha
   }, []);
   const fetchLogs = async () => {
     try {
-      const logRes = await fetch(`https://server-backend-nu.vercel.app/api/tasklogs/`);
+      const logRes = await fetch(`https://server-backend-ems.vercel.app/api/tasklogs/`);
       const logsData = await logRes.json();
       setLogs(logsData);
     } catch (err) {
@@ -424,45 +420,45 @@ const [isFiltered, setIsFiltered] = useState(false);////samiksha
 
     //snehal code 30-01-2026
     if (searchText) {
-  const text = searchText.toLowerCase();
+      const text = searchText.toLowerCase();
 
-  data = data.filter((l) => {
-    const workingDays =
-      l?.task?.dateOfTaskAssignment && l?.task?.dateOfExpectedCompletion
-        ? String(
-            getWorkingDays(
-              l.task.dateOfTaskAssignment,
-              l.task.dateOfExpectedCompletion
-            )
-          )
-        : "";
+      data = data.filter((l) => {
+        const workingDays =
+          l?.task?.dateOfTaskAssignment && l?.task?.dateOfExpectedCompletion
+            ? String(
+                getWorkingDays(
+                  l.task.dateOfTaskAssignment,
+                  l.task.dateOfExpectedCompletion,
+                ),
+              )
+            : "";
 
-    return (
-      l.employee?.name?.toLowerCase().includes(text) ||
-      l.task?.taskName?.toLowerCase().includes(text) ||
-      l.status?.toLowerCase().includes(text) ||
-      l.workDescription?.toLowerCase().includes(text) ||
-      workingDays.includes(text) // ✅ KEY FIX
-    );
-  });
-}
-  //snehal code 30-01-2026
+        return (
+          l.employee?.name?.toLowerCase().includes(text) ||
+          l.task?.taskName?.toLowerCase().includes(text) ||
+          l.status?.toLowerCase().includes(text) ||
+          l.workDescription?.toLowerCase().includes(text) ||
+          workingDays.includes(text) // ✅ KEY FIX
+        );
+      });
+    }
+    //snehal code 30-01-2026
     //snehal code 30-01-2026
     if (filterDate) {
-  data = data.filter((l) => {
-    const logDate = l.date?.split("T")[0];
-    const startDate = l.task?.dateOfTaskAssignment?.split("T")[0];
-    const endDate = l.task?.dateOfExpectedCompletion?.split("T")[0];
+      data = data.filter((l) => {
+        const logDate = l.date?.split("T")[0];
+        const startDate = l.task?.dateOfTaskAssignment?.split("T")[0];
+        const endDate = l.task?.dateOfExpectedCompletion?.split("T")[0];
 
-    return (
-      logDate === filterDate ||
-      startDate === filterDate ||
-      endDate === filterDate
-    );
-  });
-}
+        return (
+          logDate === filterDate ||
+          startDate === filterDate ||
+          endDate === filterDate
+        );
+      });
+    }
 
-  //snehal code 30-01-2026
+    //snehal code 30-01-2026
 
     setFilteredLogs(data);
     // samiksha
@@ -472,18 +468,16 @@ const [isFiltered, setIsFiltered] = useState(false);////samiksha
   //   handleFilter();
   // }, [logs, searchText, filterDate]);
 
-
-
   console.log("data", filteredLogs);
 
   const handleReset = () => {
     setSearchText("");
     setFilterDate("");
     setFilterEmployee("");
-     setIsFiltered(false);
+    setIsFiltered(false);
     setFilteredLogs([]);
   };
-const handleFilterSubmit = (e) => {
+  const handleFilterSubmit = (e) => {
     e.preventDefault();
     applyFilters();
   };
@@ -503,10 +497,10 @@ const handleFilterSubmit = (e) => {
     };
   }, [isAnyPopupOpen]);
   return (
-   <div className="container-fluid">
-    {/* //worload responisve snehal 29 */}
-     <style>
-      {`
+    <div className="container-fluid">
+      {/* //worload responisve snehal 29 */}
+      <style>
+        {`
       @media (max-width: 768px) {
         input[type="date"],
         input[type="week"],
@@ -521,177 +515,195 @@ const handleFilterSubmit = (e) => {
       }
       `}
       </style>
-   {/* //worload responisve snehal 29 */}
+      {/* //worload responisve snehal 29 */}
       <h4 className="mb-4" style={{ color: "#3A5FBE", fontSize: "25px" }}>
         {activeTab === "task" ? "Task Logs" : "Work Load"}
       </h4>
+      <div className="d-flex gap-2 justify-content-center mt-3 mb-3">
+        <button
+          onClick={() => {
+            setActiveTab("task");
+            setCurrentPage(1);
+          }}
+          className="btn btn-sm custom-outline-btn"
+          style={{ minWidth: 120 }}
+        >
+          Task Log
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveTab("work");
+            setCurrentPage(1);
+          }}
+          className="btn btn-sm custom-outline-btn"
+          style={{ minWidth: 120 }}
+        >
+          Work Load
+        </button>
+      </div>
+      {/* mahesh code search bar */}
+      {/* SEARCH / FILTER BAR */}
 
       {activeTab === "task" && (
-  <div className="card mb-4 shadow-sm border-0">
-        <div className="card-body">
-          <form
-            className="row g-2 align-items-center"
-            onSubmit={handleFilterSubmit}
-            style={{ justifyContent: "space-between" }}
-          >
-            {/*  SEARCH */}
-            <div className="col-12 col-md-auto d-flex align-items-center gap-2  mb-1">
-              <label
-                htmlFor="searchFilter"
-                className="fw-bold mb-0"
-                style={{ fontSize: "16px", color: "#3A5FBE" }}
-              >
-                Search
-              </label>
-              <input
-               className="form-control"
-                placeholder="Search By Any Field..."
-                value={searchText}
-                type="search"
-                onChange={(e) => setSearchText(e.target.value)}
-                style={{ minWidth: 150 }}
-              />
-            </div>
-            <div className="col-12 col-md-auto d-flex align-items-center  mb-1">
-              <label
-               
-                className="fw-bold mb-0 text-start text-md-end"
-                style={{
-                  fontSize: "16px",
-                  color: "#3A5FBE",
-                  width: "50px",
-                  minWidth: "50px",
-                  marginRight: "8px",
-                }}
-              >
-                 Date
-              </label>
-              <input
-                className="form-control"
-                type="date"
-                value={filterDate}
-                onChange={(e) => setFilterDate(e.target.value)}
-                
-                style={{ minWidth: 150 }}
-              />
-            </div>
-             <div className="col-auto ms-auto d-flex gap-2">
-              <button
-              onClick={handleFilter}
-              className="btn btn-sm custom-outline-btn"
-              style={{ minWidth: 90 }}
+        <div className="card mb-4 shadow-sm border-0">
+          <div className="card-body">
+            <form
+              className="row g-2 align-items-center"
+              onSubmit={handleFilterSubmit}
             >
-              Filter
-            </button>
+              {/*  SEARCH */}
+              <div className="col-12 col-md-auto d-flex align-items-center gap-2  mb-1 ">
+                <label
+                  htmlFor="searchFilter"
+                  className="fw-bold mb-0 text-start text-md-end"
+                  style={{ fontSize: "16px", color: "#3A5FBE" }}
+                >
+                  Search
+                </label>
+                <input
+                  className="form-control"
+                  placeholder="Search By Any Field..."
+                  value={searchText}
+                  type="search"
+                  onChange={(e) => setSearchText(e.target.value)}
+                  style={{ flex: 1, minWidth: "150px" }}
+                />
+              </div>
+              <div className="col-12 col-md-auto d-flex align-items-center  mb-1">
+                <label
+                  className="fw-bold mb-0 text-start text-md-end"
+                  style={{
+                    fontSize: "16px",
+                    color: "#3A5FBE",
+                    width: "50px",
+                    minWidth: "50px",
+                    marginRight: "8px",
+                  }}
+                >
+                  Date
+                </label>
+                <input
+                  className="form-control"
+                  type="date"
+                  value={filterDate}
+                  onChange={(e) => setFilterDate(e.target.value)}
+                  style={{ flex: 1, minWidth: "150px" }}
+                />
+              </div>
+              <div className="col-auto ms-auto d-flex gap-2">
+                <button
+                  onClick={handleFilter}
+                  className="btn btn-sm custom-outline-btn"
+                  style={{ minWidth: 90 }}
+                >
+                  Filter
+                </button>
 
-            <button
-              onClick={handleReset}
-              className="btn btn-sm custom-outline-btn"
-              style={{ minWidth: 90 }}
-            >
-              Reset
-            </button>
-            </div>
-          </form>
+                <button
+                  onClick={handleReset}
+                  className="btn btn-sm custom-outline-btn"
+                  style={{ minWidth: 90 }}
+                >
+                  Reset
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-      </div>
-
-)}
+      )}
 
       {activeTab === "work" && (
-  <div className="card mb-4 shadow-sm border-0">
-    <div className="card-body">
-      <div className="row g-2 align-items-center">
+        <div className="card mb-4 shadow-sm border-0">
+          <div className="card-body">
+            <div className="row g-2 align-items-center">
+              {/* DATE */}
+              <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
+                <label
+                  className="fw-bold mb-0"
+                  style={{ fontSize: "16px", color: "#3A5FBE", minWidth: 50 }}
+                >
+                  Date
+                </label>
+                <input
+                  type="date"
+                  value={workloadDate}
+                  className="form-control"
+                  onChange={(e) => {
+                    setWorkloadDate(e.target.value);
+                    setWorkloadWeek("");
+                    setWorkloadMonth("");
+                  }}
+                  style={{ flex: 1, minWidth: "150px" }}
+                />
+              </div>
 
-        {/* DATE */}
-        <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
-          <label
-            className="fw-bold mb-0"
-            style={{ fontSize: "16px", color: "#3A5FBE", minWidth: 50 }}
-          >
-            Date
-          </label>
-          <input
-           
-                type="date"
-                value={workloadDate}
-                className="form-control"
-                onChange={(e) => {
-                  setWorkloadDate(e.target.value);
-                  setWorkloadWeek("");
-                  setWorkloadMonth("");
-                }}
-            style={{ minWidth: 150 }}
-          />
+              {/* WEEK */}
+              <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
+                <label
+                  className="fw-bold mb-0"
+                  style={{ fontSize: "16px", color: "#3A5FBE", minWidth: 50 }}
+                >
+                  Week
+                </label>
+                <input
+                  type="week"
+                  className="form-control"
+                  value={workloadWeek}
+                  onChange={(e) => {
+                    setWorkloadWeek(e.target.value);
+                    setWorkloadDate("");
+                    setWorkloadMonth("");
+                  }}
+                  style={{ flex: 1, minWidth: "150px" }}
+                />
+              </div>
+
+              {/* MONTH */}
+              <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
+                <label
+                  className="fw-bold mb-0"
+                  style={{ fontSize: "16px", color: "#3A5FBE", minWidth: 50 }}
+                >
+                  Month
+                </label>
+                <input
+                  type="month"
+                  className="form-control"
+                  value={workloadMonth}
+                  onChange={(e) => {
+                    setWorkloadMonth(e.target.value);
+                    setWorkloadDate("");
+                    setWorkloadWeek("");
+                  }}
+                  style={{ flex: 1, minWidth: "150px" }}
+                />
+              </div>
+
+              {/* BUTTONS */}
+              <div className="col-auto ms-auto d-flex gap-2">
+                <button
+                  type="button"
+                  onClick={gettingWorkload}
+                  className="btn btn-sm custom-outline-btn"
+                  style={{ minWidth: 110 }}
+                >
+                  Get Workload
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleWorkloadReset}
+                  className="btn btn-sm custom-outline-btn"
+                  style={{ minWidth: 90 }}
+                >
+                  Reset
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-
-        {/* WEEK */}
-        <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
-          <label
-            className="fw-bold mb-0"
-            style={{ fontSize: "16px", color: "#3A5FBE", minWidth: 50 }}
-          >
-            Week
-          </label>
-          <input
-            type="week"
-            className="form-control"
-            value={workloadWeek}
-            onChange={(e) => {
-              setWorkloadWeek(e.target.value);
-              setWorkloadDate("");
-              setWorkloadMonth("");
-            }}
-            style={{ minWidth: 150 }}
-          />
-        </div>
-
-        {/* MONTH */}
-        <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
-          <label
-            className="fw-bold mb-0"
-            style={{ fontSize: "16px", color: "#3A5FBE", minWidth: 50 }}
-          >
-            Month
-          </label>
-          <input
-            type="month"
-            className="form-control"
-            value={workloadMonth}
-            onChange={(e) => {
-              setWorkloadMonth(e.target.value);
-              setWorkloadDate("");
-              setWorkloadWeek("");
-            }}
-            style={{ minWidth: 150 }}
-          />
-        </div>
-
-        {/* BUTTONS */}
-        <div className="col-auto ms-auto d-flex gap-2">
-          <button
-            type="button"
-            onClick={gettingWorkload}
-            className="btn btn-sm custom-outline-btn"
-            style={{ minWidth: 110 }}
-          >
-            Get Workload
-          </button>
-
-          <button
-            type="button"
-            onClick={handleWorkloadReset}
-            className="btn btn-sm custom-outline-btn"
-            style={{ minWidth: 90 }}
-          >
-            Reset
-          </button>
-        </div>
-
-      </div>
-    </div>
-  </div>
-)}
+      )}
 
       {/* <div
         style={{
@@ -738,36 +750,12 @@ const handleFilterSubmit = (e) => {
         </span>
       </div> */}
 
-      <div className="d-flex gap-2 justify-content-center mt-3 mb-3">
-        <button
-          onClick={() => {
-            setActiveTab("task");
-            setCurrentPage(1);
-          }}
-          className="btn btn-sm custom-outline-btn"
-          style={{ minWidth: 120 }}
-        >
-          Task Log
-        </button>
-
-        <button
-          onClick={() => {
-            setActiveTab("work");
-            setCurrentPage(1);
-          }}
-          className="btn btn-sm custom-outline-btn"
-          style={{ minWidth: 120 }}
-        >
-          Work Load
-        </button>
-      </div>
-
       {/* TABLE */}
       {activeTab === "task" && (
         <div
           style={{
             background: "#fff",
-           
+
             boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
             overflowX: "auto",
           }}
@@ -796,7 +784,7 @@ const handleFilterSubmit = (e) => {
                   <th
                     key={h}
                     style={{
-                       padding: "12px",
+                      padding: "12px",
                       textAlign: "left",
                       fontSize: "14px",
                       fontWeight: 600,
@@ -810,7 +798,7 @@ const handleFilterSubmit = (e) => {
               </tr>
             </thead>
             <tbody>
-              {paginatedData.length === 0  ? (
+              {paginatedData.length === 0 ? (
                 <tr>
                   <td colSpan={7} style={{ padding: 20, textAlign: "center" }}>
                     No data found
@@ -866,57 +854,62 @@ const handleFilterSubmit = (e) => {
                         {log?.task?.taskName}
                       </td>
                       {/* //snehal code 28-01-2026 start*/}
-                      <td style={{
-                      padding: "12px",
-                      verticalAlign: "middle",
-                      fontSize: "14px",
-                      borderBottom: "1px solid #dee2e6",
-                      whiteSpace: "nowrap",
-                    }}>
-                    {log?.task?.dateOfTaskAssignment &&
-                    log?.task?.dateOfExpectedCompletion ? (
-                      <>
-                        {/* Period */}
-                        <div>
-                          {formatDateWithoutYear(log.task.dateOfTaskAssignment)} →{" "}
-                          {formatDateWithoutYear(
-                            log.task.dateOfExpectedCompletion,
-                          )}
-                        </div>
+                      <td
+                        style={{
+                          padding: "12px",
+                          verticalAlign: "middle",
+                          fontSize: "14px",
+                          borderBottom: "1px solid #dee2e6",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {log?.task?.dateOfTaskAssignment &&
+                        log?.task?.dateOfExpectedCompletion ? (
+                          <>
+                            {/* Period */}
+                            <div>
+                              {formatDateWithoutYear(
+                                log.task.dateOfTaskAssignment,
+                              )}{" "}
+                              →{" "}
+                              {formatDateWithoutYear(
+                                log.task.dateOfExpectedCompletion,
+                              )}
+                            </div>
 
-                        {/* Day badge ONLY for today's log */}
-                        {isToday(log.date) &&
-                          (() => {
-                            const dayNumber = getTaskDayNumber(
-                              log.task.dateOfTaskAssignment,
-                              log.task.dateOfExpectedCompletion,
-                            );
+                            {/* Day badge ONLY for today's log */}
+                            {isToday(log.date) &&
+                              (() => {
+                                const dayNumber = getTaskDayNumber(
+                                  log.task.dateOfTaskAssignment,
+                                  log.task.dateOfExpectedCompletion,
+                                );
 
-                            return (
-                              dayNumber && (
-                                <div
-                                  style={{
-                                    display: "inline-block",
-                                    marginTop: 6,
-                                    padding: "2px 8px",
-                                    borderRadius: 12,
-                                    background: "#e0ecff",
-                                    color: "#1d4ed8",
-                                    fontSize: 12,
-                                    fontWeight: 500,
-                                  }}
-                                >
-                                  Today • Day {dayNumber}
-                                </div>
-                              )
-                            );
-                          })()}
-                      </>
-                    ) : (
-                      "—"
-                    )}
-                  </td>
-  {/* //snehal code 28-01-2026 end */}
+                                return (
+                                  dayNumber && (
+                                    <div
+                                      style={{
+                                        display: "inline-block",
+                                        marginTop: 6,
+                                        padding: "2px 8px",
+                                        borderRadius: 12,
+                                        background: "#e0ecff",
+                                        color: "#1d4ed8",
+                                        fontSize: 12,
+                                        fontWeight: 500,
+                                      }}
+                                    >
+                                      Today • Day {dayNumber}
+                                    </div>
+                                  )
+                                );
+                              })()}
+                          </>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+                      {/* //snehal code 28-01-2026 end */}
                       <td style={{ padding: "14px 16px", fontSize: 14 }}>
                         {log?.task?.dateOfTaskAssignment &&
                         log?.task?.dateOfExpectedCompletion
@@ -948,11 +941,12 @@ const handleFilterSubmit = (e) => {
                       >
                         <span>
                           {log.status}
-                          {log.status === "In Progress"|| log.status === "InProgress" &&  (
-                            <span style={{ marginLeft: "5px" }}>
-                              {log.progressToday}%
-                            </span>
-                          )}
+                          {log.status === "In Progress" ||
+                            (log.status === "InProgress" && (
+                              <span style={{ marginLeft: "5px" }}>
+                                {log.progressToday}%
+                              </span>
+                            ))}
                         </span>
                       </td>
 
@@ -1123,11 +1117,12 @@ const handleFilterSubmit = (e) => {
                     <div className="col-7 col-sm-9">
                       <span>
                         {selectedRow.status}
-                        {selectedRow.status === "In Progress" || selectedRow.status === "InProgress" && (
-                          <span style={{ marginLeft: "5px" }}>
-                            {selectedRow.progressToday}%
-                          </span>
-                        )}
+                        {selectedRow.status === "In Progress" ||
+                          (selectedRow.status === "InProgress" && (
+                            <span style={{ marginLeft: "5px" }}>
+                              {selectedRow.progressToday}%
+                            </span>
+                          ))}
                       </span>
                     </div>
                   </div>
@@ -1290,7 +1285,7 @@ const handleFilterSubmit = (e) => {
             inset: 0,
             zIndex: 1050,
           }}
-         // onClick={closeWorkloadView}  //comment by hashada
+          // onClick={closeWorkloadView}  //comment by hashada
         >
           <div
             className="modal-dialog"
@@ -1647,11 +1642,18 @@ const handleFilterSubmit = (e) => {
         </nav>
       )}
       {/* rutuja code end */}
-      <div className="text-end mt-3">
+      <div className="d-flex justify-content-end mt-3">
         <button
           className="btn btn-sm custom-outline-btn"
           style={{ minWidth: 90 }}
-          onClick={() => window.history.go(-1)}
+          onClick={() => {
+            if (activeTab === "work") {
+              setActiveTab("task");
+              setCurrentPage(1);
+            } else {
+              window.history.go(-1);
+            }
+          }}
         >
           Back
         </button>

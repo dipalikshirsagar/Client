@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 
 function AllEmployeeRegularizationRequestForAdmin({ showBackButton = true }) {
@@ -19,22 +19,110 @@ function AllEmployeeRegularizationRequestForAdmin({ showBackButton = true }) {
   const [filteredRegularizations, setFilteredRegularizations] = useState([]);
 
   const [selectedRequest, setSelectedRequest] = useState(null);
+  const modalRef = useRef(null);
+  useEffect(() => {
+    if (!selectedRequest || !modalRef.current) return;
 
+    const modal = modalRef.current;
+
+    const focusableElements = modal.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+
+    const firstEl = focusableElements[0];
+    const lastEl = focusableElements[focusableElements.length - 1];
+
+    modal.focus();
+
+    const handleKeyDown = (e) => {
+      // ESC key → modal close
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setSelectedRequest(null);
+      }
+
+      // TAB key → focus trap
+      if (e.key === "Tab") {
+        if (e.shiftKey) {
+          if (document.activeElement === firstEl) {
+            e.preventDefault();
+            lastEl.focus();
+          }
+        } else {
+          if (document.activeElement === lastEl) {
+            e.preventDefault();
+            firstEl.focus();
+          }
+        }
+      }
+    };
+
+    modal.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      modal.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [selectedRequest]);
   useEffect(() => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    const isModalOpen = selectedRequest;
+
+    if (isModalOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [selectedRequest]);
   const fetchData = async () => {
     try {
       const token = localStorage.getItem("accessToken");
       const res = await axios.get(
-        "https://server-backend-nu.vercel.app/attendance/regularization/all",
+        "https://server-backend-ems.vercel.app/attendance/regularization/all",
         {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
+      //Added by Jaicy
+      // ✅ Sort newest first (based on createdAt or request date)
+      // 🔒 STRICT last 3 months (rolling window)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
 
-      const filtered = res.data.filter(
+      const threeMonthsAgo = new Date(today);
+      threeMonthsAgo.setMonth(today.getMonth() - 3);
+
+      // ✅ FILTER BY DATE FIRST
+      const lastThreeMonthsData = res.data.filter((req) => {
+        const recordDate = new Date(
+          req.regularizationRequest?.requestedAt || req.createdAt || req.date,
+        );
+        recordDate.setHours(0, 0, 0, 0);
+
+        return recordDate >= threeMonthsAgo && recordDate <= today;
+      });
+
+      // ✅ SORT NEWEST FIRST
+      const sortedData = lastThreeMonthsData.sort(
+        (a, b) =>
+          new Date(
+            b.regularizationRequest?.requestedAt || b.createdAt || b.date,
+          ) -
+          new Date(
+            a.regularizationRequest?.requestedAt || a.createdAt || a.date,
+          ),
+      );
+
+      const filtered = sortedData.filter(
         (rec) =>
           rec?.regularizationRequest &&
           (rec.regularizationRequest.checkIn ||
@@ -66,29 +154,35 @@ function AllEmployeeRegularizationRequestForAdmin({ showBackButton = true }) {
     try {
       const token = localStorage.getItem("accessToken");
       await axios.put(
-        `https://server-backend-nu.vercel.app/attendance/regularization/${id}/status`,
+        `https://server-backend-ems.vercel.app/attendance/regularization/${id}/status`,
         { status },
         { headers: { Authorization: `Bearer ${token}` } },
       );
       fetchData();
     } catch (err) {
-      console.error("Error updating status", err);
+      const errorMessage =
+        err.response?.data?.error ||
+        "Something went wrong while applying regularization.";
+
+      alert(`❌ ${errorMessage}`);
+      // setMessage(errorMessage);
     }
   };
+
 
   // const formatTime = (dateString) =>
   //   dateString ? new Date(dateString).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-";
 
   // Pagination calculations
-
+  //Added by Jaicy
   const formatToIST = (utcDateString) => {
     const date = new Date(utcDateString);
     return date.toLocaleTimeString("en-IN", {
       timeZone: "Asia/Kolkata",
-      hour: "2-digit",
+      hour: "numeric",
       minute: "2-digit",
-      hour12: false,
-    });
+      hour12: true,
+    }).toUpperCase();
   };
 
   // ---------- SORTING ----------
@@ -173,29 +267,38 @@ function AllEmployeeRegularizationRequestForAdmin({ showBackButton = true }) {
 
   console.log("regularizations", regularizations);
 
-  //new code
+  //new code Added by Jaicy
   const applyFilters = () => {
     const filtered = regularizations.filter((reg) => {
-      // Status filter
+
+      // ✅ Status filter
       const matchesStatus =
         statusFilter === "All" ||
         reg?.regularizationRequest?.status === statusFilter;
-      // Name filter
+
+      // ✅ Name filter
       const employeeName = reg?.employee?.name || "";
       const matchesName = employeeName
         .toLowerCase()
         .includes(employeeNameFilter.toLowerCase());
-      // Date filter
+
+      // ✅ Date filter (FIXED)
       const recordDate = new Date(reg.date);
+
       const fromDate = dateFromFilter ? new Date(dateFromFilter) : null;
+      if (fromDate) fromDate.setHours(0, 0, 0, 0);
+
       const toDate = dateToFilter ? new Date(dateToFilter) : null;
+      if (toDate) toDate.setHours(23, 59, 59, 999);
+
       const matchesDateFrom = fromDate ? recordDate >= fromDate : true;
       const matchesDateTo = toDate ? recordDate <= toDate : true;
+
       return matchesStatus && matchesName && matchesDateFrom && matchesDateTo;
     });
 
     setFilteredRegularizations(filtered);
-    setCurrentPage(1); // Reset to first page
+    setCurrentPage(1);
   };
   console.log("currentRegularizations", currentRegularizations);
   console.log("filter", filteredRegularizations);
@@ -325,8 +428,6 @@ function AllEmployeeRegularizationRequestForAdmin({ showBackButton = true }) {
                     htmlFor="statusFilter"
                     className="fw-bold mb-0 "
                     style={{
-                      width: "60px",
-                      minWidth: "60px",
                       fontSize: "16px",
                       color: "#3A5FBE",
                     }}
@@ -352,8 +453,6 @@ function AllEmployeeRegularizationRequestForAdmin({ showBackButton = true }) {
                     htmlFor="employeeNameFilter"
                     className="fw-bold mb-0 "
                     style={{
-                      width: "60px",
-                      minWidth: "60px",
                       fontSize: "16px",
                       color: "#3A5FBE",
                     }}
@@ -376,8 +475,6 @@ function AllEmployeeRegularizationRequestForAdmin({ showBackButton = true }) {
                     htmlFor="dateFromFilter"
                     className="fw-bold mb-0 "
                     style={{
-                      width: "60px",
-                      minWidth: "60px",
                       fontSize: "16px",
                       color: "#3A5FBE",
                     }}
@@ -400,8 +497,6 @@ function AllEmployeeRegularizationRequestForAdmin({ showBackButton = true }) {
                       htmlFor="dateToFilter"
                       className="fw-bold mb-0 "
                       style={{
-                        width: "60px",
-                        minWidth: "60px",
                         fontSize: "16px",
                         color: "#3A5FBE",
                       }}
@@ -415,7 +510,7 @@ function AllEmployeeRegularizationRequestForAdmin({ showBackButton = true }) {
                       style={{ flex: 1, minWidth: "140px" }}
                       value={dateToFilter}
                       onChange={(e) => setDateToFilter(e.target.value)}
-                      // or: style={{flex: 1}} (if not using Bootstrap utility)
+                    // style={{flex: 1}} (if not using Bootstrap utility)
                     />
                   </div>
                 </>
@@ -618,13 +713,13 @@ function AllEmployeeRegularizationRequestForAdmin({ showBackButton = true }) {
                           >
                             {employeeName
                               ? employeeName
-                                  .split(" ")
-                                  .map(
-                                    (w) =>
-                                      w.charAt(0).toUpperCase() +
-                                      w.slice(1).toLowerCase(),
-                                  )
-                                  .join(" ")
+                                .split(" ")
+                                .map(
+                                  (w) =>
+                                    w.charAt(0).toUpperCase() +
+                                    w.slice(1).toLowerCase(),
+                                )
+                                .join(" ")
                               : ""}
                           </td>
 
@@ -705,7 +800,7 @@ function AllEmployeeRegularizationRequestForAdmin({ showBackButton = true }) {
                             }}
                           >
                             {rec?.regularizationRequest?.status ===
-                            "Approved" ? (
+                              "Approved" ? (
                               <span
                                 style={{
                                   backgroundColor: "#d1f2dd",
@@ -753,6 +848,7 @@ function AllEmployeeRegularizationRequestForAdmin({ showBackButton = true }) {
                               </span>
                             )}
                           </td>
+                          {/* //Added by Jaicy */}
                           <td
                             style={{
                               padding: "12px",
@@ -763,7 +859,7 @@ function AllEmployeeRegularizationRequestForAdmin({ showBackButton = true }) {
                             }}
                           >
                             {rec?.regularizationRequest?.status ===
-                              "Pending" && (
+                              "Pending" ? (
                               <>
                                 <button
                                   className="btn btn-sm btn-outline-success me-2"
@@ -784,6 +880,10 @@ function AllEmployeeRegularizationRequestForAdmin({ showBackButton = true }) {
                                   Reject
                                 </button>
                               </>
+                            ) : (
+                              <div>
+                                <span style={{ fontSize: "13px" }}>-</span>
+                              </div>
                             )}
                           </td>
                         </tr>
@@ -799,6 +899,8 @@ function AllEmployeeRegularizationRequestForAdmin({ showBackButton = true }) {
           {selectedRequest && (
             <div
               className="modal fade show"
+              ref={modalRef}
+              tabIndex="-1"
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -810,8 +912,8 @@ function AllEmployeeRegularizationRequestForAdmin({ showBackButton = true }) {
               }}
             >
               <div
-                className="modal-dialog modal-dialog-scrollable"
-                style={{ maxWidth: "650px", width: "95%", marginTop: "200px" }}
+                className="modal-dialog "
+                style={{ maxWidth: "650px", width: "95%", marginTop: "80px" }}
               >
                 <div className="modal-content">
                   {/* Header */}
@@ -875,7 +977,7 @@ function AllEmployeeRegularizationRequestForAdmin({ showBackButton = true }) {
                         <div className="col-7 col-sm-9">
                           {formatToIST(
                             selectedRequest.checkIn ||
-                              selectedRequest?.regularizationRequest?.checkIn,
+                            selectedRequest?.regularizationRequest?.checkIn,
                           )}
                         </div>
                       </div>
@@ -887,7 +989,7 @@ function AllEmployeeRegularizationRequestForAdmin({ showBackButton = true }) {
                         <div className="col-7 col-sm-9">
                           {formatToIST(
                             selectedRequest.checkOut ||
-                              selectedRequest?.regularizationRequest?.checkOut,
+                            selectedRequest?.regularizationRequest?.checkOut,
                           )}
                         </div>
                       </div>
@@ -896,7 +998,7 @@ function AllEmployeeRegularizationRequestForAdmin({ showBackButton = true }) {
                         <div className="col-5 col-sm-3 fw-semibold">Mode</div>
                         <div className="col-7 col-sm-9">
                           {selectedRequest.mode?.trim().toLowerCase() ===
-                          "office"
+                            "office"
                             ? "WFO"
                             : selectedRequest.mode || "-"}
                         </div>
@@ -927,7 +1029,7 @@ function AllEmployeeRegularizationRequestForAdmin({ showBackButton = true }) {
                                 ?.status === "Approved"
                                 ? "bg-success"
                                 : selectedRequest?.regularizationRequest
-                                      ?.status === "Rejected"
+                                  ?.status === "Rejected"
                                   ? "bg-danger"
                                   : "bg-warning text-dark")
                             }
@@ -964,28 +1066,28 @@ function AllEmployeeRegularizationRequestForAdmin({ showBackButton = true }) {
                   <div className="modal-footer border-0 pt-0">
                     {selectedRequest?.regularizationRequest?.status ===
                       "Pending" && (
-                      <>
-                        <button
-                          className="btn btn-outline-success"
-                          onClick={() => {
-                            handleStatusChange(selectedRequest._id, "Approved");
-                            setSelectedRequest(null);
-                          }}
-                        >
-                          Approve
-                        </button>
+                        <>
+                          <button
+                            className="btn btn-outline-success"
+                            onClick={() => {
+                              handleStatusChange(selectedRequest._id, "Approved");
+                              setSelectedRequest(null);
+                            }}
+                          >
+                            Approve
+                          </button>
 
-                        <button
-                          className="btn btn-outline-danger"
-                          onClick={() => {
-                            handleStatusChange(selectedRequest._id, "Rejected");
-                            setSelectedRequest(null);
-                          }}
-                        >
-                          Reject
-                        </button>
-                      </>
-                    )}
+                          <button
+                            className="btn btn-outline-danger"
+                            onClick={() => {
+                              handleStatusChange(selectedRequest._id, "Rejected");
+                              setSelectedRequest(null);
+                            }}
+                          >
+                            Reject
+                          </button>
+                        </>
+                      )}
                     {/* <button
                       className="btn btn-outline-danger"
 

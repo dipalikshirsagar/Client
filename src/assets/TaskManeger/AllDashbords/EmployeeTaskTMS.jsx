@@ -18,7 +18,7 @@ const EmployeeTaskTMS = ({ user }) => {
     if (!user?._id) return;
 
     axios
-      .get(`https://server-backend-nu.vercel.app/tasks/assigned/${user._id}`)
+      .get(`https://server-backend-ems.vercel.app/tasks/assigned/${user._id}`)
       .then((res) => {
         const apiTasks = res.data.tasks
           .filter((task) => task.status?.name !== "Assignment Pending") //  Filter out Assignment Pending
@@ -170,7 +170,7 @@ if (activeTask) {
       try {
         const token = localStorage.getItem("accessToken");
         if (token) {
-          const response = await axios.get("https://server-backend-nu.vercel.app/me", {
+          const response = await axios.get("https://server-backend-ems.vercel.app/me", {
             headers: { Authorization: `Bearer ${token}` },
           });
           setCurrentUser(response.data);
@@ -187,7 +187,7 @@ if (activeTask) {
   }, [user]);
 
   useEffect(() => {
-    fetch("https://server-backend-nu.vercel.app/unique")
+    fetch("https://server-backend-ems.vercel.app/unique")
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
@@ -208,14 +208,14 @@ if (activeTask) {
     calculateStats(allTasks);
   }, [allTasks]);
 
-  const calculateStats = (taskList) => {
-    const stats = {
-      totalTasks: taskList.length,
-      ongoingTasks: taskList.filter((t) => t.status === "In Progress").length,
-      delayedTasks: taskList.filter((t) => t.status === "Delayed").length,
-    };
-    setTaskStats(stats);
-  };
+  // const calculateStats = (taskList) => {
+  //   const stats = {
+  //     totalTasks: taskList.length,
+  //     ongoingTasks: taskList.filter((t) => t.status === "In Progress").length,
+  //     delayedTasks: taskList.filter((t) => t.status === "Delayed").length,
+  //   };
+  //   setTaskStats(stats);
+  // };
 
   const handleStatusUpdate = async () => {
     if (!selectedTask?._id) {
@@ -234,7 +234,7 @@ if (activeTask) {
       }
 
       const res = await fetch(
-        `https://server-backend-nu.vercel.app/task/${selectedTask._id}/status`,
+        `https://server-backend-ems.vercel.app/task/${selectedTask._id}/status`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -277,13 +277,14 @@ if (activeTask) {
       const query = searchQuery.toLowerCase();
       temp = temp.filter((task) => {
         // Convert entire task object to searchable string
+        const effectiveStatus = getEffectiveStatus(task);////komal code
         const searchableFields = [
           task.id,
           task.taskName,
           task.taskType,
           task.status,
           task.progress,
-          task.description,
+         normalize(effectiveStatus),
           // Format dates
           task.assignDate
             ? new Date(task.assignDate).toLocaleDateString("en-GB", {
@@ -374,7 +375,7 @@ if (activeTask) {
     try {
       const token = localStorage.getItem("accessToken");
       const res = await axios.post(
-        `https://server-backend-nu.vercel.app/task/${commentModalTask._id}/comment`,
+        `https://server-backend-ems.vercel.app/task/${commentModalTask._id}/comment`,
         { comment: newComment },
         {
           headers: {
@@ -435,7 +436,7 @@ if (activeTask) {
     try {
       const token = localStorage.getItem("accessToken");
       await axios.delete(
-        `https://server-backend-nu.vercel.app/task/${taskId}/comment/${commentId}`,
+        `https://server-backend-ems.vercel.app/task/${taskId}/comment/${commentId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -482,7 +483,7 @@ if (activeTask) {
     try {
       const token = localStorage.getItem("accessToken");
       const res = await axios.put(
-        `https://server-backend-nu.vercel.app/task/${taskId}/comment/${commentId}`,
+        `https://server-backend-ems.vercel.app/task/${taskId}/comment/${commentId}`,
         { comment: newText },
         {
           headers: {
@@ -579,7 +580,7 @@ if (activeTask) {
 
     try {
       const response = await axios.post(
-        `https://server-backend-nu.vercel.app/task/${taskId}/start`,
+        `https://server-backend-ems.vercel.app/task/${taskId}/start`,
       );
       if (response.data.success) {
         // setActiveTimer({
@@ -610,7 +611,7 @@ setTimerSeconds(previousSeconds); //  prevents 000 flash
   // const handleStopTimer = async (taskId) => {
   //   try {
   //     const response = await axios.post(
-  //       `https://server-backend-nu.vercel.app/task/${taskId}/stop`,
+  //       `https://server-backend-ems.vercel.app/task/${taskId}/stop`,
   //     );
   //     if (response.data.success) {
   //       setActiveTimer(null);
@@ -627,7 +628,7 @@ setTimerSeconds(previousSeconds); //  prevents 000 flash
   const handleStopTimer = async (taskId) => {
   try {
     const response = await axios.post(
-      `https://server-backend-nu.vercel.app/task/${taskId}/stop`
+      `https://server-backend-ems.vercel.app/task/${taskId}/stop`
     );
 
     if (response.data.success) {
@@ -718,7 +719,7 @@ setTimerSeconds(previousSeconds); //  prevents 000 flash
 
     try {
       const statusRes = await fetch(
-        `https://server-backend-nu.vercel.app/task/${task._id}/status`,
+        `https://server-backend-ems.vercel.app/task/${task._id}/status`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -770,7 +771,7 @@ setTimerSeconds(previousSeconds); //  prevents 000 flash
     }
 
     try {
-      const res = await fetch(`https://server-backend-nu.vercel.app/task/${task._id}/status`, {
+      const res = await fetch(`https://server-backend-ems.vercel.app/task/${task._id}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: completedStatusId }),
@@ -851,56 +852,95 @@ setTimerSeconds(previousSeconds); //  prevents 000 flash
       document.documentElement.style.overflow = "";
     };
   }, [isAnyPopupOpen]);
+///komal code 31-01-2026
+const normalize = (text = "") =>
+  text
+    .toLowerCase()
+    .replace(/\(.*?\)/g, "")
+    .trim();
 
-  const getEffectiveStatus = (task) => {
-    if (!task?.dueDate) {
-      // 👇 UI rename only
-      return task.status === "In Progress" ? "On Track" : task.status;
+const getEffectiveStatus = (task) => {
+  if (!task?.dueDate) return task.status;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const dueDate = new Date(task.dueDate);
+  dueDate.setHours(0, 0, 0, 0);
+
+  // ✅ COMPLETED TASK
+  if (task.status === "Completed") {
+    if (!task.completedAt) return "Completed";
+
+    const completedDate = new Date(task.completedAt);
+    completedDate.setHours(0, 0, 0, 0);
+
+    const diffDays = Math.ceil(
+      (completedDate - dueDate) / (1000 * 60 * 60 * 24)
+    );
+
+    // ❗ Completed late
+    if (diffDays > 0) {
+      return `Completed (Delayed by ${diffDays} day${diffDays > 1 ? "s" : ""})`;
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // ✅ Completed on time
+    return "Completed";
+  }
 
-    const dueDate = new Date(task.dueDate);
-    dueDate.setHours(0, 0, 0, 0);
+  // 🔄 IN PROGRESS TASK
+  if (task.status === "In Progress") {
+    if (dueDate < today) {
+      return "Delayed (In Progress)";
+    }
+    return "On Track (In Progress)";
+  }
 
-    // ✅ Completed stays completed
-    if (task.status === "Completed") return "Completed";
+  return task.status; // Assigned, On Hold, Cancelled
+};
 
-    // ⏰ Delayed
-    if (dueDate < today) return "Delayed";
-
-    // 🟢 In Progress → On Track (UI only)
-    if (task.status === "In Progress") return "On Track";
-
-    return task.status;
-  };
-
-  const onTrackTasks = allTasks.filter(
-    (t) => getEffectiveStatus(t) === "On Track",
-  ).length;
-
-  const delayedTasks = allTasks.filter(
-    (t) => getEffectiveStatus(t) === "Delayed",
-  ).length;
-
+const calculateStats = (taskList) => {
   const stats = {
-    totalTasks: allTasks.length,
-
-    completedTasks: allTasks.filter((t) => t.status === "Completed").length,
-
-    assignedTasks: allTasks.filter((t) => t.status === "Assigned").length,
-
-    onTrackTasks,
-    delayedTasks,
-
-    holdTasks: allTasks.filter((t) => t.status === "On Hold").length,
-
-    cancelledTasks: allTasks.filter((t) => t.status === "Cancelled").length,
-
-    // ✅ In Progress = On Track + Delayed
-    inProgressTasks: onTrackTasks + delayedTasks,
+    totalTasks: taskList.length,
+    ongoingTasks: taskList.filter(
+      (t) =>
+        getEffectiveStatus(t) === "On Track" ||
+        getEffectiveStatus(t) === "Delayed"
+    ).length,
+    delayedTasks: taskList.filter(
+      (t) => getEffectiveStatus(t) === "Delayed"
+    ).length,
   };
+
+  setTaskStats(stats);
+};
+
+///komal code
+  // const onTrackTasks = allTasks.filter(
+  //   (t) => getEffectiveStatus(t) === "On Track",
+  // ).length;
+
+  // const delayedTasks = allTasks.filter(
+  //   (t) => getEffectiveStatus(t) === "Delayed",
+  // ).length;
+
+  // const stats = {
+  //   totalTasks: allTasks.length,
+
+  //   completedTasks: allTasks.filter((t) => t.status === "Completed").length,
+
+  //   assignedTasks: allTasks.filter((t) => t.status === "Assigned").length,
+
+  //   onTrackTasks,
+  //   delayedTasks,
+
+  //   holdTasks: allTasks.filter((t) => t.status === "On Hold").length,
+
+  //   cancelledTasks: allTasks.filter((t) => t.status === "Cancelled").length,
+
+  //   // ✅ In Progress = On Track + Delayed
+  //   inProgressTasks: onTrackTasks + delayedTasks,
+  // };
   /////rutuja 30-01-2026 document upload code
 const getFileType = (file) => {
     if (!file) return null;
@@ -980,7 +1020,42 @@ const getFileType = (file) => {
     
     return '#';
   };
+////komal code
 
+const completedTasks = allTasks.filter((t) =>
+  getEffectiveStatus(t).startsWith("Completed")
+).length;
+
+const completedDelayedTasks = allTasks.filter((t) =>
+  getEffectiveStatus(t).startsWith("Completed (Delayed")
+).length;
+
+const onTrackTasks = allTasks.filter((t) =>
+  getEffectiveStatus(t).startsWith("On Track")
+).length;
+
+const delayedTasks = allTasks.filter((t) =>
+  getEffectiveStatus(t).startsWith("Delayed")
+).length;
+
+const stats = {
+  totalTasks: allTasks.length,
+
+  completedTasks,
+  completedDelayedTasks, // ⭐ NEW
+
+  assignedTasks: allTasks.filter((t) => t.status === "Assigned").length,
+
+  onTrackTasks,
+  delayedTasks,
+
+  holdTasks: allTasks.filter((t) => t.status === "Hold").length,
+  cancelledTasks: allTasks.filter((t) => t.status === "Cancelled").length,
+
+  // In Progress = On Track + Delayed (In Progress)
+  inProgressTasks: onTrackTasks + delayedTasks,
+};
+/////
   /////rutuja 30-01-2026 document upload code
   return (
     <div className="container-fluid">
@@ -1618,7 +1693,7 @@ const getFileType = (file) => {
                         whiteSpace: "nowrap",
                       }}
                     >
-                      <span>{task.status}</span>
+                      <span>{getEffectiveStatus(task)}</span>
                     </td>
 
                     <td
@@ -2302,7 +2377,7 @@ const getFileType = (file) => {
               <div className="modal-footer border-0 pt-0">
                 {/* Dipali Code start */}
                 <button
-                  className={`btn custom-outline-btn me-2 ${
+                  className={`btn btn-sm custom-outline-btn me-2 ${
                     selectedTask?.status === "Completed" || !updatedStatus
                       ? "disabled opacity-50"
                       : ""
@@ -2317,7 +2392,7 @@ const getFileType = (file) => {
                 {/* Dipali Code end */}
 
                 <button
-                  className="btn  custom-outline-btn"
+                  className="btn btn-sm custom-outline-btn" style={{minWidth:"90px"}}
                   onClick={() => setSelectedTask(null)}
                 >
                   Close

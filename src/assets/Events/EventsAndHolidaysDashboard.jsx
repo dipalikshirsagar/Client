@@ -39,14 +39,36 @@ function EventsAndHolidaysDashboard() {
     setAnnouncementsList((prev) => [newAnnouncement, ...prev]);
   };
 
+  //Added by samiksha
+  const handleDeleteAnnouncement = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this announcement?"))
+      return;
+
+    try {
+      const token = localStorage.getItem("accessToken");
+      await axios.delete(`https://server-backend-ems.vercel.app/announcements/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // UI update
+      setAnnouncementsList((prev) => prev.filter((a) => a._id !== id));
+    } catch (err) {
+      console.error(
+        "Failed to delete announcement:",
+        err.response || err.message,
+      );
+      alert("Failed to delete announcement.");
+    }
+  };
+
   useEffect(() => {
     const fetchAnnouncements = async () => {
       try {
         const token = localStorage.getItem("accessToken");
-        const res = await axios.get("https://server-backend-nu.vercel.app/announcements/");
+        const res = await axios.get("https://server-backend-ems.vercel.app/announcements/");
         console.log("Announcements response:", res.data); // 👀 check shape
         const sortedAnnouncements = res.data.data.sort(
-          (a, b) => new Date(a.date) - new Date(b.date),
+          (a, b) => new Date(a.publishDate) - new Date(b.publishDate),
         );
         console.log("Sorted Announcements:", sortedAnnouncements);
         setAnnouncementsList(sortedAnnouncements);
@@ -62,7 +84,7 @@ function EventsAndHolidaysDashboard() {
   useEffect(() => {
     const fetchHolidays = async () => {
       try {
-        const res = await axios.get("https://server-backend-nu.vercel.app/getHolidays");
+        const res = await axios.get("https://server-backend-ems.vercel.app/getHolidays");
 
         // Sort by date and store all holidays
         const sorted = res.data.sort(
@@ -83,7 +105,7 @@ function EventsAndHolidaysDashboard() {
 
     try {
       const token = localStorage.getItem("accessToken");
-      await axios.delete(`https://server-backend-nu.vercel.app/holidays/${id}`, {
+      await axios.delete(`https://server-backend-ems.vercel.app/holidays/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setHolidayList((prev) => prev.filter((h) => h._id !== id));
@@ -100,7 +122,7 @@ function EventsAndHolidaysDashboard() {
       try {
         const token = localStorage.getItem("accessToken");
         const res = await axios.get(
-          "https://server-backend-nu.vercel.app/events-for-employee",
+          "https://server-backend-ems.vercel.app/events-for-employee",
           {
             headers: { Authorization: `Bearer ${token}` },
           },
@@ -124,7 +146,7 @@ function EventsAndHolidaysDashboard() {
 
     try {
       const token = localStorage.getItem("accessToken");
-      await axios.delete(`https://server-backend-nu.vercel.app/events/${id}`, {
+      await axios.delete(`https://server-backend-ems.vercel.app/events/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setEventsList((prev) => prev.filter((h) => h._id !== id));
@@ -285,55 +307,68 @@ function EventsAndHolidaysDashboard() {
             </div>
           ) : (
             <div className="scrollable-list">
-              {announcementsList.map((announcement, idx) => (
-                <div
-                  key={idx}
-                  className="card shadow-sm border-0 event-holiday-card"
-                >
-                  <div className="card-body">
-                    <h6 className="card-title">{announcement.name}</h6>
-                    <hr className="card-divider" />
-                    <img
-                      src={announcement.image}
-                      alt={announcement.name}
-                      style={{
-                        width: "60px",
-                        height: "60px",
-                        objectFit: "cover",
-                      }}
-                    />
+              {announcementsList
+                .filter((announcement) => {
+                  if (!announcement.expirationDate) return false;
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  const expiryDate = new Date(announcement.expirationDate);
+                  expiryDate.setHours(0, 0, 0, 0);
+                  return expiryDate >= today;
+                })
+                .map((announcement, idx) => (
+                  <div
+                    key={idx}
+                    className="card shadow-sm border-0 event-holiday-card"
+                  >
+                    <div className="card-body">
+                      <h6 className="card-title">{announcement.name}</h6>
+                      <hr className="card-divider" />
+                      <img
+                        src={announcement.image}
+                        alt={announcement.name}
+                        style={{
+                          width: "60px",
+                          height: "36px", //added by mahesh
+                          objectFit: "cover",
+                        }}
+                      />
 
-                    <div className="card-content-center">
-                      <div>
-                        <div
-                          className="event-name"
-                          style={{ textTransform: "capitalize" }}
-                        >
-                          {announcement.name}
-                        </div>
-                        <div className="event-details">
-                          {new Date(
-                            announcement.publishDate,
-                          ).toLocaleDateString("en-CA", {
-                            month: "short",
-                            day: "numeric",
-                            weekday: "short",
-                          })}
+                      <div className="card-content-center">
+                        <div>
+                          <div
+                            className="event-name"
+                            style={{ textTransform: "capitalize" }}
+                          >
+                            {announcement.name}
+                          </div>
+                          <div className="event-details">
+                            {new Date(
+                              announcement.publishDate,
+                            ).toLocaleDateString("en-CA", {
+                              month: "short",
+                              day: "numeric",
+                              weekday: "short",
+                            })}
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    {isAdmin && (
-                      <button
-                        className="btn btn-sm btn-outline-danger delete-btn"
-                        onClick={() => handleDeleteEvent(event._id || event.id)}
-                      >
-                        <i className="bi bi-trash delete-icon"></i>
-                      </button>
-                    )}
+                      {isAdmin && (
+                        <button
+                          className="btn btn-sm btn-outline-danger delete-btn"
+                          onClick={() =>
+                            handleDeleteAnnouncement(
+                              announcement._id || announcement.id,
+                            )
+                          }
+                        >
+                          <i className="bi bi-trash delete-icon"></i>
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           )}
 

@@ -10,7 +10,7 @@ function AdminWeeklyOffSetup() {
     const fetchWeeklyOff = async () => {
       try {
         const res = await axios.get(
-          `https://server-backend-nu.vercel.app/admin/weeklyoff/${year}`,
+          `https://server-backend-ems.vercel.app/admin/weeklyoff/${year}`,
         );
         setSaturdays(res.data?.data?.saturdays || []);
       } catch (err) {
@@ -29,7 +29,7 @@ function AdminWeeklyOffSetup() {
 
   const saveWeeklyOff = async () => {
     try {
-      await axios.post("https://server-backend-nu.vercel.app/admin/weeklyoff", {
+      await axios.post("https://server-backend-ems.vercel.app/admin/weeklyoff", {
         year,
         saturdays,
       });
@@ -78,6 +78,16 @@ function AdminWeeklyOffSetup() {
             Save
           </button>
         </div>
+      </div>
+      {/* //Added by mahesh */}
+      <div className="text-end mt-3">
+        <button
+          className="btn btn-sm custom-outline-btn"
+          style={{ minWidth: 90 }}
+          onClick={() => window.history.go(-1)}
+        >
+          Back
+        </button>
       </div>
     </div>
   );

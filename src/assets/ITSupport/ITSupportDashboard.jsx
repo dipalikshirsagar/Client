@@ -80,6 +80,32 @@ function ITSupportDashboard() {
   // }
 
   // `;
+  {
+    /* //snehal code 03-02-2026 */
+  }
+  // Limit words (for description)
+  const limitWords = (text, wordLimit = 2) => {
+    if (!text) return "-";
+    const words = text.trim().split(/\s+/);
+    return words.length > wordLimit
+      ? words.slice(0, wordLimit).join(" ") + "..."
+      : text;
+  };
+
+  // Limit attachments count (only 2 show)
+  const limitAttachments = (attachments = []) => {
+    if (!attachments.length) return ["-"];
+
+    const fileNames = attachments.map((f) => f.split("/").pop());
+
+    if (fileNames.length === 1) return fileNames;
+
+    return [fileNames[0], "..."];
+  };
+
+  {
+    /* //snehal code 03-02-2026 */
+  }
 
   /* ================= FETCH ================= */
   const fetchTickets = async () => {
@@ -253,40 +279,47 @@ function ITSupportDashboard() {
     };
   };
 
+  {
+    /* //snehal code 03-02-2026 */
+  }
+
   // const priorityBadge = (p) =>
   //   `badge bg-${p === "High" ? "danger" : p === "Medium" ? "warning" : "success"}`;
 
-  return (
-    <div className="container-fluid pt-1 px-3" style={{ minHeight: "100vh" }}>
-      <style>
-        {`
-        .status-badge {
-          padding: 4px 12px;
-          border-radius: 4px;
-          font-size: 13px;
-          font-weight: 500;
-          display: inline-block;
-          min-width: 120px;
-          text-align: center;
-        }
-        `}
-      </style>
+  const formatDateOnly = (date) => {
+    if (!date) return "-";
+    return new Date(date).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
 
+  const formatDateTime = (date) => {
+    if (!date) return "-";
+    return new Date(date).toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+  //snehal code format date
+
+  return (
+    <div className="container-fluid">
       <h3 className="mb-4" style={{ color: "#3A5FBE", fontSize: "25px" }}>
         IT Support Dashboard
       </h3>
 
       <div className="row g-2 mb-4">
-        <div className="col-6 col-md-3">
-          <div
-            className="p-3 rounded"
-            style={{
-              backgroundColor: "#fff",
-              boxShadow: "0 2px 6px rgba(0, 0, 0, 0.06)",
-              border: "1px solid #f0f0f0",
-            }}
-          >
-            <div className="d-flex align-items-center" style={{ gap: "16px" }}>
+        <div className="col-12 col-md-6 col-lg-3">
+          <div className="card shadow-sm h-100 border-0">
+            <div
+              className="card-body d-flex align-items-center"
+              style={{ gap: "16px" }}
+            >
               <h4
                 className="mb-0"
                 style={{
@@ -297,32 +330,28 @@ function ITSupportDashboard() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  color: "#1e40af",
-                  fontWeight: "bold",
+                  color: "#3A5FBE",
+                  //fontWeight: "bold",
                 }}
               >
-                {openCount}
+                {allTickets.length}
               </h4>
               <p
                 className="mb-0 fw-semibold"
                 style={{ fontSize: "18px", color: "#3A5FBE" }}
               >
-                Open Tickets
+                Total Tickets
               </p>
             </div>
           </div>
         </div>
 
-        <div className="col-6 col-md-3">
-          <div
-            className="p-3 rounded"
-            style={{
-              backgroundColor: "#fff",
-              boxShadow: "0 2px 6px rgba(0, 0, 0, 0.06)",
-              border: "1px solid #f0f0f0",
-            }}
-          >
-            <div className="d-flex align-items-center" style={{ gap: "16px" }}>
+        <div className="col-12 col-md-6 col-lg-3">
+          <div className="card shadow-sm h-100 border-0">
+            <div
+              className="card-body d-flex align-items-center"
+              style={{ gap: "16px" }}
+            >
               <h4
                 className="mb-0"
                 style={{
@@ -334,7 +363,7 @@ function ITSupportDashboard() {
                   alignItems: "center",
                   justifyContent: "center",
                   color: "#92400e",
-                  fontWeight: "bold",
+                  // fontWeight: "bold",
                 }}
               >
                 {progressCount}
@@ -349,16 +378,12 @@ function ITSupportDashboard() {
           </div>
         </div>
 
-        <div className="col-6 col-md-3">
-          <div
-            className="p-3 rounded"
-            style={{
-              backgroundColor: "#fff",
-              boxShadow: "0 2px 6px rgba(0, 0, 0, 0.06)",
-              border: "1px solid #f0f0f0",
-            }}
-          >
-            <div className="d-flex align-items-center" style={{ gap: "16px" }}>
+        <div className="col-12 col-md-6 col-lg-3">
+          <div className="card shadow-sm h-100 border-0">
+            <div
+              className="card-body d-flex align-items-center"
+              style={{ gap: "16px" }}
+            >
               <h4
                 className="mb-0"
                 style={{
@@ -370,7 +395,7 @@ function ITSupportDashboard() {
                   alignItems: "center",
                   justifyContent: "center",
                   color: "#991b1b",
-                  fontWeight: "bold",
+                  //fontWeight: "bold",
                 }}
               >
                 {closedCount}
@@ -385,16 +410,12 @@ function ITSupportDashboard() {
           </div>
         </div>
 
-        <div className="col-6 col-md-3">
-          <div
-            className="p-3 rounded"
-            style={{
-              backgroundColor: "#fff",
-              boxShadow: "0 2px 6px rgba(0, 0, 0, 0.06)",
-              border: "1px solid #f0f0f0",
-            }}
-          >
-            <div className="d-flex align-items-center" style={{ gap: "16px" }}>
+        <div className="col-12 col-md-6 col-lg-3">
+          <div className="card shadow-sm h-100 border-0">
+            <div
+              className="card-body d-flex align-items-center"
+              style={{ gap: "16px" }}
+            >
               <h4
                 className="mb-0"
                 style={{
@@ -406,16 +427,16 @@ function ITSupportDashboard() {
                   alignItems: "center",
                   justifyContent: "center",
                   color: "#166534",
-                  fontWeight: "bold",
+                  //fontWeight: "bold",
                 }}
               >
-                {allTickets.length}
+                {openCount}
               </h4>
               <p
                 className="mb-0 fw-semibold"
                 style={{ fontSize: "18px", color: "#3A5FBE" }}
               >
-                Total Tickets
+                Open Tickets
               </p>
             </div>
           </div>
@@ -697,18 +718,21 @@ function ITSupportDashboard() {
                   >
                     {t.category}
                   </td>
+                  {/* //snehal code 03-02-2026 */}
                   <td
+                    title={t.description} // full text on hover
                     style={{
                       padding: "12px",
                       verticalAlign: "middle",
                       fontSize: "14px",
                       borderBottom: "1px solid #dee2e6",
-                      whiteSpace: "nowrap",
                       color: "#212529",
+                      maxWidth: "200px",
                     }}
                   >
-                    {t.description}
+                    {limitWords(t.description, 2)}
                   </td>
+                  {/* //snehal code 03-02-2026 */}
                   <td
                     style={{
                       padding: "12px",
@@ -731,7 +755,13 @@ function ITSupportDashboard() {
                   >
                     <span style={statusBadge(t.status)}>{t.status}</span>
                   </td>
+                  {/* //snehal code 03-02-2026 */}
                   <td
+                    title={
+                      Array.isArray(t.attachment)
+                        ? t.attachment.map((f) => f.split("/").pop()).join(", ")
+                        : "-"
+                    }
                     style={{
                       padding: "12px",
                       verticalAlign: "middle",
@@ -739,14 +769,21 @@ function ITSupportDashboard() {
                       borderBottom: "1px solid #dee2e6",
                       whiteSpace: "nowrap",
                       color: "#212529",
+                      maxWidth: "180px",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
                     }}
                   >
-                    {Array.isArray(t.attachment) && t.attachment.length > 0
-                      ? t.attachment.map((file, i) => (
-                          <div key={i}>{file.split("/").pop()}</div>
-                        ))
-                      : "-"}
+                    {Array.isArray(t.attachment) && t.attachment.length > 0 ? (
+                      <>
+                        {t.attachment[0].split("/").pop()}
+                        {t.attachment.length > 1 && "..."}
+                      </>
+                    ) : (
+                      "-"
+                    )}
                   </td>
+                  {/* //snehal code 03-02-2026 */}
                   <td
                     style={{
                       padding: "12px",
@@ -769,7 +806,7 @@ function ITSupportDashboard() {
                       color: "#212529",
                     }}
                   >
-                    {new Date(t.raisedDate).toLocaleString()}
+                    {formatDateOnly(t.raisedDate)}
                   </td>
                   <td
                     style={{
@@ -781,9 +818,7 @@ function ITSupportDashboard() {
                       color: "#212529",
                     }}
                   >
-                    {t.closedDate
-                      ? new Date(t.closedDate).toLocaleString()
-                      : "-"}
+                    {formatDateOnly(t.closedDate)}
                   </td>
                   <td
                     style={{
@@ -949,7 +984,7 @@ function ITSupportDashboard() {
                     ? selectedTicket.attachment.map((file, i) => (
                         <div key={i}>
                           <a
-                            href={`https://server-backend-nu.vercel.app/uploads/${file}`}
+                            href={`https://server-backend-ems.vercel.app/uploads/${file}`}
                             download
                             className="btn btn-sm btn-outline-primary ms-2"
                           >
@@ -964,11 +999,10 @@ function ITSupportDashboard() {
                   <b>Assigned:</b> {selectedTicket.assignedTo || "-"}
                 </p>
                 <p>
-                  <b>Raised:</b>{" "}
-                  {new Date(selectedTicket.raisedDate).toLocaleString()}
+                  <b>Raised:</b> {formatDateTime(selectedTicket.raisedDate)}
                 </p>
                 <p>
-                  <b>Closed:</b> {selectedTicket.closedDate || "-"}
+                  <b>Closed:</b> {formatDateTime(selectedTicket.closedDate)}
                 </p>
 
                 <div className="row mb-2">
@@ -1057,81 +1091,61 @@ function ITSupportDashboard() {
                 className="modal-header text-white"
                 style={{ backgroundColor: "#3A5FBE" }}
               >
-                <h5 className="modal-title mb-0">Update Ticket</h5>
+                <h5 className="modal-title mb-0">Edit Ticket</h5>
                 <button
                   type="button"
                   className="btn-close btn-close-white"
-                  onClick={closeModal}
+                  onClick={() => setEditData(null)}
                 />
               </div>
 
+              {/* //snehal code 03-02-2026 */}
               <div className="modal-body">
-                <label>
-                  <b>Status:</b>
-                </label>
-                <select
-                  className="form-select mb-2"
-                  value={editData.status}
-                  onChange={(e) =>
-                    setEditData({ ...editData, status: e.target.value })
-                  }
-                >
-                  <option>Open</option>
-                  <option>In Progress</option>
-                  <option>Resolved</option>
-                  <option>Closed</option>
-                </select>
-
-                <label>
-                  <b>Assigned:</b>
-                </label>
-                <select
-                  className="form-select mb-2"
-                  value={editData.assignedTo || ""}
-                  onChange={(e) =>
-                    setEditData({ ...editData, assignedTo: e.target.value })
-                  }
-                >
-                  <option value="">Assign To</option>
-                  <option>IT Admin</option>
-                  <option>Network Team</option>
-                  <option>Hardware Team</option>
-                </select>
-
-                {/* 📎 Attachment */}
                 <div className="mb-3">
-                  <label className="form-label fw-bold">Attachment</label>
-                  <input
-                    type="file"
-                    className="form-control"
+                  <label className="form-label fw-bold">Status</label>
+                  <select
+                    className="form-select"
+                    value={editData.status}
                     onChange={(e) =>
-                      setEditData({
-                        ...editData,
-                        newAttachment: e.target.files[0],
-                      })
+                      setEditData({ ...editData, status: e.target.value })
                     }
-                  />
-                </div>
-
-                {/* Add Comment Input - Row/Column Layout */}
-                <div className="row mb-2">
-                  <div
-                    className="col-5 col-sm-3 fw-semibold"
-                    style={{ color: "#212529" }}
                   >
-                    Add Comment
-                  </div>
-
-                  <div className="col-7 col-sm-9">
-                    <input
-                      className="form-control"
-                      value={comment}
-                      onChange={(e) => setComment(e.target.value)}
-                      placeholder="Add IT Comment"
-                    />
-                    <small className="text-muted">Max 100 words</small>
-                  </div>
+                    <option>Open</option>
+                    <option>In Progress</option>
+                    <option>Resolved</option>
+                    <option>Closed</option>
+                  </select>
                 </div>
+
+                {/* Assigned */}
+                <div className="mb-3">
+                  <label className="form-label fw-bold">Assigned To</label>
+                  <select
+                    className="form-select"
+                    value={editData.assignedTo || ""}
+                    onChange={(e) =>
+                      setEditData({ ...editData, assignedTo: e.target.value })
+                    }
+                  >
+                    <option value="">Assign To</option>
+                    <option>IT Admin</option>
+                    <option>Network Team</option>
+                    <option>Hardware Team</option>
+                  </select>
+                </div>
+
+                {/* Comment */}
+                <div className="mb-3">
+                  <label className="form-label fw-bold">Add Comment</label>
+                  <input
+                    className="form-control"
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    placeholder="Add IT Comment"
+                  />
+                  <small className="text-muted">Max 100 words</small>
+                </div>
+                {/* //snehal code 03-02-2026 */}
 
                 {/* Display Previous Comments*/}
                 {editData.comments && editData.comments.length > 0 && (
@@ -1172,14 +1186,15 @@ function ITSupportDashboard() {
               <div className="modal-footer">
                 <button
                   className="btn btn-sm custom-outline-btn"
-                  style={{ minWidth: 120 }}
+                  style={{ minWidth: 90 }}
                   onClick={saveChanges}
                 >
                   Save Changes
                 </button>
 
                 <button
-                  className="btn btn-sm custom-outline-btn ms-2"
+                  className="btn btn-sm custom-outline-btn"
+                  style={{ minWidth: 90 }}
                   onClick={closeModal}
                 >
                   Close

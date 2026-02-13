@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState ,useRef} from "react";
 import axios from "axios";
 
 function ManagerDashboard({ user }) {
@@ -11,7 +11,8 @@ function ManagerDashboard({ user }) {
     month: "short",
     year: "numeric",
   }); // "31 Dec 2025" [web:9][web:20][web:1]
-
+const leaveModalRef = useRef(null);
+const regularizationModalRef = useRef(null);
   // Pagination states
   const [leavePage, setLeavePage] = useState(1);
   const [regPage, setRegPage] = useState(1);
@@ -48,12 +49,12 @@ function ManagerDashboard({ user }) {
     const fetchData = async () => {
       try {
         const leavesRes = await axios.get(
-          `https://server-backend-nu.vercel.app/leaves/manager/${user._id}`,
+          `https://server-backend-ems.vercel.app/leaves/manager/${user._id}`,
         );
         setLeaves(leavesRes.data);
 
         const regRes = await axios.get(
-          `https://server-backend-nu.vercel.app/regularization/manager/${user._id}`,
+          `https://server-backend-ems.vercel.app/regularization/manager/${user._id}`,
         );
         setRegularizations(regRes.data);
       } catch (err) {
@@ -68,19 +69,39 @@ function ManagerDashboard({ user }) {
 
   // ===== Update Leave Status =====
   const updateLeaveStatus = async (leaveId, status) => {
+    //added by rutuja
+    if (!confirm(`Are you sure you want to ${status} this leave request?`)) {
+      return;
+    }
     try {
-      const res = await axios.put(
-        `https://server-backend-nu.vercel.app/leave/${leaveId}/status`,
+      // 🔥 Optimistic UI update
+      setLeaves((prev) =>
+        prev.map((l) =>
+          l._id === leaveId ? { ...l, status } : l
+        )
+      );
+
+
+      setFilteredLeaves((prev) =>
+        prev.map((l) =>
+          l._id === leaveId ? { ...l, status } : l
+        )
+      );
+
+      if (selectedLeave?._id === leaveId) {
+        setSelectedLeave((prev) => ({ ...prev, status }));
+      }
+
+      await axios.put(
+        `https://server-backend-ems.vercel.app/leave/${leaveId}/status`,
         {
           status,
           userId: user._id,
           role: "manager",
-        },
+        }
       );
-      const updatedLeave = res.data.leave;
-      setLeaves((prev) =>
-        prev.map((l) => (l._id === leaveId ? { ...l, ...updatedLeave } : l)),
-      );
+      //Added by Rutuja
+      alert(`Leave request ${status} successfully!`);
     } catch (err) {
       console.error("Error updating leave status:", err);
     }
@@ -90,7 +111,7 @@ function ManagerDashboard({ user }) {
   const updateRegularizationStatus = async (attendanceId, status) => {
     try {
       const res = await axios.put(
-        `https://server-backend-nu.vercel.app/attendance/regularization/${attendanceId}/status`,
+        `https://server-backend-ems.vercel.app/attendance/regularization/${attendanceId}/status`,
         {
           status,
           approvedBy: user._id,
@@ -228,9 +249,9 @@ function ManagerDashboard({ user }) {
           {totalItems === 0
             ? "0–0 of 0"
             : `${indexOfFirstItem + 1}-${Math.min(
-                indexOfLastItem,
-                totalItems,
-              )} of ${totalItems}`}
+              indexOfLastItem,
+              totalItems,
+            )} of ${totalItems}`}
         </span>
 
         {/* Navigation arrows */}
@@ -239,7 +260,7 @@ function ManagerDashboard({ user }) {
           style={{ marginLeft: "16px" }}
         >
           <button
-            className="btn btn-sm border-0"
+             className="btn btn-sm focus-ring"
             onClick={() => setPage(currentPage - 1)}
             disabled={currentPage === 1}
             style={{ fontSize: "18px", padding: "2px 8px" }}
@@ -247,7 +268,7 @@ function ManagerDashboard({ user }) {
             ‹
           </button>
           <button
-            className="btn btn-sm border-0"
+             className="btn btn-sm focus-ring"
             onClick={() => setPage(currentPage + 1)}
             disabled={currentPage === totalPages}
             style={{ fontSize: "18px", padding: "2px 8px" }}
@@ -366,16 +387,75 @@ function ManagerDashboard({ user }) {
   };
 
   ///end
+useEffect(() => {
+  const modal =
+    selectedLeave
+      ? leaveModalRef.current
+      : selectedRegularization
+      ? regularizationModalRef.current
+      : null;
 
+  if (!modal) return;
+
+  const focusableElements = modal.querySelectorAll(
+    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+  );
+
+  if (!focusableElements.length) return;
+
+  const firstEl = focusableElements[0];
+  const lastEl = focusableElements[focusableElements.length - 1];
+
+  // Auto focus first element
+  firstEl.focus();
+
+  const handleKeyDown = (e) => {
+    if (e.key !== "Tab") return;
+
+    if (e.shiftKey) {
+      if (document.activeElement === firstEl) {
+        e.preventDefault();
+        lastEl.focus();
+      }
+    } else {
+      if (document.activeElement === lastEl) {
+        e.preventDefault();
+        firstEl.focus();
+      }
+    }
+  };
+
+  document.addEventListener("keydown", handleKeyDown);
+
+  return () => {
+    document.removeEventListener("keydown", handleKeyDown);
+  };
+}, [selectedLeave, selectedRegularization]);
+
+//bg scroll stop
+		 useEffect(() => {
+			if (selectedLeave || selectedRegularization) {
+			  document.body.style.overflow = "hidden";
+			  document.documentElement.style.overflow = "hidden";
+			} else {
+			  document.body.style.overflow = "";
+			  document.documentElement.style.overflow = "";
+			}
+
+			return () => {
+			  document.body.style.overflow = "";
+			  document.documentElement.style.overflow = "";
+			};
+		  }, [selectedLeave, selectedRegularization]);
+		// dip code changes 09-02-2026	
   return (
     <div className="container-fluid">
       {/* ==================== Leave Requests ==================== */}
-      <h2
+      <h2 className="mb-4"
         style={{
           color: "#3A5FBE",
           fontSize: "25px",
-          marginLeft: "15px",
-          marginBottom: "40px",
+         
         }}
       >
         Leave Requests Assigned to You
@@ -393,11 +473,12 @@ function ManagerDashboard({ user }) {
             style={{ justifyContent: "space-between" }}
           >
             {/* Status Filter */}
-            <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
+            <div className="col-12 col-md-auto d-flex align-items-center mb-1">
               <label
                 htmlFor="leaveStatusFilter"
                 className="fw-bold mb-0"
-                style={{ fontSize: "16px", color: "#3A5FBE" }}
+                style={{ fontSize: "16px", color: "#3A5FBE",width: "50px",
+                  minWidth: "50px", }}
               >
                 Status
               </label>
@@ -416,11 +497,12 @@ function ManagerDashboard({ user }) {
             </div>
 
             {/* Name Filter */}
-            <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
+            <div className="col-12 col-md-auto d-flex align-items-center mb-1">
               <label
                 htmlFor="leaveNameFilter"
                 className="fw-bold mb-0"
-                style={{ fontSize: "16px", color: "#3A5FBE" }}
+                style={{ fontSize: "16px", color: "#3A5FBE" ,width: "50px",
+                  minWidth: "50px",}}
               >
                 Name
               </label>
@@ -436,11 +518,12 @@ function ManagerDashboard({ user }) {
             </div>
 
             {/* From Date */}
-            <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
+            <div className="col-12 col-md-auto d-flex align-items-center mb-1">
               <label
                 htmlFor="leaveDateFromFilter"
                 className="fw-bold mb-0"
-                style={{ fontSize: "16px", color: "#3A5FBE", width: "50px" }}
+                style={{ fontSize: "16px", color: "#3A5FBE", width: "50px",
+                  minWidth: "50px",}}
               >
                 From
               </label>
@@ -479,7 +562,8 @@ function ManagerDashboard({ user }) {
               <label
                 htmlFor="leaveDateToFilter"
                 className="form-label-responsive fw-bold mb-0"
-                style={{ fontSize: "16px", color: "#3A5FBE" }}
+                style={{ fontSize: "16px", color: "#3A5FBE" ,width: "50px",
+                  minWidth: "50px",}}
               >
                 To
               </label>
@@ -758,9 +842,9 @@ function ManagerDashboard({ user }) {
                         {l.duration === "half"
                           ? 0.5
                           : Math.floor(
-                              (new Date(l.dateTo) - new Date(l.dateFrom)) /
-                                (1000 * 60 * 60 * 24),
-                            ) + 1}
+                            (new Date(l.dateTo) - new Date(l.dateFrom)) /
+                            (1000 * 60 * 60 * 24),
+                          ) + 1}
                       </td>
                       {/* <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>{l.reason}</td> */}
 
@@ -882,11 +966,12 @@ function ManagerDashboard({ user }) {
               style={{ display: "block", background: "rgba(0,0,0,0.5)" }}
             >
               <div
-                className="modal-dialog  modal-dialog-scrollable"
+                className="modal-dialog  "
+                ref={leaveModalRef}
                 style={{
                   maxWidth: "650px",
                   width: "95%",
-                  marginTop: "60px",
+                  marginTop: "160px",
                   marginLeft: "auto",
                   marginRight: "auto",
                 }}
@@ -999,6 +1084,23 @@ function ManagerDashboard({ user }) {
                           </span>
                         </div>
                       </div>
+                      {/* //Added by rutuja */}
+                      <div className="row mb-2">
+                        <div className="col-5 col-sm-3 fw-semibold">
+                          {selectedLeave.status === "approved" ? "Approved by" :
+                            selectedLeave.status === "rejected" ? "Rejected by" : "Reviewed by"}
+                        </div>
+                        <div className="col-sm-9 col-5">
+                          {selectedLeave.approvedBy ? (
+                            <>
+                              {selectedLeave.approvedBy.name}
+                              {selectedLeave.approvedBy.role && ` (${selectedLeave.approvedBy.role})`}
+                            </>
+                          ) : (
+                            "-"
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -1053,12 +1155,11 @@ function ManagerDashboard({ user }) {
       )}
 
       {/* ==================== Regularization Requests ==================== */}
-      <h2
+      <h2 className="mb-4"
         style={{
           color: "#3A5FBE",
           fontSize: "25px",
-          marginLeft: "15px",
-          marginBottom: "40px",
+         
           marginTop: "20px",
         }}
       >
@@ -1080,11 +1181,12 @@ function ManagerDashboard({ user }) {
                 style={{ justifyContent: "space-between" }}
               >
                 {/* Status Filter */}
-                <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
+                <div className="col-12 col-md-auto d-flex align-items-center  mb-1">
                   <label
                     htmlFor="regStatusFilter"
                     className="fw-bold mb-0"
-                    style={{ fontSize: "16px", color: "#3A5FBE" }}
+                    style={{ fontSize: "16px", color: "#3A5FBE", width: "50px",
+                  minWidth: "50px", }}
                   >
                     Status
                   </label>
@@ -1103,11 +1205,12 @@ function ManagerDashboard({ user }) {
                 </div>
 
                 {/* Name Filter */}
-                <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
+                <div className="col-12 col-md-auto d-flex align-items-center  mb-1">
                   <label
                     htmlFor="regNameFilter"
                     className="fw-bold mb-0"
-                    style={{ fontSize: "16px", color: "#3A5FBE" }}
+                    style={{ fontSize: "16px", color: "#3A5FBE" ,width: "50px",
+                  minWidth: "50px",}}
                   >
                     Name
                   </label>
@@ -1123,14 +1226,16 @@ function ManagerDashboard({ user }) {
                 </div>
 
                 {/* From Date */}
-                <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1">
+                <div className="col-12 col-md-auto d-flex align-items-center  mb-1">
                   <label
                     htmlFor="regDateFromFilter"
                     className="fw-bold mb-0"
                     style={{
                       fontSize: "16px",
                       color: "#3A5FBE",
+                      
                       width: "50px",
+                  minWidth: "50px",
                     }}
                   >
                     From
@@ -1170,7 +1275,8 @@ function ManagerDashboard({ user }) {
                   <label
                     htmlFor="regDateToFilter"
                     className="form-label-responsive fw-bold mb-0"
-                    style={{ fontSize: "16px", color: "#3A5FBE" }}
+                    style={{ fontSize: "16px", color: "#3A5FBE",width: "50px",
+                  minWidth: "50px", }}
                   >
                     To
                   </label>
@@ -1571,11 +1677,12 @@ function ManagerDashboard({ user }) {
                 style={{ display: "block", background: "rgba(0,0,0,0.5)" }}
               >
                 <div
-                  className="modal-dialog  modal-dialog-scrollable"
+                  className="modal-dialog  "
+                  ref={regularizationModalRef}
                   style={{
                     maxWidth: "650px",
                     width: "95%",
-                    marginTop: "60px",
+                    marginTop: "160px",
                     marginLeft: "auto",
                     marginRight: "auto",
                   }}
@@ -1623,11 +1730,11 @@ function ManagerDashboard({ user }) {
                             {selectedRegularization?.regularizationRequest
                               ?.requestedAt
                               ? df.format(
-                                  new Date(
-                                    selectedRegularization.regularizationRequest
-                                      .requestedAt,
-                                  ),
-                                )
+                                new Date(
+                                  selectedRegularization.regularizationRequest
+                                    .requestedAt,
+                                ),
+                              )
                               : "-"}
                           </div>
                         </div>
@@ -1665,7 +1772,7 @@ function ManagerDashboard({ user }) {
 
                         <div className="row mb-2">
                           <div className="col-5 col-sm-3 fw-semibold">Mode</div>
-                          <div className="col-sm-9">
+                          <div className="col-sm-9 col-5">
                             {selectedRegularization?.mode || "-"}
                           </div>
                         </div>
@@ -1699,12 +1806,12 @@ function ManagerDashboard({ user }) {
                                   ?.status === "Approved"
                                   ? "bg-success"
                                   : selectedRegularization
-                                        ?.regularizationRequest?.status ===
-                                      "Rejected"
+                                    ?.regularizationRequest?.status ===
+                                    "Rejected"
                                     ? "bg-danger"
                                     : selectedRegularization
-                                          ?.regularizationRequest?.status ===
-                                        "Pending"
+                                      ?.regularizationRequest?.status ===
+                                      "Pending"
                                       ? "bg-warning text-dark"
                                       : "bg-secondary")
                               }
@@ -1721,34 +1828,34 @@ function ManagerDashboard({ user }) {
                     <div className="modal-footer border-0 pt-0">
                       {selectedRegularization?.regularizationRequest?.status?.toLowerCase() ===
                         "pending" && (
-                        <>
-                          <button
-                            className="btn btn-outline-success"
-                            onClick={() => {
-                              updateRegularizationStatus(
-                                selectedRegularization?._id,
-                                "Approved",
-                              );
-                              setSelectedRegularization(null);
-                            }}
-                          >
-                            Approve
-                          </button>
+                          <>
+                            <button
+                              className="btn btn-outline-success"
+                              onClick={() => {
+                                updateRegularizationStatus(
+                                  selectedRegularization?._id,
+                                  "Approved",
+                                );
+                                setSelectedRegularization(null);
+                              }}
+                            >
+                              Approve
+                            </button>
 
-                          <button
-                            className="btn btn-outline-danger"
-                            onClick={() => {
-                              updateRegularizationStatus(
-                                selectedRegularization?._id,
-                                "Rejected",
-                              );
-                              setSelectedRegularization(null);
-                            }}
-                          >
-                            Reject
-                          </button>
-                        </>
-                      )}
+                            <button
+                              className="btn btn-outline-danger"
+                              onClick={() => {
+                                updateRegularizationStatus(
+                                  selectedRegularization?._id,
+                                  "Rejected",
+                                );
+                                setSelectedRegularization(null);
+                              }}
+                            >
+                              Reject
+                            </button>
+                          </>
+                        )}
 
                       <button
                         className="btn custom-outline-btn"

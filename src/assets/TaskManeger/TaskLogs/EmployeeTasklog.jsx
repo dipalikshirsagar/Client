@@ -204,7 +204,7 @@ const EmployeeTasklog = ({ user }) => {
       const token = localStorage.getItem("accessToken");
 
       const logRes = await fetch(
-        `https://server-backend-nu.vercel.app/api/tasklogs/employee/${user._id}`,
+        `https://server-backend-ems.vercel.app/api/tasklogs/employee/${user._id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -215,7 +215,7 @@ const EmployeeTasklog = ({ user }) => {
       const logsData = await logRes.json();
 
       const taskRes = await fetch(
-        `https://server-backend-nu.vercel.app/tasks/assigned/${user._id}`,
+        `https://server-backend-ems.vercel.app/tasks/assigned/${user._id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -395,7 +395,7 @@ const EmployeeTasklog = ({ user }) => {
   //       let res;
   //       if (editIndex !== null) {
   //         res = await axios.put(
-  //           `https://server-backend-nu.vercel.app/api/tasklogs/${editIndex}`,
+  //           `https://server-backend-ems.vercel.app/api/tasklogs/${editIndex}`,
   //           payload,
   //           {
   //           headers: {
@@ -407,7 +407,7 @@ const EmployeeTasklog = ({ user }) => {
   //          await fetchLogs();
   //       } else {
   //         const res = await axios.post(
-  //           "https://server-backend-nu.vercel.app/api/tasklogs/",
+  //           "https://server-backend-ems.vercel.app/api/tasklogs/",
   //           payload,
   //           {
   //           headers: {
@@ -466,15 +466,16 @@ const EmployeeTasklog = ({ user }) => {
         challengesFaced: form.challengesFaced,
         whatLearnedToday: form.whatLearnedToday,
         status: form.status,
-        ...(form.status === "InProgress" || form.status === "In Progress" && {
-          progressToday: Number(form.progressToday) || 0,
-        }),
+        ...(form.status === "InProgress" ||
+          (form.status === "In Progress" && {
+            progressToday: Number(form.progressToday) || 0,
+          })),
       };
 
       const endpoint =
         editIndex !== null
-          ? `https://server-backend-nu.vercel.app/api/tasklogs/${editIndex}`
-          : "https://server-backend-nu.vercel.app/api/tasklogs/";
+          ? `https://server-backend-ems.vercel.app/api/tasklogs/${editIndex}`
+          : "https://server-backend-ems.vercel.app/api/tasklogs/";
 
       const method = editIndex !== null ? "PUT" : "POST";
 
@@ -550,92 +551,75 @@ const EmployeeTasklog = ({ user }) => {
   // };
 
   const handleFilter = () => {
-  let data = [...logs];
+    let data = [...logs];
 
-  if (searchText) {
-    const search = searchText.trim().toLowerCase();
-    const searchNumber = Number(search);
-    const isNumberSearch = !isNaN(searchNumber);
+    if (searchText) {
+      const search = searchText.trim().toLowerCase();
+      const searchNumber = Number(search);
+      const isNumberSearch = !isNaN(searchNumber);
 
+      data = data.filter((l) => {
+        const taskName = l?.task?.taskName?.toLowerCase() || "";
+        const desc = l?.workDescription?.toLowerCase() || "";
+        const status = l?.status?.toLowerCase() || "";
 
-    data = data.filter((l) => {
-      const taskName = l?.task?.taskName?.toLowerCase() || "";
-      const desc = l?.workDescription?.toLowerCase() || "";
-      const status = l?.status?.toLowerCase() || "";
+        // ✅ Time Spent (2, 2 hrs, 2.5)
+        const timeSpent =
+          l?.totalHours !== undefined ? `${l.totalHours} hrs` : "";
 
-      // ✅ Time Spent (2, 2 hrs, 2.5)
-      const timeSpent = l?.totalHours !== undefined
-        ? `${l.totalHours} hrs`
-        : "";
+        // ✅ Working Days (calculated)
+        const workingDays =
+          l?.task?.dateOfTaskAssignment && l?.task?.dateOfExpectedCompletion
+            ? getWorkingDays(
+                l.task.dateOfTaskAssignment,
+                l.task.dateOfExpectedCompletion,
+              ).toString()
+            : "";
 
-      // ✅ Working Days (calculated)
-      const workingDays =
-        l?.task?.dateOfTaskAssignment &&
-        l?.task?.dateOfExpectedCompletion
-          ? getWorkingDays(
-              l.task.dateOfTaskAssignment,
-              l.task.dateOfExpectedCompletion,
-            ).toString()
-          : "";
+        return (
+          (!isNumberSearch &&
+            (taskName.includes(search) ||
+              desc.includes(search) ||
+              status.includes(search))) ||
+          // ✅ Time Spent (only when user types hr / hrs)
+          (search.includes("hr") && timeSpent.toLowerCase().includes(search)) ||
+          // ✅ Working Days (ONLY exact number)
+          (isNumberSearch && Number(workingDays) === searchNumber)
+        );
+      });
+    }
 
-     return (
+    if (filterDate) {
+      const filter = new Date(filterDate);
 
-      (
-    !isNumberSearch &&
-    (
-        taskName.includes(search) ||
-        desc.includes(search) ||
-        status.includes(search) 
- )
-  )||
-        // ✅ Time Spent (only when user types hr / hrs)
-        (
-          (search.includes("hr")) &&
-          timeSpent.toLowerCase().includes(search)
-        ) ||
+      data = data.filter((l) => {
+        // Use date range if available
+        const start =
+          l?.task?.dateOfTaskAssignment || l?.startDate || l?.date || "";
+        const end =
+          l?.task?.dateOfExpectedCompletion || l?.endDate || l?.date || "";
 
-        // ✅ Working Days (ONLY exact number)
-        (
-           isNumberSearch &&
-    Number(workingDays) === searchNumber
-        )
+        if (!start || !end) return false;
 
-      );
+        const startDate = new Date(start);
+        const endDate = new Date(end);
 
-    });
-  }
+        // check if filterDate is within the task date range
+        return filter >= startDate && filter <= endDate;
+      });
+    }
 
-if (filterDate) {
-    const filter = new Date(filterDate);
-
-    data = data.filter((l) => {
-      // Use date range if available
-      const start =
-        l?.task?.dateOfTaskAssignment || l?.startDate || l?.date || "";
-      const end =
-        l?.task?.dateOfExpectedCompletion || l?.endDate || l?.date || "";
-
-      if (!start || !end) return false;
-
-      const startDate = new Date(start);
-      const endDate = new Date(end);
-
-      // check if filterDate is within the task date range
-      return filter >= startDate && filter <= endDate;
-    });
-  }
-
-  setFilteredLogs(data);
-  setIsFiltered(true);
-  setPage(0);
-};/////samiksha
+    setFilteredLogs(data);
+    setIsFiltered(true);
+    setPage(0);
+  }; /////samiksha
 
   const handleReset = () => {
     setSearchText("");
     setFilterDate("");
     setFilteredLogs([]);
-    setIsFiltered(false); 
-     setPage(0);
+    setIsFiltered(false);
+    setPage(0);
   };
 
   const handleEdit = (log) => {
@@ -646,9 +630,7 @@ if (filterDate) {
     setForm({
       task: log?.task?._id || "",
       employee: user._id,
-      date: log?.date
-  ? new Date(log.date).toISOString().split("T")[0]
-  : "",
+      date: log?.date ? new Date(log.date).toISOString().split("T")[0] : "",
       startTime: log.startTime ? dayjs(log.startTime, "HH:mm") : null,
       endTime: log.endTime ? dayjs(log.endTime, "HH:mm") : null,
       totalHours: log?.totalHours,
@@ -660,7 +642,7 @@ if (filterDate) {
     });
   };
 
- const tableData = isFiltered ? filteredLogs : logs;
+  const tableData = isFiltered ? filteredLogs : logs;
   const totalRows = tableData.length;
 
   const paginatedData = tableData.slice(
@@ -674,14 +656,30 @@ if (filterDate) {
     setViewData(rowData);
     setShowViewModal(true);
   };
-const handleFilterSubmit = (e) => {
+  const handleFilterSubmit = (e) => {
     e.preventDefault();
     applyFilters();
   };
+
+  useEffect(() => {
+    if (showModal || showViewModal) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [showModal, showViewModal]);
+
   return (
-     <div className="container-fluid">
-       <style>
-      {`
+    <div className="container-fluid">
+      <style>
+        {`
       @media (max-width: 768px) {
         input[type="date"],
         input[type="week"],
@@ -728,6 +726,7 @@ const handleFilterSubmit = (e) => {
       </div>
 
       {/* SEARCH BAR */}
+      {/* mahesh code search bar */}
       <div className="card mb-4 shadow-sm border-0">
         <div className="card-body">
           <form
@@ -735,8 +734,7 @@ const handleFilterSubmit = (e) => {
             onSubmit={handleFilterSubmit}
             style={{ justifyContent: "space-between" }}
           >
-            {/*  SEARCH */}
-            <div className="col-12 col-md-auto d-flex align-items-center gap-2  mb-1">
+            <div className="col-12 col-md-auto d-flex align-items-center  gap-3  mb-1 ms-1">
               <label
                 htmlFor="searchFilter"
                 className="fw-bold mb-0"
@@ -745,17 +743,16 @@ const handleFilterSubmit = (e) => {
                 Search
               </label>
               <input
-               className="form-control"
+                className="form-control"
                 placeholder="Search By Any Field..."
                 value={searchText}
                 type="search"
                 onChange={(e) => setSearchText(e.target.value)}
-                style={{ minWidth: 150 }}
+                style={{ flex: 1, minWidth: "150px" }}
               />
             </div>
-            <div className="col-12 col-md-auto d-flex align-items-center  mb-1">
+            <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1 ms-1">
               <label
-               
                 className="fw-bold mb-0 text-start text-md-end"
                 style={{
                   fontSize: "16px",
@@ -772,26 +769,25 @@ const handleFilterSubmit = (e) => {
                 type="date"
                 value={filterDate}
                 onChange={(e) => setFilterDate(e.target.value)}
-                
-                style={{ minWidth: 150 }}
+                style={{ flex: 1, minWidth: "150px" }}
               />
             </div>
-             <div className="col-auto ms-auto d-flex gap-2">
+            <div className="col-auto ms-auto d-flex gap-2">
               <button
-              onClick={handleFilter}
-              className="btn btn-sm custom-outline-btn"
-              style={{ minWidth: 90 }}
-            >
-              Filter
-            </button>
+                onClick={handleFilter}
+                className="btn btn-sm custom-outline-btn"
+                style={{ minWidth: 90 }}
+              >
+                Filter
+              </button>
 
-            <button
-              onClick={handleReset}
-              className="btn btn-sm custom-outline-btn"
-              style={{ minWidth: 90 }}
-            >
-              Reset
-            </button>
+              <button
+                onClick={handleReset}
+                className="btn btn-sm custom-outline-btn"
+                style={{ minWidth: 90 }}
+              >
+                Reset
+              </button>
             </div>
           </form>
         </div>
@@ -801,7 +797,7 @@ const handleFilterSubmit = (e) => {
       <div
         style={{
           background: "#fff",
-         
+
           boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
           overflowX: "auto",
         }}
@@ -835,7 +831,7 @@ const handleFilterSubmit = (e) => {
                 <th
                   key={h}
                   style={{
-                     padding: "12px",
+                    padding: "12px",
                     textAlign: "left",
                     fontSize: "14px",
                     fontWeight: 600,
@@ -852,7 +848,7 @@ const handleFilterSubmit = (e) => {
           <tbody>
             {/* {tableData.length === 0 ? ( */}
             {/* samiksha */}
-            {paginatedData.length === 0 ?  (
+            {paginatedData.length === 0 ? (
               <tr>
                 <td
                   colSpan="8"
@@ -883,33 +879,40 @@ const handleFilterSubmit = (e) => {
                     (e.currentTarget.style.background = "transparent")
                   }
                 >
-                  <td style={{
+                  <td
+                    style={{
                       padding: "12px",
                       verticalAlign: "middle",
                       fontSize: "14px",
                       borderBottom: "1px solid #dee2e6",
                       whiteSpace: "nowrap",
-                    }}>
+                    }}
+                  >
                     {formatDate(l.date)}
                   </td>
 
-                  <td style={{
-                      padding: "12px",
-                      verticalAlign: "middle",
-                      fontSize: "14px",
-                      borderBottom: "1px solid #dee2e6",
-                      whiteSpace: "nowrap",textTransform:"capitalize"
-                    }}>
-                    {l?.task?.taskName || l.task}
-                  </td>
-
-                  <td style={{
+                  <td
+                    style={{
                       padding: "12px",
                       verticalAlign: "middle",
                       fontSize: "14px",
                       borderBottom: "1px solid #dee2e6",
                       whiteSpace: "nowrap",
-                    }}>
+                      textTransform: "capitalize",
+                    }}
+                  >
+                    {l?.task?.taskName || l.task}
+                  </td>
+
+                  <td
+                    style={{
+                      padding: "12px",
+                      verticalAlign: "middle",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #dee2e6",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
                     {l?.task?.dateOfTaskAssignment &&
                     l?.task?.dateOfExpectedCompletion ? (
                       <>
@@ -953,13 +956,15 @@ const handleFilterSubmit = (e) => {
                       "—"
                     )}
                   </td>
-                  <td style={{
+                  <td
+                    style={{
                       padding: "12px",
                       verticalAlign: "middle",
                       fontSize: "14px",
                       borderBottom: "1px solid #dee2e6",
                       whiteSpace: "nowrap",
-                    }}>
+                    }}
+                  >
                     {l?.task?.dateOfTaskAssignment &&
                     l?.task?.dateOfExpectedCompletion
                       ? getWorkingDays(
@@ -969,42 +974,57 @@ const handleFilterSubmit = (e) => {
                       : "—"}
                   </td>
 
-                  <td style={{
+                  <td
+                    style={{
                       padding: "12px",
                       verticalAlign: "middle",
                       fontSize: "14px",
                       borderBottom: "1px solid #dee2e6",
                       whiteSpace: "nowrap",
-                    }}>
+                    }}
+                  >
                     {formatDisplayHours(l.totalHours)} Hrs
                   </td>
 
                   <td
                     style={{
                       padding: "12px",
-                      fontSize:"14px",
-                      width: "300px",  
-                      height: "60px",  
+                      fontSize: "14px",
+                      width: "300px",
+                      height: "60px",
                       overflow: "auto",
                       wordWrap: "break-word",
-                      display: "block"
+                      // display: "block",
+                      verticalAlign: "middle",
                     }}
                   >
-                    {l.workDescription}
+                    <div
+                      style={{
+                        maxHeight: "60px",
+                        overflowY: "auto",
+                        wordBreak: "break-word",
+                        whiteSpace: "normal",
+                      }}
+                    >
+                      {l.workDescription}
+                    </div>
                   </td>
 
                   {/* STATUS */}
-                  <td style={{
+                  <td
+                    style={{
                       padding: "12px",
                       verticalAlign: "middle",
                       fontSize: "14px",
                       borderBottom: "1px solid #dee2e6",
                       whiteSpace: "nowrap",
-                    }}>
+                    }}
+                  >
                     {/* ///harshda code change */}
                     <span>
                       {l.status}
-                      {(l.status === "InProgress" || l.status === "In Progress")&& (
+                      {(l.status === "InProgress" ||
+                        l.status === "In Progress") && (
                         <span
                           style={{ marginLeft: "5px" }} ///harshda code change
                         >
@@ -1015,16 +1035,17 @@ const handleFilterSubmit = (e) => {
                   </td>
 
                   {/* ACTION */}
-                  <td style={{
+                  <td
+                    style={{
                       padding: "12px",
                       verticalAlign: "middle",
                       fontSize: "14px",
                       borderBottom: "1px solid #dee2e6",
                       whiteSpace: "nowrap",
-                    }}>
+                    }}
+                  >
                     <button
                       style={{
-                        
                         minWidth: 90,
                       }}
                       onClick={(e) => {
@@ -1082,6 +1103,7 @@ const handleFilterSubmit = (e) => {
 
         {/* Prev */}
         <button
+          className="btn btn-sm focus-ring "
           onClick={() => setPage((p) => Math.max(p - 1, 0))}
           disabled={page === 0}
           style={{
@@ -1097,6 +1119,7 @@ const handleFilterSubmit = (e) => {
 
         {/* Next */}
         <button
+          className="btn btn-sm focus-ring "
           onClick={() =>
             setPage((p) => ((p + 1) * rowsPerPage >= totalRows ? p : p + 1))
           }
@@ -1130,13 +1153,14 @@ const handleFilterSubmit = (e) => {
             inset: 0,
             zIndex: 1050,
           }}
-          onClick={() => setShowModal(false)}
+          // onClick={() => setShowModal(false)}
         >
           <div
             className="modal-dialog"
             style={{
               maxWidth: "600px",
               width: "95%",
+              marginTop: "120px",
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -1201,16 +1225,18 @@ const handleFilterSubmit = (e) => {
                     </select>
                   </div>
                   <div className="col-12">
-  <label className="form-label">Date</label>
-  <input
-    type="date"
-    className="form-control"
-    disabled={isViewMode}
-    value={form.date}
-    onChange={(e) => setForm({ ...form, date: e.target.value })}
-    required
-  />
-</div>
+                    <label className="form-label">Date</label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      disabled={isViewMode}
+                      value={form.date}
+                      onChange={(e) =>
+                        setForm({ ...form, date: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
                   <div className="col-md-6 col-12">
                     <label className="form-label">Start Time</label>
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -1267,10 +1293,7 @@ const handleFilterSubmit = (e) => {
                   </div>
                   <div className="col-12">
                     {/* rutuja code only label */}
-                    <label className="form-label">
-                      Work Description ({countChars(form.workDescription)}/
-                      {CHAR_LIMITS.workDescription} characters)
-                    </label>
+                    <label className="form-label">Work Description</label>
 
                     <textarea
                       className="form-control"
@@ -1292,15 +1315,25 @@ const handleFilterSubmit = (e) => {
 
                       // rutuja code end
                     />
+                    <div
+                      className="char-count"
+                      style={{
+                        display: "flex",
+                        justifyContent: "flex-end",
+                        fontSize: "12px",
+                        color: "#6c757d",
+                        marginTop: "4px",
+                      }}
+                    >
+                      ({countChars(form.workDescription)}/
+                      {CHAR_LIMITS.workDescription} characters)
+                    </div>
                   </div>
 
                   {/* Challenges */}
                   <div className="col-12">
                     {/* rutuja code update only label */}
-                    <label className="form-label">
-                      Challenges Faced ({countChars(form.challengesFaced)}/
-                      {CHAR_LIMITS.challengesFaced} characters)
-                    </label>
+                    <label className="form-label">Challenges Faced</label>
                     <textarea
                       className="form-control"
                       rows={2}
@@ -1319,15 +1352,25 @@ const handleFilterSubmit = (e) => {
                       }}
                       // rutuja code end
                     />
+                    <div
+                      className="char-count"
+                      style={{
+                        display: "flex",
+                        justifyContent: "flex-end",
+                        fontSize: "12px",
+                        color: "#6c757d",
+                        marginTop: "4px",
+                      }}
+                    >
+                      ({countChars(form.challengesFaced)}/
+                      {CHAR_LIMITS.challengesFaced} characters)
+                    </div>
                   </div>
 
                   {/* Learned */}
                   <div className="col-12">
                     {/* rutuja code updated only label */}
-                    <label className="form-label">
-                      What I Learned Today ({countChars(form.whatLearnedToday)}/
-                      {CHAR_LIMITS.whatLearnedToday} characters)
-                    </label>
+                    <label className="form-label">What I Learned Today</label>
                     <textarea
                       className="form-control"
                       rows={2}
@@ -1346,6 +1389,19 @@ const handleFilterSubmit = (e) => {
                       }}
                       // rutuja code end
                     />
+                    <div
+                      className="char-count"
+                      style={{
+                        display: "flex",
+                        justifyContent: "flex-end",
+                        fontSize: "12px",
+                        color: "#6c757d",
+                        marginTop: "4px",
+                      }}
+                    >
+                      ({countChars(form.whatLearnedToday)}/
+                      {CHAR_LIMITS.whatLearnedToday} characters)
+                    </div>
                   </div>
 
                   {/* Status */}
@@ -1366,28 +1422,29 @@ const handleFilterSubmit = (e) => {
                   </div>
 
                   {/* Show Progress Today input only if InProgress */}
-                  {form.status === "InProgress" || form.status === "In Progress" && (
-                    <div className="col-12">
-                      <label>Progress Today (%)</label>
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={form.progressToday}
-                        onChange={(e) =>
-                          setForm({ ...form, progressToday: e.target.value })
-                        }
-                        required
-                        style={{
-                          width: "100%",
-                          padding: "8px 10px",
-                          borderRadius: 6,
-                          border: "1px solid #ccc",
-                          marginTop: 6,
-                        }}
-                      />
-                    </div>
-                  )}
+                  {form.status === "InProgress" ||
+                    (form.status === "In Progress" && (
+                      <div className="col-12">
+                        <label>Progress Today (%)</label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={form.progressToday}
+                          onChange={(e) =>
+                            setForm({ ...form, progressToday: e.target.value })
+                          }
+                          required
+                          style={{
+                            width: "100%",
+                            padding: "8px 10px",
+                            borderRadius: 6,
+                            border: "1px solid #ccc",
+                            marginTop: 6,
+                          }}
+                        />
+                      </div>
+                    ))}
                 </div>
               </div>
 
@@ -1434,7 +1491,7 @@ const handleFilterSubmit = (e) => {
             inset: 0,
             zIndex: 1050,
           }}
-         // onClick={() => setShowViewModal(false)}  //comment by harshada
+          // onClick={() => setShowViewModal(false)}  //comment by harshada
         >
           <div
             className="modal-dialog"
@@ -1557,13 +1614,13 @@ const handleFilterSubmit = (e) => {
                       Status
                     </div>
                     <div className="col-7 col-sm-9">
-                      <span >
+                      <span>
                         {viewData.status}
-                        {(viewData.status === "InProgress" || viewData.status === "In Progress") && (
+                        {(viewData.status === "InProgress" ||
+                          viewData.status === "In Progress") && (
                           <span
                             style={{
-              
-                              marginLeft: "6px",   //remove colore harshada
+                              marginLeft: "6px", //remove colore harshada
                             }}
                           >
                             {viewData.progressToday}%

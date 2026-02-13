@@ -29,7 +29,7 @@
 
 //     try {
 //       const token = localStorage.getItem("accessToken");
-//       await axios.delete(`https://server-backend-nu.vercel.app/soft/deleteEmployee/${id}`, {
+//       await axios.delete(`https://server-backend-ems.vercel.app/soft/deleteEmployee/${id}`, {
 //         headers: { Authorization: `Bearer ${token}` },
 //       });
 
@@ -49,7 +49,7 @@
 
 //   //   try {
 //   //     const token = localStorage.getItem("accessToken");
-//   //     const res = await axios.delete(`https://server-backend-nu.vercel.app/deleteEmployee/${id}`, {
+//   //     const res = await axios.delete(`https://server-backend-ems.vercel.app/deleteEmployee/${id}`, {
 //   //       headers: { Authorization: `Bearer ${token}` },
 //   //     });
 
@@ -77,7 +77,7 @@
 
 //   try {
 //     const token = localStorage.getItem("accessToken");
-//     const res = await axios.delete(`https://server-backend-nu.vercel.app/deleteEmployee/${id}`, {
+//     const res = await axios.delete(`https://server-backend-ems.vercel.app/deleteEmployee/${id}`, {
 //       headers: { Authorization: `Bearer ${token}` },
 //     });
 
@@ -106,7 +106,7 @@
 //     const fetchEmployees = async () => {
 //       try {
 //         const token = localStorage.getItem("accessToken");
-//         const res = await axios.get("https://server-backend-nu.vercel.app/getAllEmployees", {
+//         const res = await axios.get("https://server-backend-ems.vercel.app/getAllEmployees", {
 //           headers: { Authorization: `Bearer ${token}` },
 //         });
 //         setEmployees(res.data || []);
@@ -140,7 +140,7 @@
 //     try {
 //       const token = localStorage.getItem("accessToken");
 //       await axios.put(
-//         `https://server-backend-nu.vercel.app/users/${selectedEmployee._id}/assign-manager`,
+//         `https://server-backend-ems.vercel.app/users/${selectedEmployee._id}/assign-manager`,
 //         { managerId: selectedManagerId },
 //         { headers: { Authorization: `Bearer ${token}` } }
 //       );
@@ -408,7 +408,7 @@
 
 // export default AllEmployeeDetails;
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import EmployeeProfileForAdmin from "./EmployeeMyProfileForAdmin";
@@ -428,10 +428,10 @@ function AllEmployeeDetails() {
   const [viewEmployee, setViewEmployee] = useState(null);
 
   const [showOldEmployees, setShowOldEmployees] = useState(false);
-
+  const restrictedRoles = ["ceo", "coo", "admin", "md"]; //Added Jayshree
   const userRole = localStorage.getItem("role");
   const { role, username, id } = useParams();
-
+  const modalRef = useRef(null);
   //Rutuja code for serch bar
   const [searchName, setSearchName] = useState("");
   const [filteredEmployees, setFilteredEmployees] = useState([]);
@@ -488,7 +488,22 @@ function AllEmployeeDetails() {
     setSearchName(""); // Reset search when switching views
   };
   // code end rutuja
+  useEffect(() => {
+    const isModalOpen = showModal;
 
+    if (isModalOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [showModal]);
   // Soft delete
   const handleDeleteEmployee = async (id) => {
     if (!window.confirm("Are you sure you want to delete this employee?"))
@@ -496,7 +511,7 @@ function AllEmployeeDetails() {
 
     try {
       const token = localStorage.getItem("accessToken");
-      await axios.delete(`https://server-backend-nu.vercel.app/soft/deleteEmployee/${id}`, {
+      await axios.delete(`https://server-backend-ems.vercel.app/soft/deleteEmployee/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -524,7 +539,7 @@ function AllEmployeeDetails() {
     try {
       const token = localStorage.getItem("accessToken");
       const res = await axios.delete(
-        `https://server-backend-nu.vercel.app/deleteEmployee/${id}`,
+        `https://server-backend-ems.vercel.app/deleteEmployee/${id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -553,7 +568,7 @@ function AllEmployeeDetails() {
     const fetchEmployees = async () => {
       try {
         const token = localStorage.getItem("accessToken");
-        const res = await axios.get("https://server-backend-nu.vercel.app/getAllEmployees", {
+        const res = await axios.get("https://server-backend-ems.vercel.app/getAllEmployees", {
           headers: { Authorization: `Bearer ${token}` },
         });
         //Geetanjali
@@ -605,7 +620,7 @@ function AllEmployeeDetails() {
     try {
       const token = localStorage.getItem("accessToken");
       await axios.put(
-        `https://server-backend-nu.vercel.app/users/${selectedEmployee._id}/assign-manager`,
+        `https://server-backend-ems.vercel.app/users/${selectedEmployee._id}/assign-manager`,
         { managerId: selectedManagerId },
         { headers: { Authorization: `Bearer ${token}` } },
       );
@@ -669,7 +684,7 @@ function AllEmployeeDetails() {
   if (error) return <p className="text-danger text-center mt-3">{error}</p>;
 
   return (
-    <div className="container p-4">
+    <div className="container-fluid">
       <h2
         style={{
           color: "#3A5FBE",
@@ -722,75 +737,7 @@ function AllEmployeeDetails() {
           marginBottom: 16,
         }}
       >
-        <style>
-          {`
-              /* Base: mobile-first, 1 column stack with consistent gaps */
-              .filter-grid {
-                display: grid;
-                grid-template-columns: 1fr;
-                grid-auto-rows: minmax(38px, auto);
-                gap: 12px;
-              }
-              .fg-row { display: contents; } /* allows label+input to align in grid areas */
-
-              /* Inputs full width on mobile */
-              .fg-input {
-                width: 100% !important;
-                height: 38px;
-                border-radius: 6px;
-                border: 1px solid #dee2e6;
-                padding: 6px 10px;
-                font-size: 14px;
-                color: #212529;
-              }
-              .fg-label {
-                color: #3A5FBE;
-                font-size: 18px;
-                font-weight: 600;
-                align-self: center;
-              }
-              .fg-actions {
-                display: flex;
-                gap: 12px;
-                flex-wrap: wrap;
-                justify-content: flex-start; /* mobile: left align */
-              }
-              .fg-actions .btn {
-                height: 38px;
-                padding: 6px 14px;
-                font-size: 14px;
-                font-weight: 600;
-              }
-
-              /* Tablet ≥ 600px: 2-column grid: [label input] [label input], buttons full row */
-              @media (min-width: 600px) {
-                .filter-grid {
-                  grid-template-columns: auto minmax(220px, 1fr) auto minmax(220px, 1fr);
-                  align-items: center;
-                  column-gap: 16px;
-                  row-gap: 12px;
-                }
-                .fg-actions {
-                  grid-column: 1 / -1;      /* span full width under inputs */
-                  justify-content: flex-end;/* tablet: right align buttons */
-                }
-              }
-
-              /* Desktop ≥ 992px: keep 4 columns; distribute space and keep right-aligned buttons */
-              @media (min-width: 992px) {
-                .filter-grid {
-                  grid-template-columns: auto 240px auto 240px 1fr; /* last column acts as spacer */
-                  column-gap: 20px;
-                }
-                .fg-actions {
-                  grid-column: 5 / 6;       /* sit in the right spacer column */
-                  justify-content: flex-end;
-                }
-              }
-            `}
-        </style>
-
-        <div className="fg-row">
+        {/* <div className="fg-row">
           <label className="fg-label">Search by Any Field</label>
           <input
             type="text"
@@ -804,16 +751,62 @@ function AllEmployeeDetails() {
               }
             }}
           />
-        </div>
+        </div> */}
+        {/* 
+        <div className="card mb-4 shadow-sm border-0"> */}
+        <div className="card-body">
+          <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
+            {/* Search Input */}
+            <div
+              className="d-flex align-items-center gap-2 flex-grow-1 flex-md-grow-0 w-md-100"
+              style={{ maxWidth: "400px" }}
+            >
+              <label
+                className="fw-bold mb-0"
+                style={{ fontSize: "16px", color: "#3A5FBE" }}
+              >
+                Search
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Search By Any Field..."
+                value={searchName}
+                onChange={(e) => setSearchName(e.target.value)}
+              />
+            </div>
 
-        {/* Empty column for alignment
+            {/* Filter and Reset Buttons */}
+            <div className="d-flex gap-2 ms-auto">
+              <button
+                type="button"
+                style={{ minWidth: 90 }}
+                className="btn btn-sm custom-outline-btn"
+                onClick={handleSearch}
+              >
+                Filter
+              </button>
+              <button
+                type="button"
+                style={{ minWidth: 90 }}
+                className="btn btn-sm custom-outline-btn"
+                onClick={handleResetSearch}
+              >
+                Reset
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Empty column for alignment
         <div className="fg-row">
           <div></div>
           <div></div>
         </div> */}
 
-        {/* Actions */}
-        <div className="fg-actions">
+      {/* Actions */}
+      {/* <div className="fg-actions">
           <button
             className="btn btn-sm custom-outline-btn"
             style={{ minWidth: 90 }}
@@ -828,8 +821,7 @@ function AllEmployeeDetails() {
           >
             Reset
           </button>
-        </div>
-      </div>
+        </div> */}
 
       <div className="table-responsive mt-2">
         <table className="table table-hover mb-0">
@@ -895,6 +887,19 @@ function AllEmployeeDetails() {
               >
                 Position
               </th>
+              <th //added jayu
+                style={{
+                  fontWeight: "600",
+                  fontSize: "14px",
+                  color: "#6c757d",
+                  borderBottom: "2px solid #dee2e6",
+                  padding: "12px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Reporting Manager
+              </th>
+
               <th
                 style={{
                   fontWeight: "600",
@@ -981,6 +986,20 @@ function AllEmployeeDetails() {
                 >
                   {emp.role}
                 </td>
+                <td //added jayu
+                  style={{
+                    padding: "12px",
+                    verticalAlign: "middle",
+                    fontSize: "14px",
+                    borderBottom: "1px solid #dee2e6",
+                    whiteSpace: "nowrap",
+                  }}
+                  //className="text-uppercase"
+                >
+                  {emp.reportingManager
+                    ? emp.reportingManager.name
+                    : "Not Assigned"}
+                </td>
                 <td
                   style={{
                     padding: "12px",
@@ -1011,6 +1030,9 @@ function AllEmployeeDetails() {
                   {!showOldEmployees && userRole === "admin" && (
                     <button
                       className="btn btn-sm btn-outline-success me-2"
+                      disabled={restrictedRoles.includes(
+                        emp.role?.trim().toLowerCase(),
+                      )} //added jayu
                       style={{
                         whiteSpace: "nowrap",
                         height: "31px", // Same as Bootstrap btn-sm default
@@ -1109,6 +1131,8 @@ function AllEmployeeDetails() {
       {showModal && (
         <div
           className="modal d-block"
+          ref={modalRef}
+          tabIndex="-1"
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
         >
           <div className="modal-dialog modal-dialog-centered">
@@ -1149,24 +1173,14 @@ function AllEmployeeDetails() {
                 </div>
                 <div className="d-flex justify-content-end gap-2">
                   <button
-                    className="btn btn-outline-secondary"
+                    className="btn btn-sm custom-outline-btn"
                     onClick={() => setShowModal(false)}
-                    style={{
-                      borderColor: "#233986",
-                      color: "#233986",
-                      fontWeight: "bold",
-                    }}
                   >
                     Cancel
                   </button>
                   <button
-                    className="btn btn-primary"
+                    className="btn btn-sm custom-outline-btn"
                     onClick={handleUpdateManager}
-                    style={{
-                      backgroundColor: "#233986",
-                      borderColor: "#233986",
-                      color: "#fff",
-                    }}
                   >
                     Assign
                   </button>

@@ -31,9 +31,32 @@
   overflow-x: hidden !important;
   -webkit-overflow-scrolling: touch; 
 }
-.sidebar::-webkit-scrollbar {
-  width: 0;
-  height: 0;
+.sidebar::-webkit-scrollbar{
+  width:0px;
+  transition:0.2s;
+}
+
+.sidebar:hover::-webkit-scrollbar{
+  width:6px;
+}
+
+
+.sidebar::-webkit-scrollbar-track{
+  background:transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb{
+  background:#ffffff70;
+  border-radius:10px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover{
+  background:#ffffffcc;
+}
+
+
+.sidebar {
+  scroll-behavior: smooth;
 }
 
 .sidebar {
