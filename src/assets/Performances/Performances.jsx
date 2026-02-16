@@ -540,7 +540,7 @@ function Performances({ user }) {
               </div>
 
               {/* FROM */}
-              <div className="col-12 col-md-auto d-flex align-items-center mb-1 ms-2">
+              {/* <div className="col-12 col-md-auto d-flex align-items-center mb-1 ms-2">
                 <label
                   className="fw-bold mb-0 me-2"
                   style={{ color: "#3A5FBE" }}
@@ -555,7 +555,6 @@ function Performances({ user }) {
                 />
               </div>
 
-              {/* TO */}
               <div className="col-12 col-md-auto d-flex align-items-center mb-1 ms-2">
                 <label
                   className="fw-bold mb-0 me-2"
@@ -569,7 +568,7 @@ function Performances({ user }) {
                   value={dateToFilter}
                   onChange={(e) => setDateToFilter(e.target.value)}
                 />
-              </div>
+              </div> */}
 
               <div className="col-12 col-md-auto d-flex align-items-center mb-1 ms-2">
                 <label
@@ -581,7 +580,7 @@ function Performances({ user }) {
                 <input
                   type="text"
                   className="form-control form-control-sm"
-                  style={{ maxWidth: "250px" }}
+                  style={{ maxWidth: "600px" }} //mahesh coded search bar size increase
                   placeholder="Search by any field"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}

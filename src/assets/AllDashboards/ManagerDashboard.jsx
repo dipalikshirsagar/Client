@@ -1,4 +1,4 @@
-import React, { useEffect, useState ,useRef} from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 
 function ManagerDashboard({ user }) {
@@ -11,8 +11,8 @@ function ManagerDashboard({ user }) {
     month: "short",
     year: "numeric",
   }); // "31 Dec 2025" [web:9][web:20][web:1]
-const leaveModalRef = useRef(null);
-const regularizationModalRef = useRef(null);
+  const leaveModalRef = useRef(null);
+  const regularizationModalRef = useRef(null);
   // Pagination states
   const [leavePage, setLeavePage] = useState(1);
   const [regPage, setRegPage] = useState(1);
@@ -46,26 +46,52 @@ const regularizationModalRef = useRef(null);
   useEffect(() => {
     if (!user?._id) return;
 
-    const fetchData = async () => {
-      try {
-        const leavesRes = await axios.get(
-          `https://server-backend-ems.vercel.app/leaves/manager/${user._id}`,
-        );
-        setLeaves(leavesRes.data);
-
-        const regRes = await axios.get(
-          `https://server-backend-ems.vercel.app/regularization/manager/${user._id}`,
-        );
-        setRegularizations(regRes.data);
-      } catch (err) {
-        console.error("Error fetching data:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
   }, [user]);
+
+  const fetchData = async () => {
+    try {
+      const leavesRes = await axios.get(
+        `https://server-backend-ems.vercel.app/leaves/manager/${user._id}`,
+      );
+      setLeaves(leavesRes.data);
+
+      const regRes = await axios.get(
+        `https://server-backend-ems.vercel.app/regularization/manager/${user._id}`,
+      );
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const threeMonthsAgo = new Date(today);
+      threeMonthsAgo.setMonth(today.getMonth() - 3);
+
+      const lastThreeMonthsData = regRes.data.filter((req) => {
+        const recordDate = new Date(
+          req.regularizationRequest?.requestedAt || req.createdAt || req.date,
+        );
+        recordDate.setHours(0, 0, 0, 0);
+
+        return recordDate >= threeMonthsAgo && recordDate <= today;
+      });
+
+      const sortedData = lastThreeMonthsData.sort(
+        (a, b) =>
+          new Date(
+            b.regularizationRequest?.requestedAt || b.createdAt || b.date,
+          ) -
+          new Date(
+            a.regularizationRequest?.requestedAt || a.createdAt || a.date,
+          ),
+      );
+
+      setRegularizations(sortedData);
+    } catch (err) {
+      console.error("Error fetching data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // ===== Update Leave Status =====
   const updateLeaveStatus = async (leaveId, status) => {
@@ -76,30 +102,22 @@ const regularizationModalRef = useRef(null);
     try {
       // 🔥 Optimistic UI update
       setLeaves((prev) =>
-        prev.map((l) =>
-          l._id === leaveId ? { ...l, status } : l
-        )
+        prev.map((l) => (l._id === leaveId ? { ...l, status } : l)),
       );
 
-
       setFilteredLeaves((prev) =>
-        prev.map((l) =>
-          l._id === leaveId ? { ...l, status } : l
-        )
+        prev.map((l) => (l._id === leaveId ? { ...l, status } : l)),
       );
 
       if (selectedLeave?._id === leaveId) {
         setSelectedLeave((prev) => ({ ...prev, status }));
       }
 
-      await axios.put(
-        `https://server-backend-ems.vercel.app/leave/${leaveId}/status`,
-        {
-          status,
-          userId: user._id,
-          role: "manager",
-        }
-      );
+      await axios.put(`https://server-backend-ems.vercel.app/leave/${leaveId}/status`, {
+        status,
+        userId: user._id,
+        role: "manager",
+      });
       //Added by Rutuja
       alert(`Leave request ${status} successfully!`);
     } catch (err) {
@@ -107,24 +125,24 @@ const regularizationModalRef = useRef(null);
     }
   };
 
-  // ===== Update Regularization Status =====
+  // ===== Update Regularization Status jaicy=====
   const updateRegularizationStatus = async (attendanceId, status) => {
     try {
-      const res = await axios.put(
+      const token = localStorage.getItem("accessToken");
+      await axios.put(
         `https://server-backend-ems.vercel.app/attendance/regularization/${attendanceId}/status`,
-        {
-          status,
-          approvedBy: user._id,
-          approvedByRole: "manager",
-          approvedByName: user.name,
-        },
+        { status },
+        { headers: { Authorization: `Bearer ${token}` } },
       );
-      const updatedRecord = res.data.attendance;
-      setRegularizations((prev) =>
-        prev.map((r) => (r._id === attendanceId ? updatedRecord : r)),
-      );
+      fetchData();
+      //jaicy
     } catch (err) {
-      console.error("Error updating regularization status:", err);
+      const errorMessage =
+        err.response?.data?.error ||
+        "Something went wrong while updating status.";
+
+      alert(`❌ ${errorMessage}`);
+      setMessage(errorMessage);
     }
   };
 
@@ -249,9 +267,9 @@ const regularizationModalRef = useRef(null);
           {totalItems === 0
             ? "0–0 of 0"
             : `${indexOfFirstItem + 1}-${Math.min(
-              indexOfLastItem,
-              totalItems,
-            )} of ${totalItems}`}
+                indexOfLastItem,
+                totalItems,
+              )} of ${totalItems}`}
         </span>
 
         {/* Navigation arrows */}
@@ -260,7 +278,7 @@ const regularizationModalRef = useRef(null);
           style={{ marginLeft: "16px" }}
         >
           <button
-             className="btn btn-sm focus-ring"
+            className="btn btn-sm focus-ring"
             onClick={() => setPage(currentPage - 1)}
             disabled={currentPage === 1}
             style={{ fontSize: "18px", padding: "2px 8px" }}
@@ -268,7 +286,7 @@ const regularizationModalRef = useRef(null);
             ‹
           </button>
           <button
-             className="btn btn-sm focus-ring"
+            className="btn btn-sm focus-ring"
             onClick={() => setPage(currentPage + 1)}
             disabled={currentPage === totalPages}
             style={{ fontSize: "18px", padding: "2px 8px" }}
@@ -289,12 +307,14 @@ const regularizationModalRef = useRef(null);
   const formatToIST = (utcDateString) => {
     if (!utcDateString) return "-";
     const date = new Date(utcDateString);
-    return date.toLocaleTimeString("en-IN", {
-      timeZone: "Asia/Kolkata",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false, // 24-hour format
-    });
+    return date
+      .toLocaleTimeString("en-IN", {
+        timeZone: "Asia/Kolkata",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true, // 24-hour format
+      })
+      .toUpperCase();
   };
 
   //filtercode logic
@@ -387,75 +407,74 @@ const regularizationModalRef = useRef(null);
   };
 
   ///end
-useEffect(() => {
-  const modal =
-    selectedLeave
+  useEffect(() => {
+    const modal = selectedLeave
       ? leaveModalRef.current
       : selectedRegularization
-      ? regularizationModalRef.current
-      : null;
+        ? regularizationModalRef.current
+        : null;
 
-  if (!modal) return;
+    if (!modal) return;
 
-  const focusableElements = modal.querySelectorAll(
-    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-  );
+    const focusableElements = modal.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
 
-  if (!focusableElements.length) return;
+    if (!focusableElements.length) return;
 
-  const firstEl = focusableElements[0];
-  const lastEl = focusableElements[focusableElements.length - 1];
+    const firstEl = focusableElements[0];
+    const lastEl = focusableElements[focusableElements.length - 1];
 
-  // Auto focus first element
-  firstEl.focus();
+    // Auto focus first element
+    firstEl.focus();
 
-  const handleKeyDown = (e) => {
-    if (e.key !== "Tab") return;
+    const handleKeyDown = (e) => {
+      if (e.key !== "Tab") return;
 
-    if (e.shiftKey) {
-      if (document.activeElement === firstEl) {
-        e.preventDefault();
-        lastEl.focus();
+      if (e.shiftKey) {
+        if (document.activeElement === firstEl) {
+          e.preventDefault();
+          lastEl.focus();
+        }
+      } else {
+        if (document.activeElement === lastEl) {
+          e.preventDefault();
+          firstEl.focus();
+        }
       }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [selectedLeave, selectedRegularization]);
+
+  //bg scroll stop
+  useEffect(() => {
+    if (selectedLeave || selectedRegularization) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
     } else {
-      if (document.activeElement === lastEl) {
-        e.preventDefault();
-        firstEl.focus();
-      }
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
     }
-  };
 
-  document.addEventListener("keydown", handleKeyDown);
-
-  return () => {
-    document.removeEventListener("keydown", handleKeyDown);
-  };
-}, [selectedLeave, selectedRegularization]);
-
-//bg scroll stop
-		 useEffect(() => {
-			if (selectedLeave || selectedRegularization) {
-			  document.body.style.overflow = "hidden";
-			  document.documentElement.style.overflow = "hidden";
-			} else {
-			  document.body.style.overflow = "";
-			  document.documentElement.style.overflow = "";
-			}
-
-			return () => {
-			  document.body.style.overflow = "";
-			  document.documentElement.style.overflow = "";
-			};
-		  }, [selectedLeave, selectedRegularization]);
-		// dip code changes 09-02-2026	
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [selectedLeave, selectedRegularization]);
+  // dip code changes 09-02-2026
   return (
     <div className="container-fluid">
       {/* ==================== Leave Requests ==================== */}
-      <h2 className="mb-4"
+      <h2
+        className="mb-4"
         style={{
           color: "#3A5FBE",
           fontSize: "25px",
-         
         }}
       >
         Leave Requests Assigned to You
@@ -477,8 +496,12 @@ useEffect(() => {
               <label
                 htmlFor="leaveStatusFilter"
                 className="fw-bold mb-0"
-                style={{ fontSize: "16px", color: "#3A5FBE",width: "50px",
-                  minWidth: "50px", }}
+                style={{
+                  fontSize: "16px",
+                  color: "#3A5FBE",
+                  width: "50px",
+                  minWidth: "50px",
+                }}
               >
                 Status
               </label>
@@ -501,8 +524,12 @@ useEffect(() => {
               <label
                 htmlFor="leaveNameFilter"
                 className="fw-bold mb-0"
-                style={{ fontSize: "16px", color: "#3A5FBE" ,width: "50px",
-                  minWidth: "50px",}}
+                style={{
+                  fontSize: "16px",
+                  color: "#3A5FBE",
+                  width: "50px",
+                  minWidth: "50px",
+                }}
               >
                 Name
               </label>
@@ -522,8 +549,12 @@ useEffect(() => {
               <label
                 htmlFor="leaveDateFromFilter"
                 className="fw-bold mb-0"
-                style={{ fontSize: "16px", color: "#3A5FBE", width: "50px",
-                  minWidth: "50px",}}
+                style={{
+                  fontSize: "16px",
+                  color: "#3A5FBE",
+                  width: "50px",
+                  minWidth: "50px",
+                }}
               >
                 From
               </label>
@@ -562,8 +593,12 @@ useEffect(() => {
               <label
                 htmlFor="leaveDateToFilter"
                 className="form-label-responsive fw-bold mb-0"
-                style={{ fontSize: "16px", color: "#3A5FBE" ,width: "50px",
-                  minWidth: "50px",}}
+                style={{
+                  fontSize: "16px",
+                  color: "#3A5FBE",
+                  width: "50px",
+                  minWidth: "50px",
+                }}
               >
                 To
               </label>
@@ -842,9 +877,9 @@ useEffect(() => {
                         {l.duration === "half"
                           ? 0.5
                           : Math.floor(
-                            (new Date(l.dateTo) - new Date(l.dateFrom)) /
-                            (1000 * 60 * 60 * 24),
-                          ) + 1}
+                              (new Date(l.dateTo) - new Date(l.dateFrom)) /
+                                (1000 * 60 * 60 * 24),
+                            ) + 1}
                       </td>
                       {/* <td style={{ padding: '12px', verticalAlign: 'middle', fontSize: '14px', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>{l.reason}</td> */}
 
@@ -1087,14 +1122,18 @@ useEffect(() => {
                       {/* //Added by rutuja */}
                       <div className="row mb-2">
                         <div className="col-5 col-sm-3 fw-semibold">
-                          {selectedLeave.status === "approved" ? "Approved by" :
-                            selectedLeave.status === "rejected" ? "Rejected by" : "Reviewed by"}
+                          {selectedLeave.status === "approved"
+                            ? "Approved by"
+                            : selectedLeave.status === "rejected"
+                              ? "Rejected by"
+                              : "Reviewed by"}
                         </div>
                         <div className="col-sm-9 col-5">
                           {selectedLeave.approvedBy ? (
                             <>
                               {selectedLeave.approvedBy.name}
-                              {selectedLeave.approvedBy.role && ` (${selectedLeave.approvedBy.role})`}
+                              {selectedLeave.approvedBy.role &&
+                                ` (${selectedLeave.approvedBy.role})`}
                             </>
                           ) : (
                             "-"
@@ -1155,11 +1194,12 @@ useEffect(() => {
       )}
 
       {/* ==================== Regularization Requests ==================== */}
-      <h2 className="mb-4"
+      <h2
+        className="mb-4"
         style={{
           color: "#3A5FBE",
           fontSize: "25px",
-         
+
           marginTop: "20px",
         }}
       >
@@ -1185,8 +1225,12 @@ useEffect(() => {
                   <label
                     htmlFor="regStatusFilter"
                     className="fw-bold mb-0"
-                    style={{ fontSize: "16px", color: "#3A5FBE", width: "50px",
-                  minWidth: "50px", }}
+                    style={{
+                      fontSize: "16px",
+                      color: "#3A5FBE",
+                      width: "50px",
+                      minWidth: "50px",
+                    }}
                   >
                     Status
                   </label>
@@ -1209,8 +1253,12 @@ useEffect(() => {
                   <label
                     htmlFor="regNameFilter"
                     className="fw-bold mb-0"
-                    style={{ fontSize: "16px", color: "#3A5FBE" ,width: "50px",
-                  minWidth: "50px",}}
+                    style={{
+                      fontSize: "16px",
+                      color: "#3A5FBE",
+                      width: "50px",
+                      minWidth: "50px",
+                    }}
                   >
                     Name
                   </label>
@@ -1233,9 +1281,9 @@ useEffect(() => {
                     style={{
                       fontSize: "16px",
                       color: "#3A5FBE",
-                      
+
                       width: "50px",
-                  minWidth: "50px",
+                      minWidth: "50px",
                     }}
                   >
                     From
@@ -1275,8 +1323,12 @@ useEffect(() => {
                   <label
                     htmlFor="regDateToFilter"
                     className="form-label-responsive fw-bold mb-0"
-                    style={{ fontSize: "16px", color: "#3A5FBE",width: "50px",
-                  minWidth: "50px", }}
+                    style={{
+                      fontSize: "16px",
+                      color: "#3A5FBE",
+                      width: "50px",
+                      minWidth: "50px",
+                    }}
                   >
                     To
                   </label>
@@ -1730,11 +1782,11 @@ useEffect(() => {
                             {selectedRegularization?.regularizationRequest
                               ?.requestedAt
                               ? df.format(
-                                new Date(
-                                  selectedRegularization.regularizationRequest
-                                    .requestedAt,
-                                ),
-                              )
+                                  new Date(
+                                    selectedRegularization.regularizationRequest
+                                      .requestedAt,
+                                  ),
+                                )
                               : "-"}
                           </div>
                         </div>
@@ -1806,12 +1858,12 @@ useEffect(() => {
                                   ?.status === "Approved"
                                   ? "bg-success"
                                   : selectedRegularization
-                                    ?.regularizationRequest?.status ===
-                                    "Rejected"
+                                        ?.regularizationRequest?.status ===
+                                      "Rejected"
                                     ? "bg-danger"
                                     : selectedRegularization
-                                      ?.regularizationRequest?.status ===
-                                      "Pending"
+                                          ?.regularizationRequest?.status ===
+                                        "Pending"
                                       ? "bg-warning text-dark"
                                       : "bg-secondary")
                               }
@@ -1828,34 +1880,34 @@ useEffect(() => {
                     <div className="modal-footer border-0 pt-0">
                       {selectedRegularization?.regularizationRequest?.status?.toLowerCase() ===
                         "pending" && (
-                          <>
-                            <button
-                              className="btn btn-outline-success"
-                              onClick={() => {
-                                updateRegularizationStatus(
-                                  selectedRegularization?._id,
-                                  "Approved",
-                                );
-                                setSelectedRegularization(null);
-                              }}
-                            >
-                              Approve
-                            </button>
+                        <>
+                          <button
+                            className="btn btn-outline-success"
+                            onClick={() => {
+                              updateRegularizationStatus(
+                                selectedRegularization?._id,
+                                "Approved",
+                              );
+                              setSelectedRegularization(null);
+                            }}
+                          >
+                            Approve
+                          </button>
 
-                            <button
-                              className="btn btn-outline-danger"
-                              onClick={() => {
-                                updateRegularizationStatus(
-                                  selectedRegularization?._id,
-                                  "Rejected",
-                                );
-                                setSelectedRegularization(null);
-                              }}
-                            >
-                              Reject
-                            </button>
-                          </>
-                        )}
+                          <button
+                            className="btn btn-outline-danger"
+                            onClick={() => {
+                              updateRegularizationStatus(
+                                selectedRegularization?._id,
+                                "Rejected",
+                              );
+                              setSelectedRegularization(null);
+                            }}
+                          >
+                            Reject
+                          </button>
+                        </>
+                      )}
 
                       <button
                         className="btn custom-outline-btn"

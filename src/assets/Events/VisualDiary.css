@@ -38,8 +38,9 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 24px;
   margin-top: 20px;
-  
+  align-items: start;
 }
+
 
 /* ================= SECTION ================= */
 .section-wrapper {
@@ -60,39 +61,24 @@
 
 /* ================= WHITE CARD ================= */
 .section-card {
-  /* background: #ffffff; */
-  border-radius: 14px;
-  padding: 12px;
-  height: 220px; /* SAME AS EVENTS / BIRTHDAY */
   height: 500px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-
   overflow-y: auto;
-  flex-wrap: wrap; /* small boxes inside wrap */
-  gap: 12px;
-  /* scrollbar-width: thin; */
- scrollbar-width: thick;
-  scrollbar-color: #959393 #eaeaea;
+  overflow-x: hidden;
+
+  padding: 12px 6px 12px 12px;   /* right padding kami kara */
+  border-radius: 14px;
+
+  background: transparent;
+  box-shadow: none;
+
+  scrollbar-width: thick;          /* Firefox */
+  scrollbar-color:gray transparent;
+
+  position: relative;
 }
 
-/* ================= DARK THIN SCROLLBAR ================= */
-.section-card::-webkit-scrollbar {
-  width: 6px;
-}
 
-.section-card::-webkit-scrollbar-track {
-  background: #eaeaea;
-  border-radius: 10px;
-}
 
-.section-card::-webkit-scrollbar-thumb {
-  background-color: #424242;
-  border-radius: 10px;
-}
-
-.section-card::-webkit-scrollbar-thumb:hover {
-  background-color: #212121;
-}
 
 /* ================= ITEM ================= */
 .section-item {
@@ -225,6 +211,7 @@
     color:#3a5fbe
 
 }
+
 
 /* ================= RESPONSIVE ================= */
 @media (max-width: 900px) {

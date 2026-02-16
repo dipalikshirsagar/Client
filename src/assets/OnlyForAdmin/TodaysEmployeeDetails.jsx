@@ -849,7 +849,10 @@ function TodaysEmployeeDetails() {
           tabIndex="-1"
           style={{ display: "block", background: "rgba(0,0,0,0.5)" }}
         >
-          <div className="modal-dialog modal-lg modal-dialog-centered">
+          <div
+            className="modal-dialog modal-lg modal-dialog-centered"
+            style={{ marginTop: 60 }}
+          >
             <div className="modal-content">
               {/* 🔹 Header */}
               <div

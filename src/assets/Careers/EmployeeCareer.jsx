@@ -494,6 +494,17 @@ const EmployeeCareer = ({ user }) => {
     handleFilter();
   };
 
+  // added by rushikesh
+  const isExpired = (dueDate) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const due = new Date(dueDate);
+    due.setHours(0, 0, 0, 0);
+
+    return due <= today;
+  };
+
   return (
     <div className="container-fluid mt-4">
       <h2
@@ -759,6 +770,20 @@ const EmployeeCareer = ({ user }) => {
                       >
                         Posted
                       </th>
+
+                      {/* added by rushikesh */}
+                      <th
+                      style={{
+                        fontWeight: "500",
+                        fontSize: "14px",
+                        color: "#6c757d",
+                        borderBottom: "2px solid #dee2e6",
+                        padding: "12px",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Due Date
+                    </th>
                       {/* <th
                         style={{
                           fontWeight: "500",
@@ -790,22 +815,28 @@ const EmployeeCareer = ({ user }) => {
                       </tr>
                     ) : (
                       paginatedJobs.map((job) => (
+                        // added by rushikeah
                         <tr
                           key={job._id}
-                          style={{ cursor: "pointer" }}
-                          onClick={() => {
-                            setSelectedJob(job);
-
-                            if (job.jobType === "referral") {
-                              setShowReferralModal(true);
-                              setReferralSuccess(false);
-                              setActiveReferralTab("DESC");
-                            } else {
-                              setShowViewModal(true);
-                              setActiveViewTab("DESC");
-                            }
+                          style={{
+                            cursor: "pointer", 
+                            backgroundColor: isExpired(job.dueOn) ? "#f5f5f5" : "",
+                            opacity: isExpired(job.dueOn) ? 0.6 : 1,
                           }}
-                        >
+               
+                          onClick={() => {
+                                setSelectedJob(job);
+
+                                if (job.jobType === "referral") {
+                                  setShowReferralModal(true);
+                                  setActiveReferralTab("DESC");
+                                } else {
+                                  setShowViewModal(true);
+                                  setActiveViewTab("DESC");
+                                }
+                              }}
+                              >
+                            {/*  */}
                           <td
                             style={{
                               padding: "12px",
@@ -858,6 +889,19 @@ const EmployeeCareer = ({ user }) => {
                               ? "Today"
                               : `${getDaysAgo(job.createdAt)} days ago`}
                           </td>
+
+                          {/* added by rushikesh */}
+                          <td
+                          style={{
+                            padding: "12px",
+                            verticalAlign: "middle",
+                            fontSize: "14px",
+                            borderBottom: "1px solid #dee2e6",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {job.dueOn ? formatDate(job.dueOn) : "-"}
+                        </td>
 
                           {/* <button
                               className="btn btn-sm custom-outline-btn"
@@ -1002,6 +1046,21 @@ const EmployeeCareer = ({ user }) => {
                       >
                         Applied On
                       </th>
+
+                      {/* added by rushikesh */}
+                      <th
+                      style={{
+                        fontWeight: "500",
+                        fontSize: "14px",
+                        color: "#6c757d",
+                        borderBottom: "2px solid #dee2e6",
+                        padding: "12px",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Due Date
+                    </th>
+                      {/*  */}
                       <th
                         style={{
                           fontWeight: "500",
@@ -1067,6 +1126,19 @@ const EmployeeCareer = ({ user }) => {
                           >
                             {formatDate(app.createdAt) || "Self"}
                           </td>
+                          {/* added by rushikesh */}
+                          <td
+                            style={{
+                              padding: "12px",
+                              verticalAlign: "middle",
+                              fontSize: "14px",
+                              borderBottom: "1px solid #dee2e6",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {app.job?.dueOn ? formatDate(app.job.dueOn) : "-"}
+                          </td>
+                          {/*  */}
                           <td
                             style={{
                               padding: "12px",
@@ -1096,6 +1168,7 @@ const EmployeeCareer = ({ user }) => {
             />
           </>
         )}
+        {/* added by rushikesh */}
         {showAppliedViewModal && selectedAppliedJob && (
           <div
             className="modal fade show d-block"
@@ -1103,7 +1176,9 @@ const EmployeeCareer = ({ user }) => {
             ref={modalRef}
             tabIndex="-1"
           >
-            <div className="modal-dialog modal-lg">
+            <div  className="modal-dialog modal-lg modal-dialog-centered"
+  style={{ maxWidth: "600px", marginTop: "80px" }}
+>
               <div className="modal-content">
                 {/* HEADER */}
                 <div
@@ -1121,60 +1196,92 @@ const EmployeeCareer = ({ user }) => {
 
                 {/* BODY */}
                 <div className="modal-body">
-                  <div className="job-card mb-3">
-                    <h6 className="job-card-title">Application Info</h6>
+               <div>
 
-                    <div className="job-info-grid">
-                      <div>
-                        <span className="label">Job ID</span>
-                        <p>{selectedAppliedJob.job?._id?.slice(-4)}</p>
-                      </div>
+    <div className="row mb-2">
+      <div className="col-4 fw-semibold">Job ID</div>
+      <div className="col-8">{selectedAppliedJob?.job?._id?.slice(-4)}
+</div>
+    </div>
 
-                      <div>
-                        <span className="label">Applied On</span>
-                        <p>{formatDate(selectedAppliedJob.createdAt)}</p>
-                      </div>
+    <div className="row mb-2">
+      <div className="col-4 fw-semibold">Location</div>
+      <div className="col-8">{selectedAppliedJob?.job?.location}
+</div>
+    </div>
 
-                      <div>
-                        <span className="label">Status</span>
-                        <p>
-                          <span
-                            style={getStatusColor(selectedAppliedJob.status)}
-                          >
-                            {selectedAppliedJob.status}
-                          </span>
-                        </p>
-                      </div>
+    <div className="row mb-2">
+      <div className="col-4 fw-semibold">Department</div>
+      <div className="col-8">{selectedAppliedJob?.job?.department}</div>
+    </div>
 
-                      <div>
-                        <span className="label">Location</span>
-                        <p>{selectedAppliedJob.job?.location}</p>
-                      </div>
+    <div className="row mb-2">
+      <div className="col-4 fw-semibold">Job Type</div>
+      <div className="col-8">{selectedAppliedJob?.job?.hiringType}</div>
+    </div>
 
-                      <div>
-                        <span className="label">Department</span>
-                        <p>{selectedAppliedJob.job?.department}</p>
-                      </div>
+    <div className="row mb-2">
+      <div className="col-4 fw-semibold">Experience</div>
+      <div className="col-8">
+        {selectedAppliedJob?.job?.experience?.min} – {selectedAppliedJob?.job?.experience?.max} Years
+      </div>
+    </div>
 
-                      <div>
-                        <span className="label">Experience</span>
-                        <p>
-                          {selectedAppliedJob.job?.experience?.min} –{" "}
-                          {selectedAppliedJob.job?.experience?.max} Years
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+    <div className="row mb-3">
+      <div className="col-4 fw-semibold">Posted</div>
+      <div className="col-8">
+      {formatDate(selectedAppliedJob?.job?.createdAt)}
+      </div>
+    </div>
+    <div className="row mb-2">
+  <div className="col-4 fw-semibold">Due Date</div>
+  <div className="col-8">
+    {selectedAppliedJob?.job?.dueOn
+      ? formatDate(selectedAppliedJob.job.dueOn)
+      : "-"}
+  </div>
+</div>
 
-                  <div className="job-card">
-                    <h6 className="job-card-title">Job Description</h6>
-                    <div
-                      className="job-desc"
-                      dangerouslySetInnerHTML={{
-                        __html: selectedAppliedJob.job?.jobDescription,
-                      }}
-                    />
-                  </div>
+    {/* <hr /> */}
+
+   <div className="row mb-2">
+  <div className="col-4 fw-semibold">Key Skills</div>
+  <div className="col-8">
+   <ul className="mb-0 list-unstyled ps-0">
+  {selectedAppliedJob?.job?.importantSkills?.map((skill, i) => (
+    <li key={i} style={{ marginBottom: "2px" }}>
+      {skill}
+    </li>
+  ))}
+</ul>
+  </div>
+</div>
+
+{selectedAppliedJob?.job?.otherSkills?.length > 0 && (
+  <div className="row mb-2">
+    <div className="col-4 fw-semibold">Other Skills</div>
+    <div className="col-8">
+      <ul className="mb-0">
+        {selectedAppliedJob.otherSkills.map((skill, i) => (
+          <li key={i}>{skill}</li>
+        ))}
+      </ul>
+    </div>
+  </div>
+)}
+
+<div className="row mb-2">
+  <div className="col-4 fw-semibold">Description</div>
+<div className="col-8" style={{ textAlign: "left",  }}>
+  <div
+    style={{ textAlign: "justify" }}
+    dangerouslySetInnerHTML={{
+      __html: selectedAppliedJob?.job?.jobDescription,
+    }}
+  />
+</div>
+</div>
+  </div>
 
                   {/* CLOSE BUTTON */}
                   <button
@@ -1312,6 +1419,20 @@ const EmployeeCareer = ({ user }) => {
                       >
                         Referred On
                       </th>
+                      {/* added by rushikesh */}
+                      <th
+                      style={{
+                        fontWeight: "500",
+                        fontSize: "14px",
+                        color: "#6c757d",
+                        borderBottom: "2px solid #dee2e6",
+                        padding: "12px",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Due Date
+                    </th>
+                    {/* - */}
                       <th
                         style={{
                           fontWeight: "500",
@@ -1382,6 +1503,19 @@ const EmployeeCareer = ({ user }) => {
                           >
                             {formatDate(ref?.createdAt)}
                           </td>
+                          {/* added by rushikesh */}
+                          <td
+                            style={{
+                              padding: "12px",
+                              verticalAlign: "middle",
+                              fontSize: "14px",
+                              borderBottom: "1px solid #dee2e6",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {ref.job?.dueOn ? formatDate(ref.job.dueOn) : "-"}
+                          </td>
+                          {/* -- */}
                           <td
                             style={{
                               padding: "12px",
@@ -1417,6 +1551,7 @@ const EmployeeCareer = ({ user }) => {
             />
           </>
         )}
+        {/* added by rushikesh */}
         {showReferralViewModal && selectedReferral && (
           <div
             className="modal fade show d-block"
@@ -1424,7 +1559,9 @@ const EmployeeCareer = ({ user }) => {
             ref={modalRef}
             tabIndex="-1"
           >
-            <div className="modal-dialog modal-lg">
+            <div  className="modal-dialog modal-lg modal-dialog-centered"
+  style={{ maxWidth: "600px", marginTop: "80px" }}
+>
               <div className="modal-content">
                 {/* HEADER */}
                 <div
@@ -1443,77 +1580,94 @@ const EmployeeCareer = ({ user }) => {
                 {/* BODY */}
                 <div className="modal-body">
                   {/* Referral Info */}
-                  <div className="job-card mb-3">
-                    <h6 className="job-card-title">Referral Details</h6>
+                   <div>
 
-                    <div className="job-info-grid">
-                      <div>
-                        <span className="label">Job ID</span>
-                        <p>{selectedReferral.job?._id?.slice(-4)}</p>
-                      </div>
+    <div className="row mb-2">
+      <div className="col-4 fw-semibold">Job ID</div>
+      <div className="col-8">{selectedReferral?.job?._id?.slice(-4)}</div>
+    </div>
 
-                      <div>
-                        <span className="label">Candidate Name</span>
-                        <p>{selectedReferral.candidate?.name}</p>
-                      </div>
+    <div className="row mb-2">
+      <div className="col-4 fw-semibold">Location</div>
+      <div className="col-8">{selectedReferral?.job?.location}</div>
+    </div>
 
-                      <div>
-                        <span className="label">Candidate Email</span>
-                        <p>{selectedReferral.candidate?.email}</p>
-                      </div>
+    <div className="row mb-2">
+      <div className="col-4 fw-semibold">Department</div>
+      <div className="col-8">{selectedReferral?.job?.department}</div>
+    </div>
 
-                      <div>
-                        <span className="label">Referred On</span>
-                        <p>{formatDate(selectedReferral.createdAt)}</p>
-                      </div>
+    <div className="row mb-2">
+      <div className="col-4 fw-semibold">Job Type</div>
+      <div className="col-8">{selectedReferral.hiringType}</div>
+    </div>
 
-                      <div>
-                        <span className="label">Status</span>
-                        <p>
-                          <span style={getStatusColor(selectedReferral.status)}>
-                            {selectedReferral.status}
-                          </span>
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+    <div className="row mb-2">
+      <div className="col-4 fw-semibold">Experience</div>
+      <div className="col-8">
+        {selectedReferral?.job?.experience?.min} – {selectedReferral?.job?.experience?.max} Years
+      </div>
+    </div>
 
-                  {/* Job Info */}
-                  <div className="job-card mb-3">
-                    <h6 className="job-card-title">Job Information</h6>
+    <div className="row mb-3">
+      <div className="col-4 fw-semibold">Posted</div>
+      <div className="col-8">
+        {formatDate(selectedReferral.createdAt)}
+      </div>
+    </div>
+   <div className="row mb-2">
+  <div className="col-4 fw-semibold">Due Date</div>
+  <div className="col-8">
+    {selectedReferral?.job?.dueOn
+      ? formatDate(selectedReferral.job.dueOn)
+      : "-"}
+  </div>
+</div>
 
-                    <div className="job-info-grid">
-                      <div>
-                        <span className="label">Location</span>
-                        <p>{selectedReferral.job?.location}</p>
-                      </div>
+    {/* <hr /> */}
 
-                      <div>
-                        <span className="label">Department</span>
-                        <p>{selectedReferral.job?.department}</p>
-                      </div>
+   <div className="row mb-2">
+  <div className="col-4 fw-semibold">Key Skills</div>
+  <div className="col-8">
+   <ul className="mb-0 list-unstyled ps-0">
+  {selectedReferral.importantSkills?.map((skill, i) => (
+    <li key={i} style={{ marginBottom: "2px" }}>
+      {skill}
+    </li>
+  ))}
+</ul>
+  </div>
+</div>
 
-                      <div>
-                        <span className="label">Experience</span>
-                        <p>
-                          {selectedReferral.job?.experience?.min} –{" "}
-                          {selectedReferral.job?.experience?.max} Years
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+{selectedReferral.otherSkills?.length > 0 && (
+  <div className="row mb-2">
+    <div className="col-4 fw-semibold">Other Skills</div>
+    <div className="col-8">
+      <ul className="mb-0">
+        {selectedReferral.otherSkills.map((skill, i) => (
+          <li key={i}>{skill}</li>
+        ))}
+      </ul>
+    </div>
+  </div>
+)}
 
-                  {/* Job Description */}
-                  <div className="job-card">
-                    <h6 className="job-card-title">Job Description</h6>
-                    <div
-                      className="job-desc"
-                      dangerouslySetInnerHTML={{
-                        __html: selectedReferral.job?.jobDescription,
-                      }}
-                    />
-                  </div>
-
+<div className="row mb-2">
+  <div className="col-4 fw-semibold">Description</div>
+<div className="col-8" style={{ textAlign: "left",  }}>
+  <div
+    style={{
+      textAlign: "justify",
+      width: "100%",
+      display: "block",
+    }}
+    dangerouslySetInnerHTML={{
+      __html: selectedReferral?.job?.jobDescription,
+    }}
+  />
+</div>
+</div>
+  </div>
                   {/* CLOSE */}
                   <button
                     className="btn btn-sm custom-outline-btn float-end mt-3"
@@ -1529,14 +1683,17 @@ const EmployeeCareer = ({ user }) => {
         )}
 
         {/* ===== View Modal ===== */}
+        {/* added by rushikesh */}
         {showViewModal && selectedJob && (
           <div
             className="modal fade show d-block"
-            style={{ background: "#00000080" }}
+            style={{ background: "#00000080", }}
             ref={modalRef}
             tabIndex="-1"
           >
-            <div className="modal-dialog modal-lg" style={{ marginTop: 120 }}>
+            <div  className="modal-dialog modal-lg modal-dialog-centered"
+  style={{ maxWidth: "600px", marginTop: "80px" }}
+>
               <div className="modal-content">
                 <div
                   className="modal-header"
@@ -1575,106 +1732,95 @@ const EmployeeCareer = ({ user }) => {
                       Application Form
                     </button>
                   </div>
-                  {activeViewTab === "DESC" && (
-                    <div className="job-details-wrapper">
-                      <div className="job-card">
-                        <h6 className="job-card-title">Job Info</h6>
+                 {activeViewTab === "DESC" && (
+  <div>
 
-                        <div className="job-info-grid">
-                          <div>
-                            <span className="label">Job ID</span>
-                            <p>{selectedJob._id?.slice(-4)}</p>
-                          </div>
+    <div className="row mb-2">
+      <div className="col-4 fw-semibold">Job ID</div>
+      <div className="col-8">{selectedJob._id?.slice(-4)}</div>
+    </div>
 
-                          <div>
-                            <span className="label">Location</span>
-                            <p>{selectedJob.location}</p>
-                          </div>
+    <div className="row mb-2">
+      <div className="col-4 fw-semibold">Location</div>
+      <div className="col-8">{selectedJob.location}</div>
+    </div>
 
-                          <div>
-                            <span className="label">Department</span>
-                            <p>{selectedJob.department}</p>
-                          </div>
+    <div className="row mb-2">
+      <div className="col-4 fw-semibold">Department</div>
+      <div className="col-8">{selectedJob.department}</div>
+    </div>
 
-                          <div>
-                            <span className="label">Job Type</span>
-                            <p>{selectedJob.hiringType}</p>
-                          </div>
+    <div className="row mb-2">
+      <div className="col-4 fw-semibold">Job Type</div>
+      <div className="col-8">{selectedJob.hiringType}</div>
+    </div>
 
-                          <div>
-                            <span className="label">Experience</span>
-                            <p>
-                              {selectedJob.experience?.min} –{" "}
-                              {selectedJob.experience?.max} Years
-                            </p>
-                          </div>
+    <div className="row mb-2">
+      <div className="col-4 fw-semibold">Experience</div>
+      <div className="col-8">
+        {selectedJob.experience?.min} – {selectedJob.experience?.max} Years
+      </div>
+    </div>
 
-                          <div>
-                            <span className="label">Posted</span>
-                            <p>{formatDate(selectedJob.createdAt)}</p>
-                          </div>
-                        </div>
-                      </div>
+    <div className="row mb-3">
+      <div className="col-4 fw-semibold">Posted</div>
+      <div className="col-8">
+        {formatDate(selectedJob.createdAt)}
+      </div>
+    </div>
 
-                      <div className="job-card">
-                        <h6 className="job-card-title">Job Details</h6>
+    {/* <hr /> */}
 
-                        <div className="job-section">
-                          <b>Key Skills:</b>
-                          <ul>
-                            {selectedJob.importantSkills?.map((skill, i) => (
-                              <li key={i}>{skill}</li>
-                            ))}
-                          </ul>
+   <div className="row mb-2">
+  <div className="col-4 fw-semibold">Key Skills</div>
+  <div className="col-8">
+    <ul className="mb-0 list-unstyled ps-0">
+  {selectedJob.importantSkills?.map((skill, i) => (
+    <li key={i} style={{ marginBottom: "2px" }}>
+      {skill}
+    </li>
+  ))}
+</ul>
+  </div>
+</div>
 
-                          {selectedJob.otherSkills &&
-                            selectedJob.otherSkills.length > 0 && (
-                              <>
-                                <h6
-                                  style={{
-                                    marginTop: "16px",
-                                    color: "#3A5FBE",
-                                  }}
-                                >
-                                  Other Skills:
-                                </h6>
-                                <ul
-                                  style={{
-                                    paddingLeft: "20px",
-                                    marginTop: "6px",
-                                  }}
-                                >
-                                  {selectedJob.otherSkills.map(
-                                    (skill, index) => (
-                                      <li
-                                        key={index}
-                                        style={{
-                                          fontSize: "14px",
-                                          color: "#212529",
-                                          marginBottom: "4px",
-                                        }}
-                                      >
-                                        {skill}
-                                      </li>
-                                    ),
-                                  )}
-                                </ul>
-                              </>
-                            )}
-                        </div>
+{selectedJob.otherSkills?.length > 0 && (
+  <div className="row mb-2">
+    <div className="col-4 fw-semibold">Other Skills</div>
+    <div className="col-8">
+      <ul className="mb-0">
+        {selectedJob.otherSkills.map((skill, i) => (
+          <li key={i}>{skill}</li>
+        ))}
+      </ul>
+    </div>
+  </div>
+)}
 
-                        <div className="job-section">
-                          <b>Description:</b>
-                          <div
-                            className="job-desc"
-                            dangerouslySetInnerHTML={{
-                              __html: selectedJob.jobDescription,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
+<div className="row mb-2">
+  <div className="col-4 fw-semibold">Description</div>
+<div className="col-8" style={{ textAlign: "left",  }}>
+  <div
+    style={{ textAlign: "left" , }}
+    dangerouslySetInnerHTML={{
+      __html: selectedJob.jobDescription,
+    }}
+  />
+</div>
+</div>
+<div className="text-end mt-3">
+ <button
+        type="button"
+        className="btn btn-sm custom-outline-btn"
+        onClick={() => setShowViewModal(false)}
+        style={{minWidth:90}}
+      >
+        Close
+      </button>
+  </div>
+  </div>
+  
+)}
 
                   {/* Application Form */}
                   {activeViewTab === "APPLY" && (
@@ -1709,150 +1855,102 @@ const EmployeeCareer = ({ user }) => {
                         }
                       }}
                     >
-                      <div className="row g-3">
-                        <div className="col-12 col-md-6">
-                          <label
-                            className="form-label"
-                            style={{ color: "#3A5FBE", fontWeight: 500 }}
-                          >
-                            First Name
-                          </label>
-                          <input
-                            className="form-control"
-                            name="firstName"
-                            placeholder="Enter First Name"
-                            required
-                          />
-                        </div>
+                      
+                   {/* First Name */}
+    <div className="row align-items-center mb-3">
+      <div className="col-12 col-md-4 fw-semibold">First Name</div>
+      <div className="col-12 col-md-8">
+        <input className="form-control" name="firstName" required />
+      </div>
+    </div>
 
-                        <div className="col-12 col-md-6">
-                          <label
-                            className="form-label"
-                            style={{ color: "#3A5FBE", fontWeight: 500 }}
-                          >
-                            Middle Name
-                          </label>
-                          <input
-                            className="form-control"
-                            name="middleName"
-                            placeholder="Enter Middle Name"
-                          />
-                        </div>
+    {/* Middle Name */}
+    <div className="row align-items-center mb-3">
+      <div className="col-12 col-md-4 fw-semibold">Middle Name</div>
+      <div className="col-12 col-md-8">
+        <input className="form-control" name="middleName" />
+      </div>
+    </div>
 
-                        <div className="col-12 col-md-6">
-                          <label
-                            className="form-label"
-                            style={{ color: "#3A5FBE", fontWeight: 500 }}
-                          >
-                            Last Name
-                          </label>
-                          <input
-                            className="form-control"
-                            name="lastName"
-                            placeholder="Enter Last Name"
-                            required
-                          />
-                        </div>
+    {/* Last Name */}
+    <div className="row align-items-center mb-3">
+      <div className="col-12 col-md-4 fw-semibold">Last Name</div>
+      <div className="col-12 col-md-8">
+        <input className="form-control" name="lastName" required />
+      </div>
+    </div>
 
-                        <div className="col-12 col-md-6">
-                          <label
-                            className="form-label"
-                            style={{ color: "#3A5FBE", fontWeight: 500 }}
-                          >
-                            Email ID
-                          </label>
-                          <input
-                            className="form-control"
-                            name="email"
-                            type="email"
-                            placeholder="Enter Email"
-                            required
-                          />
-                        </div>
+    {/* Email */}
+    <div className="row align-items-center mb-3">
+      <div className="col-12 col-md-4 fw-semibold">Email</div>
+      <div className="col-12 col-md-8">
+        <input className="form-control" name="email" type="email" required />
+      </div>
+    </div>
 
-                        <div className="col-12 col-md-6">
-                          <label
-                            className="form-label"
-                            style={{ color: "#3A5FBE", fontWeight: 500 }}
-                          >
-                            Phone Number
-                          </label>
-                          <input
-                            className="form-control"
-                            name="phone"
-                            type="tel"
-                            placeholder="Enter Phone Number"
-                            required
-                          />
-                        </div>
+    {/* Phone */}
+    <div className="row align-items-center mb-3">
+      <div className="col-12 col-md-4 fw-semibold">Phone Number</div>
+      <div className="col-12 col-md-8">
+        <input className="form-control" name="phone" required />
+      </div>
+    </div>
 
-                        <div className="col-12 col-md-6">
-                          <label
-                            className="form-label"
-                            style={{ color: "#3A5FBE", fontWeight: 500 }}
-                          >
-                            Experience (Years)
-                          </label>
-                          <input
-                            className="form-control"
-                            name="experience"
-                            type="number"
-                            min="0"
-                            placeholder="Enter Experience"
-                            required
-                          />
-                        </div>
+    {/* Experience */}
+    <div className="row align-items-center mb-3">
+      <div className="col-12 col-md-4 fw-semibold">Experience</div>
+      <div className="col-12 col-md-8">
+        <input
+          className="form-control"
+          name="experience"
+          type="number"
+          min="0"
+          required
+        />
+      </div>
+    </div>
 
-                        <div className="col-12 col-md-6">
-                          <label
-                            className="form-label"
-                            style={{ color: "#3A5FBE", fontWeight: 500 }}
-                          >
-                            Current City
-                          </label>
-                          <input
-                            className="form-control"
-                            name="city"
-                            placeholder="Enter Current City"
-                            required
-                          />
-                        </div>
+    {/* City */}
+    <div className="row align-items-center mb-3">
+      <div className="col-12 col-md-4 fw-semibold">Current City</div>
+      <div className="col-12 col-md-8">
+        <input className="form-control" name="city" required />
+      </div>
+    </div>
 
-                        <div className="col-12 col-md-6">
-                          <label
-                            className="form-label"
-                            style={{ color: "#3A5FBE", fontWeight: 500 }}
-                          >
-                            Resume
-                          </label>
-                          <input
-                            className="form-control"
-                            name="resume"
-                            type="file"
-                            accept=".doc,.docx,.pdf"
-                            required
-                          />
-                        </div>
-                      </div>
-                      <div className="d-flex justify-content-end gap-2  mt-3 g mb-2 ">
-                        <button
-                          className="btn btn-sm custom-outline-btn "
-                          style={{ minWidth: 90 }}
-                          type="submit"
-                        >
-                          Apply Job
-                        </button>
-                        <button
-                          type="button"
-                          className="btn btn-sm custom-outline-btn float-end"
-                          onClick={() => setShowViewModal(false)}
-                          style={{ minWidth: 90 }}
-                        >
-                          Close
-                        </button>
-                      </div>
-                    </form>
-                  )}
+    {/* Resume */}
+    <div className="row align-items-center mb-3">
+      <div className="col-12 col-md-4 fw-semibold">Resume</div>
+      <div className="col-12 col-md-8">
+        <input
+          className="form-control"
+          name="resume"
+          type="file"
+          accept=".doc,.docx,.pdf"
+          required
+        />
+      </div>
+    </div>
+
+    <div className="text-end mt-3">
+      <button
+        className="btn btn-sm custom-outline-btn me-2"
+        type="submit"
+        style={{ minWidth: 90 }}
+      >
+        Apply Job
+      </button>
+      <button
+        type="button"
+        className="btn btn-sm custom-outline-btn"
+        onClick={() => setShowViewModal(false)}
+        style={{ minWidth: 90 }}
+      >
+        Close
+      </button>
+    </div>
+  </form>
+)}
                   {/* //Added by Mahesh */}
                 </div>
               </div>
@@ -1861,6 +1959,7 @@ const EmployeeCareer = ({ user }) => {
         )}
 
         {/* ===== Referral Modal (Like In-house Application Form) ===== */}
+        {/* added by rushikesh */}
         {showReferralModal && selectedJob && (
           <div
             className="modal fade show d-block"
@@ -1868,7 +1967,9 @@ const EmployeeCareer = ({ user }) => {
             ref={modalRef}
             tabIndex="-1"
           >
-            <div className="modal-dialog modal-lg" style={{ marginTop: 120 }}>
+            <div  className="modal-dialog modal-lg modal-dialog-centered"
+  style={{ maxWidth: "600px", marginTop: "80px" }}
+>
               <div className="modal-content">
                 <div
                   className="modal-header"
@@ -1906,106 +2007,86 @@ const EmployeeCareer = ({ user }) => {
                       Application Form
                     </button>
                   </div>
-                  {activeReferralTab === "DESC" && (
-                    <div className="job-details-wrapper">
-                      <div className="job-card">
-                        <h6 className="job-card-title">Job Info</h6>
+                                 {/* {activeViewTab === "DESC" && ( */}
+                                 {activeReferralTab === "DESC" && (
+  <div>
 
-                        <div className="job-info-grid">
-                          <div>
-                            <span className="label">Job ID</span>
-                            <p>{selectedJob._id?.slice(-4)}</p>
-                          </div>
+    <div className="row mb-2">
+      <div className="col-4 fw-semibold">Job ID</div>
+      <div className="col-8">{selectedJob._id?.slice(-4)}</div>
+    </div>
 
-                          <div>
-                            <span className="label">Location</span>
-                            <p>{selectedJob.location}</p>
-                          </div>
+    <div className="row mb-2">
+      <div className="col-4 fw-semibold">Location</div>
+      <div className="col-8">{selectedJob.location}</div>
+    </div>
 
-                          <div>
-                            <span className="label">Department</span>
-                            <p>{selectedJob.department}</p>
-                          </div>
+    <div className="row mb-2">
+      <div className="col-4 fw-semibold">Department</div>
+      <div className="col-8">{selectedJob.department}</div>
+    </div>
 
-                          <div>
-                            <span className="label">Job Type</span>
-                            <p>{selectedJob.hiringType}</p>
-                          </div>
+    <div className="row mb-2">
+      <div className="col-4 fw-semibold">Job Type</div>
+      <div className="col-8">{selectedJob.hiringType}</div>
+    </div>
 
-                          <div>
-                            <span className="label">Experience</span>
-                            <p>
-                              {selectedJob.experience?.min} –{" "}
-                              {selectedJob.experience?.max} Years
-                            </p>
-                          </div>
+    <div className="row mb-2">
+      <div className="col-4 fw-semibold">Experience</div>
+      <div className="col-8">
+        {selectedJob.experience?.min} – {selectedJob.experience?.max} Years
+      </div>
+    </div>
 
-                          <div>
-                            <span className="label">Posted</span>
-                            <p>{formatDate(selectedJob.createdAt)}</p>
-                          </div>
-                        </div>
-                      </div>
+    <div className="row mb-3">
+      <div className="col-4 fw-semibold">Posted</div>
+      <div className="col-8">
+        {formatDate(selectedJob.createdAt)}
+      </div>
+    </div>
 
-                      <div className="job-card">
-                        <h6 className="job-card-title">Job Details</h6>
+    {/* <hr /> */}
 
-                        <div className="job-section">
-                          <b>Key Skills:</b>
-                          <ul>
-                            {selectedJob.importantSkills?.map((skill, i) => (
-                              <li key={i}>{skill}</li>
-                            ))}
-                          </ul>
+   <div className="row mb-2">
+  <div className="col-4 fw-semibold">Key Skills</div>
+  <div className="col-8">
+   <ul className="mb-0 list-unstyled ps-0">
+  {selectedJob.importantSkills?.map((skill, i) => (
+    <li key={i} style={{ marginBottom: "2px" }}>
+      {skill}
+    </li>
+  ))}
+</ul>
+  </div>
+</div>
 
-                          {selectedJob.otherSkills &&
-                            selectedJob.otherSkills.length > 0 && (
-                              <>
-                                <h6
-                                  style={{
-                                    marginTop: "16px",
-                                    color: "#3A5FBE",
-                                  }}
-                                >
-                                  Other Skills:
-                                </h6>
-                                <ul
-                                  style={{
-                                    paddingLeft: "20px",
-                                    marginTop: "6px",
-                                  }}
-                                >
-                                  {selectedJob.otherSkills.map(
-                                    (skill, index) => (
-                                      <li
-                                        key={index}
-                                        style={{
-                                          fontSize: "14px",
-                                          color: "#212529",
-                                          marginBottom: "4px",
-                                        }}
-                                      >
-                                        {skill}
-                                      </li>
-                                    ),
-                                  )}
-                                </ul>
-                              </>
-                            )}
-                        </div>
+{selectedJob.otherSkills?.length > 0 && (
+  <div className="row mb-2">
+    <div className="col-4 fw-semibold">Other Skills</div>
+    <div className="col-8">
+      <ul className="mb-0">
+        {selectedJob.otherSkills.map((skill, i) => (
+          <li key={i}>{skill}</li>
+        ))}
+      </ul>
+    </div>
+  </div>
+)}
 
-                        <div className="job-section">
-                          <b>Description:</b>
-                          <div
-                            className="job-desc"
-                            dangerouslySetInnerHTML={{
-                              __html: selectedJob.jobDescription,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
+<div className="row mb-2">
+  <div className="col-4 fw-semibold">Description</div>
+<div className="col-8" style={{ textAlign: "left",  }}>
+  <div
+    style={{ textAlign: "left" , }}
+    dangerouslySetInnerHTML={{
+      __html: selectedJob.jobDescription,
+    }}
+  />
+</div>
+</div>
+  </div>
+)}
+
 
                   {/* Referral Application Form */}
                   {!referralSuccess && activeReferralTab === "APPLY" && (
@@ -2018,6 +2099,7 @@ const EmployeeCareer = ({ user }) => {
                         formData.append("job", selectedJob._id);
                         formData.append("applicantType", "referral"); // or inhouse
                         formData.append("referredBy", user._id); // logged-in employee id
+                        formData.append("employee", user._id);
                         formData.append(
                           "name",
                           `${form.firstName.value} ${form.middleName.value} ${form.lastName.value}`,
@@ -2043,7 +2125,7 @@ const EmployeeCareer = ({ user }) => {
                             candidate,
                           ]);
                           setReferralSuccess(true);
-                          setShowViewModal(false);
+                      setShowReferralModal(false);   // ✅ correct
                         } catch (err) {
                           alert(
                             err.response?.data?.message || "Application failed",
@@ -2051,253 +2133,90 @@ const EmployeeCareer = ({ user }) => {
                         }
                       }}
                     >
-                      {/* Candidate Info (Same as In-house Form) */}
-                      {/* <div className="mb-3 d-flex align-items-center">
-                        <label
-                          className="form-label me-2"
-                          style={{ minWidth: "150px" }}
-                        >
-                          First Name:
-                        </label>
-                        <input
-                          className="form-control"
-                          name="firstName"
-                          placeholder="Enter First Name"
-                          required
-                        />
-                      </div>
-                      <div className="mb-3 d-flex align-items-center">
-                        <label
-                          className="form-label me-2"
-                          style={{ minWidth: "150px" }}
-                        >
-                          Middle Name:
-                        </label>
-                        <input
-                          className="form-control"
-                          name="middleName"
-                          placeholder="Enter Middle Name"
-                        />
-                      </div>
-                      <div className="mb-3 d-flex align-items-center">
-                        <label
-                          className="form-label me-2"
-                          style={{ minWidth: "150px" }}
-                        >
-                          Last Name:
-                        </label>
-                        <input
-                          className="form-control"
-                          name="lastName"
-                          placeholder="Enter Last Name"
-                          required
-                        />
-                      </div>
-                      <div className="mb-3 d-flex align-items-center">
-                        <label
-                          className="form-label me-2"
-                          style={{ minWidth: "150px" }}
-                        >
-                          Email ID:
-                        </label>
-                        <input
-                          className="form-control"
-                          name="email"
-                          type="email"
-                          placeholder="Enter Email"
-                          required
-                        />
-                      </div>
-                      <div className="mb-3 d-flex align-items-center">
-                        <label
-                          className="form-label me-2"
-                          style={{ minWidth: "150px" }}
-                        >
-                          Experience (Years):
-                        </label>
-                        <input
-                          className="form-control"
-                          name="experience"
-                          type="number"
-                          min="0"
-                          placeholder="Enter Experience"
-                          required
-                        />
-                      </div>
-                      <div className="mb-3 d-flex align-items-center">
-                        <label
-                          className="form-label me-2"
-                          style={{ minWidth: "150px" }}
-                        >
-                          Current City:
-                        </label>
-                        <input
-                          className="form-control"
-                          name="city"
-                          placeholder="Enter Current City"
-                          required
-                        />
-                      </div>
-                      <div className="mb-3 d-flex align-items-center">
-                        <label
-                          className="form-label me-2"
-                          style={{ minWidth: "150px" }}
-                        >
-                          Phone Number:
-                        </label>
-                        <input
-                          className="form-control"
-                          name="phone"
-                          type="tel"
-                          placeholder="Enter Phone Number"
-                          required
-                        />
-                      </div>
-                      <div className="mb-3 d-flex align-items-center">
-                        <label
-                          className="form-label me-2"
-                          style={{ minWidth: "150px" }}
-                        >
-                          Resume:
-                        </label>
-                        <input
-                          className="form-control"
-                          name="resume"
-                          type="file"
-                          accept=".doc,.docx,.pdf"
-                          required
-                        />
-                      </div>
-
-                      <button className="btn btn-primary w-100">
-                        Submit Referral
-                      </button> */}
+                    
                       {/* Candidate Info */}
-                      <div className="row g-3">
-                        <div className="col-12 col-md-6">
-                          <label
-                            className="form-label"
-                            style={{ color: "#3A5FBE", fontWeight: 500 }}
-                          >
-                            First Name
-                          </label>
-                          <input
-                            className="form-control"
-                            name="firstName"
-                            placeholder="Enter First Name"
-                            required
-                          />
-                        </div>
+                  {/* Candidate Info */}
+{/* Candidate Info */}
+<div className="row align-items-center mb-3">
+  <div className="col-12 col-md-4 fw-semibold">First Name</div>
+  <div className="col-12 col-md-8">
+    <input className="form-control" name="firstName" required />
+  </div>
+</div>
 
-                        <div className="col-12 col-md-6">
-                          <label
-                            className="form-label"
-                            style={{ color: "#3A5FBE", fontWeight: 500 }}
-                          >
-                            Middle Name
-                          </label>
-                          <input
-                            className="form-control"
-                            name="middleName"
-                            placeholder="Enter Middle Name"
-                          />
-                        </div>
+<div className="row align-items-center mb-3">
+  <div className="col-12 col-md-4 fw-semibold">Middle Name</div>
+  <div className="col-12 col-md-8">
+    <input className="form-control" name="middleName" />
+  </div>
+</div>
 
-                        <div className="col-12 col-md-6">
-                          <label
-                            className="form-label"
-                            style={{ color: "#3A5FBE", fontWeight: 500 }}
-                          >
-                            Last Name
-                          </label>
-                          <input
-                            className="form-control"
-                            name="lastName"
-                            placeholder="Enter Last Name"
-                            required
-                          />
-                        </div>
+<div className="row align-items-center mb-3">
+  <div className="col-12 col-md-4 fw-semibold">Last Name</div>
+  <div className="col-12 col-md-8">
+    <input className="form-control" name="lastName" required />
+  </div>
+</div>
 
-                        <div className="col-12 col-md-6">
-                          <label
-                            className="form-label"
-                            style={{ color: "#3A5FBE", fontWeight: 500 }}
-                          >
-                            Email ID
-                          </label>
-                          <input
-                            className="form-control"
-                            name="email"
-                            type="email"
-                            placeholder="Enter Email"
-                            required
-                          />
-                        </div>
+<div className="row align-items-center mb-3">
+  <div className="col-12 col-md-4 fw-semibold">Email ID</div>
+  <div className="col-12 col-md-8">
+    <input className="form-control" name="email" type="email" required />
+  </div>
+</div>
 
-                        <div className="col-12 col-md-6">
-                          <label
-                            className="form-label"
-                            style={{ color: "#3A5FBE", fontWeight: 500 }}
-                          >
-                            Phone Number
-                          </label>
-                          <input
-                            className="form-control"
-                            name="phone"
-                            type="tel"
-                            placeholder="Enter Phone Number"
-                            required
-                          />
-                        </div>
+<div className="row align-items-center mb-3">
+  <div className="col-12 col-md-4 fw-semibold">Phone Number</div>
+  <div className="col-12 col-md-8">
+    <input className="form-control" name="phone" type="tel" required />
+  </div>
+</div>
 
-                        <div className="col-12 col-md-6">
-                          <label
-                            className="form-label"
-                            style={{ color: "#3A5FBE", fontWeight: 500 }}
-                          >
-                            Experience (Years)
-                          </label>
-                          <input
-                            className="form-control"
-                            name="experience"
-                            type="number"
-                            min="0"
-                            placeholder="Enter Experience"
-                            required
-                          />
-                        </div>
+<div className="row align-items-center mb-3">
+  <div className="col-12 col-md-4 fw-semibold">Experience</div>
+  <div className="col-12 col-md-8">
+    <input className="form-control" name="experience" type="number" min="0" required />
+  </div>
+</div>
 
-                        <div className="col-12 col-md-6">
-                          <label
-                            className="form-label"
-                            style={{ color: "#3A5FBE", fontWeight: 500 }}
-                          >
-                            Current City
-                          </label>
-                          <input
-                            className="form-control"
-                            name="city"
-                            placeholder="Enter Current City"
-                            required
-                          />
-                        </div>
+<div className="row align-items-center mb-3">
+  <div className="col-12 col-md-4 fw-semibold">Current City</div>
+  <div className="col-12 col-md-8">
+    <input className="form-control" name="city" required />
+  </div>
+</div>
 
-                        <div className="col-12 col-md-6">
-                          <label
-                            className="form-label"
-                            style={{ color: "#3A5FBE", fontWeight: 500 }}
-                          >
-                            Resume
-                          </label>
-                          <input
-                            className="form-control"
-                            name="resume"
-                            type="file"
-                            accept=".doc,.docx,.pdf"
-                            required
-                          />
-                        </div>
-                      </div>
+<div className="row align-items-center mb-3">
+  <div className="col-12 col-md-4 fw-semibold">Resume</div>
+  <div className="col-12 col-md-8">
+    <input
+      className="form-control"
+      name="resume"
+      type="file"
+      accept=".doc,.docx,.pdf"
+      required
+    />
+  </div>
+</div>
+
+<div className="text-end mt-3">
+  <button
+    className="btn btn-sm custom-outline-btn me-2"
+    type="submit"
+    style={{ minWidth: 90 }}
+  >
+    Submit Referral
+  </button>
+
+  <button
+    type="button"
+    className="btn btn-sm custom-outline-btn"
+    onClick={() => setShowReferralModal(false)}
+    style={{ minWidth: 90 }}
+  >
+    Close
+  </button>
+</div>
                     </form>
                   )}
 
@@ -2322,22 +2241,7 @@ const EmployeeCareer = ({ user }) => {
                       </button>
                     </div>
                   )}
-                  <div className="d-flex justify-content-end gap-2  mt-3 g mb-2 ">
-                    <button
-                      className="btn btn-sm custom-outline-btn "
-                      style={{ minWidth: 90 }}
-                      type="submit"
-                    >
-                      Submit Referral
-                    </button>
-                    <button
-                      className="btn btn-sm custom-outline-btn "
-                      style={{ minWidth: 90 }}
-                      onClick={() => setShowReferralModal(false)}
-                    >
-                      Close
-                    </button>
-                  </div>
+                 
                 </div>
               </div>
             </div>

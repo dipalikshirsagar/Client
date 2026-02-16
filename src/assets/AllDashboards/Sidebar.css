@@ -95,7 +95,7 @@
   width: 100%;      /* Forces nav-link hover expansions to stay within sidebar */
   max-width: 100%;  /* Prevents extra width from shadows/padding */
   display: block;
-  height: 65px;
+  height: 68px;
 }
 
 .sidebar .nav-link svg {
@@ -168,9 +168,11 @@
 @media (max-width: 1024px) and (min-width: 769px) {
   .sidebar {
     width: 85px;
+    height:70px;
   }
   
   .nav-link h6 {
     font-size: 10px;
   }
+  
 }

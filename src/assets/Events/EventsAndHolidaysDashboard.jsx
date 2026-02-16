@@ -5,6 +5,9 @@ import AddHolidayForm from "../Holidays/AddHolidaysForms";
 import AddEventForm from "./AddEventForm";
 import "./EventAndHolidays.css";
 import AddAnnouncements from "./AddAnnouncements";
+import EditAnnouncementForm from "./EditAnnouncementForm";
+import EditEventForm from "./EditEventForm";
+import EditHolidayForm from "../Holidays/EditHolidayForm";
 
 function EventsAndHolidaysDashboard() {
   const [holidayList, setHolidayList] = useState([]);
@@ -29,6 +32,11 @@ function EventsAndHolidaysDashboard() {
     return eventDate >= today;
   });
 
+  //snehal code
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [selectedHoliday, setSelectedHoliday] = useState(null);
+  //snehal code
   //aditya
 
   const [showAnnouncementModal, setShowAnnouncementModal] = useState(false);
@@ -38,12 +46,15 @@ function EventsAndHolidaysDashboard() {
   const handleAddAnnouncement = (newAnnouncement) => {
     setAnnouncementsList((prev) => [newAnnouncement, ...prev]);
   };
-
+  //snehal code editicon popup 11-02-2026
+  const [editingEvent, setEditingEvent] = useState(null);
+  const [editingHoliday, setEditingHoliday] = useState(null);
+  const [editingAnnouncement, setEditingAnnouncement] = useState(null);
   //Added by samiksha
   const handleDeleteAnnouncement = async (id) => {
     if (!window.confirm("Are you sure you want to delete this announcement?"))
       return;
-
+    alert("Announcement delete successfully!");
     try {
       const token = localStorage.getItem("accessToken");
       await axios.delete(`https://server-backend-ems.vercel.app/announcements/${id}`, {
@@ -61,24 +72,23 @@ function EventsAndHolidaysDashboard() {
     }
   };
 
+  //replace by shivani
   useEffect(() => {
     const fetchAnnouncements = async () => {
       try {
-        const token = localStorage.getItem("accessToken");
         const res = await axios.get("https://server-backend-ems.vercel.app/announcements/");
-        console.log("Announcements response:", res.data); // 👀 check shape
-        const sortedAnnouncements = res.data.data.sort(
-          (a, b) => new Date(a.publishDate) - new Date(b.publishDate),
-        );
-        console.log("Sorted Announcements:", sortedAnnouncements);
-        setAnnouncementsList(sortedAnnouncements);
+        const data = res.data.data || [];
+  
+        //  KEEP API ORDER (LIFO)
+        setAnnouncementsList(data);
       } catch (err) {
-        console.error("Failed to fetch events:", err.response || err.message);
+        console.error("Failed to fetch announcements:", err);
       }
     };
-
+  
     fetchAnnouncements();
   }, []);
+
 
   // gitanjali
   useEffect(() => {
@@ -102,7 +112,7 @@ function EventsAndHolidaysDashboard() {
   const handleDeleteHoliday = async (id) => {
     if (!window.confirm("Are you sure you want to delete this holiday?"))
       return;
-
+    alert("Holiday delete successfully!");
     try {
       const token = localStorage.getItem("accessToken");
       await axios.delete(`https://server-backend-ems.vercel.app/holidays/${id}`, {
@@ -143,7 +153,7 @@ function EventsAndHolidaysDashboard() {
   const handleDeleteEvent = async (id) => {
     console.log(id);
     if (!window.confirm("Are you sure you want to delete this event?")) return;
-
+    alert("Event delete successfully!");
     try {
       const token = localStorage.getItem("accessToken");
       await axios.delete(`https://server-backend-ems.vercel.app/events/${id}`, {
@@ -189,10 +199,14 @@ function EventsAndHolidaysDashboard() {
           ) : (
             <div className="scrollable-list">
               {upcomingEvents.map((event, idx) => (
+                //snehal code
                 <div
                   key={idx}
                   className="card shadow-sm border-0 event-holiday-card"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => setSelectedEvent(event)}
                 >
+                  {/* //snehal code */}
                   <div className="card-body">
                     <h6 className="card-title">{event.type}</h6>
                     <hr className="card-divider" />
@@ -225,12 +239,23 @@ function EventsAndHolidaysDashboard() {
                     </div>
 
                     {isAdmin && (
-                      <button
-                        className="btn btn-sm btn-outline-danger delete-btn"
-                        onClick={() => handleDeleteEvent(event._id || event.id)}
-                      >
-                        <i className="bi bi-trash delete-icon"></i>
-                      </button>
+                      <>
+                        <button
+                          className="btn btn-sm custom-outline-btn edit-btn"
+                          onClick={() => setEditingEvent(event)}
+                        >
+                          <i className="bi bi-pencil-square edit-icon"></i>
+                        </button>
+                        <button
+                          className="btn btn-sm btn-outline-danger delete-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteEvent(event._id || event.id);
+                          }}
+                        >
+                          <i className="bi bi-trash delete-icon"></i>
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
@@ -238,7 +263,81 @@ function EventsAndHolidaysDashboard() {
             </div>
           )}
         </div>
+        {/* //snehal code */}
+        {selectedEvent && (
+          <div
+            className="modal fade show d-block"
+            tabIndex="-1"
+            style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+          >
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content shadow-lg" style={{ width: 600 }}>
+                <div
+                  className="modal-header text-white"
+                  style={{ backgroundColor: "#3A5FBE" }}
+                >
+                  <h5 className="modal-title">Event Details</h5>
+                  <button
+                    type="button"
+                    className="btn-close btn-close-white"
+                    onClick={() => setSelectedEvent(null)}
+                  />
+                </div>
 
+                <div className="modal-body text-center">
+                  <i
+                    className={`event-icon me-2 fs-4 ${
+                      selectedEvent.type === "Birthday"
+                        ? "bi bi-gift "
+                        : selectedEvent.type === "Team Outing"
+                          ? "bi bi-geo-alt"
+                          : "bi bi-calendar-event"
+                    }`}
+                  ></i>
+
+                  <h5 style={{ textTransform: "capitalize" }}>
+                    {selectedEvent.name}
+                  </h5>
+
+                  <p className="fw-semibold">{selectedEvent.type}</p>
+
+                  <p className="text-muted mt-2">
+                    {new Date(selectedEvent.date).toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "long",
+                      year: "numeric",
+                      weekday: "long",
+                    })}
+                  </p>
+                </div>
+
+                <div className="modal-footer border-0 pt-0 justify-content-end">
+                  <button
+                    className="btn btn-sm custom-outline-btn"
+                    style={{ minWidth: "90px" }}
+                    onClick={() => setSelectedEvent(null)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* //snehal code */}
+        {editingEvent && (
+          <EditEventForm
+            eventData={editingEvent}
+            onClose={() => setEditingEvent(null)}
+            onUpdate={(updatedEvent) => {
+              setEventsList((prev) =>
+                prev.map((ev) =>
+                  ev._id === updatedEvent._id ? updatedEvent : ev,
+                ),
+              );
+            }}
+          />
+        )}
         {/* ------------------ HOLIDAYS ------------------ */}
         <div className="col-md-4 mb-4">
           <div className="section-header">
@@ -249,10 +348,14 @@ function EventsAndHolidaysDashboard() {
           {holidayList.length > 0 ? (
             <div className="scrollable-list">
               {upcomingHolidays.map((h) => (
+                //snehal code
                 <div
                   key={h._id}
                   className="card shadow-sm border-0 event-holiday-card"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => setSelectedHoliday(h)}
                 >
+                  {/* //snehal code */}
                   <div className="card-body">
                     <h6 className="card-title">Holiday</h6>
                     <hr className="card-divider" />
@@ -277,12 +380,23 @@ function EventsAndHolidaysDashboard() {
                     </div>
 
                     {isAdmin && (
-                      <button
-                        className="btn btn-sm btn-outline-danger delete-btn"
-                        onClick={() => handleDeleteHoliday(h._id)}
-                      >
-                        <i className="bi bi-trash delete-icon"></i>
-                      </button>
+                      <>
+                        <button
+                          className="btn btn-sm custom-outline-btn edit-btn"
+                          onClick={() => setEditingHoliday(h)}
+                        >
+                          <i className="bi bi-pencil-square edit-icon"></i>
+                        </button>
+                        <button
+                          className="btn btn-sm btn-outline-danger delete-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteHoliday(h._id);
+                          }}
+                        >
+                          <i className="bi bi-trash delete-icon"></i>
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
@@ -294,6 +408,82 @@ function EventsAndHolidaysDashboard() {
             </div>
           )}
         </div>
+        {/* //snehal code */}
+        {selectedHoliday && (
+          <div
+            className="modal fade show d-block"
+            tabIndex="-1"
+            style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+          >
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content shadow-lg" style={{ width: 600 }}>
+                <div
+                  className="modal-header text-white"
+                  style={{ backgroundColor: "#3A5FBE" }}
+                >
+                  <h5 className="modal-title">Holiday Details</h5>
+                  <button
+                    type="button"
+                    className="btn-close btn-close-white"
+                    onClick={() => setSelectedHoliday(null)}
+                  />
+                </div>
+
+                <div className="modal-body text-center">
+                  <i className="bi bi-star-fill text-warning fs-1 mb-3"></i>
+
+                  <h5 style={{ textTransform: "capitalize" }}>
+                    {selectedHoliday.name}
+                  </h5>
+
+                  <p className="text-muted mt-2">
+                    {new Date(selectedHoliday.date).toLocaleDateString(
+                      "en-GB",
+                      {
+                        day: "2-digit",
+                        month: "long",
+                        year: "numeric",
+                        weekday: "long",
+                      },
+                    )}
+                  </p>
+                </div>
+
+                <div className="modal-footer border-0 pt-0 justify-content-end">
+                  <button
+                    className="btn btn-sm custom-outline-btn"
+                    style={{ minWidth: "90px" }}
+                    onClick={() => setSelectedHoliday(null)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        {editingHoliday && (
+          <EditHolidayForm
+            holidayData={editingHoliday}
+            onClose={() => setEditingHoliday(null)}
+            onUpdate={(updated) => {
+              setHolidayList((prev) =>
+                prev.map((h) => (h._id === updated._id ? updated : h)),
+              );
+            }}
+          />
+        )}
+        {editingAnnouncement && (
+          <EditAnnouncementForm
+            data={editingAnnouncement}
+            onClose={() => setEditingAnnouncement(null)}
+            onUpdate={(updated) => {
+              setAnnouncementsList((prev) =>
+                prev.map((a) => (a._id === updated._id ? updated : a)),
+              );
+            }}
+          />
+        )}
 
         {/* ------------------ ANNOUNCEMENTS ------------------ */}
         <div className="col-md-4 mb-4">
@@ -317,10 +507,14 @@ function EventsAndHolidaysDashboard() {
                   return expiryDate >= today;
                 })
                 .map((announcement, idx) => (
+                  //snehal code
                   <div
                     key={idx}
                     className="card shadow-sm border-0 event-holiday-card"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => setSelectedAnnouncement(announcement)}
                   >
+                    {/* //snehal code */}
                     <div className="card-body">
                       <h6 className="card-title">{announcement.name}</h6>
                       <hr className="card-divider" />
@@ -355,27 +549,124 @@ function EventsAndHolidaysDashboard() {
                       </div>
 
                       {isAdmin && (
-                        <button
-                          className="btn btn-sm btn-outline-danger delete-btn"
-                          onClick={() =>
-                            handleDeleteAnnouncement(
-                              announcement._id || announcement.id,
-                            )
-                          }
-                        >
-                          <i className="bi bi-trash delete-icon"></i>
-                        </button>
+                        <>
+                          <button
+                            className="btn btn-sm custom-outline-btn edit-btn"
+                            onClick={() => {
+                              setEditingAnnouncement(announcement);
+                            }}
+                          >
+                            <i className="bi bi-pencil-square"></i>
+                          </button>
+                          <button
+                            className="btn btn-sm btn-outline-danger delete-btn"
+                            onClick={(e) => {
+                              e.stopPropagation(); // 👈 popup open hou naye mhanun
+                              handleDeleteAnnouncement(
+                                announcement._id || announcement.id,
+                              );
+                            }}
+                          >
+                            <i className="bi bi-trash delete-icon"></i>
+                          </button>
+                        </>
                       )}
                     </div>
                   </div>
                 ))}
             </div>
           )}
-
-          {/* <div className="alert alert-info no-data-alert">
-      No announcements available
-    </div> */}
         </div>
+
+        {/* //snehal code */}
+        {selectedAnnouncement && (
+          <div
+            className="modal fade show d-block"
+            tabIndex="-1"
+            style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+          >
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content shadow-lg" style={{ width: 600 }}>
+                {/* Header */}
+                <div
+                  className="modal-header text-white"
+                  style={{ backgroundColor: "#3A5FBE" }}
+                >
+                  <h5 className="modal-title">{selectedAnnouncement.name}</h5>
+                  <button
+                    type="button"
+                    className="btn-close btn-close-white"
+                    onClick={() => setSelectedAnnouncement(null)}
+                  />
+                </div>
+
+                {/* Body */}
+                <div className="modal-body px-3">
+                  {selectedAnnouncement.image && (
+                    <div className="text-center mb-3">
+                      <img
+                        src={selectedAnnouncement.image}
+                        alt={selectedAnnouncement.name}
+                        className="img-fluid rounded"
+                        style={{
+                          maxHeight: "250px",
+                          width: "100%",
+                          objectFit: "cover",
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  <div className="container-fluid">
+                    <div className="row mb-2">
+                      <div className="col-4 fw-semibold">Description</div>
+                      <div className="col-8">
+                        {selectedAnnouncement.description || "-"}
+                      </div>
+                    </div>
+
+                    <div className="row mb-2">
+                      <div className="col-4 fw-semibold">Publish Date</div>
+                      <div className="col-8">
+                        {new Date(
+                          selectedAnnouncement.publishDate,
+                        ).toLocaleDateString("en-GB", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="row mb-2">
+                      <div className="col-4 fw-semibold">Expiry Date</div>
+                      <div className="col-8">
+                        {new Date(
+                          selectedAnnouncement.expirationDate,
+                        ).toLocaleDateString("en-GB", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ✅ Footer with ONLY Close Button */}
+                <div className="modal-footer border-0 pt-0 justify-content-end">
+                  <button
+                    className="btn btn-sm custom-outline-btn"
+                    style={{ minWidth: "90px" }}
+                    onClick={() => setSelectedAnnouncement(null)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* BACK BUTTON */}

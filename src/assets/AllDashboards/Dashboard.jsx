@@ -69,7 +69,7 @@ import AdminPerformances from "../Performances/AdminPerformances";
 import EmployeePerformances from "../Performances/EmployeePerformances";
 import CooPerformances from "../Performances/CooPerformances";
 import CeoPerformances from "../Performances/CeoPerformances";
-
+import JobCandidates from "../Careers/JobCandidates";//rushikesh
 function Dashboard() {
   const { role, username, id } = useParams();
   const [user, setUser] = useState(null);
@@ -473,9 +473,10 @@ function Dashboard() {
                 }
               />
               <Route path="addemployee" element={<AddEmployee />} />
-              <Route path="myprofile" element={<MyProfile user={user} />} />
-              {/* <Route path="regularization" element={<ApplyRegularization user={user}/>} /> */}
-              {/* AllEmployeeRegularizationRequestForAdmin */}
+              <Route
+                path="myprofile"
+                element={<MyProfile user={user} setUser={setUser} />}
+              />
               <Route
                 path="regularization"
                 element={
@@ -580,11 +581,14 @@ function Dashboard() {
               user?.role === "ceo" ||
               user?.role === "coo" ||
               user?.role === "md" ? (
-                <Route path="settings" element={<AdminSetting user={user} />} />
+                <Route
+                  path="settings"
+                  element={<AdminSetting user={user} setUser={setUser} />}
+                />
               ) : (
                 <Route
                   path="settings"
-                  element={<EmployeeSettings user={user} />}
+                  element={<EmployeeSettings user={user} setUser={setUser} />}
                 />
               )}
               {user?.role === "admin" ||
@@ -600,6 +604,12 @@ function Dashboard() {
                   element={<EmployeeCareer user={user} />}
                 />
               )}
+              {/* added by rushikesh */}
+              <Route
+                path="job-candidates/:jobId"
+                element={<JobCandidates />}
+              />
+              
               <Route
                 path="employeeattendance/:empId"
                 element={

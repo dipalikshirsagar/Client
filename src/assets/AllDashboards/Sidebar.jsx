@@ -238,7 +238,7 @@ function Sidebar({ handleLogout }) {
           </li>
 
           {/* Events */}
-          <li className="nav-item ">
+          <li className="nav-item  ">
             <NavLink
               to={`/dashboard/${role}/${username}/${id}/AllEventsandHolidays`}
               className="nav-link text-white d-flex flex-column align-items-center"

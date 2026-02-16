@@ -448,7 +448,9 @@ function AdminDashboard({ user }) {
                   </thead>
 
                   <tbody>
-                    {mergedEmployees.slice(0, 3).map((emp) => {
+                    {mergedEmployees
+                    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                    .slice(0, 3).map((emp) => {
                       const formatDate = (date) => {
                         if (!date) return "N/A";
                         const d = new Date(date);

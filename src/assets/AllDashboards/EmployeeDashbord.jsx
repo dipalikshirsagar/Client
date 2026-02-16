@@ -1570,7 +1570,7 @@ function EmployeeDashboard({ user }) {
 
                         {/* Right Icon with margin */}
                         <div
-                          className="rounded-3 d-flex justify-content-center align-items-center me-3"
+                          className="rounded-3 d-flex justify-content-center align-items-center "
                           style={{ width: "70px", height: "70px" }}
                         >
                           <i

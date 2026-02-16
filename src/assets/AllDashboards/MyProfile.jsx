@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
-function MyProfile({ user }) {
+function MyProfile({ user, setUser }) {
   const [formData, setFormData] = useState({});
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [removingImage, setRemovingImage] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const handleRemoveImage = async (e) => {
     e?.preventDefault?.();
@@ -23,13 +24,15 @@ function MyProfile({ user }) {
       const res = await axios.delete(
         `https://server-backend-ems.vercel.app/employees/${user._id}/image`,
       );
+      const updatedUser = res?.data?.employee
+        ? res.data.employee
+        : { ...user, image: null };
 
-      if (res?.data?.employee) {
-        setProfile(res.data.employee);
-      } else {
-        setFormData((prev) => ({ ...prev, image: null }));
-        setProfile((prev) => ({ ...prev, image: null }));
-      }
+      setProfile(updatedUser);
+      setUser(updatedUser);
+      setFormData((prev) => ({ ...prev, image: null }));
+
+      localStorage.setItem("user", JSON.stringify(updatedUser));
     } catch (err) {
       console.error("Failed to remove image:", err);
     } finally {
@@ -119,13 +122,12 @@ function MyProfile({ user }) {
 
   const handleSave = async () => {
     if (!user?._id) return alert("Invalid user ID");
-    // 🧩 Contact validation — must be exactly 10 digits
+
     if (!/^\d{10}$/.test(formData.contact || "")) {
       alert("Contact number must be exactly 10 digits.");
       return;
     }
 
-    // ✅ ZIP code validation — both current & permanent must be exactly 6 digits if present
     const currentZip = formData.currentAddress?.zip || "";
     const permanentZip = formData.permanentAddress?.zip || "";
 
@@ -160,18 +162,24 @@ function MyProfile({ user }) {
         }
       });
 
+      setSaving(true);
+      // ✅ Only wait for PUT
       await axios.put(`https://server-backend-ems.vercel.app/employees/${user._id}`, data, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+      setSaving(false);
 
       alert("Profile updated successfully!");
       setIsEditing(false);
 
-      // Refresh profile
-      const updated = await axios.get(
-        `https://server-backend-ems.vercel.app/employees/${user._id}`,
-      );
-      setProfile(updated.data);
+      // 🔥 Fetch updated profile in background (no need to block UI)
+      axios
+        .get(`https://server-backend-ems.vercel.app/employees/${user._id}`)
+        .then((res) => {
+          setProfile(res.data);
+          setUser(res.data); // ✅ update dashboard user also
+        })
+        .catch((err) => console.error("Profile refresh failed", err));
     } catch (err) {
       console.error(err);
       alert("Failed to update profile.");
@@ -317,6 +325,7 @@ function MyProfile({ user }) {
                     borderRadius: "50%",
                     objectFit: "cover",
                     marginBottom: "5px",
+                    objectPosition: "center 0%",
                   }}
                 />
               ) : profile.image ? (
@@ -334,6 +343,7 @@ function MyProfile({ user }) {
                       borderRadius: "50%",
                       objectFit: "cover",
                       marginBottom: "5px",
+                      objectPosition: "center 0%",
                     }}
                   />
                 </>
@@ -374,16 +384,18 @@ function MyProfile({ user }) {
                     </p>
                   )}
 
-                  <div style={{ marginTop: 8 }}>
-                    <button
-                      type="button"
-                      className="btn btn-outline-danger btn-sm mt-2"
-                      onClick={handleRemoveImage}
-                      disabled={removingImage}
-                    >
-                      {removingImage ? "Removing..." : "Remove"}
-                    </button>
-                  </div>
+                  {profile?.image && (
+                    <div style={{ marginTop: 8 }}>
+                      <button
+                        type="button"
+                        className="btn btn-outline-danger btn-sm mt-2"
+                        onClick={handleRemoveImage}
+                        disabled={removingImage}
+                      >
+                        {removingImage ? "Removing..." : "Remove"}
+                      </button>
+                    </div>
+                  )}
                 </>
               )}
             </div>
@@ -408,9 +420,10 @@ function MyProfile({ user }) {
                   className="btn btn-sm custom-outline-btn"
                   style={{ minWidth: 90 }}
                   onClick={handleSave}
+                  disabled={saving}
                 >
                   {" "}
-                  Save
+                  {saving ? "Saving..." : "Save"}
                 </button>
                 <button
                   className="btn btn-sm custom-outline-btn"

@@ -108,6 +108,34 @@ function Notification({ userId }) {
       }
     }
     // rutuja code end
+    // added by shivani
+    else if (n.type === "Policy") {
+      if (role === "employee" || role === "IT_Support") {
+        navigate(`/dashboard/${role}/${username}/${id}/employee-policy`);
+      } else if (role === "manager" || role === "ceo" || role === "md") {
+        navigate(`/dashboard/${role}/${username}/${id}/hr-policy`);
+      }
+    }
+    
+    //  Performance Notification
+    else if (n.type === "Performance") {
+      navigate(
+        `/dashboard/${role}/${username}/${id}/performance`
+      );
+    }
+    
+    else if (n.type === "Job") {
+      navigate(
+        `/dashboard/${role}/${username}/${id}/careers`
+      );
+    }
+    
+    else if (n.type === "Job Application") {
+      navigate(
+        `/dashboard/${role}/${username}/${id}/careers`
+      );
+    }
+    // 
     else {
       navigate("/");
     }

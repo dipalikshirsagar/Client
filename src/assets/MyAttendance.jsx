@@ -130,8 +130,8 @@ function MyAttendance({ employeeId }) {
             //     : "Pending Regularization",
             dayStatus:
               isToday &&
-                mergedAttendance[existingIndex]?.checkIn &&
-                !mergedAttendance[existingIndex]?.checkOut
+              mergedAttendance[existingIndex]?.checkIn &&
+              !mergedAttendance[existingIndex]?.checkOut
                 ? "Working"
                 : reg.regularizationRequest?.status === "Approved"
                   ? "Regularized"
@@ -921,11 +921,14 @@ function MyAttendance({ employeeId }) {
                             Checked in at
                           </strong>{" "}
                           {/* //Added by Jaicy */}
-                          {new Date(todayRecord.checkIn).toLocaleTimeString("en-US", {
-                            hour: "numeric",      // 6 instead of 06
-                            minute: "2-digit",    // 05, 30 etc.
-                            hourCycle: "h12",     // ensures 12-hour format with AM/PM
-                          })}
+                          {new Date(todayRecord.checkIn).toLocaleTimeString(
+                            "en-US",
+                            {
+                              hour: "numeric", // 6 instead of 06
+                              minute: "2-digit", // 05, 30 etc.
+                              hourCycle: "h12", // ensures 12-hour format with AM/PM
+                            },
+                          )}
                         </p>
                       ) : (
                         <p
@@ -951,11 +954,14 @@ function MyAttendance({ employeeId }) {
                           >
                             Checked out at
                           </strong>{" "}
-                          {new Date(todayRecord.checkOut).toLocaleTimeString("en-US", {
-                            hour: "numeric",
-                            minute: "2-digit",
-                            hourCycle: "h12",
-                          })}
+                          {new Date(todayRecord.checkOut).toLocaleTimeString(
+                            "en-US",
+                            {
+                              hour: "numeric",
+                              minute: "2-digit",
+                              hourCycle: "h12",
+                            },
+                          )}
                         </p>
                       )}
                       {/* Checkout timing end */}
@@ -1010,7 +1016,7 @@ function MyAttendance({ employeeId }) {
                         checked={workMode === "WFO"}
                         onChange={() => setWorkMode("WFO")}
                         disabled={!!todayRecord?.checkIn}
-                      // onChange={(e) => setWorkMode(e.target.value)}
+                        // onChange={(e) => setWorkMode(e.target.value)}
                       />
                       <label className="form-check-label ms-2">WFO</label>
                     </div>
@@ -1021,7 +1027,7 @@ function MyAttendance({ employeeId }) {
                         checked={workMode === "WFH"}
                         onChange={() => setWorkMode("WFH")}
                         disabled={!!todayRecord?.checkIn}
-                      // onChange={(e) => setWorkMode(e.target.value)}
+                        // onChange={(e) => setWorkMode(e.target.value)}
                       />
                       <label className="form-check-label ms-2">WFH</label>
                     </div>
@@ -1034,8 +1040,9 @@ function MyAttendance({ employeeId }) {
                     style={{ display: "flex", gap: "15px", marginTop: "10px" }}
                   >
                     <button
-                      className={`btn px-4 ${todayRecord?.checkIn ? "btn-secondary" : "btn-success"
-                        }`}
+                      className={`btn px-4 ${
+                        todayRecord?.checkIn ? "btn-secondary" : "btn-success"
+                      }`}
                       onClick={handleCheckIn}
                       disabled={!!todayRecord?.checkIn}
                     >
@@ -1087,6 +1094,18 @@ function MyAttendance({ employeeId }) {
                     gap: "10px",
                   }}
                 >
+                  {/* holiday and weekly off */}
+                  {isHoliday(selectedDate) ? (
+                    <p style={{ fontSize: "14px", marginBottom: "20px" }}>
+                      <strong>Holiday:</strong> {getHoliday(selectedDate).name}
+                    </p>
+                  ) : selectedDate.getDay() === 0 ||
+                    isNthSaturday(selectedDate) ? (
+                    <p style={{ fontSize: "14px", marginBottom: "20px" }}>
+                      <strong>Weekly Off</strong>
+                    </p>
+                  ) : null}
+
                   {selectedRecord?.leaveRef ? (
                     <div
                       className={
@@ -1101,23 +1120,6 @@ function MyAttendance({ employeeId }) {
                           {selectedRecord.leaveRef.leaveType}
                         </span>
                       </p>
-                      {/* <p>
-                        <strong >Reason:</strong> {selectedRecord.leaveRef.reason}
-                      </p>
-                      <p>
-                        Reporting Manager: {manager ? manager.name : "Loading..."}
-                      </p>
-                      <p>
-                        <strong>From Date:</strong>{" "}
-                        {new Date(selectedRecord.leaveRef.dateFrom).toDateString()}
-                      </p>
-                      <p>
-                        <strong>To Date:</strong>{" "}
-                        {new Date(selectedRecord.leaveRef.dateTo).toDateString()}
-                      </p> */}
-                      {/* <p style={{ fontSize: "14px", marginBottom: "20px" }}>
-                        <strong style={{ marginRight: "8px" }} >Status:</strong> {selectedRecord.leaveRef.status}
-                      </p> */}
 
                       <p style={{ fontSize: "14px", marginBottom: "20px" }}>
                         <strong style={{ marginRight: "8px" }}>Status:</strong>
@@ -1132,12 +1134,19 @@ function MyAttendance({ employeeId }) {
 
                       <p style={{ fontSize: "14px", marginBottom: "20px" }}>
                         <strong style={{ marginRight: "8px" }}>
-                          Approver Name:
+                          {selectedRecord.leaveRef.status === "approved"
+                            ? "Approved By:"
+                            : selectedRecord.leaveRef.status === "rejected"
+                              ? "Rejected By:"
+                              : "Approver Name:"}
                         </strong>
-                        {selectedRecord.leaveRef.status === "approved"
-                          ? manager?.fullName || manager?.name || "Not Assigned"
-                          : "Waiting for Approval"}
+                        {selectedRecord.leaveRef.approvedBy?.name ||
+                          manager?.name ||
+                          (selectedRecord.leaveRef.status === "pending"
+                            ? "Waiting for Approval"
+                            : "N/A")}
                       </p>
+
                       <p style={{ fontSize: "14px", marginBottom: "20px" }}>
                         <strong style={{ marginRight: "8px" }}>
                           Duration:
@@ -1145,131 +1154,78 @@ function MyAttendance({ employeeId }) {
                         {Math.ceil(
                           (new Date(selectedRecord.leaveRef.dateTo) -
                             new Date(selectedRecord.leaveRef.dateFrom)) /
-                          (1000 * 60 * 60 * 24),
+                            (1000 * 60 * 60 * 24),
                         ) + 1}
                         Day
                       </p>
-                      {/* <p>
-                        <strong>Duration:</strong>{" "}
-                        {selectedRecord.leaveRef.duration === "full"
-                          ? "Full Day"
-                          : "Half Day"}
-                      </p>
-                      <p>
-                        <strong>Applied On:</strong>{" "}
-                        {new Date(selectedRecord.leaveRef.appliedAt).toDateString()}
-                      </p> */}
-                      {/* {selectedRecord.leaveRef.status === "rejected" &&
-                      shouldShowRegularizationButton(
-                        selectedRecord,
-                        selectedDate
-                      ) && (
-                        <button
-                          className="btn ms-3" style={{ backgroundColor: "#3A5FBE", color: "#fff" }}
-                          onClick={() => setShowModal(true)}
-                        >
-                          Apply Regularization
-                        </button>
-                      )} */}
                     </div>
                   ) : (
-                    <>
-                      {isHoliday(selectedDate) ? (
+                    selectedDate.getDay() !== 0 &&
+                    !isNthSaturday(selectedDate) &&
+                    !isHoliday(selectedDate) && (
+                      <>
                         <p style={{ fontSize: "14px", marginBottom: "20px" }}>
-                          <strong>Status:</strong> Holiday —{" "}
-                          {getHoliday(selectedDate).name}
+                          <strong>Status:</strong>{" "}
+                          {selectedRecord?.dayStatus || "No record"}
                         </p>
-                      ) : selectedDate.getDay() === 0 ||
-                        isNthSaturday(selectedDate) ? (
                         <p style={{ fontSize: "14px", marginBottom: "20px" }}>
-                          <strong>Status:</strong> Weekly Off
-                        </p>
-                      ) : (
-                        <>
-                          <p style={{ fontSize: "14px", marginBottom: "20px" }}>
-                            <strong>Status:</strong>{" "}
-                            {selectedRecord?.dayStatus || "No record"}
-                          </p>
-                          {/* <p>
-                            <strong>Work Mode:</strong>{" "}
-                            {selectedRecord?.mode || "-"}
-                          </p> */}
-                          <p style={{ fontSize: "14px", marginBottom: "20px" }}>
-                            <strong>Check-in:</strong>{" "}
-                            {selectedRecord?.checkIn
-                              ? new Date(
+                          <strong>Check-in:</strong>{" "}
+                          {selectedRecord?.checkIn
+                            ? new Date(
                                 selectedRecord.checkIn,
                               ).toLocaleTimeString([], {
                                 hour: "2-digit",
                                 minute: "2-digit",
                                 hour12: true,
                               })
-                              : "N/A"}
-                          </p>
-                          <p style={{ fontSize: "14px", marginBottom: "20px" }}>
-                            <strong>Check-out:</strong>{" "}
-                            {selectedRecord?.checkOut
-                              ? new Date(
+                            : "N/A"}
+                        </p>
+                        <p style={{ fontSize: "14px", marginBottom: "20px" }}>
+                          <strong>Check-out:</strong>{" "}
+                          {selectedRecord?.checkOut
+                            ? new Date(
                                 selectedRecord.checkOut,
                               ).toLocaleTimeString([], {
                                 hour: "2-digit",
                                 minute: "2-digit",
                                 hour12: true,
                               })
-                              : "N/A"}
-                          </p>
-                          {/* {selectedRecord?.checkIn && selectedRecord?.checkOut && (
-                            <p>
-                              <strong>Worked Hours:</strong>{" "}
-                              {calculateWorkedHours(
-                                selectedRecord.checkIn,
-                                selectedRecord.checkOut
-                              )}
-                            </p>
-                          )} */}
-                        </>
-                      )}
-                    </>
+                            : "N/A"}
+                        </p>
+                      </>
+                    )
                   )}
 
-                  {!isHolidayOrWeeklyOff && (
-                    <>
-                      <hr style={{ opacity: 0.2 }} />
+                  {/* Break details*/}
+                  {!selectedRecord?.leaveRef &&
+                    !isHoliday(selectedDate) &&
+                    selectedDate.getDay() !== 0 &&
+                    !isNthSaturday(selectedDate) && (
+                      <>
+                        <hr style={{ opacity: 0.2 }} />
 
-                      <h6 style={{ color: "#3A5FBE", fontWeight: "600" }}>
-                        Break Details
-                      </h6>
+                        <h6 style={{ color: "#3A5FBE", fontWeight: "600" }}>
+                          Break Details
+                        </h6>
 
-                      {/* 🔽 Scrollable container */}
-                      <div
-                        style={{
-                          maxHeight: "130px",
-                          overflowY: "auto",
-                          paddingRight: "6px",
-                        }}
-                      >
-                        {todayBreak ? (
-                          <>
-                            {todayBreak.breaks.length === 0 ? (
-                              <p className="text-muted">No breaks taken</p>
-                            ) : (
-                              todayBreak.breaks.map((brk, index) => (
-                                <div
-                                  key={index}
-                                  className="border rounded p-2 mb-2"
-                                  style={{ background: "#f8f9fa" }}
-                                >
-                                  <p
-                                    className="mb-1"
-                                    style={{
-                                      fontSize: "14px",
-                                      marginBottom: "20px",
-                                    }}
+                        <div
+                          style={{
+                            maxHeight: "130px",
+                            overflowY: "auto",
+                            paddingRight: "6px",
+                          }}
+                        >
+                          {todayBreak ? (
+                            <>
+                              {todayBreak.breaks.length === 0 ? (
+                                <p className="text-muted">No breaks taken</p>
+                              ) : (
+                                todayBreak.breaks.map((brk, index) => (
+                                  <div
+                                    key={index}
+                                    className="border rounded p-2 mb-2"
+                                    style={{ background: "#f8f9fa" }}
                                   >
-                                    <strong>Type:</strong> {brk.type}
-                                  </p>
-
-                                  {brk.type === "Other" && (
                                     <p
                                       className="mb-1"
                                       style={{
@@ -1277,71 +1233,83 @@ function MyAttendance({ employeeId }) {
                                         marginBottom: "20px",
                                       }}
                                     >
-                                      <strong>Reason:</strong>{" "}
-                                      {brk.reason?.trim() ? brk.reason : "N/A"}
+                                      <strong>Type:</strong> {brk.type}
                                     </p>
-                                  )}
 
-                                  <p
-                                    className="mb-1"
-                                    style={{
-                                      fontSize: "14px",
-                                      marginBottom: "20px",
-                                    }}
-                                  >
-                                    <strong>Start:</strong>{" "}
-                                    {new Date(
-                                      brk.startTime,
-                                    ).toLocaleTimeString()}
-                                  </p>
+                                    {brk.type === "Other" && (
+                                      <p
+                                        className="mb-1"
+                                        style={{
+                                          fontSize: "14px",
+                                          marginBottom: "20px",
+                                        }}
+                                      >
+                                        <strong>Reason:</strong>{" "}
+                                        {brk.reason?.trim()
+                                          ? brk.reason
+                                          : "N/A"}
+                                      </p>
+                                    )}
 
-                                  <p
-                                    className="mb-1"
-                                    style={{
-                                      fontSize: "14px",
-                                      marginBottom: "20px",
-                                    }}
-                                  >
-                                    <strong>End:</strong>{" "}
-                                    {brk.endTime
-                                      ? new Date(
-                                        brk.endTime,
-                                      ).toLocaleTimeString()
-                                      : "In Progress"}
-                                  </p>
+                                    <p
+                                      className="mb-1"
+                                      style={{
+                                        fontSize: "14px",
+                                        marginBottom: "20px",
+                                      }}
+                                    >
+                                      <strong>Start:</strong>{" "}
+                                      {new Date(
+                                        brk.startTime,
+                                      ).toLocaleTimeString()}
+                                    </p>
 
-                                  <p
-                                    className="mb-0"
-                                    style={{
-                                      fontSize: "14px",
-                                      marginBottom: "20px",
-                                    }}
-                                  >
-                                    <strong>Duration:</strong>{" "}
-                                    {brk.durationSeconds
-                                      ? formatSeconds(brk.durationSeconds)
-                                      : "Running"}
-                                  </p>
-                                </div>
-                              ))
-                            )}
-                          </>
-                        ) : (
-                          <p className="text-muted">
-                            No break record for this date
+                                    <p
+                                      className="mb-1"
+                                      style={{
+                                        fontSize: "14px",
+                                        marginBottom: "20px",
+                                      }}
+                                    >
+                                      <strong>End:</strong>{" "}
+                                      {brk.endTime
+                                        ? new Date(
+                                            brk.endTime,
+                                          ).toLocaleTimeString()
+                                        : "In Progress"}
+                                    </p>
+
+                                    <p
+                                      className="mb-0"
+                                      style={{
+                                        fontSize: "14px",
+                                        marginBottom: "20px",
+                                      }}
+                                    >
+                                      <strong>Duration:</strong>{" "}
+                                      {brk.durationSeconds
+                                        ? formatSeconds(brk.durationSeconds)
+                                        : "Running"}
+                                    </p>
+                                  </div>
+                                ))
+                              )}
+                            </>
+                          ) : (
+                            <p className="text-muted">
+                              No break record for this date
+                            </p>
+                          )}
+                        </div>
+
+                        {todayBreak?.totalBreakSeconds > 0 && (
+                          <p className="mt-2">
+                            <strong>Total Break Time:</strong>{" "}
+                            {formatSeconds(todayBreak.totalBreakSeconds)}
                           </p>
                         )}
-                      </div>
-
-                      {/* Total time stays visible (no scroll) */}
-                      {todayBreak?.totalBreakSeconds > 0 && (
-                        <p className="mt-2">
-                          <strong>Total Break Time:</strong>{" "}
-                          {formatSeconds(todayBreak.totalBreakSeconds)}
-                        </p>
-                      )}
-                    </>
-                  )}
+                      </>
+                    )}
                 </div>
               </div>
             )}
@@ -1423,13 +1391,13 @@ function MyAttendance({ employeeId }) {
                         checkIn ||
                         (selectedRecord?.checkIn
                           ? new Date(selectedRecord.checkIn).toLocaleTimeString(
-                            [],
-                            {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              hour12: false,
-                            },
-                          )
+                              [],
+                              {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: false,
+                              },
+                            )
                           : "")
                       }
                       onChange={(e) => setCheckIn(e.target.value)}
@@ -1452,12 +1420,12 @@ function MyAttendance({ employeeId }) {
                         checkOut ||
                         (selectedRecord?.checkOut
                           ? new Date(
-                            selectedRecord.checkOut,
-                          ).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: false,
-                          })
+                              selectedRecord.checkOut,
+                            ).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: false,
+                            })
                           : "")
                       }
                       onChange={(e) => setCheckOut(e.target.value)}

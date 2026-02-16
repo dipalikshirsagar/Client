@@ -5,7 +5,7 @@ import MyProfile from "../AllDashboards/MyProfile";
 import ChangePassword from "./ChangePassword";
 import SupportEmployeeSetting from "../ITSupport/SupportEmployeeSetting";
 
-function AdminSetting({ user }) {
+function AdminSetting({ user, setUser }) {
   const [activeTab, setActiveTab] = useState("officeLocation");
 
   return (
@@ -72,8 +72,9 @@ function AdminSetting({ user }) {
 
         <button
           type="button"
-          className={`btn btn-sm ${activeTab === "support" ? "btn-primary" : "btn-outline-primary"
-            }`}
+          className={`btn btn-sm ${
+            activeTab === "support" ? "btn-primary" : "btn-outline-primary"
+          }`}
           style={{
             backgroundColor:
               activeTab === "support" ? "#3A5FBE" : "transparent",
@@ -88,13 +89,12 @@ function AdminSetting({ user }) {
 
       {activeTab === "officeLocation" && <OfficeLocationSetup />}
       {activeTab === "weeklyOff" && <AdminWeeklyOffSetup />}
-      {activeTab === "updateProfile" && <MyProfile user={user} />}
+      {activeTab === "updateProfile" && (
+        <MyProfile user={user} setUser={setUser} />
+      )}
       {activeTab === "changePassword" && <ChangePassword />}
       {activeTab === "support" && <SupportEmployeeSetting />}
     </div>
-
-
-
   );
 }
 

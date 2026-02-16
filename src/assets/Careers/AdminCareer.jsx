@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import RichTextEditor from "./RichTextEditor";
 import "./AdminCareer.css";
 import axios from "axios";
+import { useNavigate, useParams } from "react-router-dom";
+
 
 function AdminCareer({ user }) {
   const [formErrors, setFormErrors] = useState({}); //Added by Rutuja
@@ -26,6 +28,10 @@ function AdminCareer({ user }) {
   const [openStatusId, setOpenStatusId] = useState(null);
 
   // Filters
+  //added by rushikesh
+  const navigate = useNavigate();
+  const { role, username, id } = useParams();
+  // 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [assignDateFromFilter, setAssignDateFromFilter] = useState("");
@@ -880,6 +886,9 @@ function AdminCareer({ user }) {
                     >
                       {formatDate(job.dueOn)}
                     </td>
+
+
+                    
                     <td>
                       {/* <button
                         className="btn btn-sm custom-outline-btn"
@@ -900,6 +909,21 @@ function AdminCareer({ user }) {
                       </button> */}
                       {["hr", "admin"].includes(userRole) && (
                         <>
+
+                          {/* added by rushikesh */}
+                          <div className="d-flex flex-nowrap align-items-center gap-2">
+    
+                            <button
+                              className="btn btn-sm custom-outline-btn"
+                              style={{ minWidth: 120 }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/dashboard/${role}/${username}/${id}/job-candidates/${job._id}`);
+                              }}
+                            >
+                              View Candidates
+                            </button>
+    
                           {/* mahesh code */}
                           <button
                             className="btn btn-sm custom-outline-btn me-2"
@@ -936,10 +960,12 @@ function AdminCareer({ user }) {
                           >
                             Delete
                           </button>
+                          </div>
                         </>
                       )}
                     </td>
                   </tr>
+
                 ))
               )}
             </tbody>
@@ -1019,656 +1045,399 @@ function AdminCareer({ user }) {
 
       {/* //added by Rushikesh */}
       {showAddJob && (
-        <div class="job-module">
-          <div className="modal-overlay">
-            <div className="modal-container">
-              <div className="modal-header-custom">
-                {editJobId ? "Edit Job" : "Add Job"}
+  <div
+    className="modal fade show d-block"
+    style={{ background: "#00000080" }}
+  >
+    <div className="modal-overlay">
+      <div className="modal-container"
+      style={{ marginTop:100}}>
+        <div className="modal-header-custom">
+          {editJobId ? "Edit Job" : "Add Job"}
 
-                <button
-                  type="button"
-                  className="modal-close-btn"
-                  onClick={() => {
-                    setShowAddJob(false);
-                    setEditJobId(null);
-                  }}
+          <button
+            type="button"
+            className="modal-close-btn"
+            onClick={() => {
+              setShowAddJob(false);
+              setEditJobId(null);
+            }}
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="modal-body">
+          <form onSubmit={handleSaveJob}>
+            <h5 className="section-title">Basic Information</h5>
+
+            {/* Location */}
+            <div className="row align-items-center mb-3">
+              <div className="col-12 col-md-4 fw-semibold">Location *</div>
+              <div className="col-12 col-md-8">
+                <input
+                  className="form-control"
+                  value={newJob.location}
+                  onChange={(e) =>
+                    setNewJob({ ...newJob, location: e.target.value })
+                  }
                 >
-                  ✕
-                </button>
+                
+                </input>
               </div>
+            </div>
 
-              <div className="modal-body job-form">
-                <form onSubmit={handleSaveJob}>
-                  <h5 className="section-title">Basic Information</h5>
+            {/* Hiring Type */}
+          <div className="row align-items-center mb-3">
+  <div className="col-12 col-md-4 fw-semibold">Hiring Type *</div>
+  <div className="col-12 col-md-8">
+    <select
+      className="form-select"
+      value={newJob.hiringType}
+      onChange={(e) =>
+        setNewJob({ ...newJob, hiringType: e.target.value })
+      }
+    >
+      <option value="">Select Type</option>
+      <option>Full-Time</option>
+      <option>Contract</option>
+    </select>
+  </div>
+</div>
 
-                  <div className="row">
-                    <div className="field">
-                      <label>Job Title *</label>
-                      <input
-                        type="text"
-                        placeholder="Enter title"
-                        value={newJob.jobTitle}
-                        onChange={(e) =>
-                          setNewJob({ ...newJob, jobTitle: e.target.value })
-                        }
-                        className={formErrors.jobTitle ? "is-invalid" : ""}
-                      />
-                      {formErrors.jobTitle && (
-                        <div className="text-danger small mt-1">
-                          {formErrors.jobTitle}
-                        </div>
-                      )}
-                    </div>
-                  </div>
+            {/* Job Type */}
+            <div className="row align-items-center mb-3">
+  <div className="col-12 col-md-4 fw-semibold">Job Type *</div>
+  <div className="col-12 col-md-8">
+    <select
+      className="form-select"
+      value={newJob.jobType}
+      onChange={(e) =>
+        setNewJob({ ...newJob, jobType: e.target.value })
+      }
+    >
+      <option value="">Select Job Type</option>
+      <option value="inhouse">In-House</option>
+      <option value="referral">Open for Referral</option>
+    </select>
+  </div>
+</div>
 
-                  <div className="row two-col">
-                    <div className="field">
-                      <label>Department</label>
-                      <select
-                        value={newJob.department}
-                        onChange={(e) =>
-                          setNewJob({ ...newJob, department: e.target.value })
-                        }
-                      >
-                        <option value="">Select Department</option>
-                        <option>IT</option>
-                        <option>QA</option>
-                        <option>HR</option>
-                        <option>Finance</option>
-                      </select>
-                    </div>
+            {/* Openings */}
+            <div className="row align-items-center mb-3">
+              <div className="col-12 col-md-4 fw-semibold">No of Openings *</div>
+              <div className="col-12 col-md-8">
+                <input
+                  type="number"
+                  className="form-control"
+                  value={newJob.noOfOpenings}
+                  onChange={(e) =>
+                    setNewJob({
+                      ...newJob,
+                      noOfOpenings: e.target.value,
+                    })
+                  }
+                />
+              </div>
+            </div>
 
-                    <div className="field">
-                      <label>Grade</label>
-                      <select
-                        value={newJob.grade}
-                        onChange={(e) =>
-                          setNewJob({ ...newJob, grade: e.target.value })
-                        }
-                      >
-                        <option value="">Select Grade</option>
-                        <option>G4</option>
-                        <option>G5</option>
-                        <option>G6</option>
-                      </select>
-                    </div>
-                  </div>
+            {/* Description */}
+            <div className="row mb-3">
+              <div className="col-12 col-md-4 fw-semibold">Job Description *</div>
+              <div className="col-12 col-md-8">
+                <RichTextEditor
+                  value={newJob.jobDescription}
+                  onChange={(value) =>
+                    setNewJob((prev) => ({
+                      ...prev,
+                      jobDescription: value,
+                    }))
+                  }
+                />
+              </div>
+            </div>
 
-                  <div className="row two-col">
-                    <div className="field">
-                      <label>Location *</label>
-                      <select
-                        value={newJob.location}
-                        onChange={(e) =>
-                          setNewJob({ ...newJob, location: e.target.value })
-                        }
-                        className={formErrors.location ? "is-invalid" : ""}
-                      >
-                        <option value="">Select Location</option>
-                        <option>Bangalore</option>
-                        <option>Hyderabad</option>
-                        <option>Chennai</option>
-                      </select>
-                      {formErrors.location && (
-                        <div className="text-danger small mt-1">
-                          {formErrors.location}
-                        </div>
-                      )}
-                    </div>
+            <h5 className="section-title">CTC Details (₹)</h5>
 
-                    <div className="field">
-                      <label>Hiring Type *</label>
-                      <select
-                        value={newJob.hiringType}
-                        onChange={(e) =>
-                          setNewJob({ ...newJob, hiringType: e.target.value })
-                        }
-                        className={formErrors.hiringType ? "is-invalid" : ""}
-                      >
-                        <option value="">Select Type</option>
-                        <option>Full-Time</option>
-                        <option>Contract</option>
-                      </select>
-                      {formErrors.hiringType && (
-                        <div className="text-danger small mt-1">
-                          {formErrors.hiringType}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="row two-col">
-                    <div className="field">
-                      <label>Job Type *</label>
-                      <select
-                        value={newJob.jobType}
-                        onChange={(e) =>
-                          setNewJob({ ...newJob, jobType: e.target.value })
-                        }
-                        className={formErrors.jobType ? "is-invalid" : ""}
-                      >
-                        <option value="">Select Job Type</option>
-                        <option value="inhouse">In-House</option>
-                        <option value="referral">Open for Referral</option>
-                      </select>
-                      {formErrors.jobType && (
-                        <div className="text-danger small mt-1">
-                          {formErrors.jobType}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="field">
-                      <label>No of Openings *</label>
-                      <input
-                        type="number"
-                        min="1"
-                        value={newJob.noOfOpenings}
-                        onChange={(e) =>
-                          setNewJob({ ...newJob, noOfOpenings: e.target.value })
-                        }
-                        className={formErrors.noOfOpenings ? "is-invalid" : ""}
-                      />
-                      {formErrors.noOfOpenings && (
-                        <div className="text-danger small mt-1">
-                          {formErrors.noOfOpenings}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="field">
-                    <label>Job Description *</label>
-                    <RichTextEditor
-                      value={newJob.jobDescription}
-                      onChange={(value) =>
-                        setNewJob((prev) => ({
-                          ...prev,
-                          jobDescription: value,
-                        }))
-                      }
-                    />
-                    {formErrors.jobDescription && (
-                      <div className="text-danger small mt-1">
-                        {formErrors.jobDescription}
-                      </div>
-                    )}
-                  </div>
-
-                  <h5 className="section-title">CTC Details (₹)</h5>
-
-                  <div className="row two-col">
-                    <div className="field">
-                      <label>Min CTC</label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={newJob.ctc?.min || ""}
-                        onChange={(e) =>
-                          setNewJob({
-                            ...newJob,
-                            ctc: { ...newJob.ctc, min: e.target.value },
-                          })
-                        }
-                      />
-                    </div>
-                    <div className="field">
-                      <label>Max CTC</label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={newJob.ctc?.max || ""}
-                        onChange={(e) =>
-                          setNewJob({
-                            ...newJob,
-                            ctc: { ...newJob.ctc, max: e.target.value },
-                          })
-                        }
-                      />
-                    </div>
-                  </div>
-
-                  <h5 className="section-title">Experience & Skills</h5>
-
-                  <div className="row two-col">
-                    <div className="field">
-                      <label>Min Experience (Years)</label>
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.5"
-                        value={newJob.experience?.min || ""}
-                        onChange={(e) =>
-                          setNewJob({
-                            ...newJob,
-                            experience: {
-                              ...newJob.experience,
-                              min: e.target.value,
-                            },
-                          })
-                        }
-                      />
-                    </div>
-                    <div className="field">
-                      <label>Max Experience (Years)</label>
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.5"
-                        value={newJob.experience?.max || ""}
-                        onChange={(e) =>
-                          setNewJob({
-                            ...newJob,
-                            experience: {
-                              ...newJob.experience,
-                              max: e.target.value,
-                            },
-                          })
-                        }
-                      />
-                    </div>
-                  </div>
-
-                  <div className="field">
-                    <label>Important Skills *</label>
+             
+                 <div className="row mb-3">
+                
+                  <div className="col-12 col-md-4 fw-semibold">Min CTC</div>
+                     <div className="col-12 col-md-8">
                     <input
-                      type="text"
-                      value={newJob.importantSkills.join(", ") || ""}
-                      placeholder="Java, React, MongoDB..."
+                      type="number"
+                      className="form-control"
+                      value={newJob.ctc?.min || ""}
                       onChange={(e) =>
                         setNewJob({
                           ...newJob,
-                          importantSkills: e.target.value
-                            .split(",")
-                            .map((s) => s.trim()),
+                          ctc: {
+                            ...newJob.ctc,
+                            min: e.target.value,
+                          },
                         })
                       }
-                      className={formErrors.importantSkills ? "is-invalid" : ""}
                     />
-                    {formErrors.importantSkills && (
-                      <div className="text-danger small mt-1">
-                        {formErrors.importantSkills}
-                      </div>
-                    )}
-                    <small className="text-muted">
-                      Separate skills with commas
-                    </small>
                   </div>
+                  
+              </div>
 
-                  <div className="row two-col mt-2">
-                    <div className="field">
-                      <label>Due On *</label>
-                      <input
-                        type="date"
-                        value={newJob.dueOn || ""}
-                        onChange={(e) =>
-                          setNewJob({ ...newJob, dueOn: e.target.value })
-                        }
-                        className={formErrors.dueOn ? "is-invalid" : ""}
-                      />
-                      {formErrors.dueOn && (
-                        <div className="text-danger small mt-1">
-                          {formErrors.dueOn}
-                        </div>
-                      )}
-                    </div>
-                  </div>
+              
+                <div className="row align-items-center">
+                  <div className="col-12 col-md-4 fw-semibold">Max CTC</div>
+                  <div className="col-12 col-md-8">
+                    <input
+                      type="number"
+                      className="form-control"
+                      value={newJob.ctc?.max || ""}
+                      onChange={(e) =>
+                        setNewJob({
+                          ...newJob,
+                          ctc: {
+                            ...newJob.ctc,
+                            max: e.target.value,
+                          },
+                        })
+                      }
+                    />
+               
+                </div>
+              </div>
+            
 
-                  <div className="modal-footer">
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={() => {
-                        setShowAddJob(false);
-                        setEditJobId(null);
-                        setFormErrors({});
-                      }}
-                    >
-                      Cancel
-                    </button>
-                    <button type="submit" className="btn btn-primary">
-                      {editJobId ? "Save Changes" : "Save"}
-                    </button>
+            <h5 className="section-title">Experience & Skills</h5>
+
+        
+             
+                <div className="row mb-3">
+                  <div className="col-12 col-md-4 fw-semibold">Min Experience(Years)</div>
+                  <div className="col-12 col-md-8">
+                    <input
+                      type="number"
+                      className="form-control"
+                      value={newJob.experience?.min || ""}
+                      onChange={(e) =>
+                        setNewJob({
+                          ...newJob,
+                          experience: {
+                            ...newJob.experience,
+                            min: e.target.value,
+                          },
+                        })
+                      }
+                    />
                   </div>
-                </form>
+              </div>
+              
+
+              
+                  <div className="row mb-3">
+                  <div className="col-12 col-md-4 fw-semibold">Max Experience(Years)</div>
+                  <div className="col-12 col-md-8">
+                    <input
+                      type="number"
+                      className="form-control"
+                      value={newJob.experience?.max || ""}
+                      onChange={(e) =>
+                        setNewJob({
+                          ...newJob,
+                          experience: {
+                            ...newJob.experience,
+                            max: e.target.value,
+                          },
+                        })
+                      }
+                    />
+                  </div>
+                
+              </div>
+            
+
+            {/* Skills */}
+            <div className="row align-items-center mb-3">
+              <div className="col-12 col-md-4 fw-semibold">Important Skills *</div>
+              <div className="col-12 col-md-8">
+                <input
+                  className="form-control"
+                  value={newJob.importantSkills.join(", ") || ""}
+                  onChange={(e) =>
+                    setNewJob({
+                      ...newJob,
+                      importantSkills: e.target.value
+                        .split(",")
+                        .map((s) => s.trim()),
+                    })
+                  }
+                />
               </div>
             </div>
-          </div>
-        </div>
-      )}
-      {showViewPopup && viewJob && (
-        <div
-          className="modal fade show"
-          style={{ display: "block", background: "rgba(0,0,0,0.5)" }}
-        >
-          <div className="modal-dialog modal-lg">
-            <div className="modal-content">
-              <div
-                className="modal-header text-white"
-                style={{ backgroundColor: "#3A5FBE" }}
+
+            {/* Due Date */}
+            <div className="row align-items-center mb-3">
+              <div className="col-12 col-md-4 fw-semibold">Due On *</div>
+              <div className="col-12 col-md-8">
+                <input
+                  type="date"
+                  className="form-control"
+                  value={newJob.dueOn || ""}
+                  onChange={(e) =>
+                    setNewJob({ ...newJob, dueOn: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn btn-sm custom-outline-btn "
+                style={{minWidth:90}}
+                onClick={() => {
+                  setShowAddJob(false);
+                  setEditJobId(null);
+                }}
               >
-                <h5 className="modal-title mb-0">{viewJob.jobTitle}</h5>
-                <button
-                  type="button"
-                  className="btn-close btn-close-white"
-                  onClick={() => setShowViewPopup(false)}
-                ></button>
-              </div>
+                Cancel
+              </button>
 
-              <div className="px-3 pt-3 d-flex gap-2">
-                <button
-                  className={`btn btn-sm custom-outline-btn ${
-                    activeViewTab === "details" ? "active" : ""
-                  }`}
-                  onClick={() => setActiveViewTab("details")}
+              <button type="submit" className="btn btn-sm custom-outline-btn" style={{minWidth:90}}>
+                
+                {editJobId ? "Save Changes" : "Save"}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+
+
+      {showViewPopup && viewJob && (
+              <div
+                className="modal fade show"
+                style={{ display: "block", background: "rgba(0,0,0,0.5)" }}
+              >
+              <div
+                  className="modal-dialog modal-lg modal-dialog-centered"
+                  style={{ maxWidth: "600px", marginTop: "80px" }}
                 >
-                  Job Details
-                </button>
-
-                <button
-                  className={`btn btn-sm custom-outline-btn ${
-                    activeViewTab === "candidates" ? "active" : ""
-                  }`}
-                  onClick={() => setActiveViewTab("candidates")}
-                >
-                  Candidates
-                </button>
-              </div>
-
-              <div className="modal-body">
-                {activeViewTab === "details" && (
-                  <div className="job-details-wrapper">
-                    <div className="job-card">
-                      <h6 className="job-card-title">Job Info</h6>
-
-                      <div className="job-info-grid">
-                        <div>
-                          <span className="label">Job ID</span>
-                          <p>{viewJob._id?.slice(-4)}</p>
-                        </div>
-
-                        <div>
-                          <span className="label">Location</span>
-                          <p>{viewJob.location}</p>
-                        </div>
-
-                        <div>
-                          <span className="label">Department</span>
-                          <p>{viewJob.department}</p>
-                        </div>
-
-                        <div>
-                          <span className="label">Job Type</span>
-                          <p>{viewJob.hiringType}</p>
-                        </div>
-
-                        <div>
-                          <span className="label">Experience</span>
-                          <p>
-                            {viewJob.experience?.min} –{" "}
-                            {viewJob.experience?.max} Years
-                          </p>
-                        </div>
-
-                        <div>
-                          <span className="label">Posted</span>
-                          <p>{formatDate(viewJob.createdAt)}</p>
-                        </div>
-                      </div>
+                  <div className="modal-content">
+                    <div
+                      className="modal-header text-white"
+                      style={{ backgroundColor: "#3A5FBE" }}
+                    >
+                      <h5 className="modal-title mb-0">{viewJob.jobTitle}</h5>
+                      <button
+                        type="button"
+                        className="btn-close btn-close-white"
+                        onClick={() => setShowViewPopup(false)}
+                      ></button>
                     </div>
 
-                    <div className="job-card">
-                      <h6 className="job-card-title">Job Details</h6>
+                      
 
-                      <div className="job-section">
-                        <b>Key Skills:</b>
-                        <ul>
-                          {viewJob.importantSkills?.map((skill, i) => (
-                            <li key={i}>{skill}</li>
-                          ))}
-                        </ul>
+                      
+                    <h5 className="section-title" style={{marginLeft:15}}>Job Details</h5>
 
-                        {viewJob.otherSkills &&
-                          viewJob.otherSkills.length > 0 && (
-                            <>
-                              <h6
-                                style={{ marginTop: "16px", color: "#3A5FBE" }}
-                              >
-                                Other Skills:
-                              </h6>
-                              <ul
-                                style={{
-                                  paddingLeft: "20px",
-                                  marginTop: "6px",
-                                }}
-                              >
-                                {viewJob.otherSkills.map((skill, index) => (
-                                  <li
-                                    key={index}
-                                    style={{
-                                      fontSize: "14px",
-                                      color: "#212529",
-                                      marginBottom: "4px",
-                                    }}
-                                  >
-                                    {skill}
-                                  </li>
-                                ))}
-                              </ul>
-                            </>
-                          )}
-                      </div>
+                    <div className="modal-body">
+                  
+        <div>
 
-                      <div className="job-section">
-                        <b>Description:</b>
-                        <div
-                          className="job-desc"
-                          dangerouslySetInnerHTML={{
-                            __html: viewJob.jobDescription,
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
+          <div className="row mb-2">
+            <div className="col-3 fw-semibold">Job ID</div>
+            <div className="col-9">{viewJob._id?.slice(-4)}</div>
+          </div>
 
-                {activeViewTab === "candidates" && (
-                  <div style={{ marginTop: "16px" }}>
-                    {applicants.length === 0 ? (
-                      <p>No applicants found.</p>
-                    ) : (
-                      applicants.map((app) => (
-                        <div key={app._id} className="candidate-card">
-                          <div className="candidate-name">
-                            {app?.candidate?.name}
-                          </div>
+          <div className="row mb-2">
+            <div className="col-3 fw-semibold">Location</div>
+            <div className="col-9">{viewJob.location}</div>
+          </div>
 
-                          <div className="candidate-grid">
-                            <div>
-                              <span className="label">Email:</span>
-                              <span className="value">
-                                {app?.candidate?.email}
-                              </span>
-                            </div>
+          <div className="row mb-2">
+            <div className="col-3 fw-semibold">Department</div>
+            <div className="col-9">{viewJob.department}</div>
+          </div>
 
-                            <div>
-                              <span className="label">Phone:</span>
-                              <span className="value">
-                                {app?.candidate?.phone}
-                              </span>
-                            </div>
+          <div className="row mb-2">
+            <div className="col-3 fw-semibold">Job Type</div>
+            <div className="col-9">{viewJob.hiringType}</div>
+          </div>
 
-                            <div>
-                              <span className="label">Experience:</span>
-                              <span className="value">
-                                {app?.candidate?.experience} Years
-                              </span>
-                            </div>
-
-                            <div>
-                              <span className="label">Current Location:</span>
-                              <span className="value">
-                                {app?.candidate?.city}
-                              </span>
-                            </div>
-
-                            {/* <div>
-            <span className="label">Status:</span>
-            <span className={`status-badge ${app.status.toLowerCase()}`}>
-              {app?.status}
-            </span>
-          </div> */}
-                            <div
-                              style={{
-                                position: "relative",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: "6px",
-                              }}
-                            >
-                              <span
-                                style={{
-                                  fontSize: "13px",
-                                  fontWeight: 500,
-                                  color: "#fff",
-                                  background: "#668ceeff",
-                                  padding: "4px 12px",
-                                  borderRadius: "999px",
-                                  display: "inline-block",
-                                }}
-                              >
-                                {app.status || "Applied"}
-                              </span>
-
-                              {["hr", "admin"].includes(userRole) && (
-                                <span
-                                  style={{
-                                    cursor: "pointer",
-                                    marginLeft: "4px",
-                                  }}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setOpenStatusId(app._id);
-                                  }}
-                                >
-                                  ✏️
-                                </span>
-                              )}
-
-                              {openStatusId === app._id && (
-                                <div
-                                  style={{
-                                    position: "absolute",
-                                    top: "0",
-                                    left: "45%",
-                                    marginLeft: "8px",
-                                    background: "#fbfaffff",
-                                    borderRadius: "8px",
-                                    boxShadow: "0 6px 16px rgba(0,0,0,0.15)",
-                                    minWidth: "160px",
-                                    zIndex: 200,
-                                    padding: "6px 0",
-                                    fontFamily: "Inter, system-ui, sans-serif",
-                                  }}
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  {[
-                                    "Shortlisted",
-                                    "Interview",
-                                    "Hired",
-                                    "Rejected",
-                                  ].map((status) => {
-                                    const isActive = app.status === status;
-
-                                    return (
-                                      <div
-                                        key={status}
-                                        onClick={() => {
-                                          handleStatusChange(app._id, status);
-                                          setOpenStatusId(null);
-                                        }}
-                                        style={{
-                                          padding: "10px 14px",
-                                          cursor: "pointer",
-                                          fontSize: "14px",
-                                          fontWeight: isActive ? 700 : 400,
-                                          backgroundColor: isActive
-                                            ? "#7e9cfdff"
-                                            : "transparent",
-                                          color: "#111827",
-                                        }}
-                                      >
-                                        {status}
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              )}
-                            </div>
-
-                            <div>
-                              <span className="label">Applied Date:</span>
-                              <span className="value">
-                                {new Date(app?.createdAt).toLocaleDateString()}
-                              </span>
-                            </div>
-                            {app.referredBy && (
-                              <div>
-                                <span className="label">Reffered By</span>
-                                <span className="value">
-                                  {app?.referredBy?.name}
-                                </span>
-                              </div>
-                            )}
-
-                            <div>
-                              <span className="label">Resume:</span>
-
-                              {app?.candidate?.resumeUrl ? (
-                                <>
-                                  <a
-                                    href={app.candidate.resumeUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="resume-link"
-                                    style={{ marginRight: "10px" }}
-                                  >
-                                    View
-                                  </a>
-
-                                  <a
-                                    href={app.candidate.resumeUrl}
-                                    className="resume-link"
-                                    download
-                                  >
-                                    Download
-                                  </a>
-                                </>
-                              ) : (
-                                <span className="value">Not uploaded</span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div className="modal-footer">
-                <button
-                  className="btn btn-sm custom-outline-btn"
-                  style={{ marginRight: "45px", marginBottom: "10px" }}
-                  onClick={() => setShowViewPopup(false)}
-                >
-                  Close
-                </button>
-              </div>
+          <div className="row mb-2">
+            <div className="col-3 fw-semibold">Experience</div>
+            <div className="col-9">
+              {viewJob.experience?.min} – {viewJob.experience?.max} Years
             </div>
           </div>
+
+          <div className="row mb-3">
+            <div className="col-3 fw-semibold">Posted</div>
+            <div className="col-9">{formatDate(viewJob.createdAt)}</div>
+          </div>
+
+          {/* Key Skills */}
+          <div className="row mb-2">
+            <div className="col-3 fw-semibold">Key Skills</div>
+            <div className="col-9">
+              <ul className="mb-0 list-unstyled ps-0">
+                {viewJob.importantSkills?.map((skill, i) => (
+                  <li key={i} style={{ marginBottom: "2px" }}>
+                    {skill}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          {/* Other Skills */}
+          {viewJob.otherSkills?.length > 0 && (
+            <div className="row mb-2">
+              <div className="col-3 fw-semibold">Other Skills</div>
+              <div className="col-9">
+                <ul className="mb-0 list-unstyled ps-0">
+                  {viewJob.otherSkills.map((skill, i) => (
+                    <li key={i} style={{ marginBottom: "2px" }}>
+                      {skill}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {/* Description */}
+          <div className="row mb-2">
+            <div className="col-3 fw-semibold">Description</div>
+            <div className="col-9">
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: viewJob.jobDescription,
+                }}
+              />
+            </div>
+          </div>
+
         </div>
-      )}
+
+
+                    </div>
+
+                    <div className="modal-footer">
+                      <button
+                        className="btn btn-sm custom-outline-btn"
+                        style={{ marginRight: "45px", marginBottom: "10px" ,minWidth:90}}
+                        onClick={() => setShowViewPopup(false)}
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
     </div>
   );
 }

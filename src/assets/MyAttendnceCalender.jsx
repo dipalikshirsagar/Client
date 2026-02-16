@@ -534,7 +534,7 @@ function MyAttendanceCalendar({ employeeId }) {
       style={{ borderRadius: "12px", width: "100%", maxHeight: "auto" }}
     >
       <h4
-        className="text-center mt-3"
+        className="text-center mt-3 mb-2"
         style={{
           color: "#3A5FBE",
           fontSize: "25px",
@@ -572,8 +572,8 @@ function MyAttendanceCalendar({ employeeId }) {
       />
 
       <div
-        className="d-flex justify-content-center flex-wrap"
-        style={{ gap: "12px", marginBottom: "15px" }}
+        className="d-flex justify-content-center flex-wrap mt-3"
+        style={{ gap: "25px", }}
       >
         <span>
           <span className="legend-box present"></span> Present

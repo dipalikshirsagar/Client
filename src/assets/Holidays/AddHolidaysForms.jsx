@@ -46,14 +46,19 @@ function AddHolidayForm({ onAdd }) {
 
       const newHoliday = res.data.holiday || res.data; // handle both cases
       if (onAdd && newHoliday) onAdd(newHoliday);
-
+      alert("Holiday added successfully!");
       setName("");
       setDate("");
       setErrors({ name: "", date: "" });
       setShowModal(false); // close modal on success
     } catch (err) {
       console.error(err);
-      setError("Failed to add holiday.");
+
+      if (err.response?.data?.message) {
+        alert(err.response.data.message); // 👈 backend duplicate message
+      } else {
+        alert("Failed to add holiday.");
+      }
     } finally {
       setLoading(false);
     }

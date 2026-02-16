@@ -110,12 +110,14 @@ function ApplyRegularization({ user, selectedRecord }) {
           ),
       );
       setAcceptedCount(
-        sortedData.filter((r) => r?.regularizationRequest?.status === "Approved")
-          .length,
+        sortedData.filter(
+          (r) => r?.regularizationRequest?.status === "Approved",
+        ).length,
       );
       setRejectedCount(
-        sortedData.filter((r) => r?.regularizationRequest?.status === "Rejected")
-          .length,
+        sortedData.filter(
+          (r) => r?.regularizationRequest?.status === "Rejected",
+        ).length,
       );
       setPendingCount(
         sortedData.filter((r) => r?.regularizationRequest?.status === "Pending")
@@ -718,6 +720,7 @@ function ApplyRegularization({ user, selectedRecord }) {
                     setCheckOutTime("");
                     setWorkMode("");
                     setMessage("");
+                    setReason("");
                   }}
                 ></button>
               </div>
@@ -904,6 +907,7 @@ function ApplyRegularization({ user, selectedRecord }) {
                         setCheckOutTime("");
                         setWorkMode("");
                         setMessage("");
+                        setReason("");
                       }}
                     >
                       Cancel

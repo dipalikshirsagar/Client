@@ -26,51 +26,51 @@ function AdminAddLeaveBalance() {
   const [selectedLeave, setSelectedLeave] = useState(null);
   const modalRef = useRef(null);
   useEffect(() => {
-  if (!selectedLeave || !modalRef.current) return;
+    if (!selectedLeave || !modalRef.current) return;
 
-  const modal = modalRef.current;
+    const modal = modalRef.current;
 
-  const focusableElements = modal.querySelectorAll(
-    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-  );
+    const focusableElements = modal.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
 
-  if (!focusableElements.length) return;
+    if (!focusableElements.length) return;
 
-  const firstEl = focusableElements[0];
-  const lastEl = focusableElements[focusableElements.length - 1];
+    const firstEl = focusableElements[0];
+    const lastEl = focusableElements[focusableElements.length - 1];
 
-  // ✅ Focus first element when modal opens
-  firstEl.focus();
+    // ✅ Focus first element when modal opens
+    firstEl.focus();
 
-  const handleKeyDown = (e) => {
-    // ESC closes modal
-    if (e.key === "Escape") {
-      e.preventDefault();
-      setSelectedLeave(null);
-    }
+    const handleKeyDown = (e) => {
+      // ESC closes modal
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setSelectedLeave(null);
+      }
 
-    // TAB trap
-    if (e.key === "Tab") {
-      if (e.shiftKey) {
-        if (document.activeElement === firstEl) {
-          e.preventDefault();
-          lastEl.focus();
-        }
-      } else {
-        if (document.activeElement === lastEl) {
-          e.preventDefault();
-          firstEl.focus();
+      // TAB trap
+      if (e.key === "Tab") {
+        if (e.shiftKey) {
+          if (document.activeElement === firstEl) {
+            e.preventDefault();
+            lastEl.focus();
+          }
+        } else {
+          if (document.activeElement === lastEl) {
+            e.preventDefault();
+            firstEl.focus();
+          }
         }
       }
-    }
-  };
+    };
 
-  document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
 
-  return () => {
-    document.removeEventListener("keydown", handleKeyDown);
-  };
-}, [selectedLeave]);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [selectedLeave]);
   // dipali code
   //NEW CODE
   useEffect(() => {
@@ -125,7 +125,7 @@ function AdminAddLeaveBalance() {
       .get("https://server-backend-ems.vercel.app/leaves")
       .then((res) => {
         const filteredByAdmin = res.data.filter(
-          (l) => l.employee?.employeeId !== user?.employeeId
+          (l) => l.employee?.employeeId !== user?.employeeId,
         );
 
         const sortedLeaves = filteredByAdmin.sort(
@@ -134,7 +134,9 @@ function AdminAddLeaveBalance() {
         setLeaves(sortedLeaves);
         setFilteredLeaves(sortedLeaves);
 
-        const pending = filteredByAdmin.filter((l) => l.status === "pending").length;
+        const pending = filteredByAdmin.filter(
+          (l) => l.status === "pending",
+        ).length;
         setPendingRequests(pending);
       })
       .catch((err) => console.error("Leaves fetch error:", err))
@@ -338,7 +340,6 @@ function AdminAddLeaveBalance() {
     try {
       await axios.delete(`https://server-backend-ems.vercel.app/leave/${leaveId}`);
 
-
       // ✅ Remove the deleted leave from state
       setLeaves((prev) => prev.filter((l) => l._id !== leaveId));
       //Added by jaicy
@@ -385,23 +386,23 @@ function AdminAddLeaveBalance() {
       alert("❌ Failed to reset yearly leave settings. Please try again.");
     }
   };
-/////leave duration dip
+  /////leave duration dip
 
-const getLeaveDurationText = (leave) => {
-  if (!leave) return "-";
+  const getLeaveDurationText = (leave) => {
+    if (!leave) return "-";
 
-  if (leave.duration === "half") {
-    return "0.5 day";
-  }
+    if (leave.duration === "half") {
+      return "0.5 day";
+    }
 
-  const days =
-    Math.floor(
-      (new Date(leave.dateTo) - new Date(leave.dateFrom)) /
-        (1000 * 60 * 60 * 24)
-    ) + 1;
+    const days =
+      Math.floor(
+        (new Date(leave.dateTo) - new Date(leave.dateFrom)) /
+          (1000 * 60 * 60 * 24),
+      ) + 1;
 
-  return `${days} ${days === 1 ? "day" : "days"}`;
-};
+    return `${days} ${days === 1 ? "day" : "days"}`;
+  };
 
   // dipali code
   //NEW CODE
@@ -741,8 +742,8 @@ const getLeaveDurationText = (leave) => {
                 htmlFor="employeeNameFilter"
                 className="fw-bold mb-0 text-start text-md-end"
                 style={{
-                   width: "55px",
-                   minWidth: "55px",
+                  width: "55px",
+                  minWidth: "55px",
                   fontSize: "16px",
                   color: "#3A5FBE",
                   marginRight: "8px",
@@ -1050,13 +1051,13 @@ const getLeaveDurationText = (leave) => {
                         >
                           {l.appliedAt
                             ? new Date(l.appliedAt).toLocaleDateString(
-                              "en-GB",
-                              {
-                                day: "2-digit",
-                                month: "short",
-                                year: "numeric",
-                              },
-                            )
+                                "en-GB",
+                                {
+                                  day: "2-digit",
+                                  month: "short",
+                                  year: "numeric",
+                                },
+                              )
                             : "-"}
                         </td>
                         <td
@@ -1109,12 +1110,12 @@ const getLeaveDurationText = (leave) => {
                             whiteSpace: "nowrap",
                           }}
                         >
-                           {l.duration === "half"
-                        ? 0.5
-                        : Math.floor(
-                            (new Date(l.dateTo) - new Date(l.dateFrom)) /
-                              (1000 * 60 * 60 * 24)
-                          ) + 1}
+                          {l.duration === "half"
+                            ? 0.5
+                            : Math.floor(
+                                (new Date(l.dateTo) - new Date(l.dateFrom)) /
+                                  (1000 * 60 * 60 * 24),
+                              ) + 1}
                         </td>
                         <td
                           style={{
@@ -1244,11 +1245,15 @@ const getLeaveDurationText = (leave) => {
       {selectedLeave && (
         <div
           className="modal fade show"
-         role="dialog"
+          role="dialog"
           aria-modal="true"
           style={{ display: "block", background: "rgba(0,0,0,0.5)" }}
         >
-          <div className="modal-dialog modal-lg"  ref={modalRef} style={{ marginTop: "120px" }}>
+          <div
+            className="modal-dialog modal-lg"
+            ref={modalRef}
+            style={{ marginTop: "120px" }}
+          >
             <div className="modal-content">
               {/* Header */}
               <div
@@ -1285,13 +1290,13 @@ const getLeaveDurationText = (leave) => {
                     <div className="col-sm-9">
                       {selectedLeave.appliedAt
                         ? new Date(selectedLeave.appliedAt).toLocaleDateString(
-                          "en-GB",
-                          {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          },
-                        )
+                            "en-GB",
+                            {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            },
+                          )
                         : "-"}
                     </div>
                   </div>
@@ -1331,7 +1336,9 @@ const getLeaveDurationText = (leave) => {
 
                   <div className="row mb-2">
                     <div className="col-sm-3 fw-semibold">Duration</div>
-                    <div className="col-sm-9">{getLeaveDurationText(selectedLeave)}</div>
+                    <div className="col-sm-9">
+                      {getLeaveDurationText(selectedLeave)}
+                    </div>
                   </div>
 
                   <div className="row mb-2">
@@ -1368,13 +1375,16 @@ const getLeaveDurationText = (leave) => {
                   {selectedLeave.status !== "pending" && (
                     <div className="row mb-2">
                       <div className="col-sm-3 fw-semibold">
-                        {selectedLeave.status === "approved" ? "Approved by" : "Rejected by"}
+                        {selectedLeave.status === "approved"
+                          ? "Approved by"
+                          : "Rejected by"}
                       </div>
                       <div className="col-sm-9">
                         {selectedLeave.approvedBy ? (
                           <>
                             {selectedLeave.approvedBy.name}
-                            {selectedLeave.approvedBy.role && ` (${selectedLeave.approvedBy.role})`}
+                            {selectedLeave.approvedBy.role &&
+                              ` (${selectedLeave.approvedBy.role})`}
                           </>
                         ) : (
                           "-"
@@ -1390,7 +1400,8 @@ const getLeaveDurationText = (leave) => {
                 {selectedLeave.status === "pending" && (
                   <>
                     <button
-                      className="btn btn-outline-success"
+                      className="btn btn-sm btn-outline-success" // mahesh code approve button
+                      style={{ width: 90 }}
                       onClick={() =>
                         updateStatus(selectedLeave._id, "approved")
                       }
@@ -1399,7 +1410,8 @@ const getLeaveDurationText = (leave) => {
                     </button>
 
                     <button
-                      className="btn btn-outline-danger"
+                      className="btn btn-sm btn-outline-danger" // mahesh code reject button
+                      style={{ width: 90 }}
                       onClick={() =>
                         updateStatus(selectedLeave._id, "rejected")
                       }
@@ -1408,7 +1420,8 @@ const getLeaveDurationText = (leave) => {
                     </button>
 
                     <button
-                      className="btn b btn-outline-danger"
+                      className="btn btn-sm btn-outline-danger" // mahesh code delete button
+                      style={{ width: 90 }}
                       onClick={(e) => {
                         HandleDelete(selectedLeave._id);
                         setSelectedLeave(null);
@@ -1420,7 +1433,8 @@ const getLeaveDurationText = (leave) => {
                 )}
 
                 <button
-                  className="btn  custom-outline-btn"
+                  className="btn btn-sm custom-outline-btn" // mahesh code close button
+                  style={{ width: 90 }}
                   onClick={() => setSelectedLeave(null)}
                 >
                   Close

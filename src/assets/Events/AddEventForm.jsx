@@ -44,7 +44,7 @@ function AddEventForm({ onAdd }) {
       // 👇 Adjust here — make sure we send the *actual event object* only
       const newEvent = res.data.event || res.data; // handle both possible response shapes
       if (onAdd && newEvent) onAdd(newEvent);
-
+      alert("Event added successfully!");
       setName("");
       setDate("");
       setShowModal(false);

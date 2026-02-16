@@ -265,7 +265,37 @@ function QuickApplyLeave({ user }) {
         }
       }
     }
+ // -------------------- 🚫 HOLIDAY VALIDATION (NEW) --------------------
+      const currentYear = new Date().getFullYear();
+      try {
+        const holidaysRes = await axios.get("https://server-backend-ems.vercel.app/getHolidays");
+        const holidays = holidaysRes.data.filter(
+          (h) => new Date(h.date).getFullYear() === currentYear,
+        );
 
+        // 🔹 Check if any date in range is a holiday
+        for (let d = new Date(fromDate); d <= toDate; d.setDate(d.getDate() + 1)) {
+          const checkDate = new Date(d);
+          checkDate.setHours(0, 0, 0, 0);
+
+          const isHoliday = holidays.some((holiday) => {
+            const holidayDate = new Date(holiday.date);
+            holidayDate.setHours(0, 0, 0, 0);
+            return holidayDate.getTime() === checkDate.getTime();
+          });
+
+          if (isHoliday) {
+            alert(
+              `🎉 ${checkDate.toDateString()} is a holiday! You cannot apply leave on holidays.`,
+            );
+            setMessage("Cannot apply leave on holidays.");
+            return;
+          }
+        }
+      } catch (holidayErr) {
+        console.error("Failed to fetch holidays:", holidayErr);
+        
+      }
     try {
       // ✅ 1️⃣ Fetch existing leaves of employee
       const existingLeavesRes = await axios.get(
@@ -383,9 +413,9 @@ function QuickApplyLeave({ user }) {
         {/* Quick Select */}
         <div
           className="mb-2"
-          style={{ marginRight: "25px", marginTop: "20px" }}
+          style={{ marginRight: "25px", marginTop: "15px" }}
         >
-          <label>Leave Type</label>
+          <label style={{  marginBottom: "10px" }}>Leave Type</label>
           <select
             name="leaveType"
             value={formData.leaveType}

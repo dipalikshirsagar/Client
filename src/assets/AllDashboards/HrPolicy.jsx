@@ -21,7 +21,7 @@ function HrPolicy() {
 
   const [policies, setPolicies] = useState([]);
   const [searchText, setSearchText] = useState("");
-
+  const [editFile, setEditFile] = useState(null);//added by shivani
   const [showModal, setShowModal] = useState(false);
   const [selectedPolicy, setSelectedPolicy] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -178,27 +178,32 @@ function HrPolicy() {
   //   }
   // };
 
+  //update by shivani
   const handleAddPolicy = async () => {
     if (!newPolicy.title || !newPolicy.description) {
       alert("Title and Description required");
       return;
     }
-
+  
     try {
       const formData = new FormData();
       formData.append("title", newPolicy.title);
       formData.append("description", newPolicy.description);
-
+  
       if (newPolicy.pdf) {
-        formData.append("pdf", newPolicy.pdf);
+        formData.append("pdf", newPolicy.pdf); 
       }
-
-      const res = await axios.post(`${API_BASE}/policy/create`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
+  
+      const res = await axios.post(
+        `${API_BASE}/policy/create`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+  
       if (res.data.success) {
         alert(res.data.message);
         setShowAddModal(false);
@@ -210,6 +215,8 @@ function HrPolicy() {
       alert("Failed to create policy");
     }
   };
+
+
   const fetchPolicies = async () => {
     try {
       const res = await axios.get(`${API_BASE}/policy/get`);
@@ -266,31 +273,44 @@ function HrPolicy() {
       version: policy.version || "1.0",
       createdAt: policy.createdAt || today,
     });
-
+    setEditFile(null);// added by shivani
     setIsEditMode(true);
     setShowModal(true);
   };
 
+  //update by shivani
   const handleSave = async () => {
     if (!selectedPolicy) return;
-
+  
     try {
+      const formData = new FormData();
+      formData.append("title", policyForm.title);
+      formData.append("description", policyForm.description);
+  
+      if (editFile) {
+        formData.append("pdf", editFile); // ✅ only if new file selected
+      }
+  
       const res = await axios.put(
         `${API_BASE}/policy/update/${selectedPolicy._id}`,
+        formData,
         {
-          title: policyForm.title,
-          description: policyForm.description,
-        },
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
       );
-
+  
       if (res.data.success) {
-        alert(res.data.message); // ✅ SHOW MESSAGE
+        alert(res.data.message);
         fetchPolicies();
         setShowModal(false);
         setIsEditMode(false);
         setSelectedPolicy(null);
+        setEditFile(null);
       }
     } catch (error) {
+      console.error(error);
       alert("Failed to update policy");
     }
   };
@@ -746,6 +766,18 @@ function HrPolicy() {
                     })
                   }
                 />
+
+                {/* added by shivani */}
+                <label className="fw-semibold mb-1 mt-2">Upload Policy PDF</label>
+                  <input
+                    type="file"
+                    accept="application/pdf"
+                    className="form-control"
+                    onChange={(e) => setEditFile(e.target.files[0])}
+                    
+                  />
+
+              {/*  */}
               </div>
 
               {/* FOOTER */}

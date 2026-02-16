@@ -75,8 +75,8 @@
 
 /* Delete Button */
 .delete-btn {
-  color: #3A5FBE;
-  border-color: #3A5FBE;
+  color: #de1e1e;
+  border-color:#de1e1e;
   position: absolute;
   top: 0;
   right: 0;
@@ -84,12 +84,12 @@
 }
 
 .delete-btn:hover {
-  background-color: #3A5FBE;
+  background-color: #ef4949;
   color: white;
 }
 
 .delete-icon {
-  color: #3A5FBE;
+  color:#de1e1e;
   font-weight: bold;
 }
 
@@ -101,7 +101,12 @@
 .no-data-alert {
   text-align: center;
 }
-
+.edit-btn {
+  position: absolute;
+  top: 8px;
+  right: 45px; /* delete च्या बाजूला */
+  z-index: 2;
+}
 /* Responsive */
 @media (max-width: 768px) {
   .scrollable-list {

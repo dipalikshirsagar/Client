@@ -142,31 +142,69 @@ function EmployeeMyLeave({ user, refreshKey }) {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentLeaves = filteredLeaves.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredLeaves.length / itemsPerPage);
+const isStrictValidDate = (dateStr) => {
+  if (!dateStr) return true; // allow empty
 
-  const applyFilters = () => {
-    let temp = [...leaves];
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
 
-    // Status filter
-    if (statusFilter !== "All") {
-      temp = temp.filter(
-        (l) => (l.status || "").toLowerCase() === statusFilter.toLowerCase(),
-      );
-    }
+  if (!dateRegex.test(dateStr)) return false;
 
-    // Date From filter
-    if (dateFromFilter) {
-      temp = temp.filter(
-        (l) => new Date(l.dateFrom) >= new Date(dateFromFilter),
-      );
-    }
-    // Date To filter
-    if (dateToFilter) {
-      temp = temp.filter((l) => new Date(l.dateTo) <= new Date(dateToFilter));
-    }
+  const [year, month, day] = dateStr.split("-").map(Number);
 
-    setFilteredLeaves(temp);
-    setCurrentPage(1); // Reset pagination
-  };
+  // Year range restriction (you can adjust)
+  if (year < 1900 || year > 2100) return false;
+
+  const date = new Date(year, month - 1, day);
+
+  return (
+    date.getFullYear() === year &&
+    date.getMonth() === month - 1 &&
+    date.getDate() === day
+  );
+};
+
+ const applyFilters = () => {
+
+  // ✅ 1. Validate From date
+  if (!isStrictValidDate(dateFromFilter)) {
+    alert("Invalid From date");
+    return;
+  }
+
+  // ✅ 2. Validate To date
+  if (!isStrictValidDate(dateToFilter)) {
+    alert("Invalid To date");
+    return;
+  }
+
+  // ✅ 3. Validate range
+  if (dateFromFilter && dateToFilter && dateFromFilter > dateToFilter) {
+    alert("Invalid date range");
+    return;
+  }
+
+  const fromDate = dateFromFilter ? new Date(dateFromFilter) : null;
+  const toDate = dateToFilter ? new Date(dateToFilter) : null;
+
+  const filtered = leaves.filter((l) => {
+    const statusMatch =
+      statusFilter === "All" ||
+      (l.status || "").toLowerCase() === statusFilter.toLowerCase();
+
+    const leaveFrom = new Date(l.dateFrom);
+    const leaveTo = new Date(l.dateTo);
+
+    const fromMatch = !fromDate || leaveFrom >= fromDate;
+    const toMatch = !toDate || leaveTo <= toDate;
+
+    return statusMatch && fromMatch && toMatch;
+  });
+
+  setFilteredLeaves(filtered);
+  setCurrentPage(1);
+};
+
+
 
   const resetFilters = () => {
     setStatusFilter("All");

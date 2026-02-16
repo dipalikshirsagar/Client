@@ -200,8 +200,43 @@ function EmployeeMyRegularization({ employeeId, refreshKey }) {
 
   if (error) return <p className="text-danger">{error}</p>;
   // if (filteredRequests.length === 0) return <p>No regularization requests found.</p>;
+  const isStrictValidDate = (dateStr) => {
+  if (!dateStr) return true; // allow empty
+
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+
+  if (!dateRegex.test(dateStr)) return false;
+
+  const [year, month, day] = dateStr.split("-").map(Number);
+
+  // Year range restriction (you can adjust)
+  if (year < 1900 || year > 2100) return false;
+
+  const date = new Date(year, month - 1, day);
+
+  return (
+    date.getFullYear() === year &&
+    date.getMonth() === month - 1 &&
+    date.getDate() === day
+  );
+};
+
   //Added by Jaicy
   const applyFilters = () => {
+    if (!isStrictValidDate(dateFromFilter)) {
+    alert("Invalid From date");
+    return;
+  }
+
+  if (!isStrictValidDate(dateToFilter)) {
+    alert("Invalid To date");
+    return;
+  }
+
+  if (dateFromFilter && dateToFilter && dateFromFilter > dateToFilter) {
+    alert("Invalid date range");
+    return;
+  }
     let temp = requests.filter((req) =>
       ["Pending", "Rejected", "Approved"].includes(
         req.regularizationRequest?.status,

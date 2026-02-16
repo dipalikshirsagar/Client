@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import MyProfile from "../AllDashboards/MyProfile";
 import ChangePassword from "./ChangePassword";
 import SupportEmployeeSetting from "../ITSupport/SupportEmployeeSetting";
-function EmployeeSettings({ user }) {
+function EmployeeSettings({ user, setUser }) {
   const [activeTab, setActiveTab] = useState("changePassword");
   // const [passwords, setPasswords] = useState({
   //   currentPassword: "",
@@ -144,11 +144,7 @@ function EmployeeSettings({ user }) {
           IT Support
         </button>
       </div>
-      {activeTab === "profile" && (
-        <>
-          <MyProfile user={user} />
-        </>
-      )}
+      {activeTab === "profile" && <MyProfile user={user} setUser={setUser} />}
       {/* Change Password - same card design */}
       {activeTab === "changePassword" && (
         <>

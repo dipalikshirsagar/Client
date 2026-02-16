@@ -115,7 +115,7 @@ function HolidaysCard({}) {
         >
           <ChevronLeft size={20} />
         </button>
-        <span className="fw-semibold" style={{ color: "#3A5FBE" }}>
+        <span className="fw-semibold" style={{ color: "#3A5FBE", fontSize: "20px"  }}>
           Upcoming Holidays
         </span>
         <button

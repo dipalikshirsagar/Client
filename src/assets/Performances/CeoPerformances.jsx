@@ -166,7 +166,7 @@ function CeoPerformances() {
               </select>
             </div>
 
-            <div className="col-12 col-md-auto d-flex align-items-center mb-1 ms-2">
+            {/* <div className="col-12 col-md-auto d-flex align-items-center mb-1 ms-2">
               <label
                 htmlFor="dateFromFilter"
                 className="fw-bold mb-0 text-start text-md-end"
@@ -209,7 +209,7 @@ function CeoPerformances() {
                 value={dateToFilter}
                 onChange={(e) => setDateToFilter(e.target.value)}
               />
-            </div>
+            </div> */}
             <div className="col-12 col-md-auto d-flex align-items-center  mb-1  ms-2">
               <label
                 className="fw-bold mb-0 text-start text-md-end"
@@ -228,7 +228,7 @@ function CeoPerformances() {
               <input
                 type="text"
                 className="form-control"
-                style={{ maxWidth: "280px" }}
+                style={{ maxWidth: "600px" }} //mahesh coded search bar size increase
                 placeholder="Search by any field"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
