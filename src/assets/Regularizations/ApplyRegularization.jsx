@@ -532,7 +532,23 @@ function ApplyRegularization({ user, selectedRecord }) {
   const checkInMissing = !selectedRecord?.checkIn && !selectedRecord?.leaveType;
   const checkOutMissing =
     !selectedRecord?.checkOut && !selectedRecord?.leaveType;
+//bg scroll stop
+  useEffect(() => {
+    if (showModal) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+    useEffect;
 
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [showModal]);
+  // dip code changes 11-02-2026
   return (
     <div className="container-fluid">
       <h2
@@ -699,7 +715,7 @@ function ApplyRegularization({ user, selectedRecord }) {
         >
           <div
             className="modal-dialog modal-dialog-centered"
-            style={{ width: "600px" }}
+            style={{ width: "600px" ,  }}
           >
             <div className="modal-content shadow-lg">
               <div
@@ -873,12 +889,15 @@ function ApplyRegularization({ user, selectedRecord }) {
                     <label className="form-label">Reason </label>
                     <textarea
                       className="form-control"
-                      placeholder="Enter reason"
+                      placeholder="Enter reason (Max 300 characters)"
                       value={reason}
                       onChange={(e) => setReason(e.target.value)}
                       rows={3}
                       required
+                      maxLength={300}
                     ></textarea>
+                    <div style={{ fontSize: '12px', color: '#666', marginTop: '4px', textAlign: 'right' }}>{reason.length}/300
+                    </div>
                   </div>
 
                   <div className="d-flex justify-content-end gap-2">

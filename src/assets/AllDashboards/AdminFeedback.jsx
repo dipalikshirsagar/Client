@@ -596,7 +596,7 @@ const AdminFeedback = () => {
         >
           <div
             className="modal-dialog "
-            style={{ maxWidth: "660px", width: "95%", marginTop: "100px" }}
+            style={{ maxWidth: "600px", width: "95%", marginTop: "80px" }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="modal-content">

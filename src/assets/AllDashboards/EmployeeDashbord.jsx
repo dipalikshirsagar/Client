@@ -8,7 +8,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faSquareCheck } from "@fortawesome/free-solid-svg-icons";
 import QuickApplyLeave from "../Leaves/QuickApplyLeave";
-
+import ActivePolls from "../Polls/ActivePolls";
 function EmployeeDashboard({ user }) {
   const [attendance, setAttendance] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -1235,7 +1235,7 @@ function EmployeeDashboard({ user }) {
                       >
                         {attendance?.mode === "WFH"
                           ? "WFH Location"
-                          : "Office Location"}
+                          : "Office Location"}:
                       </strong>{" "}
                       <span style={{ marginLeft: "5px" }}>
                         {attendance?.checkIn
@@ -1617,6 +1617,16 @@ function EmployeeDashboard({ user }) {
               <MyAttendanceCalender employeeId={user._id} />
             </div>
           </div>
+          <div className="row g-2 mt-3">
+        
+      
+
+      {/*  Poll */}
+      <div className="col-md-4">
+        <ActivePolls user={user} />
+      </div>
+
+    </div>
         </div>
       </div>
     </>

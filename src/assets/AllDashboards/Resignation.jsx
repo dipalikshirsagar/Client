@@ -31,37 +31,46 @@ function Resignation() {
   };
   const modalRef = useRef(null);
 
-  useEffect(() => {
-    if (!showModal || !modalRef.current) return;
+ useEffect(() => {
+    const isAnyModalOpen = showModal || showRowModal;
+
+    if (!isAnyModalOpen || !modalRef.current) return;
 
     const modal = modalRef.current;
 
-    const focusableElements = modal.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-    );
+    const focusableSelectors =
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
-    const firstEl = focusableElements[0];
-    const lastEl = focusableElements[focusableElements.length - 1];
+    const getFocusableElements = () =>
+      modal.querySelectorAll(focusableSelectors);
 
-    // ⭐ modal open होताच focus
-    modal.focus();
+    const focusFirst = () => {
+      const elements = getFocusableElements();
+      if (elements.length) elements[0].focus();
+    };
 
     const handleKeyDown = (e) => {
-      // ESC key → modal close
       if (e.key === "Escape") {
         e.preventDefault();
-        setShowModal(null);
+    
+        if (showModal) closeModal();
+        if (showRowModal) closeRowModal();
       }
-
-      // TAB key → focus trap
+    
       if (e.key === "Tab") {
+        const focusableElements = getFocusableElements();
+        if (!focusableElements.length) return;
+    
+        const firstEl = focusableElements[0];
+        const lastEl = focusableElements[focusableElements.length - 1];
+    
         if (e.shiftKey) {
-          if (document.activeElement === firstEl) {
+          if (document.activeElement === firstEl || !modal.contains(document.activeElement)) {
             e.preventDefault();
             lastEl.focus();
           }
         } else {
-          if (document.activeElement === lastEl) {
+          if (document.activeElement === lastEl || !modal.contains(document.activeElement)) {
             e.preventDefault();
             firstEl.focus();
           }
@@ -69,12 +78,26 @@ function Resignation() {
       }
     };
 
-    modal.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      modal.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [showModal]);
+  }, [showModal, showRowModal]);
+  useEffect(() => {
+    if (showModal || showRowModal) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.height = '100vh';  
+    } else {
+      document.body.style.overflow = 'unset';
+      document.body.style.height = 'auto';  
+    }
+  
+    return () => {
+      document.body.style.overflow = 'unset';
+      document.body.style.height = 'auto';
+    };
+  }, [showModal, showRowModal]);
   // Get all resignations
   const fetchResignations = async () => {
     try {
@@ -560,7 +583,7 @@ function Resignation() {
             style={{ marginLeft: "16px" }}
           >
             <button
-              className="btn btn-sm border-0"
+            className="btn btn-sm focus-ring"
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
               style={{ fontSize: "18px", padding: "2px 8px", color: "#212529" }}
@@ -568,7 +591,7 @@ function Resignation() {
               ‹
             </button>
             <button
-              className="btn btn-sm border-0"
+              className="btn btn-sm focus-ring"
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
               style={{ fontSize: "18px", padding: "2px 8px", color: "#212529" }}
@@ -583,6 +606,8 @@ function Resignation() {
       {showModal && selected && (
         <div
           className="modal fade show"
+          ref={modalRef}
+          tabIndex="-1"
           style={{
             display: "flex",
             alignItems: "center",
@@ -594,8 +619,8 @@ function Resignation() {
           }}
         >
           <div
-            className="modal-dialog modal-dialog-scrollable"
-            style={{ maxWidth: "650px", width: "95%", marginTop: "200px" }}
+            className="modal-dialog "
+            style={{ maxWidth: "650px", width: "95%", marginTop: "120px" }}
           >
             <div className="modal-content">
               {/* Header */}
@@ -744,8 +769,8 @@ function Resignation() {
           onClick={closeRowModal}
         >
           <div
-            className="modal-dialog modal-dialog-scrollable"
-            style={{ maxWidth: "650px", width: "95%", marginTop: "200px" }}
+            className="modal-dialog "
+            style={{ maxWidth: "650px", width: "95%", marginTop: "120px" }}
           >
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               {/* Header */}
@@ -862,7 +887,18 @@ function Resignation() {
           </div>
         </div>
       )}
+      {/* Back Button added jayshree*/}  
+      <div className="text-end mt-3"> 
+        <button   
+          className="btn btn-sm custom-outline-btn"
+          style={{ minWidth: 90 }}
+          onClick={() => window.history.go(-1)}
+        >
+          Back
+        </button>
+      </div>
     </div>
+    
   );
 }
 

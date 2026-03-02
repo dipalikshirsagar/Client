@@ -385,14 +385,14 @@ function CeoPerformances() {
 
           <div className="d-flex align-items-center">
             <button
-              className="btn btn-sm border-0"
+            className="btn btn-sm focus-ring"
               disabled={currentPage === 1}
               onClick={() => setCurrentPage((p) => p - 1)}
             >
               ‹
             </button>
             <button
-              className="btn btn-sm border-0"
+             className="btn btn-sm focus-ring"
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage((p) => p + 1)}
             >

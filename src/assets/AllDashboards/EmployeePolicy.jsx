@@ -539,7 +539,7 @@ function EmployeePolicy() {
               style={{ marginLeft: "16px" }}
             >
               <button
-                className="btn btn-sm border-0"
+                className="btn btn-sm focus-ring"
                 onClick={() => setCurrentPage((p) => p - 1)}
                 disabled={currentPage === 1}
                 style={{
@@ -552,7 +552,7 @@ function EmployeePolicy() {
               </button>
 
               <button
-                className="btn btn-sm border-0"
+               className="btn btn-sm focus-ring"
                 onClick={() => setCurrentPage((p) => p + 1)}
                 disabled={currentPage === totalPages}
                 style={{

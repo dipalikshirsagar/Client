@@ -50,50 +50,81 @@ function ManagerResignation({ user }) {
 
   //TANVI
   useEffect(() => {
-    if (!showModal || !modalRef.current) return;
+  const isAnyModalOpen = showModal || showProfileModal || showMyResignationPopup || showApplyModal || selectedRow;
 
-    const modal = modalRef.current;
+  if (!isAnyModalOpen || !modalRef.current) return;
 
-    const focusableElements = modal.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-    );
+  const modal = modalRef.current;
 
-    const firstEl = focusableElements[0];
-    const lastEl = focusableElements[focusableElements.length - 1];
+  const focusableSelectors =
+    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
-    // ⭐ modal open होताच focus
-    modal.focus();
-    firstEl?.focus();
+  const getFocusableElements = () =>
+    modal.querySelectorAll(focusableSelectors);
 
-    const handleKeyDown = (e) => {
-      // ESC key → modal close
-      if (e.key === "Escape") {
-        e.preventDefault();
-        setShowModal(null);
+  const focusFirst = () => {
+    const elements = getFocusableElements();
+    if (elements.length) elements[0].focus();
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Escape") {
+      e.preventDefault();
+  
+      if (showModal) closeModal();
+      if (showProfileModal) setShowProfileModal(false);
+      if (showMyResignationPopup) setShowMyResignationPopup(false);
+      if (showApplyModal) {
+        resetApplyForm();
+        setShowApplyModal(false);
       }
-
-      // TAB key → focus trap
-      if (e.key === "Tab") {
-        if (e.shiftKey) {
-          if (document.activeElement === firstEl) {
-            e.preventDefault();
-            lastEl.focus();
-          }
-        } else {
-          if (document.activeElement === lastEl) {
-            e.preventDefault();
-            firstEl.focus();
-          }
+      if (selectedRow) closePopup();
+    }
+  
+    if (e.key === "Tab") {
+      const focusableElements = getFocusableElements();
+      if (!focusableElements.length) return;
+  
+      const firstEl = focusableElements[0];
+      const lastEl = focusableElements[focusableElements.length - 1];
+  
+      if (e.shiftKey) {
+        if (document.activeElement === firstEl || !modal.contains(document.activeElement)) {
+          e.preventDefault();
+          lastEl.focus();
+        }
+      } else {
+        if (document.activeElement === lastEl || !modal.contains(document.activeElement)) {
+          e.preventDefault();
+          firstEl.focus();
         }
       }
-    };
+    }
+  };
 
-    modal.addEventListener("keydown", handleKeyDown);
+  document.addEventListener("keydown", handleKeyDown);
 
-    return () => {
-      modal.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [showModal]);
+  return () => {
+    document.removeEventListener("keydown", handleKeyDown);
+  };
+}, [showModal, showProfileModal, showMyResignationPopup, showApplyModal, selectedRow]);
+
+useEffect(() => {
+  const isAnyModalOpen = showModal || showProfileModal || showMyResignationPopup || showApplyModal || selectedRow;
+  
+  if (isAnyModalOpen) {
+    document.body.style.overflow = 'hidden';
+    document.body.style.height = '100vh';  
+  } else {
+    document.body.style.overflow = 'unset';
+    document.body.style.height = 'auto';  
+  }
+
+  return () => {
+    document.body.style.overflow = 'unset';
+    document.body.style.height = 'auto';
+  };
+}, [showModal, showProfileModal, showMyResignationPopup, showApplyModal, selectedRow]);
 
   // Get token from localStorage
   const getToken = () => {
@@ -576,7 +607,7 @@ function ManagerResignation({ user }) {
 
       {activeTab === "my" && (
         <div className="card-body">
-          <div className="card shadow-sm border-0 mb-4">
+          {/* <div className="card shadow-sm border-0 mb-4">
             <div className="table-responsive">
               <table className="table table-hover align-middle mb-0 bg-white">
                 <thead>
@@ -606,7 +637,7 @@ function ManagerResignation({ user }) {
                 </tbody>
               </table>
             </div>
-          </div>
+          </div> */}
 
           <button
             className="btn btn-sm custom-outline-btn"
@@ -714,14 +745,17 @@ function ManagerResignation({ user }) {
                         </td>
                         <td style={tdStyle}>{r.reason}</td>
                         <td style={tdStyle}>
-                          <span
+                        <span
                             style={{
-                              padding: "6px 16px",
-                              borderRadius: "20px",
-                              fontSize: "12px",
+                              padding: "6px 14px",
+                              borderRadius: "4px",
+                              fontSize: "13px",
                               fontWeight: "500",
                               backgroundColor: getStatusColor(r.status).bg,
                               color: getStatusColor(r.status).color,
+                              display: "inline-block",
+                              minWidth: "100px",
+                              textAlign: "center",
                             }}
                           >
                             {r.status}
@@ -803,7 +837,7 @@ function ManagerResignation({ user }) {
                 style={{ marginLeft: "16px" }}
               >
                 <button
-                  className="btn btn-sm border-0"
+               className="btn btn-sm focus-ring"
                   onClick={() => handleMyPageChange(myCurrentPage - 1)}
                   disabled={myCurrentPage === 1}
                   style={{
@@ -815,7 +849,7 @@ function ManagerResignation({ user }) {
                   ‹
                 </button>
                 <button
-                  className="btn btn-sm border-0"
+    className="btn btn-sm focus-ring"
                   onClick={() => handleMyPageChange(myCurrentPage + 1)}
                   disabled={myCurrentPage === myTotalPages}
                   style={{
@@ -1074,7 +1108,7 @@ function ManagerResignation({ user }) {
                 style={{ marginLeft: "16px" }}
               >
                 <button
-                  className="btn btn-sm border-0"
+                  className="btn btn-sm focus-ring"
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
                   style={{
@@ -1086,7 +1120,7 @@ function ManagerResignation({ user }) {
                   ‹
                 </button>
                 <button
-                  className="btn btn-sm border-0"
+                 className="btn btn-sm focus-ring"
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
                   style={{
@@ -1108,7 +1142,7 @@ function ManagerResignation({ user }) {
           className="modal fade show"
           ref={modalRef}
           tabIndex="-1"
-          style={{
+           style={{
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -1119,14 +1153,25 @@ function ManagerResignation({ user }) {
           }}
         >
           <div
-            className="modal-dialog modal-dialog-scrollable"
-            style={{ maxWidth: "650px", width: "95%", marginTop: "200px" }}
+            className="modal-dialog"
+            style={{ 
+              maxWidth: "650px", 
+              width: "95%", 
+              margin: "1.75rem auto",
+            }}
           >
-            <div className="modal-content">
-              {/* Header */}
+            <div 
+              className="modal-content"
+              style={{
+                maxHeight: "90vh",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              {/* Header*/}
               <div
                 className="modal-header text-white"
-                style={{ backgroundColor: "#3A5FBE" }}
+                style={{ backgroundColor: "#3A5FBE", flexShrink: 0 }}
               >
                 <h5 className="modal-title mb-0">Resignation Action</h5>
                 <button
@@ -1136,8 +1181,13 @@ function ManagerResignation({ user }) {
                 />
               </div>
 
-              {/* Body */}
-              <div className="modal-body">
+              <div 
+                className="modal-body" 
+                style={{ 
+                  overflowY: "scroll", 
+                }}
+              >
+                
                 <div className="container-fluid">
                   {/* Manager Action Section */}
                   {selected.status === "Pending" && (
@@ -1219,7 +1269,7 @@ function ManagerResignation({ user }) {
               </div>
 
               {/* Footer */}
-              <div className="modal-footer border-0 pt-0 d-flex gap-2">
+              <div className="modal-footer border-0 pt-0 d-flex gap-2" style={{ flexShrink: 0 }}>
                 {selected.status === "Pending" ? (
                   <>
                     <button
@@ -1238,7 +1288,7 @@ function ManagerResignation({ user }) {
                 ) : null}
                 <button
                   className="btn btn-sm custom-outline-btn"
-                  style={{ minWidth: "90px" }} //---------------------------------change
+                  style={{ minWidth: "90px" }}
                   onClick={closeModal}
                 >
                   Close
@@ -1267,8 +1317,8 @@ function ManagerResignation({ user }) {
           onClick={() => setShowMyResignationPopup(false)}
         >
           <div
-            className="modal-dialog modal-dialog-scrollable"
-            style={{ maxWidth: "650px", width: "95%", marginTop: "200px" }}
+            className="modal-dialog "
+            style={{ maxWidth: "650px", width: "95%", marginTop: "150px" }}
           >
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               {/* Header */}
@@ -1419,8 +1469,8 @@ function ManagerResignation({ user }) {
           onClick={() => setShowProfileModal(false)}
         >
           <div
-            className="modal-dialog modal-dialog-scrollable"
-            style={{ maxWidth: "650px", width: "95%", marginTop: "200px" }}
+            className="modal-dialog "
+            style={{ maxWidth: "650px", width: "95%", marginTop: "150px" }}
           >
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               {/* Header */}
@@ -1521,7 +1571,7 @@ function ManagerResignation({ user }) {
         >
           <div
             className="modal-dialog"
-            style={{ maxWidth: "650px", width: "95%", marginTop: "200px" }}
+            style={{ maxWidth: "650px", width: "95%", marginTop: "150px" }}
           >
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <div
@@ -1641,8 +1691,8 @@ function ManagerResignation({ user }) {
           onClick={closePopup}
         >
           <div
-            className="modal-dialog modal-dialog-scrollable"
-            style={{ maxWidth: "650px", width: "95%", marginTop: "120px" }}
+            className="modal-dialog "
+            style={{ maxWidth: "650px", width: "95%", marginTop: "100px" }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="modal-content">

@@ -69,9 +69,9 @@ function EmployeeApplyLeave({ user, onLeaveApplied }) {
     const firstEl = focusableElements[0];
     const lastEl = focusableElements[focusableElements.length - 1];
 
-    // ⭐ modal open होताच focus
+    //  modal open होताच focus
     modal.focus();
-    firstEl?.focus();
+    // firstEl?.focus();
 
     const handleKeyDown = (e) => {
       // ESC key → modal close
@@ -999,15 +999,7 @@ function EmployeeApplyLeave({ user, onLeaveApplied }) {
                       type="button"
                       className="btn btn-sm custom-outline-btn"
                       //  style={{  padding: "10px 32px", fontSize: "14px", fontWeight: "500", borderRadius: "4px" }}
-                      style={{
-                        backgroundColor: "transparent",
-                        color: "#3A5FBE",
-                        border: "1px solid #3A5FBE",
-                        padding: "10px 28px",
-                        fontSize: "14px",
-                        fontWeight: "500",
-                        borderRadius: "4px",
-                      }}
+                     style={{ minWidth: 90 }}
                       onClick={() => {
                         setShowModal(false);
                         setForm({
@@ -1026,12 +1018,7 @@ function EmployeeApplyLeave({ user, onLeaveApplied }) {
                     <button
                       type="submit"
                       className="btn btn-sm custom-outline-btn"
-                      style={{
-                        padding: "10px 32px",
-                        fontSize: "14px",
-                        fontWeight: "500",
-                        borderRadius: "4px",
-                      }}
+                      style={{ minWidth: 90 }}
                     >
                       Apply
                     </button>

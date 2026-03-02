@@ -26,6 +26,22 @@ const ManagerInterviews = () => {
     comment: "",
   });
 
+  const formatTo12Hour = (time24) => {
+  if (!time24) return "";
+
+  const [hours, minutes] = time24.split(":");
+  
+  const date = new Date();
+  date.setHours(hours);
+  date.setMinutes(minutes);
+
+  return date.toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true
+  }).toUpperCase();
+};
+
   // to get table after click on notification
   useEffect(() => {
     // const query = new URLSearchParams(location.search);
@@ -96,7 +112,10 @@ const ManagerInterviews = () => {
         `https://server-backend-ems.vercel.app/interviews/managerUpdate/${selected._id}`,
         {
           method: "PUT",
-          body: JSON.stringify(editData),
+          body: JSON.stringify({
+            manualStatus: editData.status,
+            comment: editData.comment
+          }),
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
@@ -218,13 +237,6 @@ const ManagerInterviews = () => {
       >
         Manager – Assigned Interviews
       </h2>
-      {/* 
-      <button
-        className="btn btn-sm custom-outline-btn mb-3"
-        onClick={handleView}
-      >
-        View Assigned Interviews
-      </button> */}
 
       {/* ================= FILTER CARD ================= */}
       {showTable && (
@@ -397,7 +409,7 @@ const ManagerInterviews = () => {
                       <td>
                         {item.resumeUrl ? (
                           <a
-                            href={`https://server-backend-ems.vercel.app${item.resumeUrl}`}
+                            href={`${item.resumeUrl}`}
                             target="_blank"
                             rel="noreferrer"
                             onClick={(e) => e.stopPropagation()}
@@ -409,20 +421,37 @@ const ManagerInterviews = () => {
                         )}
                       </td>
                       <td style={tdStyle()}>{formatDate(item.date)}</td>
-                      <td style={tdStyle()}>{item.startTime}</td>
+                      <td style={tdStyle()}>{formatTo12Hour(item.startTime)}</td>
                       <td style={tdStyle()}>{item.interviewType}</td>
                       <td style={tdStyle()}>{item.interviewerName}</td>
                       <td style={tdStyle()}>
-                        {item.status !== "Completed" &&
-                        item.status !== "Cancelled" &&
-                        item.status !== "Not-completed" &&
-                        item.link ? (
-                          <a
-                            href={item.link}
-                            target="_blank"
-                            rel="noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                          >
+                        {item.link ? (
+    <a
+      href={item.link}
+      target="_blank"
+      rel="noreferrer"
+      onClick={(e) => {
+        if (
+          ["Completed", "Cancelled", "Not-completed"].includes(item.status)
+        ) {
+          e.preventDefault(); // ❌ stop navigation
+          return;
+        }
+        e.stopPropagation();
+      }}
+      style={{
+        pointerEvents: ["Completed", "Cancelled", "Not-completed"].includes(item.status)
+          ? "none"
+          : "auto",
+        color: ["Completed", "Cancelled", "Not-completed"].includes(item.status)
+          ? "#999"
+          : "#0d6efd",
+        textDecoration: "underline",
+        cursor: ["Completed", "Cancelled", "Not-completed"].includes(item.status)
+          ? "not-allowed"
+          : "pointer",
+      }}>
+                  
                             Join
                           </a>
                         ) : (
@@ -458,25 +487,29 @@ const ManagerInterviews = () => {
                         </span>
                       </td>
 
-                      <td style={tdStyle()}>
-                        {item.status !== "On-going" && (
-                          <button
-                            className="btn custom-outline-btn"
-                            onClick={(e) => {
-                              e.stopPropagation();
+                 <td style={tdStyle()}>
+                    {/* {item.status !== "On-going" ? ( */}
+                      <button
+                        className="btn custom-outline-btn"
+                         disabled={item.status === "Cancelled" || item.status === "Completed"}
+                        onClick={(e) => {
+                          e.stopPropagation();
 
-                              setSelected(item); // open SAME modal
-                              setIsEditing(true); // 🔥 edit mode ON
-                              setEditData({
-                                status: item.status,
-                                comment: item.comment || "",
-                              });
-                            }}
-                          >
-                            Update
-                          </button>
-                        )}
-                      </td>
+                          setSelected(item);
+                          setIsEditing(true);
+                          setEditData({
+                            status: item.status,
+                            comment: item.comment || "",
+                          });
+                        }}
+                      >
+                        Update
+                      </button>
+                    {/* ) : (
+                      "-"
+                    )} */}
+                  </td>
+
                     </tr>
                   ))
                 )}
@@ -594,7 +627,7 @@ const ManagerInterviews = () => {
                 <div className="row mb-2">
                   <div className="col-4 fw-semibold">Interview Link</div>
                   <div className="col-8">
-                    {selected.status !== "Completed" &&
+                    {/* {selected.status !== "Completed" &&
                     selected.status !== "Cancelled" &&
                     selected.status !== "Not-completed" &&
                     selected.link ? (
@@ -603,7 +636,33 @@ const ManagerInterviews = () => {
                         target="_blank"
                         rel="noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                      >
+                      > */}
+                       {selected.link ? (
+    <a
+      href={selected.link}
+      target="_blank"
+      rel="noreferrer"
+      onClick={(e) => {
+        if (
+          ["Completed", "Cancelled", "Not-completed"].includes(selected.status)
+        ) {
+          e.preventDefault(); // ❌ stop navigation
+          return;
+        }
+        e.stopPropagation();
+      }}
+      style={{
+        pointerEvents: ["Completed", "Cancelled", "Not-completed"].includes(selected.status)
+          ? "none"
+          : "auto",
+        color: ["Completed", "Cancelled", "Not-completed"].includes(selected.status)
+          ? "#999"
+          : "#0d6efd",
+        textDecoration: "underline",
+        cursor: ["Completed", "Cancelled", "Not-completed"].includes(selected.status)
+          ? "not-allowed"
+          : "pointer",
+      }}>
                         Join
                       </a>
                     ) : (
@@ -618,7 +677,7 @@ const ManagerInterviews = () => {
                   <div className="col-8">
                     {selected?.resumeUrl ? (
                       <a
-                        href={`https://server-backend-ems.vercel.app${selected.resumeUrl}`}
+                        href={`${selected.resumeUrl}`}
                         target="_blank"
                         rel="noreferrer"
                         className="btn custom-outline-btn"
@@ -646,9 +705,7 @@ const ManagerInterviews = () => {
                         }
                         style={{ fontWeight: 500 }}
                       >
-                        <option value="Scheduled">Scheduled</option>
-                        <option value="On-going">On-going</option>
-                        <option value="Completed">Completed</option>
+                        <option value="">Select Status</option>
                         <option value="Not-completed">Not-completed</option>
                         <option value="Cancelled">Cancelled</option>
                       </select>
@@ -689,9 +746,10 @@ const ManagerInterviews = () => {
                   </div>
                 </div>
               </div>
-
-              <div className="modal-footer border-0 pt-0">
+      <div className="modal-footer border-0 pt-0">
                 {isEditing ? (
+                  // ✏️ EDIT MODE → Update button
+                  <>
                   <button
                     className="btn custom-outline-btn"
                     style={{ minWidth: 90 }}
@@ -699,6 +757,21 @@ const ManagerInterviews = () => {
                   >
                     Update
                   </button>
+                  <button
+                    className="btn custom-outline-btn"
+                    style={{ minWidth: 90 }}
+                    onClick={() => {
+                      setSelected(null);
+                      setIsEditing(false);
+                      setEditData({ 
+                        status: "", 
+                        comment: "" 
+                      });
+                   }}
+                  >
+                    Close
+                  </button>
+                  </>
                 ) : (
                   <button
                     className="btn custom-outline-btn"

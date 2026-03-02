@@ -51,7 +51,7 @@ function EmployeeTeams() {
 
     // ⭐ modal open होताच focus
     modal.focus();
-    firstEl?.focus();
+    // firstEl?.focus();
 
     const handleKeyDown = (e) => {
       // ESC key → modal close
@@ -82,6 +82,26 @@ function EmployeeTeams() {
       modal.removeEventListener("keydown", handleKeyDown);
     };
   }, [selectedEmployee]);
+
+  useEffect(() => {
+    if (selectedEmployee) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.height = '100vh';
+      document.body.style.position = 'relative';
+    } else {
+      document.body.style.overflow = 'unset';
+      document.body.style.height = 'auto';
+      document.body.style.position = 'static';
+    }
+  
+    return () => {
+      document.body.style.overflow = 'unset';
+      document.body.style.height = 'auto';
+      document.body.style.position = 'static';
+    };
+  }, [selectedEmployee]); 
+  
+
   useEffect(() => {
     let temp = [...employees];
 
@@ -295,14 +315,14 @@ function EmployeeTeams() {
 
             <div>
               <button
-                className="btn btn-sm border-0"
+             className="btn btn-sm focus-ring"
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(currentPage - 1)}
               >
                 ‹
               </button>
               <button
-                className="btn btn-sm border-0"
+             className="btn btn-sm focus-ring"
                 disabled={indexOfLastItem >= employees.length}
                 onClick={() => setCurrentPage(currentPage + 1)}
               >
@@ -364,7 +384,8 @@ function EmployeeTeams() {
 
               <div className="modal-footer border-0">
                 <button
-                  className="btn custom-outline-btn"
+                  className="btn custom-outline-btn btn-sm"
+                  style={{ width: 90 }}
                   onClick={() => setSelectedEmployee(null)}
                 >
                   Close

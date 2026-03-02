@@ -128,7 +128,7 @@ function HolidaysCard({}) {
       </div>
 
       <div className="card-body text-center">
-        <Calendar3 className="fs-1 mb-2" style={{ color: "#3A5FBE" }} />
+        <i className=" bi bi-calendar3 fs-2 " style={{ color: "#3A5FBE" }}></i>
         <p className="mb-0 fw-semibold" style={{ color: "#3A5FBE" }}>
           {holiday.name
             ? holiday.name

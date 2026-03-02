@@ -118,10 +118,27 @@
   margin: 8px auto;
 }
 /* Modal dialog size */
+/* //Added by harshada */
+/* Modal dialog size */
 .custom-modal-dialog {
   max-width: 600px;
   width: 90%;
+   margin: 0 auto;   /* ADD THIS LINE */
 }
+
+.custom-modal-bg {
+  position: fixed;     /* ADD */
+  inset: 0;            /* ADD */
+  background: rgba(0,0,0,0.5); /* ADD (if missing) */
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 25px;
+  z-index: 1050;       /* ADD */
+}
+/* //End  by harshada */
 
 /* Media (image / video) */
 .popup-media {

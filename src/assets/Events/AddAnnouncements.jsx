@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useRef,useEffect } from "react";
 import axios from "axios";
 
 function AddAnnouncements({ onAdd }) {
@@ -23,7 +23,64 @@ function AddAnnouncements({ onAdd }) {
   });
 
   const today = new Date().toISOString().split("T")[0];
+const modalRef = useRef(null);
+  useEffect(() => {
+    if (showModal) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.height = '100vh';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
 
+      if (modalRef.current) {
+        const focusableSelectors =
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+        
+        const focusableElements = modalRef.current.querySelectorAll(focusableSelectors);
+
+        const handleKeyDown = (e) => {
+          if (e.key === "Escape") {
+            e.preventDefault();
+            setShowModal(false);
+          }
+
+          if (e.key === "Tab" && focusableElements.length) {
+            const firstEl = focusableElements[0];
+            const lastEl = focusableElements[focusableElements.length - 1];
+
+            if (e.shiftKey) {
+              if (document.activeElement === firstEl) {
+                e.preventDefault();
+                lastEl.focus();
+              }
+            } else {
+              if (document.activeElement === lastEl) {
+                e.preventDefault();
+                firstEl.focus();
+              }
+            }
+          }
+        };
+
+        document.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+          document.removeEventListener("keydown", handleKeyDown);
+        };
+      }
+    } else {
+      document.body.style.overflow = 'unset';
+      document.body.style.height = 'auto';
+      document.body.style.position = 'static';
+      document.body.style.width = 'auto';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+      document.body.style.height = 'auto';
+      document.body.style.position = 'static';
+      document.body.style.width = 'auto';
+    };
+  }, [showModal]);
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -132,6 +189,8 @@ function AddAnnouncements({ onAdd }) {
       {/* Modal */}
       {showModal && (
         <div
+        ref={modalRef}
+          tabIndex="-1"
           style={{
             position: "fixed",
             inset: 0,
@@ -170,22 +229,12 @@ function AddAnnouncements({ onAdd }) {
                 Add Announcement
               </span>
               <button
-                type="button"
-                onClick={() => setShowModal(false)}
-                onMouseEnter={(e) => (e.target.style.color = "#FFD700")} // yellow on hover
-                onMouseLeave={(e) => (e.target.style.color = "#ffffff")} // white default
-                style={{
-                  border: "none",
-                  background: "transparent",
-                  fontSize: "22px",
-                  cursor: "pointer",
-                  color: "#ffffff",
-                  fontWeight: "bold",
-                  transition: "color 0.2s ease",
-                }}
-              >
-                &times;
-              </button>
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setShowModal(false)}
+                  title="Close"
+                >
+                </button>
             </div>
 
             {/* Scrollable Body */}
@@ -307,6 +356,7 @@ function AddAnnouncements({ onAdd }) {
                   <button
                     type="button"
                     className="btn btn-sm custom-outline-btn"
+                    style={{minWidth:"90px"}}
                     onClick={() => setShowModal(false)}
                   >
                     Cancel
@@ -314,6 +364,7 @@ function AddAnnouncements({ onAdd }) {
                   <button
                     type="submit"
                     className="btn btn-sm custom-outline-btn"
+                    style={{minWidth:"90px"}}
                     disabled={loading}
                   >
                     {loading ? "Adding..." : "Add"}

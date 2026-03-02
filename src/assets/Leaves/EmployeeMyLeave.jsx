@@ -36,7 +36,7 @@ function EmployeeMyLeave({ user, refreshKey }) {
 
     // ⭐ modal open होताच focus
     modal.focus();
-    firstEl?.focus();
+    // firstEl?.focus();
 
     const handleKeyDown = (e) => {
       // ESC key → modal close
@@ -892,7 +892,8 @@ const isStrictValidDate = (dateStr) => {
               <div className="modal-footer border-0 pt-0">
                 {selectedLeave.status === "pending" && (
                   <button
-                    className="btn btn-outline-danger me-2"
+                    className="btn btn-sm btn-outline-danger"
+                    style={{ width: 90 }}
                     onClick={() => {
                       handleDelete(selectedLeave._id);
                       setSelectedLeave(null); // close modal after delete
@@ -903,7 +904,8 @@ const isStrictValidDate = (dateStr) => {
                 )}
 
                 <button
-                  className="btn  custom-outline-btn"
+                  className="btn btn-sm custom-outline-btn"
+                  style={{ width: 90 }}
                   onClick={() => setSelectedLeave(null)}
                 >
                   Close

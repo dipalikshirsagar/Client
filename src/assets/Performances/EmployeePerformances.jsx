@@ -20,6 +20,23 @@ function EmployeePerformances() {
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const modalRef = useRef(null);
 
+  useEffect(() => {
+    const isAnyModalOpen = selectedPerformance;
+  
+    if (isAnyModalOpen) {
+      document.body.style.overflow = "hidden";
+        document.documentElement.style.overflow = "hidden";
+      } else {
+        document.body.style.overflow = "";
+        document.documentElement.style.overflow = "";
+      }
+  
+      return () => {
+        document.body.style.overflow = "";
+        document.documentElement.style.overflow = "";
+      };
+  }, [selectedPerformance]);
+
   //TANVI
   useEffect(() => {
     if (!selectedPerformance || !modalRef.current) return;
@@ -35,7 +52,7 @@ function EmployeePerformances() {
 
     // ⭐ modal open होताच focus
     modal.focus();
-    firstEl?.focus();
+    // firstEl?.focus();
 
     const handleKeyDown = (e) => {
       // ESC key → modal close
@@ -351,7 +368,7 @@ function EmployeePerformances() {
                   style={{ cursor: "pointer" }}
                   onClick={() => setSelectedPerformance(row)}
                 >
-                  <td style={tdStyle("#3A5FBE", 500)}>{row.requestId}</td>
+                  <td style={tdStyle()}>{row.requestId}</td>
                   <td style={tdStyle()}>{row.employeeName}</td>
                   <td style={tdStyle()}>{row.manager}</td>
                   <td style={tdStyle()}>{row.department}</td>
@@ -365,7 +382,14 @@ function EmployeePerformances() {
                       : new Date(row.durationDate).toLocaleDateString()}
                   </td>
                   <td style={tdStyle()}>{row.rating ?? "-"}</td>
-                  <td style={tdStyle()}>{row.description}</td>
+                  <td style={{
+                    ...tdStyle(),
+                    verticalAlign: "middle",
+                    borderBottom: "1px solid #dee2e6",
+                    maxWidth: "220px",
+                    wordBreak: "break-word",
+                    overflow: "auto"
+                  }}>{row.description}</td>
 
                   {/* Status */}
                   <td style={tdStyle()}>
@@ -468,14 +492,14 @@ function EmployeePerformances() {
 
           <div className="d-flex align-items-center">
             <button
-              className="btn btn-sm border-0"
+             className="btn btn-sm focus-ring"
               disabled={currentPage === 1}
               onClick={() => setCurrentPage((p) => p - 1)}
             >
               ‹
             </button>
             <button
-              className="btn btn-sm border-0"
+              className="btn btn-sm focus-ring"
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage((p) => p + 1)}
             >
@@ -503,7 +527,12 @@ function EmployeePerformances() {
           ref={modalRef}
           tabIndex="-1"
         >
-          <div className="modal-dialog modal-dialog-centered modal-lg">
+          <div className="modal-dialog modal-dialog-centered modal-lg"
+          style={{
+            maxWidth: "650px",
+            width: "95%",
+          }}
+          >
             <div className="modal-content">
               {/* HEADER */}
               <div
@@ -662,7 +691,13 @@ function EmployeePerformances() {
                   <div className="col-8">
                     <div
                       className="p-2 border rounded bg-light"
-                      style={{ whiteSpace: "pre-wrap" }}
+                      tabIndex={-1}
+                     style={{ 
+                      whiteSpace: "pre-wrap",
+                      maxHeight: "60px",        
+                      overflowY: "auto",
+                      wordBreak: "break-word"
+                    }}
                     >
                       {selectedPerformance.description}
                     </div>
@@ -673,7 +708,8 @@ function EmployeePerformances() {
               {/* FOOTER */}
               <div className="modal-footer border-0">
                 <button
-                  className="btn custom-outline-btn"
+                  className="btn custom-outline-btn btn-sm"
+                  style={{ width: 90 }}
                   onClick={() => setSelectedPerformance(null)}
                 >
                   Close

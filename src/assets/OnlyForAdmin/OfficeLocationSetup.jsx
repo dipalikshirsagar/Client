@@ -350,6 +350,24 @@ function OfficeLocationSetup() {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
+    // rutuja code 
+    useEffect(() => {
+      if (showModal) {
+        document.body.style.overflow = 'hidden';
+        document.body.style.height = '100vh';  
+      } else {
+        document.body.style.overflow = 'unset';
+        document.body.style.height = 'auto';  
+      }
+    
+      return () => {
+        document.body.style.overflow = 'unset';
+        document.body.style.height = 'auto';    
+      };
+    }, [showModal])
+    // 
+  
+
   // ✅ Fetch existing office location
   useEffect(() => {
     axios
@@ -452,7 +470,12 @@ function OfficeLocationSetup() {
                 backgroundColor: "rgba(0,0,0,0.5)",
               }}
             >
-              <div className="modal-dialog">
+              <div className="modal-dialog"
+              style={{
+                maxWidth: "650px",
+                width: "95%",
+                marginTop: "100px" ,
+              }}>
                 <div className="modal-content border-0 shadow-lg">
                   <div
                     className="modal-header"

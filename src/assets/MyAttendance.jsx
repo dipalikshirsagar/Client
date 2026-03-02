@@ -24,6 +24,7 @@ function MyAttendance({ employeeId }) {
     present: 0,
     regularized: 0,
     holidays: 0,
+    halfDay: 0, //added by rutuja
   });
   const [date, setDate] = useState("");
   const [message, setMessage] = useState("");
@@ -221,6 +222,11 @@ function MyAttendance({ employeeId }) {
         ? getWorkedHoursDecimal(record.checkIn, record.checkOut)
         : 0);
 
+    if (record.regStatus === "Rejected") {
+      return "Regularization Rejected";
+    }
+
+    
     if (record.regStatus === "Approved") {
       if (hours >= 8) return "Regularized (Full Day)";
       if (hours >= 4) return "Regularized (Half Day)";
@@ -246,6 +252,7 @@ function MyAttendance({ employeeId }) {
     if (hours >= 4) return "Half Day";
     return "Absent";
   };
+
 
   const shouldShowRegularizationButton = (record, date) => {
     const today = new Date();
@@ -399,20 +406,30 @@ function MyAttendance({ employeeId }) {
     const ds = rec.dayStatus || "";
     const reg = rec.regStatus || "";
 
+    if (reg === "Rejected") {
+      return ""; 
+    }
+
     // 1) Pending regularization ⇒ separate color, NOT present
     if (reg === "Pending") return "pending-regularization-day";
+
+  if (
+    ds === "Half Day" || 
+    ds.includes("Half") || 
+    ds === "Regularized (Half Day)"
+  ) {
+    return "halfday-day";
+  }
 
     // 2) Approved regularization or real present days ⇒ green
     if (
       reg === "Approved" ||
       ds === "Working" ||
       ds === "Full Day" ||
-      ds.includes("Regularized")
+      (ds.includes("Regularized") && !ds.includes("Half") ) 
     ) {
       return "present-day";
     }
-
-    if (ds === "Half Day" || ds.includes("Half")) return "halfday-day";
 
     if (rec.leaveRef) {
       const st = (rec.leaveRef.status || "").toLowerCase();
@@ -426,7 +443,7 @@ function MyAttendance({ employeeId }) {
     return "";
   };
 
-  ///
+   ///
   const handleDateClick = (date) => {
     setSelectedDate(date);
 
@@ -473,94 +490,127 @@ function MyAttendance({ employeeId }) {
     }
   };
 
-  useEffect(() => {
-    const month = activeStartDate.getMonth();
-    const year = activeStartDate.getFullYear();
 
-    let leaveCount = 0;
-    let presentCount = 0;
-    let regularizedCount = 0;
-    let holidayCount = 0;
+ useEffect(() => {
+  const month = activeStartDate.getMonth();
+  const year = activeStartDate.getFullYear();
 
-    // Map attendance by date
-    const attendanceByDate = {};
-    attendance.forEach((rec) => {
-      const dateKey = new Date(rec.date).toDateString();
-      attendanceByDate[dateKey] = rec;
-    });
+  let leaveCount = 0;
+  let presentCount = 0;
+  let regularizedCount = 0;
+  let holidayCount = 0;
+  let halfDayCount = 0;
 
-    // Map leave days by date
-    const leavesByDate = {};
-    leaves.forEach((leave) => {
-      const from = new Date(leave.dateFrom);
-      const to = new Date(leave.dateTo);
+  // Map attendance by date
+  const attendanceByDate = {};
+  attendance.forEach((rec) => {
+    const dateKey = new Date(rec.date).toDateString();
+    attendanceByDate[dateKey] = rec;
+  });
 
-      const duration = leave.duration === "half" ? 0.5 : 1;
+  // Map leave days by date
+  const leavesByDate = {};
+  leaves.forEach((leave) => {
+    const from = new Date(leave.dateFrom);
+    const to = new Date(leave.dateTo);
 
-      while (from <= to) {
-        const dateKey = from.toDateString();
-        if (from.getMonth() === month && from.getFullYear() === year) {
-          leavesByDate[dateKey] = {
-            status: leave.status,
-            duration,
-          };
-        }
-        from.setDate(from.getDate() + 1);
+    const duration = leave.duration === "half" ? 0.5 : 1;
+
+    while (from <= to) {
+      const dateKey = from.toDateString();
+      if (from.getMonth() === month && from.getFullYear() === year) {
+        leavesByDate[dateKey] = {
+          status: leave.status,
+          duration,
+        };
       }
-    });
+      from.setDate(from.getDate() + 1);
+    }
+  });
 
-    // Iterate through each day of the month
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(year, month, day);
-      const dateKey = date.toDateString();
+  // Iterate through each day of the month
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  for (let day = 1; day <= daysInMonth; day++) {
+    const date = new Date(year, month, day);
+    const dateKey = date.toDateString();
 
-      // Holiday
-      if (isHoliday(date)) {
-        holidayCount++;
-        continue;
-      }
-
-      const rec = attendanceByDate[dateKey];
-      const leave = leavesByDate[dateKey];
-
-      let dayPresent = 0;
-      let dayLeave = 0;
-
-      // ✅ Calculate working hours
-      if (rec?.checkIn && rec?.checkOut) {
-        const hours =
-          (new Date(rec.checkOut) - new Date(rec.checkIn)) / (1000 * 60 * 60);
-        if (hours >= 8) dayPresent = 1;
-        else if (hours >= 4) dayPresent = 0.5;
-      }
-
-      // ✅ Handle approved leave (even half-day)
-      if (leave?.status === "approved") {
-        dayLeave = leave.duration;
-      }
-
-      // ✅ Special handling: half-day present + half-day leave
-      if (dayPresent === 0.5 && dayLeave === 0.5) {
-        presentCount += 0.5;
-        leaveCount += 0.5;
-      } else if (dayPresent === 0 && dayLeave > 0) {
-        leaveCount += dayLeave;
-      } else {
-        presentCount += dayPresent;
-      }
-
-      // ✅ Regularization
-      if (rec?.regStatus === "Approved") regularizedCount++;
+    // Skip weekly off days
+    if (isWeeklyOff(date)) {
+      continue;
     }
 
-    setSummary({
-      leave: leaveCount,
-      present: presentCount,
-      regularized: regularizedCount,
-      holidays: holidayCount,
-    });
-  }, [attendance, leaves, holidays, activeStartDate]);
+    // Holiday
+    if (isHoliday(date)) {
+      holidayCount++;
+      continue;
+    }
+
+    const rec = attendanceByDate[dateKey];
+    const leave = leavesByDate[dateKey];
+
+    // Skip rejected regularization
+    if (rec?.regStatus === "Rejected") {
+      continue;
+    }
+
+    let dayPresent = 0;
+    let dayLeave = 0;
+
+    if (rec) {
+      const dayStatus = getDayStatus(rec);
+      
+      // Check if this is a regularized day
+      if (rec.regStatus === "Approved") {
+        regularizedCount++;
+      }
+      
+      if (dayStatus === "Working" || 
+          dayStatus === "Full Day" || 
+          dayStatus === "Regularized (Full Day)" ||
+          dayStatus === "Regularized") {  
+        dayPresent = 1;
+      } 
+      else if (dayStatus === "Half Day" || dayStatus === "Regularized (Half Day)") {
+        dayPresent = 0.5;
+        halfDayCount += 1;
+      }
+      else if (rec?.checkIn && rec?.checkOut && 
+               !(dayStatus === "Absent" || dayStatus === "Pending Regularization" || dayStatus === "Regularization Rejected")) {
+        const hours = (new Date(rec.checkOut) - new Date(rec.checkIn)) / (1000 * 60 * 60);
+        if (hours >= 8) {
+          dayPresent = 1;
+        } else if (hours >= 4) {
+          dayPresent = 0.5;
+          halfDayCount += 1;
+        }
+      }
+    }
+
+    // Handle approved leave 
+    if (leave?.status === "approved") {
+      dayLeave = leave.duration;
+    }
+
+    if (dayPresent === 0.5 && dayLeave === 0.5) {
+      presentCount += 0.5;
+      leaveCount += 0.5;
+    } else if (dayPresent === 0 && dayLeave > 0) {
+      leaveCount += dayLeave;
+    } else {
+      presentCount += dayPresent;
+    }
+  }
+
+  setSummary({
+    leave: leaveCount,
+    present: presentCount,
+    regularized: regularizedCount,
+    holidays: holidayCount,
+    halfDay: halfDayCount,
+  });
+}, [attendance, leaves, holidays, activeStartDate]);
+
+
 
   // --- Regularization ---
   const handleRegularizationSubmit = async (e) => {
@@ -856,16 +906,16 @@ function MyAttendance({ employeeId }) {
               style={{ gap: "35px" }}
             >
               <span>
-                <span className="legend-box present"></span> Present
+                <span className="legend-box present"></span> Present ({summary.present}) 
               </span>
               <span>
-                <span className="legend-box leave"></span> Leave
+                <span className="legend-box leave"></span> Leave ({summary.leave})
               </span>
               <span>
-                <span className="legend-box holiday"></span> Holidays
+                <span className="legend-box holiday"></span> Holidays ({summary.holidays})
               </span>
               <span>
-                <span className="legend-box halfday"></span> Half Day
+                <span className="legend-box halfday"></span> Half Day ({summary.halfDay})
               </span>
               <span>
                 <span className="legend-box today"></span> Today
@@ -1192,6 +1242,13 @@ function MyAttendance({ employeeId }) {
                               })
                             : "N/A"}
                         </p>
+                        {/* rutuja code  */}
+                        {selectedRecord?.checkIn && selectedRecord?.checkOut && (
+                          <p style={{ fontSize: "14px", marginBottom: "20px" }}>
+                            <strong>Total Working Hours:</strong>{" "}
+                            {calculateWorkedHours(selectedRecord.checkIn, selectedRecord.checkOut)}
+                          </p>
+                        )}
                       </>
                     )
                   )}

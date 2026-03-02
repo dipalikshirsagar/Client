@@ -123,19 +123,24 @@ const EmployeeFeedback = () => {
         setUserRole(userData.role);
 
         // 3. If user has a reporting manager, add them to recipients
-        if (userData.reportingManager) {
-          const manager = userData.reportingManager;
-          const managerExists = recipients.some((r) => r._id === manager._id);
+        // if (userData.reportingManager) {
+        //   const manager = userData.reportingManager;
+        //   const managerExists = recipients.some((r) => r._id === manager._id);
 
-          if (!managerExists) {
-            recipients.push({
-              _id: manager._id,
-              name: manager.name,
-              email: manager.email || "",
-              displayRole: "Manager",
-              designation: manager.designation || "",
-            });
-          }
+        //   if (!managerExists) {
+        //     recipients.push({
+        //       _id: manager._id,
+        //       name: manager.name,
+        //       email: manager.email || "",
+        //       displayRole: "Manager",
+        //       designation: manager.designation || "",
+        //     });
+        //   }
+        // }
+
+        //rutuja
+        if (userData.role && userData.role.toLowerCase() === "employee") {
+          recipients = recipients.filter(r => r.displayRole === "HR");
         }
         ////////////
         // 4. If user is a manager, fetch their assigned employees
@@ -803,8 +808,8 @@ const EmployeeFeedback = () => {
                 style={{
                   fontSize: "16px",
                   color: "#3A5FBE",
-                  marginRight: "10px",
-                  minWidth: "40px",
+                  marginRight: "0px", 
+                  // minWidth: "40px", 
                 }}
               >
                 Date
@@ -1142,7 +1147,7 @@ const EmployeeFeedback = () => {
         >
           <div
             className="modal-dialog"
-            style={{ maxWidth: "500px", width: "95%", marginTop: "120px" }}
+            style={{ maxWidth: "600px", width: "95%", marginTop: "80px" }} 
           >
             <div className="modal-content">
               <div
@@ -1324,13 +1329,15 @@ const EmployeeFeedback = () => {
 
               <div className="modal-footer border-0">
                 <button
-                  className="btn custom-outline-btn"
+                 className="btn custom-outline-btn btn-sm"
+                 style={{ minWidth: "90px" }} //rutuja 
                   onClick={handleSubmit}
                 >
                   {editId ? "Update" : "Submit Feedback"}
                 </button>
                 <button
-                  className="btn custom-outline-btn"
+                  className="btn custom-outline-btn btn-sm"
+                  style={{ minWidth: "90px" }} //rutuja 
                   onClick={() => {
                     setShowForm(false);
                     setEditId(null);
@@ -1365,8 +1372,8 @@ const EmployeeFeedback = () => {
           }}
         >
           <div
-            className="modal-dialog"
-            style={{ maxWidth: "600px", width: "95%", marginTop: "160px" }}
+             className="modal-dialog modal-dialog-centered"
+             style={{ maxWidth: "600px", width: "95%"}}
           >
             <div className="modal-content">
               <div

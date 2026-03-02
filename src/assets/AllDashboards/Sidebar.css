@@ -95,7 +95,7 @@
   width: 100%;      /* Forces nav-link hover expansions to stay within sidebar */
   max-width: 100%;  /* Prevents extra width from shadows/padding */
   display: block;
-  height: 68px;
+  height: 68px; /* height added by harshada */
 }
 
 .sidebar .nav-link svg {
@@ -163,7 +163,20 @@
     padding-top: 16px;             /* small breathing space */
   }
 }
-
+@media (min-width: 760px) and (max-width: 775px) {
+  .sidebar {
+    transform: translateX(-100%) !important;
+    width: 85px;
+  }
+  
+  .sidebar.open {
+    transform: translateX(0) !important;
+  }
+  
+  .btn.btn-primary.d-md-none {
+    display: inline-block !important;
+  }
+}
 /* Tablet */
 @media (max-width: 1024px) and (min-width: 769px) {
   .sidebar {

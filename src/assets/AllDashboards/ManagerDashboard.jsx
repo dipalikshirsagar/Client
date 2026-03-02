@@ -1148,7 +1148,8 @@ function ManagerDashboard({ user }) {
                     {selectedLeave.status === "pending" && (
                       <>
                         <button
-                          className="btn btn-outline-success"
+                          className="btn btn-sm btn-outline-success"
+                          style={{  minWidth:"90px" }}
                           onClick={() => {
                             updateLeaveStatus(selectedLeave._id, "approved");
                             setSelectedLeave(null);
@@ -1158,7 +1159,8 @@ function ManagerDashboard({ user }) {
                         </button>
 
                         <button
-                          className="btn btn-outline-danger"
+                          className="btn btn-sm btn-outline-danger"
+                          style={{  minWidth:"90px" }}
                           onClick={() => {
                             updateLeaveStatus(selectedLeave._id, "rejected");
                             setSelectedLeave(null);
@@ -1169,8 +1171,8 @@ function ManagerDashboard({ user }) {
                       </>
                     )}
                     <button
-                      className="btn  custom-outline-btn"
-                      //  style={{  padding: "10px 32px", fontSize: "14px", fontWeight: "500", borderRadius: "4px" }}
+                      className="btn btn-sm  custom-outline-btn"
+                      style={{  minWidth:"90px" }}
                       onClick={() => setSelectedLeave(null)}
                     >
                       Close
@@ -1882,7 +1884,8 @@ function ManagerDashboard({ user }) {
                         "pending" && (
                         <>
                           <button
-                            className="btn btn-outline-success"
+                            className="btn btn-sm btn-outline-success"
+                            style={{  minWidth:"90px" }}
                             onClick={() => {
                               updateRegularizationStatus(
                                 selectedRegularization?._id,
@@ -1895,7 +1898,8 @@ function ManagerDashboard({ user }) {
                           </button>
 
                           <button
-                            className="btn btn-outline-danger"
+                            className="btn btn-sm btn-outline-danger"
+                            style={{  minWidth:"90px" }}
                             onClick={() => {
                               updateRegularizationStatus(
                                 selectedRegularization?._id,
@@ -1910,7 +1914,8 @@ function ManagerDashboard({ user }) {
                       )}
 
                       <button
-                        className="btn custom-outline-btn"
+                        className="btn btn-sm custom-outline-btn"
+                        style={{  minWidth:"90px" }}
                         onClick={() => setSelectedRegularization(null)}
                       >
                         Close

@@ -451,6 +451,10 @@ function MyAttendanceCalendar({ employeeId }) {
       const ds = rec.dayStatus || "";
       const reg = rec.regStatus || "";
 
+      if (ds === "Regularized (Half Day)" || ds.includes("Half") && reg === "Approved") {
+        return "halfday-day";
+      }
+
       if (
         ds === "Working" ||
         ds === "Full Day" ||
@@ -534,7 +538,7 @@ function MyAttendanceCalendar({ employeeId }) {
       style={{ borderRadius: "12px", width: "100%", maxHeight: "auto" }}
     >
       <h4
-        className="text-center mt-3 mb-2"
+        className="text-center mt-2 mb-2"
         style={{
           color: "#3A5FBE",
           fontSize: "25px",
@@ -572,7 +576,7 @@ function MyAttendanceCalendar({ employeeId }) {
       />
 
       <div
-        className="d-flex justify-content-center flex-wrap mt-3"
+        className="d-flex justify-content-center flex-wrap "
         style={{ gap: "25px", }}
       >
         <span>

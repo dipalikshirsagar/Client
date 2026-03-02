@@ -629,16 +629,16 @@ const AddEmployee = () => {
           style={{ display: "block", backgroundColor: "rgba(0,0,0,0.5)" }}
         >
           <div
-            className="modal-dialog  modal-dialog-scrollable"
+          className="modal-dialog modal-lg modal-dialog-centered"  //Added jayshree
             style={{ maxWidth: "700px" }}
           >
             <div className="modal-content">
               <div className="custom-modal-header">
                 <span className="custom-modal-title">Add Employee</span>
-                <button
-                  type="button"
-                  className="custom-modal-close"
-                  title="Close"
+               <button
+                  type="button" 
+                  className="btn-close btn-close-white"
+                  aria-label="Close"  //Added Jayshree
                   onClick={() => {
                     setShowModal(false);
                     setMessage("");
@@ -647,7 +647,6 @@ const AddEmployee = () => {
                     setFiles(initialFiles);
                   }}
                 >
-                  &times;
                 </button>
               </div>
               {message && (

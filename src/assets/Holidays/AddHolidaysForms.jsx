@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState ,useEffect,useRef} from "react";
 import axios from "axios";
 import "../Events/AddEvent.css";
 
@@ -9,7 +9,66 @@ function AddHolidayForm({ onAdd }) {
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false); // modal state
   const [errors, setErrors] = useState({ name: "", date: "" });
+const modalRef = useRef(null);
 
+  useEffect(() => {
+    if (showModal) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.height = '100vh';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+
+      if (modalRef.current) {
+        const focusableSelectors =
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+        
+        const focusableElements = modalRef.current.querySelectorAll(focusableSelectors);
+        
+
+        const handleKeyDown = (e) => {
+          if (e.key === "Escape") {
+            e.preventDefault();
+            setShowModal(false);
+          }
+
+          if (e.key === "Tab" && focusableElements.length) {
+            const firstEl = focusableElements[0];
+            const lastEl = focusableElements[focusableElements.length - 1];
+
+            if (e.shiftKey) {
+              if (document.activeElement === firstEl) {
+                e.preventDefault();
+                lastEl.focus();
+              }
+            } else {
+              if (document.activeElement === lastEl) {
+                e.preventDefault();
+                firstEl.focus();
+              }
+            }
+          }
+        };
+
+        document.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+          document.removeEventListener("keydown", handleKeyDown);
+        };
+      }
+    } else {
+      document.body.style.overflow = 'unset';
+      document.body.style.height = 'auto';
+      document.body.style.position = 'static';
+      document.body.style.width = 'auto';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+      document.body.style.height = 'auto';
+      document.body.style.position = 'static';
+      document.body.style.width = 'auto';
+    };
+  }, [showModal]);
   const handleSubmit = async (e) => {
     e.preventDefault();
     let hasError = false;
@@ -81,7 +140,8 @@ function AddHolidayForm({ onAdd }) {
 
       {/* Modal - Using Custom Classes */}
       {showModal && (
-        <div className="custom-modal-bg">
+        <div className="custom-modal-bg" ref={modalRef}
+          tabIndex="-1">
           <div className="custom-modal-dialog">
             <div className="custom-modal-content">
               {/* Header */}
@@ -89,10 +149,10 @@ function AddHolidayForm({ onAdd }) {
                 <h5 className="custom-modal-title">Add Holiday</h5>
                 <button
                   type="button"
-                  className="custom-modal-close"
+                  className="btn-close btn-close-white"
                   onClick={() => setShowModal(false)}
+                  title="Close"
                 >
-                  &times;
                 </button>
               </div>
 

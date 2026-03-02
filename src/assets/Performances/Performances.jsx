@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Select from "react-select";
 
 function Performances({ user }) {
@@ -26,11 +26,111 @@ function Performances({ user }) {
 
   // New states for pending requests and active view
   const [pendingRequests, setPendingRequests] = useState([]);
+  const [allPendingRequests, setAllPendingRequests] = useState([]);//rutuja
   const [pendingLoading, setPendingLoading] = useState(false);
   const [processingRequest, setProcessingRequest] = useState(null);
   const [pendingCurrentPage, setPendingCurrentPage] = useState(1);
   const [pendingItemsPerPage, setPendingItemsPerPage] = useState(5);
   const [activeView, setActiveView] = useState("all"); // "all" or "pending"
+
+  // rutuja code start
+  const [pendingSearchTerm, setPendingSearchTerm] = useState("");
+  const [pendingStatusFilter, setPendingStatusFilter] = useState("All");
+  const modalRef = useRef(null);        
+  const createModalRef = useRef(null);
+
+  useEffect(() => {
+    const isAnyModalOpen = selectedPerformance || showModal;
+
+    if (isAnyModalOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [selectedPerformance, showModal]);
+
+  useEffect(() => {
+    if (!selectedPerformance || !modalRef.current) return;
+
+    const modal = modalRef.current;
+    const focusableElements = modal.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+
+    const firstEl = focusableElements[0];
+    const lastEl = focusableElements[focusableElements.length - 1];
+    
+    modal.focus();
+
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setSelectedPerformance(null);
+      }
+
+      if (e.key === "Tab") {
+        if (e.shiftKey) {
+          if (document.activeElement === firstEl) {
+            e.preventDefault();
+            lastEl.focus();
+          }
+        } else {
+          if (document.activeElement === lastEl) {
+            e.preventDefault();
+            firstEl.focus();
+          }
+        }
+      }
+    };
+
+    modal.addEventListener("keydown", handleKeyDown);
+    return () => modal.removeEventListener("keydown", handleKeyDown);
+  }, [selectedPerformance]);
+
+  useEffect(() => {
+    if (!showModal || !createModalRef.current) return;
+
+    const modal = createModalRef.current;
+    const focusableElements = modal.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+
+    const firstEl = focusableElements[0];
+    const lastEl = focusableElements[focusableElements.length - 1];
+    
+    modal.focus();
+
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setShowModal(false);
+      }
+
+      if (e.key === "Tab") {
+        if (e.shiftKey) {
+          if (document.activeElement === firstEl) {
+            e.preventDefault();
+            lastEl.focus();
+          }
+        } else {
+          if (document.activeElement === lastEl) {
+            e.preventDefault();
+            firstEl.focus();
+          }
+        }
+      }
+    };
+
+    modal.addEventListener("keydown", handleKeyDown);
+    return () => modal.removeEventListener("keydown", handleKeyDown);
+  }, [showModal]);
 
   // Check user role for admin permissions
   const isAdminRole = ["admin", "hr", "ceo", "coo", "md"].includes(user?.role);
@@ -124,6 +224,7 @@ function Performances({ user }) {
       console.log("Pending requests API response:", data);
       if (data.success) {
         setPendingRequests(data.data);
+        setAllPendingRequests(data.data);//rutuja
         console.log("Pending requests fetched:", data.data.length);
       } else {
         console.error("Failed to fetch pending requests:", data.message);
@@ -282,6 +383,43 @@ function Performances({ user }) {
       .includes(searchTerm.toLowerCase()),
   );
 
+    // rutuja code start
+    const filterPendingRequests = () => {
+      let filtered = [...allPendingRequests];
+  
+      if (pendingStatusFilter !== "All") {
+        filtered = filtered.filter(
+          (item) =>
+            item.adminStatus &&
+            item.adminStatus.toLowerCase().trim() ===
+              pendingStatusFilter.toLowerCase().trim(),
+        );
+      }
+  
+      if (pendingSearchTerm) {
+        filtered = filtered.filter((emp) =>
+          Object.values(emp)
+            .join(" ")
+            .toLowerCase()
+            .includes(pendingSearchTerm.toLowerCase())
+        );
+      }
+  
+      setPendingRequests(filtered);
+      setPendingCurrentPage(1);
+    };
+  
+  
+    const resetPendingFilters = () => {
+      setPendingStatusFilter("All");
+      setPendingSearchTerm("");
+      setPendingRequests(allPendingRequests);
+      setPendingCurrentPage(1);
+    };
+  
+  
+
+
   // Submit request
   const submitRequest = async () => {
     let newErrors = {};
@@ -391,6 +529,15 @@ function Performances({ user }) {
       );
     }
 
+    if (searchTerm) {
+      filtered = filtered.filter((emp) =>
+        Object.values(emp)
+          .join(" ")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase())
+      );
+    }
+
     setEmployees(filtered);
     setCurrentPage(1);
   };
@@ -399,6 +546,7 @@ function Performances({ user }) {
   const resetFilters = () => {
     setStatusFilter("All");
     setDateFromFilter("");
+    setSearchTerm(""); //rutuja
     setDateToFilter("");
     setEmployees(allEmployees);
     setCurrentPage(1);
@@ -458,22 +606,19 @@ function Performances({ user }) {
   return (
     <div className="container-fluid p-2">
       {/* HEADER WITH BUTTONS AFTER HEADING */}
-      <div className="mb-4">
+      <div className="d-flex justify-content-between align-items-center mb-4">
         <h2
           style={{
             color: "#3A5FBE",
             fontSize: "25px",
 
-            marginBottom: "40px",
+            // marginBottom: "40px",
           }}
         >
           Performance
         </h2>
-        {/* mahesh code header change font size */}
-
-        <div className="d-flex flex-wrap gap-3 align-items-center">
-          {/* HR Only: Add Request Button */}
-          {user?.role === "hr" && (
+        {/* HR Only: Add Request Button */}
+        {user?.role === "hr" && (
             <button
               className="btn btn-sm custom-outline-btn"
               onClick={() => {
@@ -484,6 +629,10 @@ function Performances({ user }) {
               + Request Performance Details
             </button>
           )}
+        {/* mahesh code header change font size */}
+      </div>
+
+        <div className="d-flex flex-wrap gap-2 justify-content-center">
 
           {/* Admin Only: View Toggle Buttons */}
           {isAdminRole && (
@@ -509,7 +658,7 @@ function Performances({ user }) {
             </>
           )}
         </div>
-      </div>
+     
 
       {/* FILTER BAR (only for "All Requests" view) */}
       {activeView === "all" && (
@@ -616,8 +765,15 @@ function Performances({ user }) {
           <div
             className="modal fade show d-block"
             style={{ background: "rgba(0,0,0,0.5)" }}
+            ref={createModalRef}  
+            tabIndex="-1" 
           >
-            <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-dialog "
+          style={{
+            maxWidth: "650px",
+            width: "95%",
+            marginTop: "80px" ,
+          }}>
               <div className="modal-content">
                 <div
                   className="modal-header"
@@ -631,8 +787,7 @@ function Performances({ user }) {
                     onClick={() => setShowModal(false)}
                   ></button>
                 </div>
-
-                <div className="modal-body">
+                <div className="modal-body" style={{ maxHeight: "60vh" }}>
                   <label className="form-label">Employee Name</label>
                   <div style={{ position: "relative", zIndex: 1050 }}>
                     <Select
@@ -764,14 +919,16 @@ function Performances({ user }) {
                 </div>
                 <div className="modal-footer">
                   <button
-                    className="btn btn-secondary"
+                    className="btn btn-sm custom-outline-btn"
+                    style={{ minWidth: 90 }}
                     onClick={() => setShowModal(false)}
                   >
                     Cancel
                   </button>
                   <button
                     type="button"
-                    className="btn btn-primary"
+                    className="btn btn-sm custom-outline-btn"
+                    style={{ minWidth: 90 }} 
                     onClick={submitRequest}
                   >
                     Submit
@@ -787,9 +944,78 @@ function Performances({ user }) {
       {/* MANAGER PENDING REQUESTS TABLE (Shown when activeView is "pending") */}
       {activeView === "pending" && isAdminRole && (
         <>
+        
+         <div className="card mb-4 mt-3 shadow-sm border-0">
+            <div className="card-body">
+              <form
+                className="row g-2 align-items-center"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  filterPendingRequests();
+                }}
+              >
+                <div className="col-12 col-md-auto d-flex align-items-center gap-2 mb-1 ms-2">
+                  <label className="fw-bold mb-0" style={{ color: "#3A5FBE" }}>
+                    Status
+                  </label>
+                  <select
+                    className="form-select"
+                    style={{ minWidth: 120 }}
+                    value={pendingStatusFilter}
+                    onChange={(e) => setPendingStatusFilter(e.target.value)}
+                  >
+                    <option value="All">All</option>
+                    <option value="pending">Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
+                </div>
+
+                <div className="col-12 col-md-auto d-flex align-items-center mb-1 ms-2">
+                  <label
+                    className="fw-bold mb-0 me-2"
+                    style={{ color: "#3A5FBE" }}
+                  >
+                    Search
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control form-control-sm"
+                    style={{ maxWidth: "600px" }}
+                    placeholder="Search by any field"
+                    value={pendingSearchTerm}
+                    onChange={(e) => setPendingSearchTerm(e.target.value)}
+                  />
+                </div>
+
+                {/* BUTTONS */}
+                <div className="col-auto ms-auto d-flex gap-2">
+                  <button
+                    type="submit"
+                    className="btn btn-sm custom-outline-btn"
+                    style={{ minWidth: 90 }}
+                  >
+                    Filter
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-sm custom-outline-btn"
+                    style={{ minWidth: 90 }}
+                    onClick={resetPendingFilters}
+                  >
+                    Reset
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+
           <h4 className="mt-4 mb-3" style={{ color: "#3A5FBE" }}>
             Pending Requests for Approval
           </h4>
+
+         
 
           {pendingLoading ? (
             <div className="text-center p-4">
@@ -811,7 +1037,7 @@ function Performances({ user }) {
                         "Request ID",
                         "Employee",
                         "Manager",
-                        "Department",
+                        // "Department",
                         "Duration",
                         "Rating",
                         "Remark",
@@ -832,10 +1058,10 @@ function Performances({ user }) {
                         onClick={() => setSelectedPerformance(emp)}
                         style={{ cursor: "pointer" }}
                       >
-                        <td style={tdStyle("#3A5FBE", 500)}>{emp.requestId}</td>
+                        <td style={tdStyle()}>{emp.requestId}</td>
                         <td style={tdStyle()}>{emp.employeeName}</td>
                         <td style={tdStyle()}>{emp.manager}</td>
-                        <td style={tdStyle()}>{emp.department}</td>
+                        {/* <td style={tdStyle()}>{emp.department}</td> */}
                         <td style={tdStyle()}>
                           {emp.durationType} –{" "}
                           {emp.durationType === "Monthly"
@@ -849,7 +1075,16 @@ function Performances({ user }) {
                             : new Date(emp.durationDate).toLocaleDateString()}
                         </td>
                         <td style={tdStyle()}>{emp.rating ?? "-"}</td>
-                        <td style={tdStyle()}>{emp.description}</td>
+                        <td style={{
+                          ...tdStyle(),
+                          verticalAlign: "middle",
+                          borderBottom: "1px solid #dee2e6",
+                          maxWidth: "220px",
+                          wordBreak: "break-word",
+                          overflow: "auto"
+                        }}>
+                          {emp.description}
+                        </td>
                         <td style={tdStyle()}>
                           <span
                             style={{
@@ -941,7 +1176,7 @@ function Performances({ user }) {
 
                   <div className="d-flex align-items-center">
                     <button
-                      className="btn btn-sm border-0"
+                    className="btn btn-sm focus-ring"
                       onClick={() =>
                         handlePendingPageChange(pendingCurrentPage - 1)
                       }
@@ -950,7 +1185,7 @@ function Performances({ user }) {
                       ‹
                     </button>
                     <button
-                      className="btn btn-sm border-0"
+                     className="btn btn-sm focus-ring"
                       onClick={() =>
                         handlePendingPageChange(pendingCurrentPage + 1)
                       }
@@ -992,7 +1227,7 @@ function Performances({ user }) {
                     "Request ID",
                     "Employee",
                     "Manager",
-                    "Department",
+                    // "Department",
                     "Duration",
                     "Rating",
                     "Remark",
@@ -1023,11 +1258,10 @@ function Performances({ user }) {
                       style={{ cursor: "pointer" }}
                     >
                       {/* Request ID */}
-                      <td style={tdStyle("#3A5FBE", 500)}>{emp.requestId}</td>
+                      <td style={tdStyle()}>{emp.requestId}</td>
                       <td style={tdStyle()}>{emp.employeeName}</td>
                       <td style={tdStyle()}>{emp.manager}</td>
-                      <td style={tdStyle()}>{emp.department}</td>
-
+                      {/* <td style={tdStyle()}>{emp.department}</td> */}
                       {/* Duration */}
                       <td style={tdStyle()}>
                         {emp.durationType} –{" "}
@@ -1043,8 +1277,17 @@ function Performances({ user }) {
                       </td>
 
                       <td style={tdStyle()}>{emp.rating ?? "-"}</td>
-
-                      <td style={tdStyle()}>{emp.description}</td>
+                      
+                      <td style={{
+                        ...tdStyle(),
+                        verticalAlign: "middle",
+                        borderBottom: "1px solid #dee2e6",
+                        maxWidth: "220px",
+                        wordBreak: "break-word",
+                        overflow: "auto"
+                      }}>
+                        {emp.description}
+                      </td>
 
                       {/* Status */}
                       <td style={tdStyle()}>
@@ -1167,14 +1410,14 @@ function Performances({ user }) {
 
               <div className="d-flex align-items-center">
                 <button
-                  className="btn btn-sm border-0"
+                 className="btn btn-sm focus-ring"
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
                 >
                   ‹
                 </button>
                 <button
-                  className="btn btn-sm border-0"
+                  className="btn btn-sm focus-ring"
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
                 >
@@ -1201,8 +1444,15 @@ function Performances({ user }) {
         <div
           className="modal fade show"
           style={{ display: "block", background: "rgba(0,0,0,0.5)" }}
+          ref={modalRef}      
+          tabIndex="-1" 
         >
-          <div className="modal-dialog modal-dialog-centered modal-lg">
+          <div className="modal-dialog"
+          style={{
+            maxWidth: "650px",
+            width: "95%",
+            marginTop: "80px" ,
+          }}>
             <div className="modal-content">
               <div
                 className="modal-header text-white"
@@ -1217,7 +1467,7 @@ function Performances({ user }) {
                 />
               </div>
 
-              <div className="modal-body">
+              <div className="modal-body" style={{ maxHeight: "60vh" }}>
                 {[
                   ["Request ID", selectedPerformance.requestId],
                   ["Employee Name", selectedPerformance.employeeName],
@@ -1253,7 +1503,6 @@ function Performances({ user }) {
                   </div>
                 ))}
 
-                {/* rutuja */}
                 {selectedPerformance.adminStatus === "approved" &&
                   selectedPerformance.approvedBy && (
                     <div className="row mb-2">
@@ -1293,7 +1542,6 @@ function Performances({ user }) {
                       </div>
                     </div>
                   )}
-                {/* rutuja code end */}
 
                 {/* DESCRIPTION */}
                 <div className="row mt-3">
@@ -1301,7 +1549,13 @@ function Performances({ user }) {
                   <div className="col-8">
                     <div
                       className="p-2 border rounded bg-light"
-                      style={{ whiteSpace: "pre-wrap" }}
+                     tabIndex={-1}
+                     style={{ 
+                      whiteSpace: "pre-wrap",
+                      maxHeight: "60px",        
+                      overflowY: "auto",
+                      wordBreak: "break-word"
+                    }}
                     >
                       {selectedPerformance.description}
                     </div>

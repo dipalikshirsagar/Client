@@ -93,14 +93,13 @@ const handlePageChange = (page) => {
 
 const getStatusColor = (status) => {
   const baseStyle = {
-    padding: "6px 14px",
-    borderRadius: "8px",    
+    padding: "8px 16px",
+    borderRadius: "4px",    
     fontWeight: "500",
-    letterSpacing: "0.3px",
     display: "inline-block",
-    lineHeight: "1",
-    minWidth: "90px",
+    minWidth: "100px",
     textAlign: "center",
+    fontSize:"13px"
   };
 
   switch (status) {
@@ -224,13 +223,62 @@ const getStatusColor = (status) => {
                 <table className="table table-hover mb-0">
                   <thead style={{ backgroundColor: "#ffffffff" }}>
               <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Experience</th>
-                 <th>Referred By</th>
-                <th>Status</th>
-                <th>Action</th>
+                <th style={{
+                        fontWeight: "500",
+                        fontSize: "14px",
+                        color: "#6c757d",
+                        borderBottom: "2px solid #dee2e6",
+                        padding: "12px",
+                        whiteSpace: "nowrap",
+                      }}>Name</th>
+                <th style={{
+                        fontWeight: "500",
+                        fontSize: "14px",
+                        color: "#6c757d",
+                        borderBottom: "2px solid #dee2e6",
+                        padding: "12px",
+                        whiteSpace: "nowrap",
+                      }}>Email</th>
+                <th style={{
+                        fontWeight: "500",
+                        fontSize: "14px",
+                        color: "#6c757d",
+                        borderBottom: "2px solid #dee2e6",
+                        padding: "12px",
+                        whiteSpace: "nowrap",
+                      }}>Phone</th>
+                <th style={{
+                        fontWeight: "500",
+                        fontSize: "14px",
+                        color: "#6c757d",
+                        borderBottom: "2px solid #dee2e6",
+                        padding: "12px",
+                        whiteSpace: "nowrap",
+                      }}>Experience</th>
+                 <th style={{
+                        fontWeight: "500",
+                        fontSize: "14px",
+                        color: "#6c757d",
+                        borderBottom: "2px solid #dee2e6",
+                        padding: "12px",
+                        whiteSpace: "nowrap",
+                      }}>Referred By</th>
+                <th style={{
+                        fontWeight: "500",
+                        fontSize: "14px",
+                        color: "#6c757d",
+                        borderBottom: "2px solid #dee2e6",
+                        padding: "12px",
+                        whiteSpace: "nowrap",
+                      }}>Status</th>
+                <th style={{
+                        fontWeight: "500",
+                        fontSize: "14px",
+                        color: "#6c757d",
+                        borderBottom: "2px solid #dee2e6",
+                        padding: "12px",
+                        whiteSpace: "nowrap",
+                      }}>Action</th>
               </tr>
             </thead>
 
@@ -244,16 +292,52 @@ const getStatusColor = (status) => {
       <tr key={app._id} 
         onClick={() => setRowViewCandidate(app)}
 >
-        <td>{app?.candidate?.name}</td>
-        <td>{app?.candidate?.email}</td>
-        <td>{app?.candidate?.phone}</td>
-        <td>{app?.candidate?.experience} yrs</td>
-        <td>
+        <td style={{
+                            padding: "12px",
+                            verticalAlign: "middle",
+                            fontSize: "14px",
+                            borderBottom: "1px solid #dee2e6",
+                            whiteSpace: "nowrap",
+                          }}>{app?.candidate?.name}</td>
+        <td style={{
+                            padding: "12px",
+                            verticalAlign: "middle",
+                            fontSize: "14px",
+                            borderBottom: "1px solid #dee2e6",
+                            whiteSpace: "nowrap",
+                          }}>{app?.candidate?.email}</td>
+        <td style={{
+                            padding: "12px",
+                            verticalAlign: "middle",
+                            fontSize: "14px",
+                            borderBottom: "1px solid #dee2e6",
+                            whiteSpace: "nowrap",
+                          }}>{app?.candidate?.phone}</td>
+        <td style={{
+                            padding: "12px",
+                            verticalAlign: "middle",
+                            fontSize: "14px",
+                            borderBottom: "1px solid #dee2e6",
+                            whiteSpace: "nowrap",
+                          }}>{app?.candidate?.experience} yrs</td>
+        <td style={{
+                            padding: "12px",
+                            verticalAlign: "middle",
+                            fontSize: "14px",
+                            borderBottom: "1px solid #dee2e6",
+                            whiteSpace: "nowrap",
+                          }}>
   {app?.referredBy?.name ? app.referredBy.name : "-"}
 </td>
        
 
-    <td>
+    <td style={{
+                            padding: "12px",
+                            verticalAlign: "middle",
+                            fontSize: "14px",
+                            borderBottom: "1px solid #dee2e6",
+                            whiteSpace: "nowrap",
+                          }}>
   
    <span style={getStatusColor(app.status)}>
   {app.status || "Applied"}
@@ -261,7 +345,13 @@ const getStatusColor = (status) => {
 
 
 </td>
-<td>
+<td style={{
+                            padding: "12px",
+                            verticalAlign: "middle",
+                            fontSize: "14px",
+                            borderBottom: "1px solid #dee2e6",
+                            whiteSpace: "nowrap",
+                          }}>
   <button
     className="btn btn-sm custom-outline-btn"
     style={{ minWidth: 90 }}
@@ -605,7 +695,7 @@ const getStatusColor = (status) => {
    
     <div className="d-flex align-items-center">
       <button
-        className="btn btn-sm border-0"
+        className="btn btn-sm focus-ring"
         onClick={() => handlePageChange(currentPage - 1)}
         disabled={currentPage === 1}
       >
@@ -613,7 +703,7 @@ const getStatusColor = (status) => {
       </button>
 
       <button
-        className="btn btn-sm border-0"
+        className="btn btn-sm focus-ring"
         onClick={() => handlePageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
       >

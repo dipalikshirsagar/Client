@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useRef } from "react";
 import axios from "axios";
 
 function EmployeeResignation({ user }) {
@@ -29,6 +29,83 @@ function EmployeeResignation({ user }) {
 
   const token = localStorage.getItem("accessToken");
   const employeeId = localStorage.getItem("employeeId") || user?.employeeId;
+  const modalRef = useRef(null);
+  useEffect(() => {
+    const isAnyModalOpen = showEmployeePopup || showApply || showResignationDetails;
+  
+    if (isAnyModalOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.height = '100vh';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+    } else {
+      document.body.style.overflow = 'unset';
+      document.body.style.height = 'auto';
+      document.body.style.position = 'static';
+      document.body.style.width = 'auto';
+    }
+  
+    return () => {
+      document.body.style.overflow = 'unset';
+      document.body.style.height = 'auto';
+      document.body.style.position = 'static';
+      document.body.style.width = 'auto';
+    };
+  }, [showEmployeePopup, showApply, showResignationDetails]);
+  
+  useEffect(() => {
+    const isAnyModalOpen = showEmployeePopup || showApply || showResignationDetails;
+  
+    if (!isAnyModalOpen || !modalRef.current) return;
+  
+    const modal = modalRef.current;
+  
+    const focusableSelectors =
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+  
+    const getFocusableElements = () =>
+      modal.querySelectorAll(focusableSelectors);
+  
+    const focusFirst = () => {
+      const elements = getFocusableElements();
+      if (elements.length) elements[0].focus();
+    };
+    
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        if (showApply) setShowApply(false);
+        if (showEmployeePopup) setShowEmployeePopup(false);
+        if (showResignationDetails) setShowResignationDetails(false);
+      }
+    
+      if (e.key === "Tab") {
+        const focusableElements = getFocusableElements();
+        if (!focusableElements.length) return;
+    
+        const firstEl = focusableElements[0];
+        const lastEl = focusableElements[focusableElements.length - 1];
+    
+        if (e.shiftKey) {
+          if (document.activeElement === firstEl || !modal.contains(document.activeElement)) {
+            e.preventDefault();
+            lastEl.focus();
+          }
+        } else {
+          if (document.activeElement === lastEl || !modal.contains(document.activeElement)) {
+            e.preventDefault();
+            firstEl.focus();
+          }
+        }
+      }
+    };
+  
+    document.addEventListener("keydown", handleKeyDown);
+  
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [showEmployeePopup, showApply, showResignationDetails]);
 
   async function fetchUser() {
     try {
@@ -414,7 +491,7 @@ function EmployeeResignation({ user }) {
       </div> */}
 
       {/* Employee Info Table */}
-      <div className="card shadow-sm border-0 mb-4">
+      {/* <div className="card shadow-sm border-0 mb-4">
         <div className="table-responsive">
           <table className="table table-hover align-middle mb-0 bg-white">
             <thead>
@@ -442,7 +519,7 @@ function EmployeeResignation({ user }) {
             </tbody>
           </table>
         </div>
-      </div>
+      </div> */}
 
       {/* Filter Section */}
       <div className="card mb-4 shadow-sm border-0">
@@ -646,7 +723,7 @@ function EmployeeResignation({ user }) {
             style={{ marginLeft: "16px" }}
           >
             <button
-              className="btn btn-sm border-0"
+             className="btn btn-sm focus-ring"
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
               style={{ fontSize: "18px", padding: "2px 8px", color: "#212529" }}
@@ -654,7 +731,7 @@ function EmployeeResignation({ user }) {
               ‹
             </button>
             <button
-              className="btn btn-sm border-0"
+             className="btn btn-sm focus-ring"
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
               style={{ fontSize: "18px", padding: "2px 8px", color: "#212529" }}
@@ -669,6 +746,8 @@ function EmployeeResignation({ user }) {
       {showEmployeePopup && (
         <div
           className="modal fade show"
+          ref={modalRef}
+          tabIndex="-1"
           style={{
             display: "flex",
             alignItems: "center",
@@ -809,6 +888,8 @@ function EmployeeResignation({ user }) {
       {showApply && (
         <div
           className="modal fade show"
+          ref={modalRef}
+          tabIndex="-1"
           style={{
             display: "flex",
             alignItems: "center",
@@ -953,6 +1034,8 @@ function EmployeeResignation({ user }) {
       {showResignationDetails && selectedResignation && (
         <div
           className="modal fade show"
+          ref={modalRef}
+          tabIndex="-1"
           style={{
             display: "flex",
             alignItems: "center",

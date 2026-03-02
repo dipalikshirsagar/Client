@@ -1084,7 +1084,8 @@ function AllEmployeeRegularizationRequestForAdmin({ showBackButton = true }) {
                       "Pending" && (
                       <>
                         <button
-                          className="btn btn-outline-success"
+                         className="btn btn-sm btn-outline-success"
+                           style={{ width: 90 }}
                           onClick={() => {
                             handleStatusChange(selectedRequest._id, "Approved");
                             setSelectedRequest(null);
@@ -1094,7 +1095,8 @@ function AllEmployeeRegularizationRequestForAdmin({ showBackButton = true }) {
                         </button>
 
                         <button
-                          className="btn btn-outline-danger"
+                          className="btn btn-sm btn-outline-danger"
+                           style={{ width: 90 }}
                           onClick={() => {
                             handleStatusChange(selectedRequest._id, "Rejected");
                             setSelectedRequest(null);
@@ -1169,7 +1171,7 @@ function AllEmployeeRegularizationRequestForAdmin({ showBackButton = true }) {
                 style={{ marginLeft: "16px" }}
               >
                 <button
-                  className="btn btn-sm border-0"
+               className="btn btn-sm focus-ring"
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
                   style={{ fontSize: "18px", padding: "2px 8px" }}
@@ -1177,7 +1179,7 @@ function AllEmployeeRegularizationRequestForAdmin({ showBackButton = true }) {
                   ‹
                 </button>
                 <button
-                  className="btn btn-sm border-0"
+                  className="btn btn-sm focus-ring"
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
                   style={{ fontSize: "18px", padding: "2px 8px" }}

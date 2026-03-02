@@ -14,12 +14,13 @@ const isToday = (date) => {
 };
 const BASE_URL = "https://server-backend-ems.vercel.app";
 
-const HRScheduleInterview = () => {
+const HRScheduleInterview = ({user}) => {
   const [showForm, setShowForm] = useState(false);
   const [employees, setEmployees] = useState([]);
   const [errors, setErrors] = useState({});
   const [editingId, setEditingId] = useState(null);
   const [scheduledInterviews, setScheduledInterviews] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const today = new Date().toISOString().split("T")[0];
   const startTimeRef = useRef(null);
   const endTimeRef = useRef(null);
@@ -30,6 +31,25 @@ const HRScheduleInterview = () => {
   const [interviews, setInterviews] = useState([]);
   const [showTable, setShowTable] = useState(false);
   const [selected, setSelected] = useState(null);
+
+
+  //jaicy
+  const formatTo12Hour = (time24) => {
+  if (!time24) return "";
+
+  const [hours, minutes] = time24.split(":");
+  
+  const date = new Date();
+  date.setHours(hours);
+  date.setMinutes(minutes);
+
+  return date.toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true
+  }).toUpperCase();
+};
+
 
   // ===== FILTER STATES =====
   const [statusFilter, setStatusFilter] = useState("All");
@@ -53,7 +73,7 @@ const HRScheduleInterview = () => {
     interviewerName: "",
     resume: null,
     link: "",
-    status: "Scheduled",
+    manualStatus:"Scheduled",
     comment: "",
   };
 
@@ -85,9 +105,22 @@ const HRScheduleInterview = () => {
   };
 
   /* ---------------- LOAD INTERVIEWS STATUS UPDATE  ---------------- */
-  useEffect(() => {
-    fetchAllInterviews();
-  }, []);
+useEffect(() => {
+  fetchAllInterviews();
+
+  const interval = setInterval(() => {
+    const now = new Date();
+    const minutes = now.getMinutes();
+
+    // Refresh every 5 minutes boundary
+    if (minutes % 5 === 0) {
+      fetchAllInterviews();
+    }
+  }, 60 * 1000);
+
+  return () => clearInterval(interval);
+}, []);
+
 
   useEffect(() => {
     if (selected && interviews.length) {
@@ -95,6 +128,7 @@ const HRScheduleInterview = () => {
       if (updated) setSelected(updated);
     }
   }, [interviews]);
+  console.log("AllInterviews",allInterviews)
 
   /* ---------------- DELETE INTERVIEW ---------------- */
   const handleDeleteInterview = async (id) => {
@@ -143,16 +177,15 @@ const HRScheduleInterview = () => {
     );
     if (!confirmUpdate) return;
     const token = localStorage.getItem("accessToken");
+    console.log("form data",formData)
     try {
       const res = await axios.put(
         `https://server-backend-ems.vercel.app/interviewsUpdate/${id}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-        },
+        formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`
+        }}
       );
 
       if (res.data.success) {
@@ -169,7 +202,9 @@ const HRScheduleInterview = () => {
     } catch (err) {
       console.error(err);
       alert(err.response?.data?.message || "Failed to update interview");
-    }
+    }finally {
+    setIsSubmitting(false); 
+   }
   };
 
   /* ---------------- VALIDATIONS ---------------- */
@@ -277,8 +312,12 @@ const HRScheduleInterview = () => {
   // Handle submit
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (isSubmitting) return; // extra protection
+    setIsSubmitting(true);
     const formPayload = new FormData();
     let newErrors = {};
+    console.log("manualStatus:", formData.manualStatus);
+    console.log("status:", formData.status); 
 
     // 🔥 TODAY + PAST TIME VALIDATION (ON SUBMIT)
     if (formData.date && isToday(formData.date)) {
@@ -335,23 +374,38 @@ const HRScheduleInterview = () => {
     ) {
       newErrors.endTime = "End time must be after start time";
     }
+if (
+  formData.interviewType === "Online" &&
+  !formData.link.trim()
+) {
+  newErrors.link = "Interview link is required";
+}
 
     if (!formData.interviewerId)
       newErrors.interviewer = "Please select interviewer";
     if (!editingId && !formData.resume)
       newErrors.resume = "Resume upload is required";
-    if (!formData.link.trim()) newErrors.link = "Interview link is required";
-    if (!formData.status) newErrors.status = "Select a status";
+   
+    // if (editingId) {
+    //       if (!formData.manualStatus) {
+    //         newErrors.status = "Select a status";
+    //   }
+    // }
 
     if (
-      ["Completed", "Not-completed", "Cancelled"].includes(formData.status) &&
+      ["Scheduled","Not-completed", "Cancelled"].includes(formData.manualStatus) &&
       !formData.comment.trim()
-    ) {
+    )
+    {
       newErrors.comment = "Comment is required for this status";
     }
 
     setErrors(newErrors);
-    if (Object.keys(newErrors).length > 0) return;
+    if (Object.keys(newErrors).length > 0) {
+      setIsSubmitting(false);
+      return;
+    }
+
 
     formPayload.append("candidateName", formData.candidateName);
     formPayload.append("email", formData.email);
@@ -364,7 +418,7 @@ const HRScheduleInterview = () => {
     formPayload.append("interviewerId", formData.interviewerId);
     formPayload.append("interviewerName", formData.interviewerName);
     formPayload.append("link", formData.link);
-    formPayload.append("status", formData.status);
+    formPayload.append("manualStatus", formData.manualStatus);
     formPayload.append("comment", formData.comment);
     // 🔥 MOST IMPORTANT
     formPayload.append("resume", formData.resume);
@@ -391,7 +445,7 @@ const HRScheduleInterview = () => {
       .post("https://server-backend-ems.vercel.app/schedule-interview", formPayload, {
         headers: {
           "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`
         },
       })
 
@@ -401,13 +455,17 @@ const HRScheduleInterview = () => {
         setShowForm(false);
         setErrors({});
         setFormData(initialFormState);
+        setIsSubmitting(false);
       })
       .catch((err) => {
         console.error(
           "Schedule Interview Error 👉",
           err.response?.data || err.message,
         );
-        alert("Failed to schedule interview");
+        setIsSubmitting(false);
+        const backendMessage =
+        err.response?.data?.message || "Failed to schedule interview";
+        alert(backendMessage);
       });
   };
 
@@ -464,304 +522,296 @@ const HRScheduleInterview = () => {
   return (
     <div className="container-fluid px-3 mt-3">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2
-          className="mb-3 fw-semibold"
-          style={{
-            color: "#3A5FBE",
-            fontSize: "25px",
+     <h5 className="mb-3 fw-semibold" style={{ color: "#3A5FBE" }}>
+        {user.role==="hr"? "HR - Schedule Interview":"Scheduled Interviews"}
+      </h5>
 
-            marginBottom: "40px",
-          }}
-        >
-          HR - Schedule Interview
-        </h2>
-
+        {user?.role === "hr" && (
         <button
           className="btn btn-sm custom-outline-btn mb-3"
           onClick={handleToggleForm}
         >
           Schedule Interview
         </button>
+      )}
+
       </div>
 
       {/* ================= FORM ================= */}
       {showForm && (
+         <div
+        className="modal fade show"
+        style={{ display: "block", backgroundColor: "rgba(0,0,0,0.5)" }}
+      >
+    <div className="modal-dialog modal-dialog-scrollable"style={{ maxWidth: "650px", marginTop: "60px" }}>
+      <div className="modal-content">
+
+        {/* Modal Header */}
         <div
-          className="modal fade show"
-          style={{ display: "block", backgroundColor: "rgba(0,0,0,0.5)" }}
+          className="modal-header"
+          style={{ backgroundColor: "#3A5FBE", color: "#fff" }}
         >
-          <div
-            className="modal-dialog modal-dialog-scrollable"
-            style={{ maxWidth: "650px", marginTop: "60px" }}
-          >
-            <div className="modal-content">
-              {/* Modal Header */}
-              <div
-                className="modal-header"
-                style={{ backgroundColor: "#3A5FBE", color: "#fff" }}
-              >
-                <h5 className="modal-title">
-                  {editingId ? "Update Interview" : "Schedule Interview"}
-                </h5>
-                <button
-                  type="button"
-                  className="btn-close btn-close-white"
-                  onClick={() => setShowForm(false)}
-                />
+          <h5 className="modal-title">
+            {editingId ? "Update Interview" : "Schedule Interview"}
+          </h5>
+          <button
+            type="button"
+            className="btn-close btn-close-white"
+            onClick={() => setShowForm(false)}
+          />
+        </div>
+          <div className="modal-body">
+            <form onSubmit={handleSubmit} noValidate>
+              {/* Candidate + Email */}
+              {console.log("formData",formData)}
+              <div className="row mb-3">
+                <div className="col-md-6">
+                  <label className="form-label">Candidate Name</label>
+                  <input
+                    type="text"
+                    name="candidateName"
+                    maxLength={50}
+                    className={`form-control ${errors.candidateName ? "is-invalid" : ""}`}
+                    value={formData.candidateName}
+                    onChange={handleChange}
+                  />
+                  <div className="invalid-feedback">{errors.candidateName}</div>
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label">Email</label>
+                  <input
+                    type="email"
+                    name="email"
+                    className={`form-control ${errors.email ? "is-invalid" : ""}`}
+                    value={formData.email}
+                    onChange={handleChange}
+                  />
+                  <div className="invalid-feedback">{errors.email}</div>
+                </div>
               </div>
-              <div className="modal-body">
-                <form onSubmit={handleSubmit} noValidate>
-                  {/* Candidate + Email */}
-                  <div className="row mb-3">
-                    <div className="col-md-6">
-                      <label className="form-label">Candidate Name</label>
-                      <input
-                        type="text"
-                        name="candidateName"
-                        maxLength={50}
-                        className={`form-control ${errors.candidateName ? "is-invalid" : ""}`}
-                        value={formData.candidateName}
-                        onChange={handleChange}
-                      />
-                      <div className="invalid-feedback">
-                        {errors.candidateName}
-                      </div>
-                    </div>
 
-                    <div className="col-md-6">
-                      <label className="form-label">Email</label>
-                      <input
-                        type="email"
-                        name="email"
-                        className={`form-control ${errors.email ? "is-invalid" : ""}`}
-                        value={formData.email}
-                        onChange={handleChange}
-                      />
-                      <div className="invalid-feedback">{errors.email}</div>
-                    </div>
-                  </div>
+              {/* Role */}
+              <div className="mb-3">
+                <label className="form-label">Role / Position</label>
+                <select
+                  name="role"
+                  className={`form-select ${errors.role ? "is-invalid" : ""}`}
+                  value={formData.role}
+                  onChange={handleChange}
+                >
+                  <option value="">-- Select Role --</option>
+                  <option value="Tester">Tester</option>
+                  <option value="Software Developer">Software Developer</option>
+                  <option value="Java Developer">Java Developer</option>
+                  <option value="Frontend Developer">Frontend Developer</option>
+                  <option value="Backend Developer">Backend Developer</option>
+                  <option value="Full Stack Developer">
+                    Full Stack Developer
+                  </option>
+                </select>
+                <div className="invalid-feedback">{errors.role}</div>
+              </div>
 
-                  {/* Role */}
-                  <div className="mb-3">
-                    <label className="form-label">Role / Position</label>
-                    <select
-                      name="role"
-                      className={`form-select ${errors.role ? "is-invalid" : ""}`}
-                      value={formData.role}
-                      onChange={handleChange}
-                    >
-                      <option value="">-- Select Role --</option>
-                      <option value="Tester">Tester</option>
-                      <option value="Software Developer">
-                        Software Developer
-                      </option>
-                      <option value="Java Developer">Java Developer</option>
-                      <option value="Frontend Developer">
-                        Frontend Developer
-                      </option>
-                      <option value="Backend Developer">
-                        Backend Developer
-                      </option>
-                      <option value="Full Stack Developer">
-                        Full Stack Developer
-                      </option>
-                    </select>
-                    <div className="invalid-feedback">{errors.role}</div>
-                  </div>
+              {/* Date, Time, Type */}
+              <div className="row mb-3">
+                <div className="col-md-3">
+                  <label className="form-label">Date</label>
+                  <input
+                    type="date"
+                    name="date"
+                    min={today}
+                    className={`form-control ${errors.date ? "is-invalid" : ""}`}
+                    value={formData.date}
+                    onChange={handleChange}
+                  />
+                  <div className="invalid-feedback">{errors.date}</div>
+                </div>
 
-                  {/* Date, Time, Type */}
-                  <div className="row mb-3">
-                    <div className="col-md-3">
-                      <label className="form-label">Date</label>
-                      <input
-                        type="date"
-                        name="date"
-                        min={today}
-                        className={`form-control ${errors.date ? "is-invalid" : ""}`}
-                        value={formData.date}
-                        onChange={handleChange}
-                      />
-                      <div className="invalid-feedback">{errors.date}</div>
-                    </div>
+                <div className="col-md-3">
+                  <label className="form-label">Start Time</label>
+                  <input
+                    type="time"
+                    name="startTime"
+                    ref={startTimeRef}
+                    className={`form-control ${errors.startTime ? "is-invalid" : ""}`}
+                    value={formData.startTime}
+                    onChange={(e) => {
+                      handleChange(e);
+                      setTimeout(() => startTimeRef.current?.blur(), 100);
+                    }}
+                  />
+                  <div className="invalid-feedback">{errors.startTime}</div>
+                </div>
+                <div className="col-md-3">
+                  <label className="form-label">End Time</label>
+                  <input
+                    type="time"
+                    name="endTime"
+                    ref={endTimeRef}
+                    className={`form-control ${errors.endTime ? "is-invalid" : ""}`}
+                    value={formData.endTime}
+                    onChange={(e) => {
+                      handleChange(e);
+                      setTimeout(() => endTimeRef.current?.blur(), 100);
+                    }}
+                  />
+                  <div className="invalid-feedback">{errors.endTime}</div>
+                </div>
+                <div className="col-md-3">
+                  <label className="form-label">Duration</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={formData.duration}
+                    disabled
+                  />
+                </div>
+              </div>
 
-                    <div className="col-md-3">
-                      <label className="form-label">Start Time</label>
-                      <input
-                        type="time"
-                        name="startTime"
-                        ref={startTimeRef}
-                        className={`form-control ${errors.startTime ? "is-invalid" : ""}`}
-                        value={formData.startTime}
-                        onChange={(e) => {
-                          handleChange(e);
-                          setTimeout(() => startTimeRef.current?.blur(), 100);
-                        }}
-                      />
-                      <div className="invalid-feedback">{errors.startTime}</div>
-                    </div>
-                    <div className="col-md-3">
-                      <label className="form-label">End Time</label>
-                      <input
-                        type="time"
-                        name="endTime"
-                        ref={endTimeRef}
-                        className={`form-control ${errors.endTime ? "is-invalid" : ""}`}
-                        value={formData.endTime}
-                        onChange={(e) => {
-                          handleChange(e);
-                          setTimeout(() => endTimeRef.current?.blur(), 100);
-                        }}
-                      />
-                      <div className="invalid-feedback">{errors.endTime}</div>
-                    </div>
-                    <div className="col-md-3">
-                      <label className="form-label">Duration</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={formData.duration}
-                        disabled
-                      />
-                    </div>
-                  </div>
-
-                  {/* Interviewer */}
-                  <div className="row mb-3">
-                    <div className="col-md-6">
-                      <label className="form-label">Interviewer</label>
-                      <select
-                        name="interviewerId"
-                        className={`form-select ${errors.interviewer ? "is-invalid" : ""}`}
-                        value={formData.interviewerId}
-                        onChange={handleChange}
-                      >
-                        <option value="">-- Select Interviewer --</option>
-                        {employees.map((emp) => (
-                          <option
-                            key={emp._id}
-                            value={emp._id}
-                            data-name={emp.name}
-                          >
-                            {emp.name} ({emp.designation})
-                          </option>
-                        ))}
-                      </select>
-                      <div className="invalid-feedback">
-                        {errors.interviewer}
-                      </div>
-                    </div>
-
-                    <div className="col-md-6">
-                      <label className="form-label">Interview Type</label>
-                      <select
-                        name="interviewType"
-                        className="form-select"
-                        value={formData.interviewType}
-                        onChange={handleChange}
-                      >
-                        <option>Online</option>
-                        <option>Offline</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Resume */}
-                  <div className="mb-3">
-                    <label className="form-label">Upload Resume</label>
-                    {/* Existing Resume Preview */}
-                    {formData.resumeUrl && !formData.resume && (
-                      <div className="mb-2">
-                        <a
-                          href={`https://server-backend-ems.vercel.app${formData.resumeUrl}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          className="btn btn-sm custom-outline-btn mb-3"
-                        >
-                          View Current Resume
-                        </a>
-                      </div>
-                    )}
-                    <input
-                      type="file"
-                      name="resume"
-                      className={`form-control ${errors.resume ? "is-invalid" : ""}`}
-                      accept=".pdf,.doc,.docx"
-                      onChange={handleChange}
-                    />
-                    {/* 🔥 THIS LINE — ONLY FOR UPDATE */}
-                    {editingId ? (
-                      <small className="text-muted">
-                        Upload only if you want to replace existing resume
-                      </small>
-                    ) : (
-                      <small className="text-muted">
-                        Allowed formats: PDF, DOC, DOCX | Max size: 2MB
-                      </small>
-                    )}
-                    <div className="invalid-feedback">{errors.resume}</div>
-                  </div>
-
-                  {/* Link */}
-                  {formData.interviewType === "Online" && (
-                    <div className="mb-3">
-                      <label className="form-label">Interview Link</label>
-                      <input
-                        type="text"
-                        name="link"
-                        className={`form-control ${errors.link ? "is-invalid" : ""}`}
-                        value={formData.link}
-                        onChange={handleChange}
-                        placeholder="Enter meeting link"
-                      />
-                      <div className="invalid-feedback">{errors.link}</div>
-                    </div>
-                  )}
-
-                  {/* Status */}
-                  <div className="mb-3">
-                    <label className="form-label">Status</label>
-                    <select
-                      name="status"
-                      className={`form-select ${errors.status ? "is-invalid" : ""}`}
-                      value={formData.status}
-                      onChange={handleChange}
-                    >
-                      <option value="Scheduled">Scheduled</option>
-                      <option value="On-going">On-going</option>
-                      <option value="Cancelled">Cancelled</option>
-                      <option value="Completed">Completed</option>
-                      <option value="Not-completed">Not-completed</option>
-                    </select>
-                    <div className="invalid-feedback">{errors.status}</div>
-                  </div>
-
-                  <div className="mb-3">
-                    <label className="form-label">Comment / Remark</label>
-                    <textarea
-                      name="comment"
-                      rows="3"
-                      maxLength={500}
-                      className="form-control"
-                      value={formData.comment}
-                      onChange={handleChange}
-                      placeholder="Add comment (required for completed / cancelled/ Not-Completed)"
-                    />
-                    <div className="invalid-feedback">{errors.comment}</div>
-                    <small className="text-muted">Max 500 characters</small>
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="btn btn-sm custom-outline-btn mb-3"
+              {/* Interviewer */}
+              <div className="row mb-3">
+                <div className="col-md-6">
+                  <label className="form-label">Interviewer</label>
+                  <select
+                    name="interviewerId"
+                    className={`form-select ${errors.interviewer ? "is-invalid" : ""}`}
+                    value={formData.interviewerId}
+                    onChange={handleChange}
                   >
-                    {editingId ? "Update Interview" : "Schedule Interview"}
-                  </button>
-                </form>
+                    <option value="">-- Select Interviewer --</option>
+                    {employees.map((emp) => (
+                      <option
+                        key={emp._id}
+                        value={emp._id}
+                        data-name={emp.name}
+                      >
+                        {emp.name} ({emp.designation})
+                      </option>
+                    ))}
+                  </select>
+                  <div className="invalid-feedback">{errors.interviewer}</div>
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label">Interview Type</label>
+                  <select
+                    name="interviewType"
+                    className="form-select"
+                    value={formData.interviewType}
+                    onChange={handleChange}
+                  >
+                    <option>Online</option>
+                    <option>Offline</option>
+                  </select>
+                </div>
               </div>
-            </div>
+
+              {/* Resume */}
+              <div className="mb-3">
+                <label className="form-label">Upload Resume</label>
+                {/* Existing Resume Preview */}
+                {formData.resumeUrl && !formData.resume &&(
+                  <div className="mb-2">
+                    <a
+                      href={formData.resumeUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="btn btn-sm custom-outline-btn mb-3"
+                    >
+                      View Current Resume
+                    </a>
+                  </div>
+                )}
+                <input
+                  type="file"
+                  name="resume"
+                  className={`form-control ${errors.resume ? "is-invalid" : ""}`}
+                  accept=".pdf,.doc,.docx"
+                  onChange={handleChange}
+                />
+                {/* 🔥 THIS LINE — ONLY FOR UPDATE */}
+                {editingId ? (
+                  <small className="text-muted">
+                    Upload only if you want to replace existing resume
+                  </small>
+                ) : (
+                  <small className="text-muted">
+                    Allowed formats: PDF, DOC, DOCX | Max size: 2MB
+                  </small>
+                )}
+                <div className="invalid-feedback">{errors.resume}</div>
+              </div>
+
+              {/* Link */}
+              {formData.interviewType === "Online"&&<div className="mb-3">
+                <label className="form-label">Interview Link</label>
+                <input
+                  type="text"
+                  name="link"
+                  className={`form-control ${errors.link ? "is-invalid" : ""}`}
+                  value={formData.link}
+                  onChange={handleChange}
+                  placeholder="Enter meeting link"
+                />
+                <div className="invalid-feedback">{errors.link}</div>
+              </div>}
+
+              {/* Status */}
+              {editingId && (<div className="mb-3">
+                <label className="form-label">Status</label>
+                <select
+                  name="manualStatus"
+                  className={`form-select ${errors.status ? "is-invalid" : ""}`}
+                  value={formData.manualStatus}
+                  onChange={handleChange}
+                >
+                  <option value="">-- Select Status --</option>
+
+                  {/* <option value="Scheduled">Scheduled</option>
+                  <option value="On-going">On-going</option> */}
+                  <option value="Cancelled">Cancelled</option>
+                  {/* <option value="Completed">Completed</option> */}
+                  <option value="Not-completed">Not-completed</option>
+                </select>
+                <div className="invalid-feedback">{errors.status}</div>
+              </div>)}
+
+              <div className="mb-3">
+                <label className="form-label">Comment / Remark</label>
+                <textarea
+                  name="comment"
+                  rows="3"
+                  maxLength={500}
+                  className="form-control"
+                  value={formData.comment}
+                  onChange={handleChange}
+                  placeholder="Add comment (required for completed / cancelled/ Not-Completed)"
+                />
+                <div className="invalid-feedback">{errors.comment}</div>
+                <small className="text-muted">Max 500 characters</small>
+              </div>
+
+              <button
+                type="submit"
+                className="btn btn-sm custom-outline-btn mb-3"
+                disabled={isSubmitting}
+              >
+                 {isSubmitting ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2"></span>
+                      {editingId ? "Saving....":"Scheduling..."}
+                    </>
+                  ) : (
+                    editingId ? "Update Interview" : "Schedule Interview"
+                  )}
+              </button>
+            </form>
           </div>
         </div>
+      </div>
+      </div>
       )}
 
       {/* ================= MANAGER STYLE TABLE ================= */}
@@ -884,7 +934,7 @@ const HRScheduleInterview = () => {
                     "Interviewer",
                     "Link",
                     "Status",
-                    "Action",
+                    ...(user?.role === "hr" ? ["Action"] : []),
                   ].map((h) => (
                     <th key={h} style={thStyle}>
                       {h}
@@ -907,8 +957,15 @@ const HRScheduleInterview = () => {
                   currentInterviews.map((item, i) => (
                     <tr
                       key={i}
-                      onClick={() => setSelected(item)}
-                      style={{ cursor: "pointer" }}
+                      onClick={() => {
+                        if (item.status!=="Cancelled") setSelected(item)
+                      }}
+                      style={{ 
+                        cursor: item.status==="Cancelled" ? "not-allowed" : "pointer",
+                        opacity: item.status==="Cancelled" ? 0.6 : 1,
+                        backgroundColor: item.status==="Cancelled" ? "#f5f5f5" : "",
+                        pointerEvents: item.status==="Cancelled"? "none" : "auto"
+                      }}
                     >
                       <td style={tdStyle("#3A5FBE", 500)}>
                         {item.interviewId}
@@ -918,7 +975,7 @@ const HRScheduleInterview = () => {
                       <td>
                         {item.resumeUrl ? (
                           <a
-                            href={`https://server-backend-ems.vercel.app${item.resumeUrl}`}
+                            href={`${item.resumeUrl}`}
                             target="_blank"
                             rel="noreferrer"
                             onClick={(e) => e.stopPropagation()}
@@ -929,22 +986,43 @@ const HRScheduleInterview = () => {
                           "-"
                         )}
                       </td>
-
                       <td style={tdStyle()}>{formatDate(item.date)}</td>
-                      <td style={tdStyle()}>{item.startTime}</td>
+                      {/* jaicy */}
+                      <td style={tdStyle()}>{formatTo12Hour(item.startTime)}</td>
                       <td style={tdStyle()}>{item.interviewType}</td>
                       <td style={tdStyle()}>{item.interviewerName}</td>
                       <td style={tdStyle()}>
-                        {item.status !== "Completed" &&
+                        {/* {item.status !== "Completed" &&
                         item.status !== "Cancelled" &&
                         item.status !== "Not-completed" &&
                         item.link ? (
-                          <a
-                            href={item.link}
-                            target="_blank"
-                            rel="noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                          >
+                          <a href={item.link} target="_blank" rel="noreferrer"onClick={(e) => e.stopPropagation()}> */}
+                          {item.link ? (
+    <a
+      href={item.link}
+      target="_blank"
+      rel="noreferrer"
+      onClick={(e) => {
+        if (
+          ["Completed", "Cancelled", "Not-completed"].includes(item.status)
+        ) {
+          e.preventDefault(); // ❌ stop navigation
+          return;
+        }
+        e.stopPropagation();
+      }}
+      style={{
+        pointerEvents: ["Completed", "Cancelled", "Not-completed"].includes(item.status)
+          ? "none"
+          : "auto",
+        color: ["Completed", "Cancelled", "Not-completed"].includes(item.status)
+          ? "#999"
+          : "#0d6efd",
+        textDecoration: "underline",
+        cursor: ["Completed", "Cancelled", "Not-completed"].includes(item.status)
+          ? "not-allowed"
+          : "pointer",
+      }}>
                             Join
                           </a>
                         ) : (
@@ -979,14 +1057,20 @@ const HRScheduleInterview = () => {
                           {item.status}
                         </span>
                       </td>
-
+                 {user?.role === "hr" && (
                       <td style={tdStyle()}>
-                        {item.status !== "On-going" && (
+                        {/* {item.status !== "On-going" && ( */}
                           <div className="d-flex gap-2">
                             {/* Update Button */}
                             <button
                               type="button"
+                              title={
+                                ["Completed", "Cancelled"].includes(item.status)
+                                  ? "Cannot modify completed or cancelled interviews"
+                                  : ""
+                              }
                               className="btn btn-sm btn-outline-primary"
+                              disabled={["Completed", "Cancelled"].includes(item.status)}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelected(null);
@@ -1007,7 +1091,13 @@ const HRScheduleInterview = () => {
                             {/* Delete Button */}
                             <button
                               type="button"
+                              title={
+                                ["Completed", "Cancelled"].includes(item.status)
+                                  ? "Cannot modify completed or cancelled interviews"
+                                  : ""
+                              }
                               className="btn btn-sm btn-outline-danger"
+                              disabled={["Completed", "Cancelled"].includes(item.status)}
                               onClick={(e) => {
                                 e.stopPropagation(); // row click / popup prevent
                                 handleDeleteInterview(item._id);
@@ -1016,15 +1106,15 @@ const HRScheduleInterview = () => {
                               Delete
                             </button>
                           </div>
-                        )}
+                        {/* )} */}
                       </td>
+                      )}
                     </tr>
                   ))
                 )}
               </tbody>
             </table>
           </div>
-
           {/* ===== PAGINATION UI ===== */}
           <nav className="d-flex align-items-center justify-content-end mt-3 text-muted">
             <div className="d-flex align-items-center gap-3">
@@ -1116,7 +1206,7 @@ const HRScheduleInterview = () => {
                   Candidate: selected.candidateName,
                   Role: selected.role,
                   Date: formatDate(selected.date),
-                  Time: selected.startTime,
+                  Time: formatTo12Hour(selected.startTime),
                   Duration: selected.duration,
                   Type: selected.interviewType,
                   Interviewer: selected.interviewerName,
@@ -1131,16 +1221,37 @@ const HRScheduleInterview = () => {
                 <div className="row mb-2">
                   <div className="col-4 fw-semibold">Interview Link</div>
                   <div className="col-8">
-                    {selected.status !== "Completed" &&
+                    {/* {selected.status !== "Completed" &&
                     selected.status !== "Cancelled" &&
                     selected.status !== "Not-completed" &&
                     selected.link ? (
-                      <a
-                        href={selected.link}
-                        target="_blank"
-                        rel="noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                      >
+                      <a href={selected.link} target="_blank" rel="noreferrer"onClick={(e) => e.stopPropagation()}> */}
+                      {selected.link ? (
+    <a
+      href={selected.link}
+      target="_blank"
+      rel="noreferrer"
+      onClick={(e) => {
+        if (
+          ["Completed", "Cancelled", "Not-completed"].includes(selected.status)
+        ) {
+          e.preventDefault(); // ❌ stop navigation
+          return;
+        }
+        e.stopPropagation();
+      }}
+      style={{
+        pointerEvents: ["Completed", "Cancelled", "Not-completed"].includes(selected.status)
+          ? "none"
+          : "auto",
+        color: ["Completed", "Cancelled", "Not-completed"].includes(selected.status)
+          ? "#999"
+          : "#0d6efd",
+        textDecoration: "underline",
+        cursor: ["Completed", "Cancelled", "Not-completed"].includes(selected.status)
+          ? "not-allowed"
+          : "pointer",
+      }}>
                         Join
                       </a>
                     ) : (
@@ -1148,21 +1259,20 @@ const HRScheduleInterview = () => {
                     )}
                   </div>
                 </div>
-
+      
                 {/* ✅ RESUME SECTION (SEPARATE) */}
                 <div className="row mb-2">
                   <div className="col-4 fw-semibold">Resume</div>
                   <div className="col-8">
                     {selected?.resumeUrl ? (
-                      <a
-                        href={`${BASE_URL}${selected.resumeUrl}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="btn custom-outline-btn"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        View Resume
-                      </a>
+                          <a
+                            href={`${selected.resumeUrl}?fl_attachment=false`}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            View Resume
+                          </a>
                     ) : (
                       "-"
                     )}

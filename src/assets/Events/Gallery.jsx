@@ -25,6 +25,11 @@ function Gallery() {
   const [searchText, setSearchText] = useState("");
   const [searchCategory, setSearchCategory] = useState("");
 
+  // rutuja code
+  const [activeTable, setActiveTable] = useState('image');
+  const MAX_DESC_LENGTH = 250;
+  //
+
   const [editData, setEditData] = useState({
     title: "",
     description: "",
@@ -44,18 +49,57 @@ function Gallery() {
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredItems.slice(indexOfFirstItem, indexOfLastItem);
-
+const modalRef = useRef(null);
   // Slice galleryItems for current page
 
   /* ================= FETCH ================= */
   useEffect(() => {
     fetchGallery();
   }, []);
+  // bg scroll stop
 
+  // rutuja code start
+
+  const getFileNameFromUrl = (url) => {
+    if (!url) return "Untitled PDF";
+    try {
+      const parts = url.split('/');
+      const filename = parts[parts.length - 1];
+      const decodedName = decodeURIComponent(filename);
+      return decodedName.length > 30 ? decodedName.substring(0, 30) + '...' : decodedName;
+    } catch (error) {
+      return "PDF File";
+    }
+  };
+
+  useEffect(() => {
+    if (galleryItems.length > 0) {
+      const itemsByType = galleryItems.filter(item => item.type === activeTable);
+      setFilteredItems(itemsByType);
+      setCurrentPage(1);
+    }
+  }, [galleryItems, activeTable]);
+
+useEffect(() => {
+    if (showUploadModal || showViewModal || showEditModal) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.height = '100vh';  
+    } else {
+      document.body.style.overflow = 'unset';
+      document.body.style.height = 'auto';  
+    }
+  
+    return () => {
+      document.body.style.overflow = 'unset';
+      document.body.style.height = 'auto';    // Add this line
+    };
+  }, [showUploadModal, showViewModal, showEditModal]);
+  
   const fetchGallery = async () => {
     const res = await axios.get(API_URL);
     setGalleryItems(res.data);
-    setFilteredItems(res.data); // important
+    // setFilteredItems(res.data); // important
+    setFilteredItems(res.data.filter(item => item.type === 'image'));
   };
 
   /* ================= FILE SELECT ================= */
@@ -80,6 +124,69 @@ function Gallery() {
 
     setSelectedFiles(mapped);
   };
+
+
+useEffect(() => {
+  const isAnyModalOpen =
+    showUploadModal || showViewModal || showEditModal;
+
+  if (!isAnyModalOpen || !modalRef.current) return;
+
+  const modal = modalRef.current;
+
+  const focusableSelectors =
+    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
+  const getFocusableElements = () =>
+    modal.querySelectorAll(focusableSelectors);
+
+  const focusFirst = () => {
+    const elements = getFocusableElements();
+    if (elements.length) elements[0].focus();
+  };
+
+  // wait for DOM render
+  // setTimeout(focusFirst, 0); 
+  modalRef.current.focus();//rutuja
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Escape") {
+      e.preventDefault();
+
+      if (showUploadModal) closeModal();
+      if (showViewModal) closeViewModal();
+      if (showEditModal) setShowEditModal(false);
+    }
+
+    if (e.key === "Tab") {
+      const focusableElements = getFocusableElements();
+      if (!focusableElements.length) return;
+
+      const firstEl = focusableElements[0];
+      const lastEl =
+        focusableElements[focusableElements.length - 1];
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstEl) {
+          e.preventDefault();
+          lastEl.focus();
+        }
+      } else {
+        if (document.activeElement === lastEl) {
+          e.preventDefault();
+          firstEl.focus();
+        }
+      }
+    }
+  };
+
+  document.addEventListener("keydown", handleKeyDown);
+
+  return () => {
+    document.removeEventListener("keydown", handleKeyDown);
+  };
+}, [showUploadModal, showViewModal, showEditModal]);
+
 
   /* ================= INPUT CHANGE ================= */
   const handleChange = (index, field, value) => {
@@ -309,6 +416,46 @@ function Gallery() {
   //   return textMatch && categoryMatch;
   // });
 
+  const openTable = (type) => {
+    setActiveTable(type);
+    setCurrentPage(1);
+    
+    setFilteredItems(galleryItems.filter(item => item.type === type));
+  };
+
+  const handleFilter = () => {
+    const filtered = galleryItems.filter((item) => {
+      const textMatch =
+        item.title
+          ?.toLowerCase()
+          .includes(searchInput.toLowerCase()) ||
+        item.description
+          ?.toLowerCase()
+          .includes(searchInput.toLowerCase()) ||
+        item.category
+          ?.toLowerCase()
+          .includes(searchInput.toLowerCase());
+
+      const categoryMatch =
+        !searchCategory || item.category === searchCategory;
+      
+      const typeMatch = item.type === activeTable;
+
+      return textMatch && categoryMatch && typeMatch;
+    });
+
+    setFilteredItems(filtered);
+    setCurrentPage(1);
+  };
+
+  const handleReset = () => {
+    setSearchInput("");
+    setSearchCategory("");
+    setFilteredItems(galleryItems.filter(item => item.type === activeTable));
+    setCurrentPage(1);
+  };
+
+
   return (
     <div className="container-fluid bg-light min-vh-100">
       <div className="d-flex justify-content-between align-items-center mb-2">
@@ -346,6 +493,8 @@ function Gallery() {
       {showUploadModal && (
         <div
           className="modal fade show d-block"
+          ref={modalRef}
+          tabIndex="-1"
           style={{ background: "rgba(0, 0, 0, 0.5)" }}
         >
           <div
@@ -395,10 +544,14 @@ function Gallery() {
                       className="form-control mb-2"
                       placeholder="Description"
                       value={item.description}
+                      maxLength={MAX_DESC_LENGTH} 
                       onChange={(e) =>
                         handleChange(index, "description", e.target.value)
                       }
                     />
+                    <div className="text-end">
+                      <small>{item.description.length}/{MAX_DESC_LENGTH}</small>
+                    </div>
                     <label className="form-label fw-bold">
                       Select Category
                     </label>
@@ -441,6 +594,34 @@ function Gallery() {
           </div>
         </div>
       )}
+
+      <div className="row mb-4">
+        <div className="col-12">
+          <div className="d-flex gap-3 justify-content-center">
+            <button
+               className={`btn btn-sm ${activeTable === 'image' ? 'btn-primary' : 'custom-outline-btn'}`}
+               style={{ minWidth: 90 }}
+              onClick={() => openTable('image')}
+            >
+              IMAGES
+            </button>
+            <button
+              className={`btn btn-sm ${activeTable === 'video' ? 'btn-primary' : 'custom-outline-btn'}`}
+              style={{ minWidth: 90 }}
+              onClick={() => openTable('video')}
+            >
+              VIDEOS
+            </button>
+            <button
+              className={`btn btn-sm ${activeTable === 'pdf' ? 'btn-primary' : 'custom-outline-btn'}`}
+              style={{ minWidth: 90 }}
+              onClick={() => openTable('pdf')}
+            >
+              PDFs
+            </button>
+          </div>
+        </div>
+      </div>
 
       <div className="card mb-4 shadow-sm border-0">
         <div className="card-body">
@@ -493,28 +674,7 @@ function Gallery() {
               <button
                 className="btn btn-sm custom-outline-btn "
                 style={{ minWidth: 90 }}
-                onClick={() => {
-                  const filtered = galleryItems.filter((item) => {
-                    const textMatch =
-                      item.title
-                        ?.toLowerCase()
-                        .includes(searchInput.toLowerCase()) ||
-                      item.description
-                        ?.toLowerCase()
-                        .includes(searchInput.toLowerCase()) ||
-                      item.category
-                        ?.toLowerCase()
-                        .includes(searchInput.toLowerCase());
-
-                    const categoryMatch =
-                      !searchCategory || item.category === searchCategory;
-
-                    return textMatch && categoryMatch;
-                  });
-
-                  setFilteredItems(filtered);
-                  setCurrentPage(1);
-                }}
+                onClick={handleFilter} 
               >
                 Filter
               </button>
@@ -522,12 +682,7 @@ function Gallery() {
               <button
                 className="btn btn-sm custom-outline-btn "
                 style={{ minWidth: 90 }}
-                onClick={() => {
-                  setSearchInput("");
-                  setSearchCategory("");
-                  setFilteredItems(galleryItems);
-                  setCurrentPage(1);
-                }}
+                onClick={handleReset} 
               >
                 Reset
               </button>
@@ -638,7 +793,23 @@ function Gallery() {
                           />
                         )}
                         {item.type === "video" && <span>🎥 Video</span>}
-                        {item.type === "pdf" && <span>📄 PDF</span>}
+                        {/* rutuja code start */}
+                        {item.type === "pdf" && (
+                          <div className="d-flex align-items-center gap-2">
+                            <span style={{ fontSize: "20px" }}>📄</span>
+                            <span 
+                              style={{ 
+                                fontSize: "13px",
+                                color: "#3A5FBE",
+                                textDecoration: "underline",
+                                cursor: "pointer"
+                              }}
+                              title={item.title || getFileNameFromUrl(item.url)}
+                            >
+                              {item.title || getFileNameFromUrl(item.url)}
+                            </span>
+                          </div>
+                        )}
                       </td>
 
                       <td
@@ -783,7 +954,8 @@ function Gallery() {
             style={{ marginLeft: "16px" }}
           >
             <button
-              className="btn btn-sm border-0"
+                           className="btn btn-sm focus-ring"
+
               onClick={() => setCurrentPage(currentPage - 1)}
               disabled={currentPage === 1}
               style={{ fontSize: "18px", padding: "2px 8px", color: "#212529" }}
@@ -791,7 +963,7 @@ function Gallery() {
               ‹
             </button>
             <button
-              className="btn btn-sm border-0"
+              className="btn btn-sm focus-ring"
               onClick={() => setCurrentPage(currentPage + 1)}
               disabled={currentPage === totalPages}
               style={{ fontSize: "18px", padding: "2px 8px", color: "#212529" }}
@@ -815,6 +987,8 @@ function Gallery() {
       {showViewModal && viewItem && (
         <div
           className="modal fade show"
+           ref={modalRef}
+            tabIndex="-1"
           style={{ display: "block", backgroundColor: "rgba(0,0,0,0.4)" }}
           onClick={closeViewModal}
         >
@@ -885,18 +1059,27 @@ function Gallery() {
                     />
                   )}
 
+                  {/* rutuja code start */}
                   {viewItem.type === "pdf" && (
-                    <iframe
-                      src={`${viewItem.url}#toolbar=1`}
-                      title="PDF Viewer"
-                      width="100%"
-                      height="500px"
-                      style={{
-                        border: "none",
-                        borderRadius: "8px",
-                      }}
-                    />
+                    <div>
+                      <div className="mb-2 text-start">
+                        <span className="fw-semibold">Filename: </span>
+                        <span>{viewItem.title || getFileNameFromUrl(viewItem.url)}</span>
+                      </div>
+                      <iframe
+                        src={`${viewItem.url}#toolbar=1`}
+                        title={viewItem.title || "PDF Viewer"}
+                        width="100%"
+                        height="500px"
+                        style={{
+                          border: "none",
+                          borderRadius: "8px",
+                        }}
+                      />
+                    </div>
                   )}
+
+
                 </div>
               </div>
 
@@ -917,6 +1100,8 @@ function Gallery() {
       {showEditModal && editId && (
         <div
           className="modal fade show"
+          ref={modalRef}
+          tabIndex="-1"
           style={{ display: "block", backgroundColor: "rgba(0,0,0,0.4)" }}
           onClick={() => setShowEditModal(false)}
         >
@@ -972,6 +1157,7 @@ function Gallery() {
                       className="form-control"
                       rows={3}
                       value={editData.description}
+                      maxLength={MAX_DESC_LENGTH}
                       onChange={(e) =>
                         setEditData((p) => ({
                           ...p,
@@ -979,6 +1165,9 @@ function Gallery() {
                         }))
                       }
                     />
+                    <div className="text-end mt-1">
+                      <small>{editData.description.length}/{MAX_DESC_LENGTH}</small>
+                    </div>
                   </div>
                 </div>
 
@@ -1019,7 +1208,17 @@ function Gallery() {
                       className="w-100 rounded"
                     />
                   )}
-                  {editData.type === "pdf" && <p>📄 PDF Selected</p>}
+
+                  {editData.type === "pdf" && (
+                    <div>
+                      <p>📄 PDF Selected</p>
+                      <p className="text-muted small">
+                        File: {editData.title || getFileNameFromUrl(editData.preview)}
+                      </p>
+                    </div>
+                  )}
+                  {/* rutuja code end */}
+
                 </div>
 
                 {/* FILE CHANGE */}

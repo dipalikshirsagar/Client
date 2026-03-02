@@ -5,7 +5,7 @@ import HolidaysCards from "../Holidays/HolidaysCards";
 //import AddHolidayForm from './AddHolidaysForms';
 import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
 import EventCard from "../Events/EventCard";
-
+import ActivePolls from "../Polls/ActivePolls";
 function AdminDashboard({ user }) {
   const [employees, setEmployees] = useState([]);
   const [attendanceData, setAttendanceData] = useState(null);
@@ -634,6 +634,16 @@ function AdminDashboard({ user }) {
         <div className="col-md-4">
           <EventCard />
         </div>
+        <div className="row g-2 mt-3">
+        
+      
+
+      {/*  Poll */}
+      <div className="col-md-4">
+        <ActivePolls user={user} />
+      </div>
+
+    </div>
       </div>
     </div>
   );

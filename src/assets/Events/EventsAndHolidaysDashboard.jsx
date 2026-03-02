@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useRef } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import AddHolidayForm from "../Holidays/AddHolidaysForms";
@@ -46,6 +46,7 @@ function EventsAndHolidaysDashboard() {
   const handleAddAnnouncement = (newAnnouncement) => {
     setAnnouncementsList((prev) => [newAnnouncement, ...prev]);
   };
+  
   //snehal code editicon popup 11-02-2026
   const [editingEvent, setEditingEvent] = useState(null);
   const [editingHoliday, setEditingHoliday] = useState(null);
@@ -71,7 +72,114 @@ function EventsAndHolidaysDashboard() {
       alert("Failed to delete announcement.");
     }
   };
+const modalRef = useRef(null);
 
+  useEffect(() => {
+  const isAnyModalOpen = 
+    selectedEvent || 
+    selectedHoliday || 
+    selectedAnnouncement || 
+    editingEvent || 
+    editingHoliday || 
+    editingAnnouncement;
+
+  if (isAnyModalOpen) {
+    document.body.style.overflow = 'hidden';
+    document.body.style.height = '100vh';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+  } else {
+    document.body.style.overflow = 'unset';
+    document.body.style.height = 'auto';
+    document.body.style.position = 'static';
+    document.body.style.width = 'auto';
+  }
+
+  return () => {
+    document.body.style.overflow = 'unset';
+    document.body.style.height = 'auto';
+    document.body.style.position = 'static';
+    document.body.style.width = 'auto';
+  };
+}, [
+  selectedEvent, 
+  selectedHoliday, 
+  selectedAnnouncement, 
+  editingEvent, 
+  editingHoliday, 
+  editingAnnouncement
+]);
+
+useEffect(() => {
+  const isAnyModalOpen = 
+    selectedEvent || 
+    selectedHoliday || 
+    selectedAnnouncement || 
+    editingEvent || 
+    editingHoliday || 
+    editingAnnouncement;
+
+  if (!isAnyModalOpen || !modalRef.current) return;
+
+  const modal = modalRef.current;
+
+  const focusableSelectors =
+    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
+  const getFocusableElements = () =>
+    modal.querySelectorAll(focusableSelectors);
+
+  const focusFirst = () => {
+    const elements = getFocusableElements();
+    if (elements.length) elements[0].focus();
+  };
+
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      if (selectedEvent) setSelectedEvent(null);
+      if (selectedHoliday) setSelectedHoliday(null);
+      if (selectedAnnouncement) setSelectedAnnouncement(null);
+      if (editingEvent) setEditingEvent(null);
+      if (editingHoliday) setEditingHoliday(null);
+      if (editingAnnouncement) setEditingAnnouncement(null);
+    }
+  
+    if (e.key === "Tab") {
+      const focusableElements = getFocusableElements();
+      if (!focusableElements.length) return;
+  
+      const firstEl = focusableElements[0];
+      const lastEl = focusableElements[focusableElements.length - 1];
+  
+      if (e.shiftKey) {
+        if (document.activeElement === firstEl || !modal.contains(document.activeElement)) {
+          e.preventDefault();
+          lastEl.focus();
+        }
+      } else {
+        if (document.activeElement === lastEl || !modal.contains(document.activeElement)) {
+          e.preventDefault();
+          firstEl.focus();
+        }
+      }
+    }
+  };
+
+  document.addEventListener("keydown", handleKeyDown);
+
+  return () => {
+    document.removeEventListener("keydown", handleKeyDown);
+  };
+}, [
+  selectedEvent, 
+  selectedHoliday, 
+  selectedAnnouncement, 
+  editingEvent, 
+  editingHoliday, 
+  editingAnnouncement
+]);
   //replace by shivani
   useEffect(() => {
     const fetchAnnouncements = async () => {
@@ -213,7 +321,7 @@ function EventsAndHolidaysDashboard() {
                     <i
                       className={`event-icon me-2 fs-4 ${
                         event.type === "Birthday"
-                          ? "bi bi-gift"
+                          ? "bi bi-cake"
                           : event.type === "Team Outing"
                             ? "bi bi-geo-alt"
                             : "bi bi-calendar-event"
@@ -242,7 +350,10 @@ function EventsAndHolidaysDashboard() {
                       <>
                         <button
                           className="btn btn-sm custom-outline-btn edit-btn"
-                          onClick={() => setEditingEvent(event)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingEvent(event);
+                          }}
                         >
                           <i className="bi bi-pencil-square edit-icon"></i>
                         </button>
@@ -268,6 +379,7 @@ function EventsAndHolidaysDashboard() {
           <div
             className="modal fade show d-block"
             tabIndex="-1"
+            ref={modalRef}
             style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
           >
             <div className="modal-dialog modal-dialog-centered">
@@ -288,7 +400,7 @@ function EventsAndHolidaysDashboard() {
                   <i
                     className={`event-icon me-2 fs-4 ${
                       selectedEvent.type === "Birthday"
-                        ? "bi bi-gift "
+                        ? "bi bi-cake"
                         : selectedEvent.type === "Team Outing"
                           ? "bi bi-geo-alt"
                           : "bi bi-calendar-event"
@@ -383,7 +495,10 @@ function EventsAndHolidaysDashboard() {
                       <>
                         <button
                           className="btn btn-sm custom-outline-btn edit-btn"
-                          onClick={() => setEditingHoliday(h)}
+                          onClick={(e) => {
+                            e.stopPropagation(); 
+                            setEditingHoliday(h);
+                          }}
                         >
                           <i className="bi bi-pencil-square edit-icon"></i>
                         </button>
@@ -412,6 +527,7 @@ function EventsAndHolidaysDashboard() {
         {selectedHoliday && (
           <div
             className="modal fade show d-block"
+            ref={modalRef}
             tabIndex="-1"
             style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
           >
@@ -552,7 +668,8 @@ function EventsAndHolidaysDashboard() {
                         <>
                           <button
                             className="btn btn-sm custom-outline-btn edit-btn"
-                            onClick={() => {
+                           onClick={(e) => {
+                              e.stopPropagation();
                               setEditingAnnouncement(announcement);
                             }}
                           >
@@ -582,6 +699,7 @@ function EventsAndHolidaysDashboard() {
         {selectedAnnouncement && (
           <div
             className="modal fade show d-block"
+            ref={modalRef}
             tabIndex="-1"
             style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
           >

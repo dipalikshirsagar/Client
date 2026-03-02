@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState ,useRef} from "react";
 import axios from "axios";
 import AllRequest from "../All/AllRequest";
 
@@ -19,7 +19,54 @@ function EmployeeMyRegularization({ employeeId, refreshKey }) {
 
   // dipali code
   const [selectedRequest, setSelectedRequest] = useState(null);
+//TANVI
+  const modalRef = useRef(null);
 
+  //TANVI
+  useEffect(() => {
+    if (!selectedRequest || !modalRef.current) return;
+
+    const modal = modalRef.current;
+
+    const focusableElements = modal.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+
+    const firstEl = focusableElements[0];
+    const lastEl = focusableElements[focusableElements.length - 1];
+
+    // ⭐ modal open होताच focus
+    modal.focus();
+
+    const handleKeyDown = (e) => {
+      // ESC key → modal close
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setSelectedRequest(null);
+      }
+
+      // TAB key → focus trap
+      if (e.key === "Tab") {
+        if (e.shiftKey) {
+          if (document.activeElement === firstEl) {
+            e.preventDefault();
+            lastEl.focus();
+          }
+        } else {
+          if (document.activeElement === lastEl) {
+            e.preventDefault();
+            firstEl.focus();
+          }
+        }
+      }
+    };
+
+    modal.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      modal.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [selectedRequest]);
   useEffect(() => {
     const fetchRequests = async () => {
       try {
@@ -90,7 +137,24 @@ function EmployeeMyRegularization({ employeeId, refreshKey }) {
 
     setFilteredRequests(sorted);
   }, [requests]);
+//bg scroll stop
+  useEffect(() => {
+    if (selectedRequest) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+    useEffect;
 
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [selectedRequest]);
+  
+  // dip code changes 11-02-2026
   //Added by Jaicy
   const formatToIST = (utcDateString) => {
     const date = new Date(utcDateString);
@@ -812,6 +876,8 @@ function EmployeeMyRegularization({ employeeId, refreshKey }) {
       {selectedRequest && (
         <div
           className="modal fade show"
+          tabIndex="-1"
+          ref={modalRef}
           style={{
             display: "flex",
             alignItems: "center",
@@ -823,8 +889,8 @@ function EmployeeMyRegularization({ employeeId, refreshKey }) {
           }}
         >
           <div
-            className="modal-dialog"
-            style={{ maxWidth: "650px", width: "95%", marginTop: "120px" }}
+            className="modal-dialog modal-dialog-centered"
+            style={{ maxWidth: "650px", width: "95%",  }}
           >
             <div className="modal-content">
               {/* Header */}
@@ -956,6 +1022,7 @@ function EmployeeMyRegularization({ employeeId, refreshKey }) {
                   )}
                 <button
                   className="btn  custom-outline-btn btn-sm"
+                  style={{minWidth:"90px"}}
                   onClick={() => setSelectedRequest(null)}
                 >
                   Close
@@ -1006,7 +1073,7 @@ function EmployeeMyRegularization({ employeeId, refreshKey }) {
             style={{ marginLeft: "16px" }}
           >
             <button
-              className="btn btn-sm border-0"
+            className="btn btn-sm focus-ring"
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
               style={{ fontSize: "18px", padding: "2px 8px" }}
@@ -1014,7 +1081,7 @@ function EmployeeMyRegularization({ employeeId, refreshKey }) {
               ‹
             </button>
             <button
-              className="btn btn-sm border-0"
+              className="btn btn-sm focus-ring"
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
               style={{ fontSize: "18px", padding: "2px 8px" }}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useRef } from "react";
 import axios from "axios";
 
 function EditAnnouncementForm({ data, onClose, onUpdate }) {
@@ -6,7 +6,56 @@ function EditAnnouncementForm({ data, onClose, onUpdate }) {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [image, setImage] = useState(null);
+  const modalRef = useRef(null);
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    document.body.style.height = '100vh';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
 
+    if (modalRef.current) {
+      const focusableSelectors =
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+      
+      const focusableElements = modalRef.current.querySelectorAll(focusableSelectors);
+
+      const handleKeyDown = (e) => {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          onClose();
+        }
+      
+        if (e.key === "Tab" && focusableElements.length) {
+          const firstEl = focusableElements[0];
+          const lastEl = focusableElements[focusableElements.length - 1];
+      
+          if (e.shiftKey) {
+            if (document.activeElement === firstEl || !modalRef.current.contains(document.activeElement)) {
+              e.preventDefault();
+              lastEl.focus();
+            }
+          } else {
+            if (document.activeElement === lastEl || !modalRef.current.contains(document.activeElement)) {
+              e.preventDefault();
+              firstEl.focus();
+            }
+          }
+        }
+      };
+
+      document.addEventListener("keydown", handleKeyDown);
+
+      return () => {
+        document.removeEventListener("keydown", handleKeyDown);
+      };
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+      document.body.style.height = 'auto';
+      document.body.style.position = 'static';
+      document.body.style.width = 'auto';
+    };
+  }, [onClose]);
   useEffect(() => {
     if (data) {
       setName(data.name);
@@ -65,10 +114,12 @@ function EditAnnouncementForm({ data, onClose, onUpdate }) {
   return (
     <div
       className="modal fade show"
+      ref={modalRef}
+          tabIndex="-1"
       style={{ display: "block", background: "rgba(0,0,0,0.5)" }}
     >
       <div
-        className="modal-dialog modal-dialog-scrollable"
+        className="modal-dialog "
         style={{
           maxWidth: "650px",
           width: "95%",

@@ -213,8 +213,8 @@ const VisualDiary = () => {
             zIndex: 1050,
           }}
         >
-          {" "}
-          onClick={() => setPopupItem(null)}
+           {" "}
+          {/* onClick={() => setPopupItem(null)} */} 
           <div
             className="custom-modal-dialog"
             onClick={(e) => e.stopPropagation()}

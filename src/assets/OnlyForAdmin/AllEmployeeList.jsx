@@ -351,7 +351,7 @@
 //         <div className="modal d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
 //           <div className="modal-dialog modal-dialog-centered">
 //             <div className="modal-content">
-//               <div className="modal-header" style={{ backgroundColor: "#233986", borderColor: "#233986", color: "#fff" }}>
+//               <div className="modal-header" style={{ backgroundColor: "#3A5FBE", borderColor: "#3A5FBE", color: "#fff" }}>
 //                 <h5 className="modal-title">Assign Reporting Manager</h5>
 //                 <button
 //                   type="button"
@@ -362,7 +362,7 @@
 //               <div className="modal-body">
 //                 {message && <div className="alert alert-info">{message}</div>}
 //                 <div className="mb-3">
-//                   <label style={{ color: "#0d47a1", fontWeight: "bold" }}>Manager</label>
+//                   <label style={{ color: "#3A5FBE", fontWeight: "bold" }}>Manager</label>
 //                   <select
 //                     className="form-select mt-2"
 //                     value={selectedManagerId}
@@ -378,11 +378,11 @@
 //                 </div>
 //                 <div className="d-flex justify-content-end gap-2">
 //                   <button className="btn btn-outline-secondary" onClick={() => setShowModal(false)}
-//                     style={{ borderColor: "#233986", color: "#233986", fontWeight: "bold" }}>
+//                     style={{ borderColor: "#3A5FBE", color: "#3A5FBE", fontWeight: "bold" }}>
 //                     Cancel
 //                   </button>
 //                   <button className="btn btn-primary" onClick={handleUpdateManager}
-//                     style={{ backgroundColor: "#233986", borderColor: "#233986", color: "#fff" }}>
+//                     style={{ backgroundColor: "#3A5FBE", borderColor: "#3A5FBE", color: "#fff" }}>
 //                     Assign
 //                   </button>
 //                 </div>
@@ -1109,14 +1109,14 @@ function AllEmployeeDetails() {
 
           <div className="d-flex align-items-center">
             <button
-              className="btn btn-sm border-0"
+            className="btn btn-sm focus-ring"
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
             >
               ‹
             </button>
             <button
-              className="btn btn-sm border-0"
+              className="btn btn-sm focus-ring"
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
             >
@@ -1140,8 +1140,8 @@ function AllEmployeeDetails() {
               <div
                 className="modal-header"
                 style={{
-                  backgroundColor: "#233986",
-                  borderColor: "#233986",
+                  backgroundColor: "#3A5FBE",
+                  borderColor: "#3A5FBE",
                   color: "#fff",
                 }}
               >
@@ -1155,7 +1155,7 @@ function AllEmployeeDetails() {
               <div className="modal-body">
                 {message && <div className="alert alert-info">{message}</div>}
                 <div className="mb-3">
-                  <label style={{ color: "#0d47a1", fontWeight: "bold" }}>
+                  <label style={{ color: "#3A5FBE", fontWeight: "bold" }}>
                     Manager
                   </label>
                   <select

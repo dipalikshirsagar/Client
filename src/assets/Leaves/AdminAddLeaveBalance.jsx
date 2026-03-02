@@ -40,7 +40,8 @@ function AdminAddLeaveBalance() {
     const lastEl = focusableElements[focusableElements.length - 1];
 
     // ✅ Focus first element when modal opens
-    firstEl.focus();
+     modal.focus();
+    // firstEl.focus();
 
     const handleKeyDown = (e) => {
       // ESC closes modal
@@ -72,6 +73,7 @@ function AdminAddLeaveBalance() {
     };
   }, [selectedLeave]);
   // dipali code
+  
   //NEW CODE
   useEffect(() => {
     axios
@@ -786,8 +788,7 @@ function AdminAddLeaveBalance() {
                 onChange={(e) => setDateFromFilter(e.target.value)}
                 placeholder="dd-mm-yyyy"
                 className="form-control"
-                onFocus={(e) => (e.target.type = "date")}
-                onBlur={(e) => (e.target.type = "text")}
+                
               />
             </div>
 
@@ -813,8 +814,7 @@ function AdminAddLeaveBalance() {
                 onChange={(e) => setDateToFilter(e.target.value)}
                 placeholder="dd-mm-yyyy"
                 className="form-control"
-                onFocus={(e) => (e.target.type = "date")}
-                onBlur={(e) => (e.target.type = "text")}
+                
               />
             </div>
             {/* Filter and Reset buttons */}
@@ -1245,6 +1245,8 @@ function AdminAddLeaveBalance() {
       {selectedLeave && (
         <div
           className="modal fade show"
+           ref={modalRef}
+          tabIndex="-1"
           role="dialog"
           aria-modal="true"
           style={{ display: "block", background: "rgba(0,0,0,0.5)" }}

@@ -856,7 +856,7 @@ function EmployeeFullAttendance() {
             style={{ marginLeft: "16px" }}
           >
             <button
-              className="btn btn-sm border-0"
+             className="btn btn-sm focus-ring"
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
               style={{ fontSize: "18px", padding: "2px 8px" }}
@@ -864,7 +864,7 @@ function EmployeeFullAttendance() {
               ‹
             </button>
             <button
-              className="btn btn-sm border-0"
+             className="btn btn-sm focus-ring"
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
               style={{ fontSize: "18px", padding: "2px 8px" }}

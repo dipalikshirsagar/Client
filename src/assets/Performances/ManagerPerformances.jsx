@@ -19,6 +19,71 @@ function ManagerPerformances() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const modalRef = useRef(null);
+
+  useEffect(() => {
+    const isAnyModalOpen = selectedPerformance;
+  
+    if (isAnyModalOpen) {
+      document.body.style.overflow = "hidden";
+        document.documentElement.style.overflow = "hidden";
+      } else {
+        document.body.style.overflow = "";
+        document.documentElement.style.overflow = "";
+      }
+  
+      return () => {
+        document.body.style.overflow = "";
+        document.documentElement.style.overflow = "";
+      };
+  }, [selectedPerformance]);
+  
+  useEffect(() => {
+    if (!selectedPerformance || !modalRef.current) return;
+  
+    const modal = modalRef.current;
+  
+    const focusableSelectors =
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+  
+    const getFocusableElements = () =>
+      modal.querySelectorAll(focusableSelectors);
+  
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setSelectedPerformance(null);
+        setIsEditMode(false);
+      }
+    
+      if (e.key === "Tab") {
+        const focusableElements = getFocusableElements();
+        if (!focusableElements.length) return;
+    
+        const firstEl = focusableElements[0];
+        const lastEl = focusableElements[focusableElements.length - 1];
+    
+        if (e.shiftKey) {
+          if (document.activeElement === firstEl || !modal.contains(document.activeElement)) {
+            e.preventDefault();
+            lastEl.focus();
+          }
+        } else {
+          if (document.activeElement === lastEl || !modal.contains(document.activeElement)) {
+            e.preventDefault();
+            firstEl.focus();
+          }
+        }
+      }
+    };
+  
+    document.addEventListener("keydown", handleKeyDown);
+  
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [selectedPerformance]);
+
+
   // 🔥 GET MANAGER ID (SAME AS EMPLOYEE)
   useEffect(() => {
     const raw = localStorage.getItem("activeUser");
@@ -347,8 +412,8 @@ function ManagerPerformances() {
               {[
                 "Request ID",
                 "Employee",
-                "Manager",
-                "Department",
+                // "Manager",
+                // "Department",
                 "Duration",
                 "Rating",
                 "Remark",
@@ -378,10 +443,10 @@ function ManagerPerformances() {
                   style={{ cursor: "pointer" }}
                   onClick={() => setSelectedPerformance(row)}
                 >
-                  <td style={tdStyle("#3A5FBE", 500)}>{row.requestId}</td>
+                  <td style={tdStyle()}>{row.requestId}</td>
                   <td style={tdStyle()}>{row.employeeName}</td>
-                  <td style={tdStyle()}>{row.manager}</td>
-                  <td style={tdStyle()}>{row.department}</td>
+                  {/* <td style={tdStyle()}>{row.manager}</td> */}
+                  {/* <td style={tdStyle()}>{row.department}</td> */}
                   <td style={tdStyle()}>
                     {row.durationType} –{" "}
                     {row.durationType === "Monthly"
@@ -392,7 +457,14 @@ function ManagerPerformances() {
                       : new Date(row.durationDate).toLocaleDateString()}
                   </td>
                   <td style={tdStyle()}>{row.rating ?? "-"}</td>
-                  <td style={tdStyle()}>{row.description}</td>
+                  <td style={{
+                    ...tdStyle(),
+                    verticalAlign: "middle",
+                    borderBottom: "1px solid #dee2e6",
+                    maxWidth: "220px",
+                    wordBreak: "break-word",
+                    overflow: "auto"
+                  }}>{row.description}</td>
                   {/* Status */}
                   <td style={tdStyle()}>
                     <span
@@ -462,7 +534,7 @@ function ManagerPerformances() {
                   <td style={tdStyle()}>
                     <button
                       type="button"
-                      className="btn btn-sm btn-outline-primary"
+                      className="btn custom-outline-btn btn-sm"
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedPerformance(row);
@@ -510,14 +582,14 @@ function ManagerPerformances() {
 
           <div className="d-flex align-items-center">
             <button
-              className="btn btn-sm border-0"
+            className="btn btn-sm focus-ring"
               disabled={currentPage === 1}
               onClick={() => setCurrentPage((p) => p - 1)}
             >
               ‹
             </button>
             <button
-              className="btn btn-sm border-0"
+              className="btn btn-sm focus-ring"
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage((p) => p + 1)}
             >
@@ -544,7 +616,11 @@ function ManagerPerformances() {
           ref={modalRef}
           tabIndex="-1"
         >
-          <div className="modal-dialog modal-dialog-centered modal-lg">
+          <div className="modal-dialog modal-dialog-centered modal-lg"
+          style={{
+            maxWidth: "650px",
+            width: "95%",
+          }}>
             <div className="modal-content">
               {/* HEADER */}
               <div
@@ -561,12 +637,13 @@ function ManagerPerformances() {
               </div>
 
               {/* BODY */}
-              <div className="modal-body">
+              <div className="modal-body"
+               style={{ maxHeight: "60vh" }}>
                 {[
                   ["Request ID", selectedPerformance.requestId],
                   ["Employee Name", selectedPerformance.employeeName],
                   ["Employee ID", selectedPerformance.employeeId],
-                  ["Manager", selectedPerformance.manager],
+                  // ["Manager", selectedPerformance.manager],
                   ["Department", selectedPerformance.department],
                   [
                     "Duration",
@@ -756,7 +833,12 @@ function ManagerPerformances() {
                   <div className="col-8">
                     <div
                       className="p-2 border rounded bg-light"
-                      style={{ whiteSpace: "pre-wrap" }}
+                      style={{ 
+                        whiteSpace: "pre-wrap",
+                        maxHeight: "60px",        
+                        overflowY: "auto",
+                        wordBreak: "break-word"
+                      }}
                     >
                       {selectedPerformance.description}
                     </div>
@@ -767,7 +849,8 @@ function ManagerPerformances() {
               {/* FOOTER */}
               <div className="modal-footer border-0">
                 <button
-                  className="btn custom-outline-btn"
+                  className="btn custom-outline-btn btn-sm"
+                  style={{ width: 90 }}
                   onClick={() => {
                     setSelectedPerformance(null);
                     setIsEditMode(false);
@@ -778,7 +861,8 @@ function ManagerPerformances() {
 
                 {isEditMode && (
                   <button
-                    className="btn btn-primary"
+                    className="btn custom-outline-btn btn-sm"
+                  style={{ width: 90 }}
                     onClick={handleUpdatePerformance}
                   >
                     {isUpdating ? "Updating..." : "Update"}

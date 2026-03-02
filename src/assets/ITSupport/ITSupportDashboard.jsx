@@ -894,7 +894,7 @@ function ITSupportDashboard() {
             style={{ marginLeft: "16px" }}
           >
             <button
-              className="btn btn-sm border-0"
+            className="btn btn-sm focus-ring"
               disabled={currentPage === 1}
               onClick={() => setCurrentPage((p) => p - 1)}
               style={{ fontSize: "18px", padding: "2px 8px", color: "#212529" }}
@@ -902,7 +902,8 @@ function ITSupportDashboard() {
               ‹
             </button>
             <button
-              className="btn btn-sm border-0"
+              className="btn btn-sm focus-ring"
+              
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage((p) => p + 1)}
               style={{ fontSize: "18px", padding: "2px 8px", color: "#212529" }}

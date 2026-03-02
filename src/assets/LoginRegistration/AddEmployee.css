@@ -13,7 +13,7 @@
 .custom-modal-header {
   display: flex;
  
-  background-color: #0d47a1; /* dark blue header */
+  background-color: #3A5FBE; /* dark blue header */
   color: white;
   font-size: 18px;
   font-weight: 600;
@@ -28,7 +28,7 @@
 
 
 .formModel{
-  color: #0d47a1;
+  color: #3A5FBE;
    margin-top: -15px; 
    
   
@@ -46,7 +46,7 @@
 
 .formModel label {
   font-weight: bold;
-  color: #0d47a1 !important;
+  color: #3A5FBE !important;
   margin-top: 10px;
   display: block;
 }

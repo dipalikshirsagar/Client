@@ -522,11 +522,11 @@ function Dashboard() {
               }
             /> */}
               {/* //added jayashree */}
-              <Route
+                    <Route
                 path="schedule-interview"
                 element={
-                  user.role === "hr" ? (
-                    <HRScheduleInterview />
+                  ["hr", "coo","ceo","md","admin"].includes(user.role)? (
+                    <HRScheduleInterview user={user}/>
                   ) : (
                     <h5 className="text-center mt-4 text-danger">
                       Access Denied
@@ -538,7 +538,7 @@ function Dashboard() {
                 path="interviews"
                 element={
                   user.role === "employee" || user.role === "IT_Support" ? (
-                    <EmployeeInterviews />
+                    <EmployeeInterviews/>
                   ) : (
                     <h5 className="text-center mt-4 text-danger">
                       Access Denied
@@ -549,8 +549,8 @@ function Dashboard() {
               <Route
                 path="manager/interviews"
                 element={
-                  user.role === "manager" ? (
-                    <ManagerInterviews /> // alag component
+                  ["manager"].includes(user.role)? (
+                    <ManagerInterviews/> // alag component
                   ) : (
                     <h5 className="text-center mt-4 text-danger">
                       Access Denied

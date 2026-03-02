@@ -276,27 +276,6 @@ function Sidebar({ handleLogout }) {
             </NavLink>
           </li>
 
-          {/* Holidays */}
-          {/* <li className="nav-item ">
-            <NavLink
-              to={`/dashboard/${role}/${username}/${id}/AllHolidays`}
-              className="nav-link text-white d-flex flex-column align-items-center"
-            >
-              <BarChartFill size={20} />
-              <h6 className="mt-1">Holidays</h6>
-            </NavLink>
-          </li> */}
-
-          {/* Reports */}
-          {/* <li className="nav-item ">
-            <NavLink
-              to={`/dashboard/${role}/${username}/${id}/reports`}
-              className="nav-link text-whi              te d-flex flex-column align-items-center"
-            >
-              <FileEarmarkTextFill size={20} />
-              <h6 className="mt-1">Reports</h6>
-            </NavLink>
-          </li> */}
           {/* jayashree */}
           {(role === "employee" ||
             role === "IT_Support" ||
@@ -378,6 +357,7 @@ function Sidebar({ handleLogout }) {
               <NavLink
                 to={`/dashboard/${role}/${username}/${id}/employee-feedback`}
                 className="nav-link d-flex flex-column align-items-center"
+                onClick={handleLinkClick}//rutuja
               >
                 <ChatLeftTextFill size={20} />
                 <h6 className="mt-1">Employee Feedback</h6>
@@ -385,43 +365,48 @@ function Sidebar({ handleLogout }) {
             </li>
           )}
 
-          {/* added jayashree */}
-          {role === "hr" && (
-            <li className="nav-item">
-              <NavLink
-                to={`/dashboard/${role}/${username}/${id}/schedule-interview`}
-                className="nav-link text-white d-flex flex-column align-items-center"
-              >
-                <CalendarCheckFill size={20} />
-                <h6 className="mt-1">Schedule Interview</h6>
-              </NavLink>
-            </li>
-          )}
+                   {/* added jayashree */}
+            {(role === "hr" ||
+              role === "admin" ||
+              role === "ceo" ||
+              role === "coo" ||
+              role === "md") && (
+                <li className="nav-item">
+                   <NavLink
+                         to={`/dashboard/${role}/${username}/${id}/schedule-interview`}
+                         className="nav-link text-white d-flex flex-column align-items-center"
+                    >
+                    <CalendarCheckFill size={20} />
+                    <h6 className="mt-1">Schedule Interview</h6>
+                    </NavLink>
+                </li>
+              )}
+        
 
           {(role === "employee" || role === "IT_Support") && (
-            <li className="nav-item">
-              <NavLink
-                to={`/dashboard/${role}/${username}/${id}/interviews`}
-                className="nav-link text-white d-flex flex-column align-items-center"
-              >
-                <CalendarCheckFill size={20} />
-                <h6 className="mt-1">Schedule Interviews</h6>
-              </NavLink>
-            </li>
-          )}
-
-          {role === "manager" && (
-            <li className="nav-item">
-              <NavLink
-                to={`/dashboard/${role}/${username}/${id}/manager/interviews`}
-                className="nav-link text-white d-flex flex-column align-items-center"
-              >
-                <CalendarCheckFill size={20} />
-                <h6 className="mt-1">Schedule Interviews</h6>
-              </NavLink>
-            </li>
-          )}
-        </ul>
+                    <li className="nav-item">
+                      <NavLink
+                        to={`/dashboard/${role}/${username}/${id}/interviews`}
+                        className="nav-link text-white d-flex flex-column align-items-center"
+                      >
+                        <CalendarCheckFill size={20} />
+                        <h6 className="mt-1">Schedule Interviews</h6>
+                      </NavLink>
+                    </li>
+                  )}
+        
+                  {(role === "manager") && (
+                    <li className="nav-item">
+                      <NavLink
+                        to={`/dashboard/${role}/${username}/${id}/manager/interviews`}
+                        className="nav-link text-white d-flex flex-column align-items-center"
+                      >
+                        <CalendarCheckFill size={20} />
+                        <h6 className="mt-1">Schedule Interviews</h6>
+                      </NavLink>
+                    </li>
+                  )}
+                </ul>
 
         {/* //Added by Rushikesh */}
         {(role === "employee" || role === "IT_Support") && (

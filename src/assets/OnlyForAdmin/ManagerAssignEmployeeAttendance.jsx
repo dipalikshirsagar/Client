@@ -212,7 +212,7 @@ function ManagerAssignedEmployeesAttendance() {
               className="card-body d-flex align-items-center"
               style={{ gap: "20px" }}
             >
-              <div
+              <h4
                 className="mb-0"
                 style={{
                   fontSize: "40px",
@@ -227,7 +227,7 @@ function ManagerAssignedEmployeesAttendance() {
                 }}
               >
                 {summary.absent}
-              </div>
+              </h4>
 
               <p
                 className="mb-0 fw-semibold"
@@ -245,7 +245,7 @@ function ManagerAssignedEmployeesAttendance() {
               className="card-body d-flex align-items-center"
               style={{ gap: "20px" }}
             >
-              <div
+              <h4
                 className="mb-0"
                 style={{
                   fontSize: "40px",
@@ -260,7 +260,7 @@ function ManagerAssignedEmployeesAttendance() {
                 }}
               >
                 {summary.lateCheckIn}
-              </div>
+              </h4>
               <div>
                 <p
                   className="mb-0 fw-semibold"
@@ -603,14 +603,14 @@ function ManagerAssignedEmployeesAttendance() {
             style={{ marginLeft: "16px" }}
           >
             <button
-              className="btn btn-sm border-0"
+             className="btn btn-sm focus-ring"
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
             >
               ‹
             </button>
             <button
-              className="btn btn-sm border-0"
+             className="btn btn-sm focus-ring"
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
             >

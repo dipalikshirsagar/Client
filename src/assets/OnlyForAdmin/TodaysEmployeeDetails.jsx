@@ -195,8 +195,36 @@ function TodaysEmployeeDetails() {
           headers: { Authorization: `Bearer ${token}` },
         });
 
+        // const res = await authAxios.get("/attendance/today");
+        // const employees = res.data?.employees || [];
+        //Added by Harshada
         const res = await authAxios.get("/attendance/today");
         const employees = res.data?.employees || [];
+
+        const today = new Date().toISOString().split("T")[0];
+
+        // Fetch break for each employee
+        const employeesWithBreaks = await Promise.all(
+          employees.map(async (emp) => {
+            try {
+              const breakRes = await authAxios.get(
+                `/api/break/admin/${emp._id}?date=${today}`
+              );
+
+              const todayBreakDoc = breakRes.data?.[0];
+
+              return {
+                ...emp,
+                breaks: todayBreakDoc?.breaks || [],
+              };
+            } catch (err) {
+              return {
+                ...emp,
+                breaks: [],
+              };
+            }
+          })
+        );
 
         // ✅ Calculate counts
         let present = 0;
@@ -224,7 +252,11 @@ function TodaysEmployeeDetails() {
         });
 
         setSummary({ present, absent, lateCheckIn });
-        setAttendanceData(res.data);
+        //Added by Harshada - to include breaks in employee data
+        setAttendanceData({
+          ...res.data,
+          employees: employeesWithBreaks,
+        });
       } catch (err) {
         console.error(err);
         setError("Failed to fetch today's attendance.");
@@ -618,6 +650,19 @@ function TodaysEmployeeDetails() {
               >
                 Total Hours
               </th>
+{/* //Added by Harshada */}
+              <th
+                style={{
+                  fontWeight: "500",
+                  fontSize: "14px",
+                  color: "#6c757d",
+                  borderBottom: "2px solid #dee2e6",
+                  padding: "12px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Break
+              </th>
               <th
                 style={{
                   fontWeight: "500",
@@ -736,6 +781,19 @@ function TodaysEmployeeDetails() {
                     >
                       {workingHours > 0 ? `${workingHours} hrs` : "-"}
                     </td>
+                    {/* //Added by harshada */}
+                    <td
+                      style={{
+                        padding: "12px",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #dee2e6",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {emp.breaks && emp.breaks.length > 0
+                        ? getTotalBreakDurationHMS(emp.breaks)
+                        : "-"}
+                    </td>
                     <td
                       style={{
                         padding: "12px",
@@ -816,14 +874,14 @@ function TodaysEmployeeDetails() {
             style={{ marginLeft: "16px" }}
           >
             <button
-              className="btn btn-sm border-0"
+             className="btn btn-sm focus-ring"
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
             >
               ‹
             </button>
             <button
-              className="btn btn-sm border-0"
+             className="btn btn-sm focus-ring"
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
             >

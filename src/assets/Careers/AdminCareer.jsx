@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import RichTextEditor from "./RichTextEditor";
 import "./AdminCareer.css";
 import axios from "axios";
@@ -12,7 +12,7 @@ function AdminCareer({ user }) {
   const [jobs, setJobs] = useState([]);
   const [filteredJobs, setFilteredJobs] = useState([]);
   const [activeTab, setActiveTab] = useState("inhouse");
-
+  const modalRef = useRef(null);
   const [showAddJob, setShowAddJob] = useState(false);
   const [editJobId, setEditJobId] = useState(null);
   const [editMode, setEditMode] = useState(false);
@@ -66,6 +66,9 @@ function AdminCareer({ user }) {
   useEffect(() => {
     applyFilters();
   }, [activeTab, jobs]);
+
+
+
 
   const fetchJobs = async () => {
     try {
@@ -458,7 +461,7 @@ function AdminCareer({ user }) {
 
   //Added by Tanvi
   // tanvi
-  const isAnyPopupOpen = !!showViewPopup || viewJob;
+  const isAnyPopupOpen = !!showViewPopup || viewJob || showAddJob;
   useEffect(() => {
     if (isAnyPopupOpen) {
       document.body.style.overflow = "hidden";
@@ -474,6 +477,59 @@ function AdminCareer({ user }) {
     };
   }, [isAnyPopupOpen]);
 
+  const isAnyModalOpen = showViewPopup || viewJob || showAddJob;
+
+  useEffect(() => {
+
+    if (!isAnyModalOpen || !modalRef.current) return;
+
+    const modal = modalRef.current;
+
+    const focusableElements = modal.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+
+    if (!focusableElements.length) return;
+
+    const firstEl = focusableElements[0];
+    const lastEl = focusableElements[focusableElements.length - 1];
+
+
+    modal.focus();
+
+
+    const handleKeyDown = (e) => {
+
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setShowViewPopup(false);
+        setViewJob(false);
+      }
+
+      // TAB key → focus trap
+      if (e.key === "Tab") {
+        if (e.shiftKey) {
+          if (document.activeElement === firstEl) {
+            e.preventDefault();
+            lastEl.focus();
+          }
+        }
+        else {
+          if (document.activeElement === lastEl) {
+            e.preventDefault();
+            firstEl.focus();
+          }
+        }
+      }
+    };
+
+    modal.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      modal.removeEventListener("keydown", handleKeyDown);
+    };
+
+  }, [isAnyModalOpen]);
   // mahesh code
   const isExpired = (dueDate) => {
     const today = new Date();
@@ -606,18 +662,16 @@ function AdminCareer({ user }) {
 
       <div className="d-flex flex-row justify-content-start justify-content-md-center gap-2 mb-3 list-unstyled flex-wrap">
         <button
-          className={`btn btn-sm job-tab-btn ${
-            activeTab === "inhouse" ? "active" : ""
-          }`}
+          className={`btn btn-sm job-tab-btn ${activeTab === "inhouse" ? "active" : ""
+            }`}
           onClick={() => setActiveTab("inhouse")}
         >
           {" "}
           In-House Jobs
         </button>
         <button
-          className={`btn btn-sm job-tab-btn ${
-            activeTab === "referral" ? "active" : ""
-          }`}
+          className={`btn btn-sm job-tab-btn ${activeTab === "referral" ? "active" : ""
+            }`}
           onClick={() => setActiveTab("referral")}
         >
           {" "}
@@ -855,9 +909,9 @@ function AdminCareer({ user }) {
                           ? expandedJobId === job._id
                             ? job.jobDescription.replace(/<[^>]+>/g, "")
                             : job.jobDescription
-                                .replace(/<[^>]+>/g, "")
-                                .substring(0, 50) +
-                              (job.jobDescription.length > 50 ? "..." : "")
+                              .replace(/<[^>]+>/g, "")
+                              .substring(0, 50) +
+                            (job.jobDescription.length > 50 ? "..." : "")
                           : "-"}
                       </div>
                     </td>
@@ -888,7 +942,7 @@ function AdminCareer({ user }) {
                     </td>
 
 
-                    
+
                     <td>
                       {/* <button
                         className="btn btn-sm custom-outline-btn"
@@ -912,7 +966,7 @@ function AdminCareer({ user }) {
 
                           {/* added by rushikesh */}
                           <div className="d-flex flex-nowrap align-items-center gap-2">
-    
+
                             <button
                               className="btn btn-sm custom-outline-btn"
                               style={{ minWidth: 120 }}
@@ -923,43 +977,43 @@ function AdminCareer({ user }) {
                             >
                               View Candidates
                             </button>
-    
-                          {/* mahesh code */}
-                          <button
-                            className="btn btn-sm custom-outline-btn me-2"
-                            disabled={isExpired(job.dueOn)}
-                            style={{
-                              opacity: isExpired(job.dueOn) ? 0.5 : 1,
-                              cursor: isExpired(job.dueOn)
-                                ? "not-allowed"
-                                : "pointer",
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (isExpired(job.dueOn)) return;
-                              handleEdit(job);
-                            }}
-                          >
-                            Edit
-                          </button>
 
-                          <button
-                            className="btn btn-sm btn-outline-danger"
-                            disabled={isExpired(job.dueOn)}
-                            style={{
-                              opacity: isExpired(job.dueOn) ? 0.5 : 1,
-                              cursor: isExpired(job.dueOn)
-                                ? "not-allowed"
-                                : "pointer",
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (isExpired(job.dueOn)) return;
-                              handleDelete(job._id);
-                            }}
-                          >
-                            Delete
-                          </button>
+                            {/* mahesh code */}
+                            <button
+                              className="btn btn-sm custom-outline-btn me-2"
+                              disabled={isExpired(job.dueOn)}
+                              style={{
+                                opacity: isExpired(job.dueOn) ? 0.5 : 1,
+                                cursor: isExpired(job.dueOn)
+                                  ? "not-allowed"
+                                  : "pointer",
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (isExpired(job.dueOn)) return;
+                                handleEdit(job);
+                              }}
+                            >
+                              Edit
+                            </button>
+
+                            <button
+                              className="btn btn-sm btn-outline-danger"
+                              disabled={isExpired(job.dueOn)}
+                              style={{
+                                opacity: isExpired(job.dueOn) ? 0.5 : 1,
+                                cursor: isExpired(job.dueOn)
+                                  ? "not-allowed"
+                                  : "pointer",
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (isExpired(job.dueOn)) return;
+                                handleDelete(job._id);
+                              }}
+                            >
+                              Delete
+                            </button>
                           </div>
                         </>
                       )}
@@ -1002,9 +1056,8 @@ function AdminCareer({ user }) {
           >
             {filteredJobs.length === 0
               ? "0–0 of 0"
-              : `${indexOfFirstItem + 1}-${indexOfLastItem} of ${
-                  filteredJobs.length
-                }`}
+              : `${indexOfFirstItem + 1}-${indexOfLastItem} of ${filteredJobs.length
+              }`}
           </span>
 
           {/* Arrows */}
@@ -1013,7 +1066,7 @@ function AdminCareer({ user }) {
             style={{ marginLeft: "16px" }}
           >
             <button
-              className="btn btn-sm border-0"
+             className="btn btn-sm focus-ring"
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
               style={{ fontSize: "18px", padding: "2px 8px", color: "#212529" }}
@@ -1021,7 +1074,8 @@ function AdminCareer({ user }) {
               ‹
             </button>
             <button
-              className="btn btn-sm border-0"
+                 className="btn btn-sm focus-ring"
+
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
               style={{ fontSize: "18px", padding: "2px 8px", color: "#212529" }}
@@ -1045,398 +1099,403 @@ function AdminCareer({ user }) {
 
       {/* //added by Rushikesh */}
       {showAddJob && (
-  <div
-    className="modal fade show d-block"
-    style={{ background: "#00000080" }}
-  >
-    <div className="modal-overlay">
-      <div className="modal-container"
-      style={{ marginTop:100}}>
-        <div className="modal-header-custom">
-          {editJobId ? "Edit Job" : "Add Job"}
+        <div
+          ref={modalRef}
+          tabIndex="-1"
+          className="modal fade show d-block"
 
-          <button
-            type="button"
-            className="modal-close-btn"
-            onClick={() => {
-              setShowAddJob(false);
-              setEditJobId(null);
-            }}
-          >
-            ✕
-          </button>
-        </div>
+          style={{ background: "#00000080" }}
+        >
+          <div className="modal-overlay">
+            <div className="modal-container"
+              style={{ marginTop: 100 }}>
+              <div className="modal-header-custom">
+                {editJobId ? "Edit Job" : "Add Job"}
 
-        <div className="modal-body">
-          <form onSubmit={handleSaveJob}>
-            <h5 className="section-title">Basic Information</h5>
-
-            {/* Location */}
-            <div className="row align-items-center mb-3">
-              <div className="col-12 col-md-4 fw-semibold">Location *</div>
-              <div className="col-12 col-md-8">
-                <input
-                  className="form-control"
-                  value={newJob.location}
-                  onChange={(e) =>
-                    setNewJob({ ...newJob, location: e.target.value })
-                  }
+                <button
+                  type="button"
+                  className="modal-close-btn"
+                  onClick={() => {
+                    setShowAddJob(false);
+                    setEditJobId(null);
+                  }}
                 >
-                
-                </input>
+                  ✕
+                </button>
               </div>
-            </div>
 
-            {/* Hiring Type */}
-          <div className="row align-items-center mb-3">
-  <div className="col-12 col-md-4 fw-semibold">Hiring Type *</div>
-  <div className="col-12 col-md-8">
-    <select
-      className="form-select"
-      value={newJob.hiringType}
-      onChange={(e) =>
-        setNewJob({ ...newJob, hiringType: e.target.value })
-      }
-    >
-      <option value="">Select Type</option>
-      <option>Full-Time</option>
-      <option>Contract</option>
-    </select>
-  </div>
-</div>
+              <div className="modal-body">
+                <form onSubmit={handleSaveJob}>
+                  <h5 className="section-title">Basic Information</h5>
 
-            {/* Job Type */}
-            <div className="row align-items-center mb-3">
-  <div className="col-12 col-md-4 fw-semibold">Job Type *</div>
-  <div className="col-12 col-md-8">
-    <select
-      className="form-select"
-      value={newJob.jobType}
-      onChange={(e) =>
-        setNewJob({ ...newJob, jobType: e.target.value })
-      }
-    >
-      <option value="">Select Job Type</option>
-      <option value="inhouse">In-House</option>
-      <option value="referral">Open for Referral</option>
-    </select>
-  </div>
-</div>
+                  {/* Location */}
+                  <div className="row align-items-center mb-3">
+                    <div className="col-12 col-md-4 fw-semibold">Location *</div>
+                    <div className="col-12 col-md-8">
+                      <input
+                        className="form-control"
+                        value={newJob.location}
+                        onChange={(e) =>
+                          setNewJob({ ...newJob, location: e.target.value })
+                        }
+                      >
 
-            {/* Openings */}
-            <div className="row align-items-center mb-3">
-              <div className="col-12 col-md-4 fw-semibold">No of Openings *</div>
-              <div className="col-12 col-md-8">
-                <input
-                  type="number"
-                  className="form-control"
-                  value={newJob.noOfOpenings}
-                  onChange={(e) =>
-                    setNewJob({
-                      ...newJob,
-                      noOfOpenings: e.target.value,
-                    })
-                  }
-                />
-              </div>
-            </div>
-
-            {/* Description */}
-            <div className="row mb-3">
-              <div className="col-12 col-md-4 fw-semibold">Job Description *</div>
-              <div className="col-12 col-md-8">
-                <RichTextEditor
-                  value={newJob.jobDescription}
-                  onChange={(value) =>
-                    setNewJob((prev) => ({
-                      ...prev,
-                      jobDescription: value,
-                    }))
-                  }
-                />
-              </div>
-            </div>
-
-            <h5 className="section-title">CTC Details (₹)</h5>
-
-             
-                 <div className="row mb-3">
-                
-                  <div className="col-12 col-md-4 fw-semibold">Min CTC</div>
-                     <div className="col-12 col-md-8">
-                    <input
-                      type="number"
-                      className="form-control"
-                      value={newJob.ctc?.min || ""}
-                      onChange={(e) =>
-                        setNewJob({
-                          ...newJob,
-                          ctc: {
-                            ...newJob.ctc,
-                            min: e.target.value,
-                          },
-                        })
-                      }
-                    />
+                      </input>
+                    </div>
                   </div>
-                  
-              </div>
 
-              
-                <div className="row align-items-center">
-                  <div className="col-12 col-md-4 fw-semibold">Max CTC</div>
-                  <div className="col-12 col-md-8">
-                    <input
-                      type="number"
-                      className="form-control"
-                      value={newJob.ctc?.max || ""}
-                      onChange={(e) =>
-                        setNewJob({
-                          ...newJob,
-                          ctc: {
-                            ...newJob.ctc,
-                            max: e.target.value,
-                          },
-                        })
-                      }
-                    />
-               
-                </div>
-              </div>
-            
-
-            <h5 className="section-title">Experience & Skills</h5>
-
-        
-             
-                <div className="row mb-3">
-                  <div className="col-12 col-md-4 fw-semibold">Min Experience(Years)</div>
-                  <div className="col-12 col-md-8">
-                    <input
-                      type="number"
-                      className="form-control"
-                      value={newJob.experience?.min || ""}
-                      onChange={(e) =>
-                        setNewJob({
-                          ...newJob,
-                          experience: {
-                            ...newJob.experience,
-                            min: e.target.value,
-                          },
-                        })
-                      }
-                    />
+                  {/* Hiring Type */}
+                  <div className="row align-items-center mb-3">
+                    <div className="col-12 col-md-4 fw-semibold">Hiring Type *</div>
+                    <div className="col-12 col-md-8">
+                      <select
+                        className="form-select"
+                        value={newJob.hiringType}
+                        onChange={(e) =>
+                          setNewJob({ ...newJob, hiringType: e.target.value })
+                        }
+                      >
+                        <option value="">Select Type</option>
+                        <option>Full-Time</option>
+                        <option>Contract</option>
+                      </select>
+                    </div>
                   </div>
-              </div>
-              
 
-              
+                  {/* Job Type */}
+                  <div className="row align-items-center mb-3">
+                    <div className="col-12 col-md-4 fw-semibold">Job Type *</div>
+                    <div className="col-12 col-md-8">
+                      <select
+                        className="form-select"
+                        value={newJob.jobType}
+                        onChange={(e) =>
+                          setNewJob({ ...newJob, jobType: e.target.value })
+                        }
+                      >
+                        <option value="">Select Job Type</option>
+                        <option value="inhouse">In-House</option>
+                        <option value="referral">Open for Referral</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Openings */}
+                  <div className="row align-items-center mb-3">
+                    <div className="col-12 col-md-4 fw-semibold">No of Openings *</div>
+                    <div className="col-12 col-md-8">
+                      <input
+                        type="number"
+                        className="form-control"
+                        value={newJob.noOfOpenings}
+                        onChange={(e) =>
+                          setNewJob({
+                            ...newJob,
+                            noOfOpenings: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  {/* Description */}
                   <div className="row mb-3">
-                  <div className="col-12 col-md-4 fw-semibold">Max Experience(Years)</div>
-                  <div className="col-12 col-md-8">
-                    <input
-                      type="number"
-                      className="form-control"
-                      value={newJob.experience?.max || ""}
-                      onChange={(e) =>
-                        setNewJob({
-                          ...newJob,
-                          experience: {
-                            ...newJob.experience,
-                            max: e.target.value,
-                          },
-                        })
-                      }
-                    />
+                    <div className="col-12 col-md-4 fw-semibold">Job Description *</div>
+                    <div className="col-12 col-md-8">
+                      <RichTextEditor
+                        value={newJob.jobDescription}
+                        onChange={(value) =>
+                          setNewJob((prev) => ({
+                            ...prev,
+                            jobDescription: value,
+                          }))
+                        }
+                      />
+                    </div>
                   </div>
-                
-              </div>
-            
 
-            {/* Skills */}
-            <div className="row align-items-center mb-3">
-              <div className="col-12 col-md-4 fw-semibold">Important Skills *</div>
-              <div className="col-12 col-md-8">
-                <input
-                  className="form-control"
-                  value={newJob.importantSkills.join(", ") || ""}
-                  onChange={(e) =>
-                    setNewJob({
-                      ...newJob,
-                      importantSkills: e.target.value
-                        .split(",")
-                        .map((s) => s.trim()),
-                    })
-                  }
-                />
+                  <h5 className="section-title">CTC Details (₹)</h5>
+
+
+                  <div className="row mb-3">
+
+                    <div className="col-12 col-md-4 fw-semibold">Min CTC</div>
+                    <div className="col-12 col-md-8">
+                      <input
+                        type="number"
+                        className="form-control"
+                        value={newJob.ctc?.min || ""}
+                        onChange={(e) =>
+                          setNewJob({
+                            ...newJob,
+                            ctc: {
+                              ...newJob.ctc,
+                              min: e.target.value,
+                            },
+                          })
+                        }
+                      />
+                    </div>
+
+                  </div>
+
+
+                  <div className="row align-items-center">
+                    <div className="col-12 col-md-4 fw-semibold">Max CTC</div>
+                    <div className="col-12 col-md-8">
+                      <input
+                        type="number"
+                        className="form-control"
+                        value={newJob.ctc?.max || ""}
+                        onChange={(e) =>
+                          setNewJob({
+                            ...newJob,
+                            ctc: {
+                              ...newJob.ctc,
+                              max: e.target.value,
+                            },
+                          })
+                        }
+                      />
+
+                    </div>
+                  </div>
+
+
+                  <h5 className="section-title">Experience & Skills</h5>
+
+
+
+                  <div className="row mb-3">
+                    <div className="col-12 col-md-4 fw-semibold">Min Experience(Years)</div>
+                    <div className="col-12 col-md-8">
+                      <input
+                        type="number"
+                        className="form-control"
+                        value={newJob.experience?.min || ""}
+                        onChange={(e) =>
+                          setNewJob({
+                            ...newJob,
+                            experience: {
+                              ...newJob.experience,
+                              min: e.target.value,
+                            },
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+
+
+
+                  <div className="row mb-3">
+                    <div className="col-12 col-md-4 fw-semibold">Max Experience(Years)</div>
+                    <div className="col-12 col-md-8">
+                      <input
+                        type="number"
+                        className="form-control"
+                        value={newJob.experience?.max || ""}
+                        onChange={(e) =>
+                          setNewJob({
+                            ...newJob,
+                            experience: {
+                              ...newJob.experience,
+                              max: e.target.value,
+                            },
+                          })
+                        }
+                      />
+                    </div>
+
+                  </div>
+
+
+                  {/* Skills */}
+                  <div className="row align-items-center mb-3">
+                    <div className="col-12 col-md-4 fw-semibold">Important Skills *</div>
+                    <div className="col-12 col-md-8">
+                      <input
+                        className="form-control"
+                        value={newJob.importantSkills.join(", ") || ""}
+                        onChange={(e) =>
+                          setNewJob({
+                            ...newJob,
+                            importantSkills: e.target.value
+                              .split(",")
+                              .map((s) => s.trim()),
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  {/* Due Date */}
+                  <div className="row align-items-center mb-3">
+                    <div className="col-12 col-md-4 fw-semibold">Due On *</div>
+                    <div className="col-12 col-md-8">
+                      <input
+                        type="date"
+                        className="form-control"
+                        value={newJob.dueOn || ""}
+                        onChange={(e) =>
+                          setNewJob({ ...newJob, dueOn: e.target.value })
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  <div className="modal-footer">
+                    <button
+                      type="button"
+                      className="btn btn-sm custom-outline-btn "
+                      style={{ minWidth: 90 }}
+                      onClick={() => {
+                        setShowAddJob(false);
+                        setEditJobId(null);
+                      }}
+                    >
+                      Cancel
+                    </button>
+
+                    <button type="submit" className="btn btn-sm custom-outline-btn" style={{ minWidth: 90 }}>
+
+                      {editJobId ? "Save Changes" : "Save"}
+                    </button>
+                  </div>
+                </form>
               </div>
             </div>
-
-            {/* Due Date */}
-            <div className="row align-items-center mb-3">
-              <div className="col-12 col-md-4 fw-semibold">Due On *</div>
-              <div className="col-12 col-md-8">
-                <input
-                  type="date"
-                  className="form-control"
-                  value={newJob.dueOn || ""}
-                  onChange={(e) =>
-                    setNewJob({ ...newJob, dueOn: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="modal-footer">
-              <button
-                type="button"
-                className="btn btn-sm custom-outline-btn "
-                style={{minWidth:90}}
-                onClick={() => {
-                  setShowAddJob(false);
-                  setEditJobId(null);
-                }}
-              >
-                Cancel
-              </button>
-
-              <button type="submit" className="btn btn-sm custom-outline-btn" style={{minWidth:90}}>
-                
-                {editJobId ? "Save Changes" : "Save"}
-              </button>
-            </div>
-          </form>
+          </div>
         </div>
-      </div>
-    </div>
-  </div>
-)}
+      )}
 
 
 
       {showViewPopup && viewJob && (
+        <div
+          className="modal fade show"
+          ref={modalRef}
+          tabIndex="-1"
+          style={{ display: "block", background: "rgba(0,0,0,0.5)" }}
+        >
+          <div
+            className="modal-dialog modal-lg modal-dialog-centered"
+            style={{ maxWidth: "600px", marginTop: "80px" }}
+          >
+            <div className="modal-content">
               <div
-                className="modal fade show"
-                style={{ display: "block", background: "rgba(0,0,0,0.5)" }}
+                className="modal-header text-white"
+                style={{ backgroundColor: "#3A5FBE" }}
               >
-              <div
-                  className="modal-dialog modal-lg modal-dialog-centered"
-                  style={{ maxWidth: "600px", marginTop: "80px" }}
-                >
-                  <div className="modal-content">
-                    <div
-                      className="modal-header text-white"
-                      style={{ backgroundColor: "#3A5FBE" }}
-                    >
-                      <h5 className="modal-title mb-0">{viewJob.jobTitle}</h5>
-                      <button
-                        type="button"
-                        className="btn-close btn-close-white"
-                        onClick={() => setShowViewPopup(false)}
-                      ></button>
-                    </div>
-
-                      
-
-                      
-                    <h5 className="section-title" style={{marginLeft:15}}>Job Details</h5>
-
-                    <div className="modal-body">
-                  
-        <div>
-
-          <div className="row mb-2">
-            <div className="col-3 fw-semibold">Job ID</div>
-            <div className="col-9">{viewJob._id?.slice(-4)}</div>
-          </div>
-
-          <div className="row mb-2">
-            <div className="col-3 fw-semibold">Location</div>
-            <div className="col-9">{viewJob.location}</div>
-          </div>
-
-          <div className="row mb-2">
-            <div className="col-3 fw-semibold">Department</div>
-            <div className="col-9">{viewJob.department}</div>
-          </div>
-
-          <div className="row mb-2">
-            <div className="col-3 fw-semibold">Job Type</div>
-            <div className="col-9">{viewJob.hiringType}</div>
-          </div>
-
-          <div className="row mb-2">
-            <div className="col-3 fw-semibold">Experience</div>
-            <div className="col-9">
-              {viewJob.experience?.min} – {viewJob.experience?.max} Years
-            </div>
-          </div>
-
-          <div className="row mb-3">
-            <div className="col-3 fw-semibold">Posted</div>
-            <div className="col-9">{formatDate(viewJob.createdAt)}</div>
-          </div>
-
-          {/* Key Skills */}
-          <div className="row mb-2">
-            <div className="col-3 fw-semibold">Key Skills</div>
-            <div className="col-9">
-              <ul className="mb-0 list-unstyled ps-0">
-                {viewJob.importantSkills?.map((skill, i) => (
-                  <li key={i} style={{ marginBottom: "2px" }}>
-                    {skill}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          {/* Other Skills */}
-          {viewJob.otherSkills?.length > 0 && (
-            <div className="row mb-2">
-              <div className="col-3 fw-semibold">Other Skills</div>
-              <div className="col-9">
-                <ul className="mb-0 list-unstyled ps-0">
-                  {viewJob.otherSkills.map((skill, i) => (
-                    <li key={i} style={{ marginBottom: "2px" }}>
-                      {skill}
-                    </li>
-                  ))}
-                </ul>
+                <h5 className="modal-title mb-0">{viewJob.jobTitle}</h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setShowViewPopup(false)}
+                ></button>
               </div>
-            </div>
-          )}
-
-          {/* Description */}
-          <div className="row mb-2">
-            <div className="col-3 fw-semibold">Description</div>
-            <div className="col-9">
-              <div
-                dangerouslySetInnerHTML={{
-                  __html: viewJob.jobDescription,
-                }}
-              />
-            </div>
-          </div>
-
-        </div>
 
 
-                    </div>
 
-                    <div className="modal-footer">
-                      <button
-                        className="btn btn-sm custom-outline-btn"
-                        style={{ marginRight: "45px", marginBottom: "10px" ,minWidth:90}}
-                        onClick={() => setShowViewPopup(false)}
-                      >
-                        Close
-                      </button>
+
+              <h5 className="section-title" style={{ marginLeft: 15 }}>Job Details</h5>
+
+              <div className="modal-body">
+
+                <div>
+
+                  <div className="row mb-2">
+                    <div className="col-3 fw-semibold">Job ID</div>
+                    <div className="col-9">{viewJob._id?.slice(-4)}</div>
+                  </div>
+
+                  <div className="row mb-2">
+                    <div className="col-3 fw-semibold">Location</div>
+                    <div className="col-9">{viewJob.location}</div>
+                  </div>
+
+                  <div className="row mb-2">
+                    <div className="col-3 fw-semibold">Department</div>
+                    <div className="col-9">{viewJob.department}</div>
+                  </div>
+
+                  <div className="row mb-2">
+                    <div className="col-3 fw-semibold">Job Type</div>
+                    <div className="col-9">{viewJob.hiringType}</div>
+                  </div>
+
+                  <div className="row mb-2">
+                    <div className="col-3 fw-semibold">Experience</div>
+                    <div className="col-9">
+                      {viewJob.experience?.min} – {viewJob.experience?.max} Years
                     </div>
                   </div>
+
+                  <div className="row mb-3">
+                    <div className="col-3 fw-semibold">Posted</div>
+                    <div className="col-9">{formatDate(viewJob.createdAt)}</div>
+                  </div>
+
+                  {/* Key Skills */}
+                  <div className="row mb-2">
+                    <div className="col-3 fw-semibold">Key Skills</div>
+                    <div className="col-9">
+                      <ul className="mb-0 list-unstyled ps-0">
+                        {viewJob.importantSkills?.map((skill, i) => (
+                          <li key={i} style={{ marginBottom: "2px" }}>
+                            {skill}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* Other Skills */}
+                  {viewJob.otherSkills?.length > 0 && (
+                    <div className="row mb-2">
+                      <div className="col-3 fw-semibold">Other Skills</div>
+                      <div className="col-9">
+                        <ul className="mb-0 list-unstyled ps-0">
+                          {viewJob.otherSkills.map((skill, i) => (
+                            <li key={i} style={{ marginBottom: "2px" }}>
+                              {skill}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Description */}
+                  <div className="row mb-2">
+                    <div className="col-3 fw-semibold">Description</div>
+                    <div className="col-9">
+                      <div
+                        dangerouslySetInnerHTML={{
+                          __html: viewJob.jobDescription,
+                        }}
+                      />
+                    </div>
+                  </div>
+
                 </div>
+
+
               </div>
-            )}
+
+              <div className="modal-footer">
+                <button
+                  className="btn btn-sm custom-outline-btn"
+                  style={{ marginRight: "45px", marginBottom: "10px", minWidth: 90 }}
+                  onClick={() => setShowViewPopup(false)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

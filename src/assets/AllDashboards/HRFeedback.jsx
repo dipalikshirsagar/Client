@@ -693,7 +693,7 @@ const HRFeedback = () => {
                 style={{
                   fontSize: "16px",
                   color: "#3A5FBE",
-                  marginRight: "15px",
+                  // marginRight: "15px", 
                   minWidth: "40px",
                 }}
               >
@@ -715,7 +715,8 @@ const HRFeedback = () => {
                 className="btn btn-sm custom-outline-btn"
                 style={{ minWidth: 90 }}
               >
-                Search
+                {/* Search */}
+                Filter
               </button>
               <button
                 type="button"
@@ -1189,7 +1190,8 @@ const HRFeedback = () => {
 
               <div className="modal-footer border-0">
                 <button
-                  className="btn custom-outline-btn"
+                  className="btn custom-outline-btn btn-sm"
+                  style={{minWidth:"90px"}} 
                   onClick={handleSubmit}
                   disabled={sending || (!editId && employees.length === 0)}
                 >
@@ -1202,7 +1204,8 @@ const HRFeedback = () => {
                       : "Send Feedback"}
                 </button>
                 <button
-                  className="btn custom-outline-btn"
+                  className="btn custom-outline-btn btn-sm"
+                  style={{minWidth:"90px"}}
                   onClick={() => {
                     setShowForm(false);
                     setEditId(null);
@@ -1238,8 +1241,8 @@ const HRFeedback = () => {
           }}
         >
           <div
-            className="modal-dialog"
-            style={{ maxWidth: "600px", width: "95%", marginTop: "160px" }}
+             className="modal-dialog modal-dialog-centered" 
+             style={{ maxWidth: "600px", width: "95%"}}
           >
             <div className="modal-content">
               <div
@@ -1346,7 +1349,8 @@ const HRFeedback = () => {
 
               <div className="modal-footer border-0 pt-0">
                 <button
-                  className="btn custom-outline-btn"
+                  className="btn custom-outline-btn btn-sm"
+                  style={{minWidth:"90px"}} 
                   onClick={() => setSelectedFeedback(null)}
                 >
                   Close
